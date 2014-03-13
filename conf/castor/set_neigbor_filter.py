@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import sys
 
-print('Setting Neigbor Filter to ' + str(sys.argv[1]))
+#print('Setting Neigbor Filter to ' + str(sys.argv[1]))
 
 with open("mycastorrouter2.click", "wt") as fout:
     with open("mycastorrouter.click", "rt") as fin:

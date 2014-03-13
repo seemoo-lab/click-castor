@@ -23,6 +23,7 @@ int CastorFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
  * Register this Flow at the stub element
  */
 void CastorFlow::registeratstub(){
+	click_chatter("Registering CASTOR Flow Merkle");
 	_stub->registerFlowType("Unknown", (CastorFlow*) this);
 }
 

@@ -40,7 +40,7 @@ void CastorFlowStub::registerFlowType(String name, CastorFlow * handle){
 
 	_flowtypes.push_back(type);
 
-	click_chatter("Flow Type %s registered at FlowStub" );
+	click_chatter("Flow registered at FlowStub" );
 }
 
 void CastorFlowStub::setDefaultType(uint8_t type){

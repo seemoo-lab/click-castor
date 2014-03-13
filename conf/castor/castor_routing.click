@@ -94,7 +94,7 @@ elementclass HandleIPPacket{
 	$flowDB, $crypto, $myIP |
 
 	-> CastorAddHeader($flowDB)
-	-> CastorEncryptACKAuth($crypto, $myIP)
+	-> CastorEncryptACKAuthDummy($crypto, $myIP)
 	-> output;
 }
 
@@ -135,7 +135,7 @@ elementclass CastorHandlePKT{
 		-> CastorPrint('CASTOR arrived at destination')
 		-> CastorValidateFlow				// Validate the Flow of the Castor
 		-> CastorAddToHistory($history)
-		-> genAck :: CastorCreateACK($crypto)		// Generate a new ACK
+		-> genAck :: CastorCreateACKDummy($crypto)		// Generate a new ACK
 		-> [0]output;					// Push Packets for Host to Output 0
 
 	//Broadcast a new ACK

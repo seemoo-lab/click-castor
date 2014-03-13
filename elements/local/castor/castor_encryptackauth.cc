@@ -57,7 +57,7 @@ void CastorEncryptACKAuth::push(int, Packet *p){
 
 	//click_chatter("ACK Authenticator encrypted");
 
-	output(0).push(p);
+	output(0).push(q);
 
 }
 
