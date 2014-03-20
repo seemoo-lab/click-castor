@@ -7,7 +7,7 @@
 
 #define CASTOR_HASHLENGTH		20
 #define CASTOR_ENCLENGTH		128
-#define CASTOR_FLOWSIZE			16
+#define CASTOR_FLOWSIZE			4
 
 #define CASTOR_TYPE_PKT				0xC0
 #define CASTOR_TYPE_ACK				0xA0

@@ -3,7 +3,7 @@
  */
 
 define(
-	$MyETH 		eth1,
+	$MyETH 		eth0,
 	$CASTORTYPE	201);
 
 AddressInfo(
