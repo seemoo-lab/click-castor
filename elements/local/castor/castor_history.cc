@@ -8,8 +8,11 @@
 CLICK_DECLS
 
 CastorHistory::CastorHistory() {
-	_history = Vector<Packet*>();
-	_ackhistory = Vector<Packet*>();
+	//_history = Vector<Packet*>();
+	//_ackhistory = Vector<Packet*>();
+
+	_pkthistory = HashTable<String, HistoryEntry>();
+	//_ackhistory = HashTable<String, Packet>;
 }
 
 CastorHistory::~CastorHistory() {
@@ -30,20 +33,157 @@ void CastorHistory::addToHistory(Packet* p) {
 	// Adding a packet to history
 	if ( type == CASTOR_TYPE_PKT){
 
-		Packet* q = p->clone();
-		_history.push_back(q);
+		//Packet* q = p->clone();
+		//_history.push_back(q);
+		addPKTToHistory(p);
 
 	// Adding an ack to history
 	} else if ( type == CASTOR_TYPE_ACK ){
 
-		Packet* q = p->clone();
-		_ackhistory.push_back(q);
+		//Packet* q = p->clone();
+		//_ackhistory.push_back(q);
+		addACKToHistory(p);
 
 	}
 	else{
 		click_chatter("Error adding packet to history, unknown Packet type");
 	}
 }
+
+void CastorHistory::addPKTToHistory(Packet* p) {
+
+	Castor_PKT* header;
+	header = (Castor_PKT*) p->data();
+
+	// Cast Packet.ID
+	String pid = String(header->pid);
+	HistoryEntry entry;
+	//entry.packet = &p;
+	entry.routedTo = p->dst_ip_anno();
+	entry.ACKedBy = Vector<IPAddress>();
+	memcpy(&entry.flow, &header->fid, sizeof(FlowId));
+
+	_pkthistory.set(pid,entry);
+}
+
+void CastorHistory::addACKToHistory(Packet* p) {
+
+	Castor_ACK* header;
+	header = (Castor_ACK*) p->data();
+
+	// Determine the Source of the Packet
+	IPAddress src = p->dst_ip_anno();
+
+	//Compute the Packet ID corresponding to the ACK
+	Hash pid;
+	_crypto->hash(&pid, header->auth, sizeof(Hash));
+
+	// Get the
+	HistoryEntry* entry = _pkthistory.get_pointer(String(pid));
+
+	if(!entry){
+		// Received an ACK for an unknown Packet, do not care
+		return;
+	}
+
+	entry->ACKedBy.push_back(src);
+}
+
+bool CastorHistory::ValidateACK(Packet* p){
+	Castor_ACK* header;
+	header = (Castor_ACK*) p->data();
+
+	// Determine the Source of the Packet
+	IPAddress src = p->dst_ip_anno();
+
+	//Compute the Packet ID corresponding to the ACK
+	Hash pid;
+	_crypto->hash(&pid, header->auth, sizeof(Hash));
+
+	// Get the
+	HistoryEntry* entry = _pkthistory.get_pointer(String(pid));
+
+	if(!entry){
+		return false;
+	}
+	return true;
+}
+
+void CastorHistory::GetFlowId(Packet* p, FlowId* flow){
+	uint8_t type = CastorPacket::getType(p);
+
+	if ( type == CASTOR_TYPE_PKT){
+		Castor_PKT* header;
+		header = (Castor_PKT*) p->data();
+
+		// Cast Packet.ID
+		String pid = String(header->pid);
+
+		memcpy(flow, &_pkthistory.get_pointer(pid)->flow, sizeof(FlowId));
+
+	} else if ( type == CASTOR_TYPE_ACK ){
+
+		Castor_ACK* header;
+		header = (Castor_ACK*) p->data();
+
+		//Compute the Packet ID corresponding to the ACK
+		Hash pid;
+		_crypto->hash(&pid, header->auth, sizeof(Hash));
+
+		// Get the
+		HistoryEntry* entry = _pkthistory.get_pointer(String(pid));
+
+		memcpy(flow, &entry->flow, sizeof(FlowId));
+	}
+	else{
+		click_chatter("Error adding packet to history, unknown Packet type");
+	}
+}
+
+/*
+ * Determine destination of origin packet
+ */
+IPAddress CastorHistory::PKTroutedto(Packet* ack){
+	Castor_ACK* header;
+	header = (Castor_ACK*) ack->data();
+
+	// Determine the Source of the Packet
+	IPAddress src = ack->dst_ip_anno();
+
+	//Compute the Packet ID corresponding to the ACK
+	Hash pid;
+	_crypto->hash(&pid, header->auth, sizeof(Hash));
+
+	// Get the
+	HistoryEntry* entry = _pkthistory.get_pointer(String(pid));
+
+	if(!entry)
+		return IPAddress("0.0.0.0");
+
+	return entry->routedTo;
+}
+
+bool CastorHistory::IsFirstACK(Packet* p){
+	Castor_ACK* header;
+	header = (Castor_ACK*) p->data();
+
+	// Determine the Source of the Packet
+	IPAddress src = p->dst_ip_anno();
+
+	//Compute the Packet ID corresponding to the ACK
+	Hash pid;
+	_crypto->hash(&pid, header->auth, sizeof(Hash));
+
+	// Get the
+	HistoryEntry* entry = _pkthistory.get_pointer(String(pid));
+
+	if(entry->ACKedBy.size()>0){
+		return false;
+	}
+	return true;
+}
+
+
 
 /**
  * Check weather packet has already been forwarded
@@ -52,32 +192,36 @@ bool CastorHistory::checkDuplicate(Packet* p) {
 
 	uint8_t type = CastorPacket::getType(p);
 	if ( type == CASTOR_TYPE_PKT){
-		Castor_PKT header;
-		CastorPacket::getCastorPKTHeader(p, &header);
 
-		for(int i=0; i<_history.size(); i++){
-			Castor_PKT entry;
-			CastorPacket::getCastorPKTHeader(_history.at(i), &entry);
+		Castor_PKT* header;
+		header = (Castor_PKT*) p->data();
 
-			if(! memcmp(entry.fid, header.fid, CASTOR_HASHLENGTH)){
-				if(! memcmp(entry.pid, header.pid, CASTOR_HASHLENGTH)){
-					// Found a match, this packet is already in history
-						return true;
-				}
-			}
+		// Cast Packet.ID
+		String pid = String(header->pid);
+
+		if(_pkthistory.get_pointer(pid)){
+			// Found a match, this packet is already in history
+			return true;
 		}
 		return false;
 
 	} else if ( type == CASTOR_TYPE_ACK ){
-		Castor_ACK header;
-		CastorPacket::getCastorACKHeader(p, &header);
 
-		for(int i=0; i<_ackhistory.size(); i++){
-			Castor_ACK entry;
-			CastorPacket::getCastorACKHeader(_ackhistory.at(i), &entry);
+		Castor_ACK* header;
+		header = (Castor_ACK*) p->data();
 
-			if(! memcmp(entry.auth, header.auth, CASTOR_HASHLENGTH)){
-				if(_ackhistory.at(i)->dst_ip_anno() == p->dst_ip_anno()){
+		// Determine the Source of the Packet
+		IPAddress src = p->dst_ip_anno();
+
+		//Compute the Packet ID corresponding to the ACK
+		Hash pid;
+		_crypto->hash(&pid, header->auth, sizeof(Hash));
+
+		HistoryEntry* entry = _pkthistory.get_pointer(String(pid));
+		if(entry){
+			// Found a matching packet
+			for(int i=0; i<entry->ACKedBy.size();i++) {
+				if(entry->ACKedBy.at(i) == src){
 					return true;
 				}
 			}
@@ -86,40 +230,30 @@ bool CastorHistory::checkDuplicate(Packet* p) {
 
 	} else {
 		click_chatter("Error checking duplicates in history, unknown Packet type");
+		return false;
 	}
 }
 
 /**
  * Search history for certain PID and return the FlowID
- */
+
 Packet* CastorHistory::getPacketById(PacketId pid){
 
-	for(int i=0; i<_history.size(); i++){
-		Packet* p = _history.at(i);
-		Castor_PKT header;
-		CastorPacket::getCastorPKTHeader(p, &header);
+	return _pkthistory.get_pointer(String(pid))->packet;
+}*/
 
-		if(! memcmp(header.pid, pid, CASTOR_HASHLENGTH)){
-			return p;
-		}
-	}
-	return false;
-}
 
 bool CastorHistory::hasACK(PacketId pid){
-	// Search the ACK history for ACK corresponding to the PKT
-	for(int i=0; i<_ackhistory.size(); i++){
-			Packet* a = _ackhistory.at(i);
-			Castor_ACK header;
-			CastorPacket::getCastorACKHeader(a, &header);
-			Hash auth;
-			_crypto->hash(&auth, header.auth, sizeof(Hash));
 
-			if(! memcmp(&auth, pid, CASTOR_HASHLENGTH)){
-				return true;
-			}
+	HistoryEntry* entry = _pkthistory.get_pointer(String(pid));
+	if(entry){
+		if (entry->ACKedBy.size() > 0){
+			return true;
 		}
 		return false;
+	}
+	click_chatter("Could not found corresponding packet in history");
+	return false;
 }
 
 CLICK_ENDDECLS

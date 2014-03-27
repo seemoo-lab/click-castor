@@ -11,8 +11,10 @@ typedef uint8_t ACKAuth[CASTOR_HASHLENGTH];
 
 typedef struct{
 	FlowId 		flow;
-	PacketId 	packet;
-	IPAddress	routedTo;
+//	PacketId 	packet;
+//	Packet 			packet;
+	IPAddress		routedTo;
+	Vector<IPAddress> ACKedBy;
 }HistoryEntry;
 
 typedef struct{
@@ -33,11 +35,21 @@ class CastorHistory : public Element {
 		bool 	checkDuplicate(Packet*);
 		Packet*	getPacketById(PacketId);
 		bool	hasACK(PacketId);
+		bool 	ValidateACK(Packet*);
+		bool 	IsFirstACK(Packet*);
+		IPAddress PKTroutedto(Packet*);
+		void GetFlowId(Packet*, FlowId*);
 
 	private:
+		void 	addACKToHistory(Packet*);
+		void 	addPKTToHistory(Packet*);
+
 		Vector<Packet*> 	_history;
 		Vector<Packet*>  _ackhistory;
 		Crypto* _crypto;
+
+		HashTable<String, HistoryEntry> _pkthistory;
+
 
 };
 
