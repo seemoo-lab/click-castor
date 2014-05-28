@@ -4,6 +4,9 @@
 #include "castor.hh"
 CLICK_DECLS
 
+/*	
+ *	Dummy Element, just for testing purposes
+ */
 class Dummy : public Element {
 	public:
 		Dummy();
@@ -13,8 +16,6 @@ class Dummy : public Element {
 		const char *port_count() const	{ return "0/0"; }
 		const char *processing() const	{ return PUSH; }
 		int configure(Vector<String>&, ErrorHandler*);
-		
-		//void push(int, Packet *);
 	private:
 };
 

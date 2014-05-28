@@ -13,8 +13,6 @@ CastorFlowStub::~ CastorFlowStub()
 {}
 
 PacketLabel CastorFlowStub::getPacketLabel(Host source, Host destination){
-	//Check if module is initialized
-	//TODO
 
 	//Validate Inputs
 	if(!source || ! destination)
@@ -26,9 +24,6 @@ PacketLabel CastorFlowStub::getPacketLabel(Host source, Host destination){
 
 	//Forward request to matching packetflow
 	PacketLabel lbl = t->handle->getPacketLabel(source, destination);
-
-	//Check if Flow is still available
-	//TODO
 
 	return lbl;
 }

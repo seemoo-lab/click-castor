@@ -27,7 +27,6 @@ class CastorFlow : public Element {
 
 		void registeratstub();
 		CastorFlowStub * _stub;
-		//virtual const String _name = 0;
 
 	protected:
 		Crypto* _crypto;

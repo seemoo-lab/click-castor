@@ -18,16 +18,7 @@ class CastorEncryptACKAuth : public Element {
 
 		void push(int, Packet *);
 
-		//int encrypt(uint8_t * toSign,int toSignLength,uint8_t * sig, IPAddress destination);
-
 	private:
-		//void testcrypt(uint8_t *, int, IPAddress);
-		//void testcrypt(Botan::SecureVector<Botan::byte>, IPAddress);
-
-		//Botan::Private_Key* getPrivateKey(IPAddress address);
-		//Botan::Public_Key* getPublicKey(IPAddress address);
-
-		//SAManagement * _sam;
 		Crypto* _crypto;
 		IPAddress _myIP;
 };

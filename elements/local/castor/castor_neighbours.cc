@@ -12,8 +12,6 @@ CastorNeighbours::~ CastorNeighbours()
 {}
 
 int CastorNeighbours::configure(Vector<String> &conf, ErrorHandler *errh) {
-	//if (cp_va_kparse(conf, this, errh, "MAXPACKETSIZE", cpkM, cpInteger, &maxSize, cpEnd) < 0) return -1;
-	//if (maxSize <= 0) return errh->error("maxsize should be larger than 0");
 	return 0;
 }
 

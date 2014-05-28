@@ -26,6 +26,7 @@ typedef struct {
 typedef uint8_t CHash[CASTOR_HASHLENGTH];
 typedef uint8_t Hash[CASTOR_HASHLENGTH];
 
+// The Packet Header Structure
 typedef struct {
 	uint8_t 	type;
 	uint8_t 	hsize;
@@ -40,6 +41,7 @@ typedef struct {
 	uint8_t 	eauth[CASTOR_ENCLENGTH];
 } Castor_PKT;
 
+// The ACK Header Structure
 typedef struct {
 	uint8_t 	type;
 	uint8_t 	hsize;

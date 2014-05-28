@@ -27,37 +27,22 @@ void CastorFlowMerkle::createFlow(Host source, Host destination) {
 	Vector<SValue> ack_auths = Vector<SValue>();	// The ACK authenticator
 	Vector<SValue> pids 	= Vector<SValue>();	// Packet IDs
 
-	//Generate some random nonces
-	//Vector<Hash> ack_auths = Vector<Hash>();
-	//Vector<Hash> pids = Vector<Hash>();
-
-	//click_chatter("Initialized Vectors");
-
 	for(uint8_t f=0;f<CASTOR_FLOWSIZE;f++){
 		SValue nonce 	= _crypto->random(CASTOR_HASHLENGTH);
 		SValue pid 		= _crypto->hash(nonce);
 
 		ack_auths.push_back(nonce);
 		pids.push_back(pid);
-		//Crypto::random()
-		//Hash nonce, pid;
-//		Crypto::random(&nonce);
-//		Crypto::hash(&pid, nonce, sizeof(Hash));
-//		ack_auths.push_back(nonce);
-//		pids.push_back(pid);
 	}
 
 	//Build the Merkle Tree
 	MerkleTree tree = MerkleTree(pids, _crypto);
-	//click_chatter(tree.toString().c_str());
 
 	//Set the predefined labels
 	for(int i=0; i<CASTOR_FLOWSIZE;i++){
 		SValue root = tree.getRoot();
-		//tree.getRoot(&root);
 
 		PacketLabel lbl;
-		//tree.getRoot(&lbl.flow_id);
 		memcpy(&lbl.flow_id, root.begin(), CASTOR_HASHLENGTH);
 		memcpy(&lbl.packet_id, pids.at(i).begin(),CASTOR_HASHLENGTH);
 		memcpy(&lbl.enc_ack_auth,ack_auths.at(i).begin(),CASTOR_HASHLENGTH);

@@ -11,8 +11,6 @@ typedef uint8_t ACKAuth[CASTOR_HASHLENGTH];
 
 typedef struct{
 	FlowId 		flow;
-//	PacketId 	packet;
-//	Packet 			packet;
 	IPAddress		routedTo;
 	Vector<IPAddress> ACKedBy;
 }HistoryEntry;

@@ -8,11 +8,7 @@
 CLICK_DECLS
 
 CastorHistory::CastorHistory() {
-	//_history = Vector<Packet*>();
-	//_ackhistory = Vector<Packet*>();
-
 	_pkthistory = HashTable<String, HistoryEntry>();
-	//_ackhistory = HashTable<String, Packet>;
 }
 
 CastorHistory::~CastorHistory() {
@@ -33,15 +29,11 @@ void CastorHistory::addToHistory(Packet* p) {
 	// Adding a packet to history
 	if ( type == CASTOR_TYPE_PKT){
 
-		//Packet* q = p->clone();
-		//_history.push_back(q);
 		addPKTToHistory(p);
 
 	// Adding an ack to history
 	} else if ( type == CASTOR_TYPE_ACK ){
 
-		//Packet* q = p->clone();
-		//_ackhistory.push_back(q);
 		addACKToHistory(p);
 
 	}
@@ -58,7 +50,6 @@ void CastorHistory::addPKTToHistory(Packet* p) {
 	// Cast Packet.ID
 	String pid = String(header->pid);
 	HistoryEntry entry;
-	//entry.packet = &p;
 	entry.routedTo = p->dst_ip_anno();
 	entry.ACKedBy = Vector<IPAddress>();
 	memcpy(&entry.flow, &header->fid, sizeof(FlowId));
@@ -78,7 +69,7 @@ void CastorHistory::addACKToHistory(Packet* p) {
 	Hash pid;
 	_crypto->hash(&pid, header->auth, sizeof(Hash));
 
-	// Get the
+	// Get the entry
 	HistoryEntry* entry = _pkthistory.get_pointer(String(pid));
 
 	if(!entry){
@@ -233,15 +224,6 @@ bool CastorHistory::checkDuplicate(Packet* p) {
 		return false;
 	}
 }
-
-/**
- * Search history for certain PID and return the FlowID
-
-Packet* CastorHistory::getPacketById(PacketId pid){
-
-	return _pkthistory.get_pointer(String(pid))->packet;
-}*/
-
 
 bool CastorHistory::hasACK(PacketId pid){
 

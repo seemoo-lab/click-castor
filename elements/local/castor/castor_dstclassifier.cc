@@ -10,12 +10,6 @@ CastorDstClassifier::CastorDstClassifier(){
 
 CastorDstClassifier::~ CastorDstClassifier(){}
 
-//int CastorDstClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
-//     return cp_va_kparse(conf, this, errh,
-//        "CastorDstClassifier", cpkP+cpkM, cpElementCast, "String", &_conf,
-//        cpEnd);
-//}
-
 int CastorDstClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
 	IPAddress dst;
 	   if (Args(conf, this, errh)
