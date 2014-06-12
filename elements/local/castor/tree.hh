@@ -6,6 +6,7 @@
 #include "crypto.hh"
 #include <click/vector.hh>
 
+CLICK_DECLS
 
 typedef struct MerkleTreeNode MerkleTreeNode;
 struct MerkleTreeNode{
@@ -28,4 +29,7 @@ private:
 	Vector<MerkleTreeNode*> _leaves;
 	Crypto* _crypto;
 };
+
+CLICK_ENDDECLS
+
 #endif
