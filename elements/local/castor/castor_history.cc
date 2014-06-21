@@ -4,6 +4,7 @@
 #include "castor_history.hh"
 #include "castor.hh"
 #include "crypto.hh"
+#include "castor_timeout.hh"
 
 CLICK_DECLS
 
@@ -18,6 +19,7 @@ int CastorHistory::configure(Vector<String> &conf, ErrorHandler *errh)
 {
 	int res = cp_va_kparse(conf, this, errh,
 		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &_crypto,
+		"CastorTimeout", cpkP+cpkM, cpElementCast, "CastorTimeout", &_timeout,
 		cpEnd);
 	if(res < 0) return res;
 	return 0;
@@ -30,6 +32,7 @@ void CastorHistory::addToHistory(Packet* p) {
 	if ( type == CASTOR_TYPE_PKT){
 
 		addPKTToHistory(p);
+		_timeout->create_timer(p);
 
 	// Adding an ack to history
 	} else if ( type == CASTOR_TYPE_ACK ){
@@ -84,9 +87,6 @@ bool CastorHistory::ValidateACK(Packet* p){
 	Castor_ACK* header;
 	header = (Castor_ACK*) p->data();
 
-	// Determine the Source of the Packet
-	IPAddress src = p->dst_ip_anno();
-
 	//Compute the Packet ID corresponding to the ACK
 	Hash pid;
 	_crypto->hash(&pid, header->auth, sizeof(Hash));
@@ -138,9 +138,6 @@ IPAddress CastorHistory::PKTroutedto(Packet* ack){
 	Castor_ACK* header;
 	header = (Castor_ACK*) ack->data();
 
-	// Determine the Source of the Packet
-	IPAddress src = ack->dst_ip_anno();
-
 	//Compute the Packet ID corresponding to the ACK
 	Hash pid;
 	_crypto->hash(&pid, header->auth, sizeof(Hash));
@@ -157,9 +154,6 @@ IPAddress CastorHistory::PKTroutedto(Packet* ack){
 bool CastorHistory::IsFirstACK(Packet* p){
 	Castor_ACK* header;
 	header = (Castor_ACK*) p->data();
-
-	// Determine the Source of the Packet
-	IPAddress src = p->dst_ip_anno();
 
 	//Compute the Packet ID corresponding to the ACK
 	Hash pid;

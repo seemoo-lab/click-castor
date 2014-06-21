@@ -19,6 +19,8 @@ typedef struct{
 	ACKAuth 	aauth;
 }ACKHistoryEntry;
 
+class CastorTimeout;
+
 class CastorHistory : public Element {
 	public:
 		CastorHistory();
@@ -45,6 +47,7 @@ class CastorHistory : public Element {
 		Vector<Packet*> 	_history;
 		Vector<Packet*>  _ackhistory;
 		Crypto* _crypto;
+		CastorTimeout* _timeout;
 
 		HashTable<String, HistoryEntry> _pkthistory;
 
