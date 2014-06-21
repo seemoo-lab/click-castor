@@ -77,7 +77,6 @@ void CastorFlowMerkle::updateFlow(Host source, Host destination) {
 
 CLICK_ENDDECLS
 ELEMENT_REQUIRES(TREE)
-ELEMENT_LIBS(-L/usr/local/lib -lbotan-1.10)
 EXPORT_ELEMENT(CastorFlowMerkle)
 
 
