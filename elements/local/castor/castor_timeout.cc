@@ -32,7 +32,7 @@ void CastorTimeout::create_timer(Packet* p) {
 	timer->initialize(this);
 	timer->schedule_after_msec(TIMEOUT_MS);
 
-	click_chatter("[%.2f] Set timer to expire at %.2f", Timestamp::now().doubleval(), timer->expiry().doubleval());
+	//click_chatter("[%.2f] Set timer to expire at %.2f", Timestamp::now().doubleval(), timer->expiry().doubleval());
 
 	// Create entry
 	Castor_PKT* header;
@@ -50,18 +50,18 @@ void CastorTimeout::run_timer(Timer* timer) {
 
 	TimeoutEntry* entry = _timers.get_pointer(timer);
 	if(!entry) {
-		click_chatter("[%.2f] Unknown timer fired", Timestamp::now().doubleval());
+		click_chatter("!!! [%.2f] Unknown timer fired", Timestamp::now().doubleval());
 		return;
 	}
 
 	// Check whether ACK has been received in the meantime
 	if (_history->hasACK(entry->pid)) {
-		click_chatter("[%.2f] Timer fired, ACK received", Timestamp::now().doubleval());
+		//click_chatter("[%.2f] Timer fired, ACK received", Timestamp::now().doubleval());
 		return;
 	}
 
 	// decrease ratings
-	click_chatter("[%.2f] Timer fired, ACK not received", Timestamp::now().doubleval());
+	//click_chatter("[%.2f] Timer fired, ACK not received", Timestamp::now().doubleval());
 	_table->updateEstimates(entry->fid, entry->routedTo, decrease, first);
 	_table->updateEstimates(entry->fid, entry->routedTo, decrease, all);
 

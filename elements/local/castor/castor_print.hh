@@ -1,7 +1,9 @@
 #ifndef CLICK_CASTORPRINT_HH
 #define CLICK_CASTORPRINT_HH
+
 #include <click/element.hh>
 #include "castor.hh"
+
 CLICK_DECLS
 
 class CastorPrint : public Element { 
@@ -15,16 +17,14 @@ class CastorPrint : public Element {
 		int configure(Vector<String>&, ErrorHandler*);
 		
 		void push(int, Packet *);
+
 	private:
-		uint8_t 	getType(Packet *);
-		bool 		getCastorPKTHeader(Packet *, Castor_PKT*);
-		bool 		getCastorACKHeader(Packet *, Castor_ACK*);
-		String 		hexToString(const unsigned char*, uint8_t );
-
+		IPAddress _address;
 		String _label;
-
+		bool _fullpkt;
 
 };
 
 CLICK_ENDDECLS
+
 #endif
