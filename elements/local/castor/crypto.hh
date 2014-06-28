@@ -28,8 +28,8 @@ class Crypto : public Element {
 		SValue 	encrypt	(SValue*, Public_Key*);
 		SValue 	decrypt	(SValue*, Private_Key*);
 
-		void hash(Hash* hash, uint8_t* data, uint8_t length);
-		void randomize(Hash* r);
+		void hash(Hash hash, uint8_t* data, uint8_t length);
+		void randomize(Hash r);
 		SValue random(int bytes);
 		SValue hash(SValue data);
 

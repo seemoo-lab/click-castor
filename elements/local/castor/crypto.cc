@@ -1,6 +1,7 @@
 #include <click/config.h>
 #include <click/args.hh>
 #include <click/confparse.hh>
+#include <click/straccum.hh>
 #include "crypto.hh"
 
 #include <botan/hash.h>
@@ -10,6 +11,7 @@
 #include <botan/pubkey.h>
 
 CLICK_DECLS
+
 Crypto::Crypto(){}
 
 Crypto::~ Crypto(){}
@@ -26,24 +28,17 @@ int Crypto::configure(Vector<String> &conf, ErrorHandler *errh)
 	return 0;
 }
 
-void Crypto::hash(Hash* hash, uint8_t* data, uint8_t length) {
-
+void Crypto::hash(Hash hash, uint8_t* data, uint8_t length) {
 	Botan::SHA_160 sha160;
 	Botan::SecureVector<Botan::byte> hashed = sha160.process(data, length);
 	memcpy(hash, hashed.begin(), CASTOR_HASHLENGTH);
 }
 
-void Crypto::randomize(Hash* r) {
+void Crypto::randomize(Hash r) {
 	Botan::AutoSeeded_RNG rng;
 	rng.randomize((uint8_t*) r, CASTOR_HASHLENGTH);
 }
 
-//static SHash Crypto::random(int bytes) {
-//	Botan::AutoSeeded_RNG rng;
-//	Botan::byte rbytes[bytes];
-//	rng.randomize(rbytes, bytes);
-//	return SHash(rbytes, bytes);
-//}
 SValue Crypto::random(int bytes) {
 	Botan::AutoSeeded_RNG rng;
 	Botan::byte rbytes[bytes];
@@ -113,11 +108,6 @@ SValue Crypto::decrypt(SValue* cipher, Private_Key* privkey) {
 	return decrypted;
 }
 
-//static SHash Crypto::hash(SHash data) {
-//	Botan::SHA_160 sha160;
-//	SHash hashed = sha160.process(data.begin(), data.size());
-//	return hashed;
-//}
 SValue Crypto::hash(SValue data) {
 	Botan::SHA_160 sha160;
 	SValue hashed = sha160.process(data.begin(), data.size());
