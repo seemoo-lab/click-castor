@@ -2,12 +2,6 @@
 #include <click/args.hh>
 #include <click/confparse.hh>
 #include "castor_encryptackauth_dummy.hh"
-#include "crypto.hh"
-#include <botan/data_src.h>
-#include <click/straccum.hh>
-
-
-
 
 CLICK_DECLS
 CastorEncryptACKAuthDummy::CastorEncryptACKAuthDummy(){}
@@ -33,4 +27,3 @@ void CastorEncryptACKAuthDummy::push(int, Packet *p){
 
 CLICK_ENDDECLS
 EXPORT_ELEMENT(CastorEncryptACKAuthDummy)
-

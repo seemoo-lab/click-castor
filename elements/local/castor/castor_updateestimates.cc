@@ -3,9 +3,6 @@
 #include <click/straccum.hh>
 #include "castor_updateestimates.hh"
 #include <click/etheraddress.hh>
-#include "castor.hh"
-#include "crypto.hh"
-
 
 CLICK_DECLS
 CastorUpdateEstimates::CastorUpdateEstimates(){}
@@ -16,22 +13,14 @@ int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
     return cp_va_kparse(conf, this, errh,
 		"CastorRoutingTable", cpkP+cpkM, cpElementCast, "CastorRoutingTable", &_table,
 		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &_history,
-		"Crypto", cpkP+cpkM, cpElementCast, "Crypto", &_crypto,
         cpEnd);
 }
 
 void CastorUpdateEstimates::push(int, Packet *p){
-	IPAddress nextHop;
 
 	//Get the Packet Header
 	Castor_ACK header;
 	CastorPacket::getCastorACKHeader(p, &header);
-
-	if(!_history->ValidateACK(p)){
-		click_chatter("Unknown ACK, discarding");
-		p->kill();
-		return;
-	}
 
     // The Address Annotation should contain the Source IP
     IPAddress src = p->dst_ip_anno();
@@ -63,11 +52,12 @@ void CastorUpdateEstimates::push(int, Packet *p){
 		 StringAccum sa;
 		 sa << "Received ACK from  " << src << " but packet was routed to " << src;
 		 click_chatter(sa.c_str());
-		 p->kill();
+		 output(1).push(p); // -> discard
 		 return;
 	}
 
     output(0).push(p);
+
 }
 
 CLICK_ENDDECLS

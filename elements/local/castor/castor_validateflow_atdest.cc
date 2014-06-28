@@ -1,12 +1,12 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 
-#include "castor_validateflow.hh"
+#include "castor_validateflow_atdest.hh"
 
 CLICK_DECLS
-CastorValidateFlow::CastorValidateFlow(){}
+CastorValidateFlowAtDestination::CastorValidateFlowAtDestination(){}
 
-CastorValidateFlow::~ CastorValidateFlow(){}
+CastorValidateFlowAtDestination::~ CastorValidateFlowAtDestination(){}
 
 //int CastorValidateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 //    //return cp_va_kparse(conf, this, errh,
@@ -14,7 +14,7 @@ CastorValidateFlow::~ CastorValidateFlow(){}
 //	return 0;
 //}
 
-void CastorValidateFlow::push(int, Packet *p){
+void CastorValidateFlowAtDestination::push(int, Packet *p){
 
 	// TODO: Implement validation check here
 	bool isPacketValid = true;
@@ -27,4 +27,4 @@ void CastorValidateFlow::push(int, Packet *p){
 }
 
 CLICK_ENDDECLS
-EXPORT_ELEMENT(CastorValidateFlow)
+EXPORT_ELEMENT(CastorValidateFlowAtDestination)

@@ -16,13 +16,10 @@ int CastorCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *errh) {
         cpEnd);
 }
 
-void CastorCheckDuplicate::push(int, Packet *p){
+void CastorCheckDuplicate::push(int, Packet *p) {
 	if(_history->checkDuplicate(p)){
-		// We already transmitted this packet, discard
-		//click_chatter("Duplicated Packet detected, discarding ...");
-		p->kill();
-	}
-	else{
+		output(1).push(p); // -> discard
+	} else{
 		output(0).push(p);
 	}
 }
