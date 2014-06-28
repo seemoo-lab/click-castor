@@ -3,11 +3,8 @@
 #include <click/element.hh>
 #include "castor.hh"
 #include "crypto.hh"
-CLICK_DECLS
 
-typedef uint8_t FlowId[CASTOR_HASHLENGTH];
-typedef uint8_t PacketId[CASTOR_HASHLENGTH];
-typedef uint8_t ACKAuth[CASTOR_HASHLENGTH];
+CLICK_DECLS
 
 typedef struct{
 	FlowId 		flow;
@@ -18,6 +15,8 @@ typedef struct{
 typedef struct{
 	ACKAuth 	aauth;
 }ACKHistoryEntry;
+
+typedef long Key; // FIXME currently using only part of pid as key
 
 class CastorTimeout;
 
@@ -31,7 +30,7 @@ class CastorHistory : public Element {
 		const char *processing() const	{ return AGNOSTIC; }
 		int configure(Vector<String>&, ErrorHandler*);
 
-		void 	addToHistory(Packet*);
+		void 	addToHistory(Packet*,bool);
 		bool 	checkDuplicate(Packet*);
 		Packet*	getPacketById(PacketId);
 		bool	hasACK(PacketId);
@@ -43,14 +42,16 @@ class CastorHistory : public Element {
 	private:
 		void 	addACKToHistory(Packet*);
 		void 	addPKTToHistory(Packet*);
+		inline Key getKeyForPacket(ACKAuth);
+		inline HistoryEntry* getEntryForAuth(ACKAuth);
+		inline HistoryEntry* getEntryForPid(PacketId);
 
 		Vector<Packet*> 	_history;
 		Vector<Packet*>  _ackhistory;
 		Crypto* _crypto;
 		CastorTimeout* _timeout;
 
-		HashTable<String, HistoryEntry> _pkthistory;
-
+		HashTable<Key, HistoryEntry> _pkthistory;
 
 };
 

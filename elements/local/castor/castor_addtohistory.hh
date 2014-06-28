@@ -19,6 +19,7 @@ class CastorAddToHistory : public Element {
 	private:
 		void push(int, Packet *);
 		CastorHistory* _history;
+		bool _startTimer;
 };
 
 CLICK_ENDDECLS
