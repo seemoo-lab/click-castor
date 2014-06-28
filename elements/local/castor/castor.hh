@@ -19,9 +19,13 @@ CLICK_DECLS
 
 typedef Vector<char> Bytestring;
 
+typedef uint8_t FlowId[CASTOR_HASHLENGTH];
+typedef uint8_t PacketId[CASTOR_HASHLENGTH];
 typedef struct {
 	uint8_t flow[CASTOR_HASHLENGTH];
 } FlowAuth;
+typedef uint8_t ACKAuth[CASTOR_HASHLENGTH];
+typedef uint8_t EACKAuth[CASTOR_ENCLENGTH];
 
 typedef uint8_t CHash[CASTOR_HASHLENGTH];
 typedef uint8_t Hash[CASTOR_HASHLENGTH];
@@ -35,10 +39,10 @@ typedef struct {
 	uint16_t 	len;
 	IPAddress	src;
 	IPAddress	dst;
-	uint8_t 	fid[CASTOR_HASHLENGTH];
-	uint8_t 	pid[CASTOR_HASHLENGTH];
+	FlowId	 	fid;
+	PacketId 	pid;
 	FlowAuth 	fauth[CASTOR_FLOWSIZE];
-	uint8_t 	eauth[CASTOR_ENCLENGTH];
+	EACKAuth 	eauth;
 } Castor_PKT;
 
 // The ACK Header Structure
@@ -46,7 +50,7 @@ typedef struct {
 	uint8_t 	type;
 	uint8_t 	hsize;
 	uint16_t 	len;
-	uint8_t 	auth[CASTOR_HASHLENGTH];
+	ACKAuth 	auth;
 } Castor_ACK;
 
 /**
@@ -55,14 +59,14 @@ typedef struct {
 class CastorPacket{
 public:
 
-	static uint8_t getType(Packet* p){
+	static inline uint8_t getType(Packet* p){
 		uint8_t type;
 		memcpy(&type, p->data(), sizeof(type));
 		type = type & 0xF0;
 		return type;
 	}
 
-	static bool getCastorPKTHeader(Packet* p, Castor_PKT* header){
+	static inline bool getCastorPKTHeader(Packet* p, Castor_PKT* header){
 		if(getType(p) == CASTOR_TYPE_PKT){
 			// Copy the header from packet
 			memcpy(header, p->data(), sizeof(Castor_PKT));
@@ -71,7 +75,7 @@ public:
 		return false;
 	}
 
-	static bool getCastorACKHeader(Packet* p, Castor_ACK* header){
+	static inline bool getCastorACKHeader(Packet* p, Castor_ACK* header){
 		if(getType(p) == CASTOR_TYPE_ACK){
 			// Copy the header from packet
 			memcpy(header, p->data(), sizeof(Castor_ACK));
