@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTOR_FLOW_STUB_HH
-#define CLICK_CASTOR_FLOW_STUB_HH
+#ifndef CLICK_CASTORFLOWSTUB_HH
+#define CLICK_CASTORFLOWSTUB_HH
 #include <click/element.hh>
 #include <click/ipaddress.hh>
 #include <click/hashtable.hh>

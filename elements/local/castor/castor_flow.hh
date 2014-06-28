@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTOR_FLOW_HH
-#define CLICK_CASTOR_FLOW_HH
+#ifndef CLICK_CASTORFLOW_HH
+#define CLICK_CASTORFLOW_HH
 #include <click/element.hh>
 #include "castor.hh"
 #include "castor_flow_stub.hh"
