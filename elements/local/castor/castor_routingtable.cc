@@ -19,6 +19,7 @@ CastorRoutingTable::~CastorRoutingTable() {
 }
 
 void CastorRoutingTable::updateNeighbor(IPAddress neighbor) {
+	// FIXME What is to be implemented here?
 }
 
 IPAddress CastorRoutingTable::lookup(FlowId flow) {
@@ -35,7 +36,7 @@ IPAddress CastorRoutingTable::lookup(FlowId flow) {
 
 	//Search for the highest estimate
 	RoutingEntry* bestEntry = &(table->front());
-	for(uint32_t i=1; i<table->size(); i++){
+	for(int i=1; i<table->size(); i++){
 		RoutingEntry* entry = &(table->at(i));
 		if(getEstimate(entry) > getEstimate(bestEntry))
 			bestEntry = entry;
@@ -85,8 +86,7 @@ void CastorRoutingTable::updateEstimates(FlowId flow, IPAddress hop,
 }
 
 Vector<RoutingEntry>* CastorRoutingTable::getRoutingTable(FlowId flow) {
-	uint32_t i;
-	for(i=0; i<_flows.size(); i++){
+	for(int i=0; i<_flows.size(); i++){
 		FlowEntry entry = _flows.at(i);
 		if(! memcmp(entry.flow, flow, sizeof(FlowId))){
 			// Found a matching entry
@@ -105,7 +105,7 @@ Vector<RoutingEntry>* CastorRoutingTable::getRoutingTable(FlowId flow) {
 RoutingEntry* CastorRoutingTable::getRoutingEntry(Vector<RoutingEntry>* table, IPAddress hop){
 
 	// Iterate over the Table
-	for(uint32_t i=0; i<table->size(); i++){
+	for(int i=0; i<table->size(); i++){
 		RoutingEntry* entry = &(table->at(i));
 		if(entry->nextHop == hop){
 			return entry;
@@ -130,7 +130,7 @@ void CastorRoutingTable::printRoutingTable(FlowId flow){
 
 	Vector<RoutingEntry>* table = getRoutingTable(flow);
 	// Iterate over the Table
-	for(uint32_t i=0; i<table->size(); i++){
+	for(int i=0; i<table->size(); i++){
 		RoutingEntry* entry = &(table->at(i));
 		sa << " - " << entry->nextHop << "\t" << getEstimate(entry) << "\n";
 	}

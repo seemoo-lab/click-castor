@@ -45,7 +45,7 @@ MerkleTree::MerkleTree(Vector<SValue> e, Crypto* c) {
 
 			// Concat the childs values
 			SValue tmp = SValue(lc->data);
-			for(int k=0;k<rc->data.size();k++)
+			for(unsigned int k=0;k<rc->data.size();k++)
 				tmp.push_back(rc->data.begin()[k]);
 
 			//click_chatter("Hashing data with size");

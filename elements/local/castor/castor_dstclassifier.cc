@@ -5,43 +5,31 @@
 #include "castor_dstclassifier.hh"
 
 CLICK_DECLS
-CastorDstClassifier::CastorDstClassifier(){
+
+CastorDstClassifier::CastorDstClassifier() {
 }
 
-CastorDstClassifier::~ CastorDstClassifier(){}
+CastorDstClassifier::~CastorDstClassifier() {
+}
 
 int CastorDstClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
-	IPAddress dst;
-	   if (Args(conf, this, errh)
-			   .read_mp("DST", dst)
-			   .complete() < 0)
+	if (Args(conf, this, errh)
+			.read_mp("DST", myAddr)
+			.complete() < 0)
 		return -1;
-
-	   _my_addr = dst;
+	return 0;
 }
 
+void CastorDstClassifier::push(int, Packet *p) {
 
-void CastorDstClassifier::push(int, Packet *p){
+	Castor_PKT* header = (Castor_PKT*) p->data();
 
-	IPAddress dest 	= getCastorPktHeader(p->data()).dst;
-
-	if(_my_addr == dest){
+	if (myAddr == header->dst) {
 		output(0).push(p);
-	}
-	else{
+	} else {
 		output(1).push(p);
 	}
 
-}
-
-Castor_PKT CastorDstClassifier::getCastorPktHeader(const unsigned char * data){
-    // Create a new header object
-    Castor_PKT header;
-
-    // Copy the header from packet
-    memcpy(&header, data, sizeof(Castor_PKT));
-
-    return header;
 }
 
 CLICK_ENDDECLS

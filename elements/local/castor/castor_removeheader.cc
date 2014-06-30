@@ -33,11 +33,11 @@ void CastorRemoveHeader::init(){
 void CastorRemoveHeader::push(int, Packet *p){
 
 	//Extract src and destination from the Castor Header
-	Castor_PKT header;
-	CastorPacket::getCastorPKTHeader(p, &header);
-	IPAddress* src = &header.src;
-	IPAddress* dst = &header.dst;
-	uint8_t type  = header.ctype;
+//	Castor_PKT header;
+//	CastorPacket::getCastorPKTHeader(p, &header);
+//	IPAddress* src = &header.src;
+//	IPAddress* dst = &header.dst;
+//	uint8_t type  = header.ctype;
 
 	//Remove the Castor Header
 	WritablePacket *q = p->uniqueify();

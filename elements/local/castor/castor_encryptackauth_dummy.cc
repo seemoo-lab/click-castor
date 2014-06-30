@@ -21,6 +21,12 @@ int CastorEncryptACKAuthDummy::configure(Vector<String> &conf, ErrorHandler *err
 
 void CastorEncryptACKAuthDummy::push(int, Packet *p){
 
+	WritablePacket* q = p->uniqueify();
+	Castor_PKT* header = (Castor_PKT*) q->data();
+	SValue auth(header->eauth, CASTOR_HASHLENGTH);
+
+	_crypto->testSymmetricCrypt(auth, header->dst);
+
 	output(0).push(p);
 
 }
