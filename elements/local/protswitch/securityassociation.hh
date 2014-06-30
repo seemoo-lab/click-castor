@@ -1,20 +1,26 @@
 #ifndef SECURITYASSOCIATION_HH
 #define SECURITYASSOCIATION_HH
 #include <click/element.hh>
+
 CLICK_DECLS
 
-enum SAType{SApubkey,SAprivkey,SAendofhashchain,SAsharedsecret};
+enum SAType {
+	SApubkey, SAprivkey, SAendofhashchain, SAsharedsecret
+};
 
-class SecurityAssociation{
+class SecurityAssociation {
 public:
-	SAType myType;
-	int mySize;
-	unsigned char * myData;
+	const SAType myType;
+	const int mySize;
+	unsigned char* myData;
 
 public:
-	void fromString(SAType t,String sa);
+	SecurityAssociation(SAType, String);
+	SecurityAssociation(SAType, unsigned char*, size_t);
+	~SecurityAssociation();
 	String toString();
 };
 
 CLICK_ENDDECLS
+
 #endif

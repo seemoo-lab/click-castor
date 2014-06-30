@@ -7,36 +7,49 @@
 
 CLICK_DECLS
 
-//typedef Botan::SecureVector<Botan::byte> SHash; //DEPRICATED
 typedef Botan::SecureVector<Botan::byte> SValue;
-typedef Botan::Private_Key 	Private_Key;
-typedef Botan::Public_Key 	Public_Key;
+typedef Botan::Private_Key PrivateKey;
+typedef Botan::Public_Key PublicKey;
+typedef Botan::SymmetricKey SymmetricKey;
 
-class Crypto : public Element {
-	public:
-		Crypto();
-		~Crypto();
+class Crypto: public Element {
 
-		const char *class_name() const	{ return "Crypto"; }
-		const char *port_count() const	{ return "0/0"; }
-		const char *processing() const	{ return AGNOSTIC; }
-		int configure(Vector<String>&, ErrorHandler*);
+public:
+	Crypto();
+	~Crypto();
 
-		Private_Key* 	getPrivateKey	(IPAddress address);
-		Public_Key* 	getPublicKey	(IPAddress address);
+	const char *class_name() const { return "Crypto"; }
+	const char *port_count() const { return PORTS_0_0; }
+	const char *processing() const { return AGNOSTIC; }
+	int configure(Vector<String>&, ErrorHandler*);
 
-		SValue 	encrypt	(SValue*, Public_Key*);
-		SValue 	decrypt	(SValue*, Private_Key*);
+	// Public key crypto
+	PrivateKey* getPrivateKey(IPAddress);
+	PublicKey* getPublicKey(IPAddress);
+	SValue encrypt(SValue*, PublicKey*);
+	SValue decrypt(SValue*, PrivateKey*);
 
-		void hash(Hash hash, uint8_t* data, uint8_t length);
-		void randomize(Hash r);
-		SValue random(int bytes);
-		SValue hash(SValue data);
+	// Symmetric crypto
+	SymmetricKey* getSharedKey(const IPAddress&);
+	SValue encrypt(const SValue&, const SymmetricKey&);
+	SValue decrypt(const SValue&, const SymmetricKey&);
 
-		void testcrypt(SValue*, IPAddress);
+	void hash(Hash hash, uint8_t* data, uint8_t length);
+	void randomize(Hash r);
+	SValue random(int bytes);
+	SValue hash(SValue data);
 
-	private:
-		SAManagement * _sam;
+	void testcrypt(SValue*, IPAddress);
+	void testSymmetricCrypt(SValue, IPAddress);
+
+private:
+	inline size_t numberOfBlocks(size_t blocksize, size_t ciphersize) {
+		return (ciphersize + blocksize - 1) / blocksize; // Round up
+	}
+
+	SAManagement* _sam;
+	Botan::BlockCipher* blockCipher;
+
 };
 
 CLICK_ENDDECLS

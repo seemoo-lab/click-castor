@@ -6,9 +6,10 @@
 #define ETHERTYPE_CASTOR		0x0CA0
 
 #define CASTOR_HASHLENGTH		20
-#define CASTOR_ENCLENGTH		128
+#define CASTOR_ENCLENGTH		32 // needs to be larger than CASTOR_HASHLENGTH, and multiple of cipher block size (16)
 #define CASTOR_FLOWSIZE			4
 
+// TODO Should be CastorType enum
 #define CASTOR_TYPE_PKT				0xC0
 #define CASTOR_TYPE_ACK				0xA0
 #define CASTOR_TYPE_MERKLE_PKT		0xCA

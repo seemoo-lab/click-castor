@@ -3,40 +3,87 @@
  * Joerg Kaiser
  *
  */
-//ALWAYS INCLUDE <click/config.h> FIRST
 #include <click/config.h>
-#include <click/error.hh>
+#include <click/args.hh>
 #include <click/confparse.hh>
-//#include <click/packet_anno.hh>
-//#include <clicknet/ip.h>
-
 #include "samanagement.hh"
-
+#include <botan/kdf.h>
+#include <botan/lookup.h>
+#include <botan/secmem.h>
 
 CLICK_DECLS
 
-SAManagement::SAManagement()
-{
+SAManagement::SAManagement(size_t symmetricKeyLength) :
+		symmetricKeyLength(symmetricKeyLength) {
+}
+
+SAManagement::~SAManagement() {
+}
+
+int SAManagement::configure(Vector<String> &conf, ErrorHandler *errh) {
+	// Set default values
+	symmetricKeyLength = 16;
+
+	if (Args(conf, this, errh)
+			.read_mp("ADDR", myIP)
+			.read_p("SYM_KEY_LENGTH", symmetricKeyLength)
+			.complete() < 0)
+		return -1;
+
+	return 0;
+}
+
+int SAManagement::initialize(ErrorHandler* errh) {
+
+	int ret = initializeSymmetricKeys(errh);
+	if (ret != 0)
+		return ret;
+
+	ret = initializePublicPrivateKeys(errh);
+	if (ret != 0)
+		return ret;
+
+	return 0;
 
 }
 
-SAManagement::~SAManagement()
-{
+int SAManagement::initializeSymmetricKeys(ErrorHandler*) {
+
+	// Create constant base key
+	Botan::byte rbytes[symmetricKeyLength];
+	for (unsigned int i = 0; i < symmetricKeyLength; i++) {
+		rbytes[i] = i;
+	}
+
+	// Derive individual keys deterministically for every node
+	Botan::KDF* kdf = Botan::get_kdf("KDF2(SHA-160)");
+	unsigned int numOfNodes = 50; // max: 254
+	String net = "192.168.201.";
+	for (unsigned char i = 1; i <= numOfNodes; i++) {
+		String addr(net);
+		addr.append(String(i));
+		Botan::SecureVector<Botan::byte> key = kdf->derive_key(
+				symmetricKeyLength, rbytes, symmetricKeyLength,
+				(Botan::byte*) addr.data(), addr.length());
+		assert(key.size() == symmetricKeyLength);
+		SecurityAssociation sa(SAsharedsecret, key.begin(), key.size());
+
+		addSA(sa, IPAddress(addr));
+	}
+
+	delete kdf;
+
+	return 0;
 }
 
+int SAManagement::initializePublicPrivateKeys(ErrorHandler*) {
+	String strpublickey =
+			"-----BEGIN PUBLIC KEY-----MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDgCtq3o51JBkJyLagmnMovOPqebMsHy5Z0CYyHQUyPGV+6k4oWLFVWmoSGDkmcanpsGtaqKHERqfWY38H1Bz7U99mRmrWU3nfYwQqIz+TZkGyOVbzoTeiZ3ApqvUwIbhYJ3zRElmaPajRUdHolrBKgfAqBpvlCtPIwof48D/OeBwIDAQAB-----END PUBLIC KEY-----";
 
-int SAManagement::configure(Vector<String> &conf, ErrorHandler *errh)
-{
-	return cp_va_kparse(conf, this, errh, "ADDR", cpkP+cpkM, cpIPAddress, &myIP, cpEnd);
-}
+	SecurityAssociation sa1(SApubkey, strpublickey);
 
-int SAManagement::initialize(ErrorHandler *){
-	String strpublickey="-----BEGIN PUBLIC KEY-----MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDgCtq3o51JBkJyLagmnMovOPqebMsHy5Z0CYyHQUyPGV+6k4oWLFVWmoSGDkmcanpsGtaqKHERqfWY38H1Bz7U99mRmrWU3nfYwQqIz+TZkGyOVbzoTeiZ3ApqvUwIbhYJ3zRElmaPajRUdHolrBKgfAqBpvlCtPIwof48D/OeBwIDAQAB-----END PUBLIC KEY-----";
-
-	SecurityAssociation sa1;
-	sa1.fromString(SApubkey,strpublickey);
-
-	String strprivatekey="-----BEGIN ENCRYPTED PRIVATE KEY-----\
+	String strprivatekey =
+			"-----BEGIN ENCRYPTED PRIVATE KEY-----\
 	MIIC0jBMBgkqhkiG9w0BBQ0wPzAeBgkqhkiG9w0BBQwwEQQICpOWuM+j/gACAicQ\
 	AgEgMB0GCWCGSAFlAwQBKgQQ+/8chioJV2Dj1uoCVrAN9wSCAoDxhzkndZsQakKL\
 	ux4ZtcfMTUvr1MPxAGDfBV9FknXvib8ple5RmbvlVX+OT7Pak1ly7mjeg0afVBHd\
@@ -55,136 +102,86 @@ int SAManagement::initialize(ErrorHandler *){
 	cUQQuSKm\
 	-----END ENCRYPTED PRIVATE KEY-----";
 
-	SecurityAssociation sa2;
-	sa2.fromString(SAprivkey,strprivatekey);
+	SecurityAssociation sa2(SAprivkey, strprivatekey);
 
-	addSA(sa2,myIP);
+	addSA(sa2, myIP);
 
-	addSA(sa1,IPAddress("192.168.201.1"));
-	addSA(sa1,IPAddress("192.168.201.2"));
-	addSA(sa1,IPAddress("192.168.201.3"));
-	addSA(sa1,IPAddress("192.168.201.4"));
-	addSA(sa1,IPAddress("192.168.201.5"));
-	addSA(sa1,IPAddress("192.168.201.6"));
-	addSA(sa1,IPAddress("192.168.201.7"));
-	addSA(sa1,IPAddress("192.168.201.8"));
-	addSA(sa1,IPAddress("192.168.201.9"));
-	addSA(sa1,IPAddress("192.168.201.10"));
-	addSA(sa1,IPAddress("192.168.201.11"));
-	addSA(sa1,IPAddress("192.168.201.12"));
-	addSA(sa1,IPAddress("192.168.201.13"));
-	addSA(sa1,IPAddress("192.168.201.14"));
-	addSA(sa1,IPAddress("192.168.201.15"));
-	addSA(sa1,IPAddress("192.168.201.16"));
-	addSA(sa1,IPAddress("192.168.201.17"));
-	addSA(sa1,IPAddress("192.168.201.18"));
-	addSA(sa1,IPAddress("192.168.201.19"));
-	addSA(sa1,IPAddress("192.168.201.20"));
+	addSA(sa1, IPAddress("192.168.201.1"));
+	addSA(sa1, IPAddress("192.168.201.2"));
+	addSA(sa1, IPAddress("192.168.201.3"));
+	addSA(sa1, IPAddress("192.168.201.4"));
+	addSA(sa1, IPAddress("192.168.201.5"));
+	addSA(sa1, IPAddress("192.168.201.6"));
+	addSA(sa1, IPAddress("192.168.201.7"));
+	addSA(sa1, IPAddress("192.168.201.8"));
+	addSA(sa1, IPAddress("192.168.201.9"));
+	addSA(sa1, IPAddress("192.168.201.10"));
+	addSA(sa1, IPAddress("192.168.201.11"));
+	addSA(sa1, IPAddress("192.168.201.12"));
+	addSA(sa1, IPAddress("192.168.201.13"));
+	addSA(sa1, IPAddress("192.168.201.14"));
+	addSA(sa1, IPAddress("192.168.201.15"));
+	addSA(sa1, IPAddress("192.168.201.16"));
+	addSA(sa1, IPAddress("192.168.201.17"));
+	addSA(sa1, IPAddress("192.168.201.18"));
+	addSA(sa1, IPAddress("192.168.201.19"));
+	addSA(sa1, IPAddress("192.168.201.20"));
 	return 0;
 }
 
-int SAManagement::addSA(SecurityAssociation sa, Vector<IPAddress> nodes){
-	for(int i=0;i<nodes.size();i++){
-		SAMap::iterator it= mySAs.find(nodes[i]);
-		if(it!=mySAs.end()){
-			it.value().push_back(sa);
-		}
-		else{
-			Vector<SecurityAssociation> newentry;
-			newentry.push_back(sa);
-			mySAs.set(nodes[i],newentry);
-		}
-	}
-	return 0;
-}
-
-int SAManagement::addSA(SecurityAssociation sa,IPAddress node){
-	SAMap::iterator it= mySAs.find(node);
-	if(it!=mySAs.end()){
+int SAManagement::addSA(SecurityAssociation sa, IPAddress node) {
+	SAMap::iterator it = mySAs.find(node);
+	if (it != mySAs.end()) {
 		it.value().push_back(sa);
-	}
-	else{
+	} else {
 		Vector<SecurityAssociation> newentry;
 		newentry.push_back(sa);
-		mySAs.set(node,newentry);
+		mySAs.set(node, newentry);
 	}
 	return 0;
 }
 
-
-void SAManagement::printSAs(){
-	for(SAMap::iterator i=mySAs.begin();i!=mySAs.end();i++){
-		for(int k=0;k<i.value().size();k++){
-			click_chatter("we have a SA of type %i for %s", (i.value())[k].myType, i.key().s().c_str());
+void SAManagement::printSAs() {
+	for (SAMap::iterator i = mySAs.begin(); i != mySAs.end(); i++) {
+		for (int k = 0; k < i.value().size(); k++) {
+			click_chatter("we have a SA of type %i for %s",
+					(i.value())[k].myType, i.key().s().c_str());
 		}
 	}
 }
 
-
-Vector<IPAddress> SAManagement::checkSApresence(SAType t,Vector<IPAddress> nodes){
-	Vector<IPAddress> missing;
-
-	click_chatter("SAM(debud): missing.size()=%i", missing.size());
-	for(int i=0;i<nodes.size();i++){
-		SAMap::iterator it= mySAs.find(nodes[i]);
-		if(it!=mySAs.end()){
-			bool present=false;
-			for(int k=0;k<it.value().size();k++){
-				if((it.value())[k].myType==t){
-					present=true;
-					break;
-				}
-				present=false;
-			}
-			if(present==false){
-				click_chatter("SAM: IP found but not the right SA");
-				missing.push_back(nodes[i]);
-			}
-		}
-		else{
-			click_chatter("SAM: IP not found-> no SAs for node %s",nodes[i].s().c_str());
-			missing.push_back(nodes[i]);
-		}
-	}
-	return missing;
-}
-
-
-
-bool SAManagement::checkSApresence(SAType t, IPAddress node){
-	click_chatter("searching for SA of type %i for node %s",t,node.s().c_str());
-	SAMap::iterator it= mySAs.find(node);
-	if(it!=mySAs.end()){
-		for(int k=0;k<it.value().size();k++){
-			if((it.value())[k].myType==t){
-				click_chatter("data is %s",(it.value())[k].toString().c_str());
+bool SAManagement::checkSApresence(SAType t, IPAddress node) {
+	click_chatter("searching for SA of type %i for node %s", t,
+			node.s().c_str());
+	SAMap::iterator it = mySAs.find(node);
+	if (it != mySAs.end()) {
+		for (int k = 0; k < it.value().size(); k++) {
+			if ((it.value())[k].myType == t) {
+				click_chatter("data is %s", (it.value())[k].toString().c_str());
 				return true;
 			}
 		}
 		return false;
-	}
-	else{
+	} else {
 		return false;
 	}
 }
 
-SecurityAssociation * SAManagement::getSA(SAType t, IPAddress node){
-	SAMap::iterator it= mySAs.find(node);
-	if(it!=mySAs.end()){
-		for(int k=0;k<it.value().size();k++){
-			if((it.value())[k].myType==t){
+const SecurityAssociation* SAManagement::getSA(SAType t,
+		const IPAddress& node) {
+	SAMap::iterator it = mySAs.find(node);
+	if (it != mySAs.end()) {
+		for (int k = 0; k < it.value().size(); k++) {
+			if ((it.value())[k].myType == t) {
 				return &(it.value())[k];
 			}
 		}
 		return 0;
-	}
-	else{
+	} else {
 		return 0;
 	}
 }
 
-
 CLICK_ENDDECLS
-
+ELEMENT_LIBS(-L/usr/local/lib -lbotan-1.10)
 EXPORT_ELEMENT(SAManagement)
-

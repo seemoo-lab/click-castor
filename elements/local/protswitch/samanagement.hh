@@ -9,50 +9,46 @@
  */
 #ifndef SAMANAGEMENT_HH
 #define SAMANAGEMENT_HH
+
 #include <click/element.hh>
 #include <click/hashtable.hh>
-//#include <string>
-
 #include "../protswitch/securityassociation.hh"
-
-//#include <botan/botan.h> //also includes std::string
-//#include <botan/rsa.h>
-//#include <botan/pubkey.h>
 
 CLICK_DECLS
 
-typedef HashTable<IPAddress,Vector<SecurityAssociation> > SAMap;
+typedef HashTable<IPAddress, Vector<SecurityAssociation> > SAMap;
 
-class SAManagement: public Element{
-	public:
+class SAManagement: public Element {
+public:
 
-		SAManagement();
-		~SAManagement();
+	/**
+	 * @param symmetricKeyLength length of generated symmetric keys
+	 */
+	SAManagement(size_t symmetricKeyLength = 16);
+	~SAManagement();
 
-		const char *class_name() const	{ return "SAManagement"; }
-		const char *port_count() const	{ return PORTS_0_0; }
-		const char *processing() const	{ return AGNOSTIC; }
-		SAManagement *clone() const	{ return new SAManagement; }
+	const char *class_name() const	{ return "SAManagement"; }
+	const char *port_count() const	{ return PORTS_0_0; }
+	const char *processing() const	{ return AGNOSTIC; }
 
-		int configure(Vector<String> &, ErrorHandler *);
+	int configure(Vector<String> &, ErrorHandler *);
 
-		int initialize(ErrorHandler *);
+	int initialize(ErrorHandler *);
 
-		Vector<IPAddress> checkSApresence(SAType t,Vector<IPAddress> nodes);
-		bool checkSApresence(SAType t, IPAddress node);
-		int addSA(SecurityAssociation, Vector<IPAddress> nodes);
-		int addSA(SecurityAssociation sa,IPAddress node);
-		void printSAs();
-		SecurityAssociation * getSA(SAType t, IPAddress node);
+	Vector<IPAddress> checkSApresence(SAType t, Vector<IPAddress> nodes);
+	bool checkSApresence(SAType t, IPAddress node);
+	int addSA(SecurityAssociation, IPAddress);
+	void printSAs();
+	const SecurityAssociation* getSA(SAType t, const IPAddress& node);
 
-		
-	private:
-
-		//Hashmap with SAs
-		SAMap mySAs;
-		IPAddress myIP;
-
+private:
+	int initializeSymmetricKeys(ErrorHandler*);
+	int initializePublicPrivateKeys(ErrorHandler*);
+	SAMap mySAs;
+	IPAddress myIP;
+	size_t symmetricKeyLength;
 };
 
 CLICK_ENDDECLS
+
 #endif

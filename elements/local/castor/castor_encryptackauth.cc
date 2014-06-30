@@ -38,7 +38,7 @@ void CastorEncryptACKAuth::push(int, Packet *p){
 	Castor_PKT* header = (Castor_PKT*) q->data();
 	SValue auth(header->eauth, CASTOR_HASHLENGTH);
 
-	Public_Key* pk = _crypto->getPublicKey(header->dst);
+	PublicKey* pk = _crypto->getPublicKey(header->dst);
 	if(!pk){
 		click_chatter("Could not find public key, for destination");
 		return;

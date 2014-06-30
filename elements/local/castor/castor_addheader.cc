@@ -18,8 +18,6 @@ int CastorAddHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void CastorAddHeader::push(int, Packet *p){
 
-	//click_chatter("Header size %d\n", sizeof(Castor_PKT));
-
 	//Extract source and destination from packet
     IPAddress src = p->ip_header()->ip_src.s_addr;
     IPAddress dst = p->ip_header()->ip_dst.s_addr;
@@ -47,7 +45,12 @@ void CastorAddHeader::push(int, Packet *p){
 
     memcpy(&header.fid, &label.flow_id, CASTOR_HASHLENGTH);
     memcpy(&header.pid, &label.packet_id, CASTOR_HASHLENGTH);
-    memcpy(&header.eauth, &label.enc_ack_auth, CASTOR_HASHLENGTH);
+    if(CASTOR_HASHLENGTH > CASTOR_ENCLENGTH) {
+    	click_chatter("[Warning] Copying ACKAuth: Hash length is larger than ciphertext length, loosing entropy.");
+		memcpy(&header.eauth, &label.enc_ack_auth, CASTOR_ENCLENGTH);
+	} else {
+		memcpy(&header.eauth, &label.enc_ack_auth, CASTOR_HASHLENGTH);
+	}
 
  	//Copy header to packet
  	memcpy(q->data(), &header, sizeof(Castor_PKT));

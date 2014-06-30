@@ -28,7 +28,7 @@ void CastorCreateACK::push(int, Packet *p){
     Castor_PKT* pkt = (Castor_PKT*) p->data();
 
 	//Decrypt the authenticator
-    Private_Key* sk = _crypto->getPrivateKey(pkt->dst);
+    PrivateKey* sk = _crypto->getPrivateKey(pkt->dst);
     SValue eauth = SValue(pkt->eauth, CASTOR_ENCLENGTH);
 	SValue aauth = _crypto->decrypt(&eauth, sk);
 
