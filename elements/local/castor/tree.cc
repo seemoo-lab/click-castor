@@ -5,118 +5,111 @@
 
 CLICK_DECLS
 
-MerkleTree::MerkleTree(Vector<SValue> e, Crypto* c) {
+MerkleTree::MerkleTree(Vector<SValue>& in, Crypto& c) :	crypto(c) {
+
+	// Verify that size of e is power of 2
+	assert(in.size() && !(in.size() & (in.size() - 1)));
+
 	_leaves = Vector<MerkleTreeNode*>();
-	_crypto = c;
-	Vector<MerkleTreeNode*>* layer;
+	Vector<MerkleTreeNode*>* layer = 0;
 	Vector<MerkleTreeNode*>* nextlayer = new Vector<MerkleTreeNode*>();
 
-	//Create the leaves
-	for(int i=0; i<e.size(); i++){
-		//Create a new Node
-		MerkleTreeNode* node = new MerkleTreeNode;
-		node->parent=0;
-		node->data = e.at(i);
-		//memcpy(&node->data, e.at(i), sizeof(SHash));
-		_leaves.push_back(node);
-
-		//Create a new hashNode
-		MerkleTreeNode* hnode = new MerkleTreeNode;
-		hnode->parent=0;
-		hnode->data = _crypto->hash( e.at(i) );
-		//memcpy(&hnode->data, e.at(i), sizeof(Hash));
-		//Crypto::hash(&hnode->data, (uint8_t*)&hnode->data, sizeof(Hash));
-		node->parent = hnode;
+	// Create the leaves
+	for (int i = 0; i < in.size(); i++) {
+		MerkleTreeNode* hnode = new MerkleTreeNode();
+		hnode->data = crypto.hash(in.at(i));
+		_leaves.push_back(hnode);
 		nextlayer->push_back(hnode);
 	}
 
 	// Build the tree
-	while(nextlayer->size() > 1){
+	while (nextlayer->size() > 1) {
+		delete layer;
 		layer = nextlayer;
 		nextlayer = new Vector<MerkleTreeNode*>();
 
-		for(int j=0; j<layer->size(); j+=2){
+		for (int j = 0; j < layer->size(); j += 2) {
 			MerkleTreeNode* lc = layer->at(j);
-			MerkleTreeNode* rc = layer->at(j+1);
+			MerkleTreeNode* rc = layer->at(j + 1);
 
-			//Create a new node
-			MerkleTreeNode* nn = new MerkleTreeNode;
-			nn->parent = 0;
+			// Create a new node
+			MerkleTreeNode* n = new MerkleTreeNode(0, lc, rc);
 
-			// Concat the childs values
+			// Update lower layer nodes
+			lc->parent = n;
+			rc->parent = n;
+
+			// Compute hash
 			SValue tmp = SValue(lc->data);
-			for(unsigned int k=0;k<rc->data.size();k++)
+			for (unsigned int k = 0; k < rc->data.size(); k++)
 				tmp.push_back(rc->data.begin()[k]);
+			n->data = crypto.hash(tmp);
 
-			//click_chatter("Hashing data with size");
-			//click_chatter(CastorPacket::hexToString(tmp.begin(), tmp.size()).c_str());
-
-			nn->data = _crypto->hash(tmp);
-
-
-//			Hash nh = Hash();
-//			Crypto::hash(&nh->data, (uint8_t*)&data, 2*sizeof(Hash));
-
-			lc->parent=nn;
-			rc->parent=nn;
-
-			nextlayer->push_back(nn);
-
-			//click_chatter("Created new element");
-			//click_chatter(CastorPacket::hexToString(nn->data.begin(), CASTOR_HASHLENGTH).c_str());
+			nextlayer->push_back(n);
 		}
 	}
+	_root = nextlayer->at(0);
 }
 
 MerkleTree::~MerkleTree(){
+	// TODO: delete all nodes
 }
 
 SValue MerkleTree::getRoot(){
-	MerkleTreeNode* node = _leaves.front();
-
-	do{
-		node = node->parent;
-	}while(node->parent != 0);
-
-	return node->data;
-
-	//memcpy(root, node->data, sizeof(SHash));
+	return _root->data;
 }
 
-void MerkleTree::getLeaves(Vector<SValue>* leaves){
-	leaves->clear();
-	for(int i=0; i<_leaves.size(); i++){
-		leaves->push_back(_leaves.at(i)->data);
-	}
+void MerkleTree::getLeaves(Vector<SValue>& leaves){
+	for(int i=0; i<_leaves.size(); i++)
+		leaves.push_back(_leaves.at(i)->data);
 }
 
-void MerkleTree::getHashChain(Vector<SValue>* chain, int id){
+void MerkleTree::getSiblings(Vector<SValue>& siblings, int id) {
 	MerkleTreeNode* node = _leaves.at(id);
-	chain->clear();
-
-	while(node->parent != 0){
+	while(!node->isRoot()) {
+		siblings.push_back(node->getSibling()->data);
 		node = node->parent;
-		chain->push_back(node->data);
 	}
 }
-
-
 
 String MerkleTree::toString() {
 	StringAccum sa;
 	sa << "Generated Merkle Tree:\n";
-	for(int i=0; i< _leaves.size(); i++){
+	for (int i = 0; i < _leaves.size(); i++) {
 		MerkleTreeNode* n = _leaves.at(i);
-		do{
+		do {
 			sa << CastorPacket::hexToString(n->data.begin(), n->data.size()) << "->";
 			n = n->parent;
-		}while(n != 0);
+		} while (n != 0);
 		sa << "\n";
 	}
 	return sa.take_string();
 }
 
+bool MerkleTree::isValidMerkleTree(unsigned int id, SValue& in, Vector<SValue>& siblings, SValue& root, Crypto& crypto) {
+	// First hash the input
+	SValue current = crypto.hash(in);
 
+	for(int s = 0; s < siblings.size(); s++) {
+		SValue sibling = siblings[s];
+		// Decide whether current sibling is left or right child
+		if(id & (1 << s)) { // sibling is left child
+			// current = hash(sibling||current)
+			for(unsigned int i = 0; i < current.size(); i++)
+				sibling.push_back(current[i]);
+			current = crypto.hash(sibling);
+		} else { // sibling is right child
+			// current = hash(current||sibling)
+			for(unsigned int i = 0; i < sibling.size(); i++)
+				current.push_back(sibling[i]);
+			current = crypto.hash(current);
+		}
+	}
+
+	// verify that computed root and given root are the same
+	int cmp = memcmp(current.begin(), root.begin(), root.size());
+	return cmp == 0;
+}
 
 CLICK_ENDDECLS
 ELEMENT_PROVIDES(TREE)

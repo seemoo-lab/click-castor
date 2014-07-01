@@ -14,60 +14,59 @@ CastorPrint::~CastorPrint() {
 }
 
 int CastorPrint::configure(Vector<String> &conf, ErrorHandler *errh) {
-	IPAddress address;
-	String label;
-	bool fullpkt = false;
+	_fullpkt = false;
 
 	if (Args(conf, this, errh)
-		.read_p("LABEL", label)
-		.read_p("ADDR", address)
-		.read_p("FULL", fullpkt)
+		.read_mp("LABEL", _label)
+		.read_mp("ADDR", _address)
+		.read_p("FULL", _fullpkt)
 		.complete() < 0)
 			return -1;
-
-	_address = address;
-	_label = label;
-	_fullpkt = fullpkt;
 	return 0;
 }
 
 void CastorPrint::push(int, Packet *p){
 
 	StringAccum sa;
-
 	sa << "[" << Timestamp::now() << "@" << _address << "] " << _label << " ";
 
 	uint8_t type = CastorPacket::getType(p);
 
 	if( type == CASTOR_TYPE_PKT ){
+
 		Castor_PKT pkt;
 		CastorPacket::getCastorPKTHeader(p, &pkt);
-		String spid = CastorPacket::hexToString(pkt.pid, CASTOR_HASHLENGTH);
-
-		sa << "PKT: " << spid << " SRC: " << p->dst_ip_anno();
-
+		String spid = CastorPacket::hexToString(pkt.pid, sizeof(PacketId));
 		if(_fullpkt) {
-			String sfid = CastorPacket::hexToString(pkt.fid, CASTOR_HASHLENGTH);
-			String seauth = CastorPacket::hexToString(pkt.eauth, CASTOR_HASHLENGTH);
+			String sfid = CastorPacket::hexToString(pkt.fid, sizeof(FlowId));
+			String seauth = CastorPacket::hexToString(pkt.eauth, sizeof(EACKAuth));
+			sa << "\n";
 			sa << "   | Type: \tPKT   Length: " <<  pkt.len << "\n";
 			sa << "   | Flow: \t" << pkt.src << " -> " << pkt.dst << "\n";
 			sa << "   | Flow ID: \t" << sfid << "\n";
-			sa << "   | Pkt ID: \t" << spid << "\n";
+			sa << "   | Pkt ID: \t" << spid << " (" << pkt.packet_num << "/" << (1 << CASTOR_FLOWSIZE) << ")\n";
 			sa << "   | Enc Auth: \t" << seauth;
+		} else {
+			sa << "PKT (" << pkt.src << " -> " << pkt.dst << "): " << spid;
 		}
+
 	} else if( type == CASTOR_TYPE_ACK ){
+
 		Castor_ACK ack;
 		CastorPacket::getCastorACKHeader(p, &ack);
-		String sauth = CastorPacket::hexToString(ack.auth, CASTOR_HASHLENGTH);
-
-		sa << "ACK: " << sauth << " SRC: " << p->dst_ip_anno();
-
+		String sauth = CastorPacket::hexToString(ack.auth, sizeof(ACKAuth));
 		if(_fullpkt) {
+			sa << "\n";
 			sa << "   | Type: \tACK   Length: " <<  ack.len << "\n";
 			sa << "   | Auth: \t" << sauth << "\n";
+		} else {
+			sa << "ACK (from " << p->dst_ip_anno() << "): " << sauth;
 		}
+
 	} else {
-		sa << "Unknown type  SRC: " << p->dst_ip_anno();
+
+		sa << "Unknown type (from " << p->dst_ip_anno() << ")";
+
 	}
 
 	click_chatter("%s", sa.c_str());

@@ -1,30 +1,37 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-
 #include "castor_validateflow.hh"
+#include "tree.hh"
 
 CLICK_DECLS
+
 CastorValidateFlow::CastorValidateFlow(){}
 
 CastorValidateFlow::~ CastorValidateFlow(){}
 
-//int CastorValidateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
-//    //return cp_va_kparse(conf, this, errh,
-//	//	"CastorAddHeader", cpkP+cpkM, cpElementCast, cpEnd);
-//	return 0;
-//}
+int CastorValidateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
+	return cp_va_kparse(conf, this, errh,
+		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", crypto,
+		cpEnd);
+}
 
 void CastorValidateFlow::push(int, Packet *p){
 
-	// TODO: Implement validation check here
-	bool isPacketValid = true;
+	Castor_PKT* pkt = (Castor_PKT*) p->data();
 
-	if(isPacketValid)
+	SValue fid(pkt->fid, CASTOR_HASHLENGTH);
+	SValue pid(pkt->pid, CASTOR_HASHLENGTH);
+	Vector<SValue> flow_auth;
+	for(int i = 0; i < CASTOR_FLOWSIZE; i++)
+		flow_auth.push_back(SValue(pkt->fauth[i].flow, CASTOR_HASHLENGTH));
+
+	if(MerkleTree::isValidMerkleTree(pkt->packet_num, pid, flow_auth, fid, *crypto))
 		output(0).push(p);
 	else
-		output(1).push(p); // Invalid; -> discard
+		output(1).push(p); // Invalid -> discard
 
 }
 
 CLICK_ENDDECLS
+ELEMENT_REQUIRES(TREE)
 EXPORT_ELEMENT(CastorValidateFlow)

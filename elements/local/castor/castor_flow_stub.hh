@@ -16,10 +16,11 @@ typedef struct{
 } FlowType;
 
 typedef struct{
-	uint8_t 	flow_id		[CASTOR_HASHLENGTH];
-	uint8_t 	packet_id	[CASTOR_HASHLENGTH];
-	FlowAuth 	flow_auth 	[CASTOR_FLOWSIZE];
-	uint8_t 	enc_ack_auth[CASTOR_HASHLENGTH];
+	FlowId		flow_id	;
+	PacketId 	packet_id;
+	uint16_t	packet_number;
+	FlowAuth 	flow_auth[CASTOR_FLOWSIZE];
+	ACKAuth 	ack_auth;
 } PacketLabel;
 
 typedef HashTable<Host, HashTable<Host, FlowType> > FlowMap;

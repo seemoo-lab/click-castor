@@ -42,6 +42,7 @@ typedef struct {
 	IPAddress	dst;
 	FlowId	 	fid;
 	PacketId 	pid;
+	uint16_t	packet_num; // the k-th packet of the current flow, necessary for flow validation (determines whether fauth[i] is left or right sibling in the Merkle tree)
 	FlowAuth 	fauth[CASTOR_FLOWSIZE];
 	EACKAuth 	eauth;
 } Castor_PKT;

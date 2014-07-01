@@ -5,14 +5,12 @@
 #include "castor_flow.hh"
 #include <click/vector.hh>
 
-#define CASTOR_REAL_FLOWSIZE (1 << (CASTOR_FLOWSIZE + 1))
+#define CASTOR_REAL_FLOWSIZE (1 << (CASTOR_FLOWSIZE))
 
 CLICK_DECLS
 
-typedef uint8_t FlowID[CASTOR_HASHLENGTH]; 
-
 typedef struct{
-	uint8_t position;
+	unsigned int position;
 	PacketLabel labels[CASTOR_REAL_FLOWSIZE];
 } Flow;
 

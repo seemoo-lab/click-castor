@@ -159,7 +159,7 @@ SValue Crypto::decrypt(const SValue& cipher, const SymmetricKey& key) {
 	return SValue(block, cipherLength);
 }
 
-SValue Crypto::hash(SValue data) {
+SValue Crypto::hash(SValue& data) {
 	Botan::SHA_160 sha160;
 	SValue hashed = sha160.process(data.begin(), data.size());
 	return hashed;

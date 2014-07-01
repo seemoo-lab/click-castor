@@ -26,27 +26,42 @@ void CastorFlowMerkle::createFlow(Host source, Host destination) {
 	flow.position = 0;
 
 	//Generate some random nonces
-	Vector<SValue> ack_auths = Vector<SValue>();	// The ACK authenticator
+	Vector<SValue> ack_auths = Vector<SValue>(); // The ACK authenticator
 	Vector<SValue> pids 	= Vector<SValue>();	// Packet IDs
 
 	for(int f=0;f<CASTOR_REAL_FLOWSIZE;f++){
-		SValue nonce 	= _crypto->random(CASTOR_HASHLENGTH);
+		SValue nonce 	= _crypto->random(sizeof(ACKAuth));
 		SValue pid 		= _crypto->hash(nonce);
 		ack_auths.push_back(nonce);
 		pids.push_back(pid);
 	}
 
 	//Build the Merkle Tree
-	MerkleTree tree = MerkleTree(pids, _crypto);
+	MerkleTree tree = MerkleTree(pids, *_crypto);
 
-	//Set the predefined labels
-	for(int i=0;i<CASTOR_REAL_FLOWSIZE;i++){
-		SValue root = tree.getRoot();
+	// Create labels
+	for(unsigned int i=0;i<CASTOR_REAL_FLOWSIZE;i++){
 		PacketLabel lbl;
-		memcpy(&lbl.flow_id, root.begin(), CASTOR_HASHLENGTH);
-		memcpy(&lbl.packet_id, pids.at(i).begin(),CASTOR_HASHLENGTH);
-		// FIXME Missing FlowAuth
-		memcpy(&lbl.enc_ack_auth,ack_auths.at(i).begin(),CASTOR_HASHLENGTH);
+		lbl.packet_number = i;
+
+		// Set flow id
+		SValue root = tree.getRoot();
+		memcpy(&lbl.flow_id, root.begin(), sizeof(FlowId));
+
+		// Set packet id
+		memcpy(&lbl.packet_id, pids.at(i).begin(), sizeof(PacketId));
+
+		// Set flow authenticator
+		Vector<SValue> siblings;
+		tree.getSiblings(siblings, i);
+		assert(siblings.size() == CASTOR_FLOWSIZE);
+		for(int j = 0; j < siblings.size(); j++)
+			memcpy(&lbl.flow_auth[j].flow, siblings.at(j).begin(), sizeof(FlowAuth));
+
+		click_chatter("Sibling ");
+
+		// Set unencrypted (!) ACK authenticator
+		memcpy(&lbl.ack_auth,ack_auths.at(i).begin(), sizeof(ACKAuth));
 		flow.labels[i] = lbl;
 	}
 
@@ -69,9 +84,7 @@ void CastorFlowMerkle::updateFlow(Host source, Host destination) {
 	f->position++;
 
 	if(f->position >= CASTOR_REAL_FLOWSIZE){
-		// Delete the Flow
 		(_flows.get_pointer(source))->erase(destination);
-		//click_chatter("Flow exhausted");
 	}
 }
 

@@ -37,7 +37,7 @@ public:
 	void hash(Hash hash, uint8_t* data, uint8_t length);
 	void randomize(Hash r);
 	SValue random(int bytes);
-	SValue hash(SValue data);
+	SValue hash(SValue& data);
 
 	void testcrypt(SValue*, IPAddress);
 	void testSymmetricCrypt(SValue, IPAddress);

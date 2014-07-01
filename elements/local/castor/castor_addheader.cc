@@ -29,31 +29,30 @@ void CastorAddHeader::push(int, Packet *p){
  	if (!q)
     	return;
 
-    Castor_PKT header;
-    header.type 	= CASTOR_TYPE_MERKLE_PKT;
-    header.hsize 	= CASTOR_HASHLENGTH;
-    header.fsize 	= CASTOR_FLOWSIZE;
-    header.len 		= sizeof(Castor_PKT);
+    Castor_PKT* header = (Castor_PKT*) q->data();
+    header->type 	= CASTOR_TYPE_MERKLE_PKT;
+    header->hsize 	= CASTOR_HASHLENGTH;
+    header->fsize 	= CASTOR_FLOWSIZE;
+    header->len 		= sizeof(Castor_PKT);
 
-    header.ctype 	= p->ip_header()->ip_p;
+    header->ctype 	= p->ip_header()->ip_p;
+    header->src = src;
+    header->dst = dst;
 
     //Acces the flow settings
     PacketLabel label = cflow->getPacketLabel(src,dst);
 
-    header.src = src;
-    header.dst = dst;
-
-    memcpy(&header.fid, &label.flow_id, CASTOR_HASHLENGTH);
-    memcpy(&header.pid, &label.packet_id, CASTOR_HASHLENGTH);
+    memcpy(&header->fid, &label.flow_id, CASTOR_HASHLENGTH);
+    memcpy(&header->pid, &label.packet_id, CASTOR_HASHLENGTH);
+    header->packet_num = label.packet_number;
+    for(int i = 0; i < CASTOR_FLOWSIZE; i++)
+    	memcpy(&header->fauth[i], &label.flow_auth[i], CASTOR_HASHLENGTH);
     if(CASTOR_HASHLENGTH > CASTOR_ENCLENGTH) {
     	click_chatter("[Warning] Copying ACKAuth: Hash length is larger than ciphertext length, loosing entropy.");
-		memcpy(&header.eauth, &label.enc_ack_auth, CASTOR_ENCLENGTH);
+		memcpy(&header->eauth, &label.ack_auth, CASTOR_ENCLENGTH);
 	} else {
-		memcpy(&header.eauth, &label.enc_ack_auth, CASTOR_HASHLENGTH);
+		memcpy(&header->eauth, &label.ack_auth, CASTOR_HASHLENGTH);
 	}
-
- 	//Copy header to packet
- 	memcpy(q->data(), &header, sizeof(Castor_PKT));
 
 	output(0).push(q);
 }

@@ -144,6 +144,7 @@ elementclass CastorLocalPKT {
 	// If invalid -> discard
 	null :: Discard;
 	validateAtDest[1]
+		-> CastorPrint("!!! Invalid @ destination", $myIP)
 		-> null;
 
 }
@@ -171,7 +172,7 @@ elementclass CastorHandlePKT{
 
 	input
 		-> checkDuplicate :: CastorCheckDuplicate($history)
-		-> validate :: CastorValidateFlow
+		-> validate :: CastorValidateFlow($crypto)
 		-> cdst :: CastorDstClassifier($myIP);
 
  	// PKT arrived at destination
@@ -193,6 +194,7 @@ elementclass CastorHandlePKT{
 		-> CastorPrint("Duplicate", $myIP)
 		-> null;
 	validate[1]
+		-> CastorPrint("!!! Invalid", $myIP)
 		-> null;
 
 }
@@ -214,7 +216,7 @@ elementclass CastorHandleACK{
 	// If invalid or duplicate -> discard
 	null :: Discard;
 	validate[1]
-		-> CastorPrint("Invalid", $myIP)
+		-> CastorPrint("!!! Invalid", $myIP)
 		-> null;
 	checkDuplicate[1]
 		-> CastorPrint("Duplicate", $myIP)
@@ -239,8 +241,8 @@ crypto::Crypto(sam);
 flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);
 routingtable :: CastorRoutingTable;
-history :: CastorHistory(crypto,timeout);
 timeout :: CastorTimeout(routingtable,history);
+history :: CastorHistory(crypto,timeout);
 castorclassifier :: CastorClassifier;
 handlepkt :: CastorHandlePKT(fake, routingtable, history, crypto);
 handleack :: CastorHandleACK(fake, routingtable, history, crypto);
