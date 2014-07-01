@@ -2,58 +2,44 @@
 #include <click/args.hh>
 #include <click/confparse.hh>
 #include "castor_encryptackauth.hh"
-#include "crypto.hh"
-#include <botan/data_src.h>
-#include <click/straccum.hh>
-
-
-
 
 CLICK_DECLS
-CastorEncryptACKAuth::CastorEncryptACKAuth(){}
 
-CastorEncryptACKAuth::~ CastorEncryptACKAuth(){}
+CastorEncryptACKAuth::CastorEncryptACKAuth() {
+}
 
-int CastorEncryptACKAuth::configure(Vector<String> &conf, ErrorHandler *errh)
-{
-	int res = cp_va_kparse(conf, this, errh,
-//		"SAM", cpkP+cpkM, cpElementCast, "SAManagement", &_sam,
-		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &_crypto,
-		"ADDR", cpkP+cpkM, cpIPAddress, &_myIP,
-		cpEnd);
-	if(res < 0) return res;
+CastorEncryptACKAuth::~CastorEncryptACKAuth() {
+}
+
+int CastorEncryptACKAuth::configure(Vector<String> &conf, ErrorHandler *errh) {
+	if (cp_va_kparse(conf, this, errh,
+			"CRYPT", cpkP + cpkM, cpElementCast, "Crypto", &_crypto,
+			cpEnd)
+			< 0)
+		return -1;
 	return 0;
 }
 
-
-void CastorEncryptACKAuth::push(int, Packet *p){
-
-	if(CastorPacket::getType(p) != CASTOR_TYPE_PKT){
-		//Error, not a Castor Packet
-		click_chatter("Error, CastorEncryptACKAuth can only handle CASTOR Packets");
-		return;
-	}
+void CastorEncryptACKAuth::push(int, Packet *p) {
 
 	WritablePacket* q = p->uniqueify();
-	Castor_PKT* header = (Castor_PKT*) q->data();
-	SValue auth(header->eauth, CASTOR_HASHLENGTH);
+	Castor_PKT* pkt = (Castor_PKT*) q->data();
+	SValue auth(pkt->eauth, CASTOR_HASHLENGTH);
 
-	PublicKey* pk = _crypto->getPublicKey(header->dst);
-	if(!pk){
-		click_chatter("Could not find public key, for destination");
+	SymmetricKey* sk = _crypto->getSharedKey(pkt->dst);
+	if (!sk) {
+		click_chatter("Could not find shared key for host %s. Discarding PKT...", pkt->dst.unparse().c_str());
+		q->kill();
+		return;
+	}
+	SValue cipher = _crypto->encrypt(auth, *sk);
+	if (cipher.size() != CASTOR_ENCLENGTH) {
+		click_chatter("Cannot create ciphertext: Crypto subsystem returned wrong ciphertext length. Discarding PKT...");
+		q->kill();
 		return;
 	}
 
-	SValue enc = _crypto->encrypt(&auth, pk);
-
-	if(enc.size() != CASTOR_ENCLENGTH){
-		click_chatter("Cannot create propper encryption, Crypto subsystem returned wrong cipher length");
-		return;
-	}
-
-	memcpy(header->eauth, enc.begin(), CASTOR_ENCLENGTH);
-
-	//click_chatter("ACK Authenticator encrypted");
+	memcpy(pkt->eauth, cipher.begin(), CASTOR_ENCLENGTH);
 
 	output(0).push(q);
 

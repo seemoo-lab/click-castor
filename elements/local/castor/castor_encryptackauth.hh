@@ -20,7 +20,6 @@ class CastorEncryptACKAuth : public Element {
 
 	private:
 		Crypto* _crypto;
-		IPAddress _myIP;
 };
 
 CLICK_ENDDECLS

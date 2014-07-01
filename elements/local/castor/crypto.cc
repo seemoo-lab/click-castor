@@ -121,7 +121,6 @@ SValue Crypto::decrypt(SValue* cipher, PrivateKey* privkey) {
 SymmetricKey* Crypto::getSharedKey(const IPAddress& address) {
 	const SecurityAssociation* sharedKeySA = _sam->getSA(SAsharedsecret, address);
 	if (!sharedKeySA) {
-		click_chatter("Could not find shared key for host  %s", address.unparse().c_str());
 		return 0;
 	}
 	SymmetricKey* sharedKey = new Botan::OctetString(sharedKeySA->myData, sharedKeySA->mySize);

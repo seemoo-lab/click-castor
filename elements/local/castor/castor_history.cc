@@ -70,7 +70,7 @@ void CastorHistory::addACKToHistory(Packet* p) {
 	// Get the entry
 	HistoryEntry* entry = getEntryForAuth(header->auth);
 
-	if(!entry){
+	if(!entry) {
 		// Received an ACK for an unknown Packet, do not care
 		return;
 	}
@@ -208,7 +208,7 @@ bool CastorHistory::hasACK(PacketId pid){
 Key CastorHistory::getKeyForPacket(ACKAuth aauth) {
 	//Compute the Packet ID corresponding to the ACK
 	Hash hash;
-	_crypto->hash(hash, aauth, sizeof(Hash));
+	_crypto->hash(hash, aauth, sizeof(ACKAuth));
 	Key pid;
 	memcpy(&pid, hash, sizeof(Key));
 	return pid;

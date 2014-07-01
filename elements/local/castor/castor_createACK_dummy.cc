@@ -20,28 +20,20 @@ int CastorCreateACKDummy::configure(Vector<String> &conf, ErrorHandler *errh)
 /**
  * Create an ACK for incoming packet. The original packet is pushed to output 0, the ACK is pushed on output 1
  */
-void CastorCreateACKDummy::push(int, Packet *p){
+void CastorCreateACKDummy::push(int, Packet *p) {
 
-	click_chatter("Creating an ACK Packet");
+	Castor_PKT* pkt = (Castor_PKT*) p->data();
 
-	//Extract the Encrypted Authenticator from the packet
-    Castor_PKT* pkt = (Castor_PKT*) p->data();
-
-	//Decrypt the authenticator
-   // Private_Key* sk = _crypto->getPrivateKey(pkt->dst);
-    //SValue eauth = SValue(pkt->eauth, CASTOR_ENCLENGTH);
-	//Value aauth = _crypto->decrypt(&eauth, sk);
-
-	//Generate a new ACK packet
+	// Generate a new ACK packet
 	Castor_ACK ack;
-	ack.type 	= CASTOR_TYPE_ACK;
-    ack.hsize 	= CASTOR_HASHLENGTH;
-	ack.len 	= sizeof(Castor_ACK);
-
+	ack.type = CASTOR_TYPE_ACK;
+	ack.hsize = CASTOR_HASHLENGTH;
+	ack.len = sizeof(Castor_ACK);
 	memcpy(&ack.auth, pkt->eauth, CASTOR_HASHLENGTH);
 
-	 WritablePacket* q = Packet::make(&ack,sizeof(Castor_ACK));
-	 q->set_dst_ip_anno(IPAddress("255.255.255.255"));
+	// Broadcast ACK
+	WritablePacket* q = Packet::make(&ack, sizeof(Castor_ACK));
+	q->set_dst_ip_anno(IPAddress::make_broadcast());
 
 	output(0).push(p);
 	output(1).push(q);

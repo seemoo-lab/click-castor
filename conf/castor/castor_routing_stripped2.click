@@ -8,6 +8,7 @@ define(
 	$CASTORTYPE	201);
 
 AddressInfo(fake $EthDev);
+AddressInfo(netAddr 192.168.201.0)
 
 rt :: StaticIPLookup(0.0.0.0/0 0);
 Idle() -> rt -> Discard;
@@ -77,11 +78,12 @@ elementclass ToHost {
  * Handle incoming packets from local host
  */
 elementclass FromHost {
-	$myHostDev |
+	$myHostDev, $myIP |
 
 	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096)
 		-> CheckIPHeader2
 		-> MarkIPHeader
+		-> CastorTranslateLocalhost($myIP) // Packets coming from host have 127.0.0.1 set as source address, so replace with address of 
 		-> output;
 
 }
@@ -98,7 +100,7 @@ elementclass CastorHandleIPPacket{
 	$myIP, $flowDB, $crypto |
 
 	-> CastorAddHeader($flowDB)
-	-> CastorEncryptACKAuthDummy($crypto, $myIP)
+	-> CastorEncryptACKAuth($crypto)
 	-> CastorPrint('Send', $myIP)
 	-> output;
 }
@@ -130,7 +132,7 @@ elementclass CastorLocalPKT {
 		-> CastorPrint('Packet arrived at destination', $myIP)
 		-> validateAtDest :: CastorValidateFlowAtDestination
 		-> CastorAddToHistory($history, false)
-		-> genAck :: CastorCreateACKDummy($crypto)
+		-> genAck :: CastorCreateACK($crypto)
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT
@@ -229,10 +231,10 @@ elementclass CastorHandleACK{
 
 ethin :: InputEth($EthDev, fake);
 ethout :: OutputEth($EthDev);
-fromhost :: FromHost($HostDev);
+fromhost :: FromHost($HostDev, fake);
 tohost :: ToHost($HostDev);
 
-sam::SAManagement(fake);
+sam::SAManagement(fake, netAddr, 10);
 crypto::Crypto(sam);
 flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);

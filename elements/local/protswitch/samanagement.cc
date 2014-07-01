@@ -25,7 +25,9 @@ int SAManagement::configure(Vector<String> &conf, ErrorHandler *errh) {
 	symmetricKeyLength = 16;
 
 	if (Args(conf, this, errh)
-			.read_mp("ADDR", myIP)
+			.read_mp("ADDR", myAddr)
+			.read_mp("NET_ADDR", netAddr)
+			.read_mp("NUM_KEYS", numKeys)
 			.read_p("SYM_KEY_LENGTH", symmetricKeyLength)
 			.complete() < 0)
 		return -1;
@@ -55,20 +57,32 @@ int SAManagement::initializeSymmetricKeys(ErrorHandler*) {
 		rbytes[i] = i;
 	}
 
-	// Derive individual keys deterministically for every node
+	// Derive individual keys deterministically for every node in the given subnet
 	Botan::KDF* kdf = Botan::get_kdf("KDF2(SHA-160)");
-	unsigned int numOfNodes = 50; // max: 254
-	String net = "192.168.201.";
-	for (unsigned char i = 1; i <= numOfNodes; i++) {
-		String addr(net);
-		addr.append(String(i));
+
+	for (unsigned char i = 1; i <= numKeys; i++) {
+		// take last byte of myIP and target node
+		Botan::byte salt[2];
+		unsigned char myByte = myAddr.data()[3];
+		// assure order, so that keys are the same for every pair
+		if (myByte < i) {
+			salt[0] = myByte;
+			salt[1] = i;
+		} else {
+			salt[0] = i;
+			salt[1] = myByte;
+		}
 		Botan::SecureVector<Botan::byte> key = kdf->derive_key(
-				symmetricKeyLength, rbytes, symmetricKeyLength,
-				(Botan::byte*) addr.data(), addr.length());
+				symmetricKeyLength, rbytes, symmetricKeyLength, salt,
+				sizeof(salt));
 		assert(key.size() == symmetricKeyLength);
 		SecurityAssociation sa(SAsharedsecret, key.begin(), key.size());
 
-		addSA(sa, IPAddress(addr));
+		IPAddress remote(netAddr.addr() + (i << 24)); // .addr() is in network byte order
+
+		//click_chatter("[%s] Creating key for host %s: %s", myAddr.unparse().c_str(), remote.unparse().c_str(), CastorPacket::hexToString(key.begin(), symmetricKeyLength).c_str());
+
+		addSA(sa, remote);
 	}
 
 	delete kdf;
@@ -104,7 +118,7 @@ int SAManagement::initializePublicPrivateKeys(ErrorHandler*) {
 
 	SecurityAssociation sa2(SAprivkey, strprivatekey);
 
-	addSA(sa2, myIP);
+	addSA(sa2, myAddr);
 
 	addSA(sa1, IPAddress("192.168.201.1"));
 	addSA(sa1, IPAddress("192.168.201.2"));

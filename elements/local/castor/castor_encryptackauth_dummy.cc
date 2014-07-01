@@ -12,7 +12,6 @@ int CastorEncryptACKAuthDummy::configure(Vector<String> &conf, ErrorHandler *err
 {
 	int res = cp_va_kparse(conf, this, errh,
 		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &_crypto,
-		"ADDR", cpkP+cpkM, cpIPAddress, &_myIP,
 		cpEnd);
 	if(res < 0) return res;
 	return 0;

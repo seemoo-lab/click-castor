@@ -45,7 +45,9 @@ private:
 	int initializeSymmetricKeys(ErrorHandler*);
 	int initializePublicPrivateKeys(ErrorHandler*);
 	SAMap mySAs;
-	IPAddress myIP;
+	IPAddress myAddr; // Local nodes' IP address
+	IPAddress netAddr; // Address of the network
+	size_t numKeys;
 	size_t symmetricKeyLength;
 };
 
