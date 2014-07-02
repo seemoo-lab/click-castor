@@ -26,10 +26,11 @@ public:
 	~CastorTimeout();
 
 	const char *class_name() const { return "CastorTimeout"; }
-	const char *port_count() const { return PORTS_0_0; }
-	const char *processing() const { return AGNOSTIC; }
+	const char *port_count() const { return PORTS_1_1; }
+	const char *processing() const { return PUSH; }
 	int configure(Vector<String>&, ErrorHandler*);
-	void create_timer(Packet*);
+
+	void push(int, Packet *);
 	void run_timer(Timer*);
 
 private:

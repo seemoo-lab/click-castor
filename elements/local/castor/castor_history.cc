@@ -2,7 +2,6 @@
 #include <click/confparse.hh>
 #include <click/straccum.hh>
 #include "castor_history.hh"
-#include "castor_timeout.hh"
 
 CLICK_DECLS
 
@@ -13,25 +12,19 @@ CastorHistory::CastorHistory() {
 CastorHistory::~CastorHistory() {
 }
 
-int CastorHistory::configure(Vector<String> &conf, ErrorHandler *errh)
-{
-	int res = cp_va_kparse(conf, this, errh,
+int CastorHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
+	return cp_va_kparse(conf, this, errh,
 		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &_crypto,
-		"CastorTimeout", cpkP+cpkM, cpElementCast, "CastorTimeout", &_timeout,
 		cpEnd);
-	if(res < 0) return res;
-	return 0;
 }
 
-void CastorHistory::addToHistory(Packet* p, bool startTimer) {
+void CastorHistory::addToHistory(Packet* p) {
 
 	uint8_t type = CastorPacket::getType(p);
 	// Adding a packet to history
 	if ( type == CastorType::PKT){
 
 		addPKTToHistory(p);
-		if(startTimer)
-			_timeout->create_timer(p);
 
 	// Adding an ack to history
 	} else if ( type == CastorType::ACK ){

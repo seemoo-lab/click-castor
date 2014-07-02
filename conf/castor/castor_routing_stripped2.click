@@ -132,13 +132,13 @@ elementclass CastorLocalPKT {
 		-> CastorPrint('Packet arrived at destination', $myIP)
 		-> CastorDecryptACKAuth($crypto)
 		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
-		-> CastorAddToHistory($history, false)
+		-> CastorAddToHistory($history)
 		-> genAck :: CastorCreateACK($crypto)
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT
 		-> CastorPrint('Generated', $myIP)
-		-> CastorAddToHistory($history, false)
+		-> CastorAddToHistory($history)
 		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> [1]output; // Push ACKs to output 1
 
@@ -156,7 +156,8 @@ elementclass CastorForwardPKT {
 	input
 		-> CastorPrint('Forwarding Packet', $myIP)
 		-> CastorLookupRoute($routingtable)		// Lookup the route for the packet
-		-> CastorAddToHistory($history, true)
+		-> CastorAddToHistory($history)
+		-> CastorTimeout($routingtable,$history,500)
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
 		-> output;
 
@@ -209,7 +210,7 @@ elementclass CastorHandleACK{
 		-> validate :: CastorValidateACK($history)
 		-> checkDuplicate :: CastorCheckDuplicate($history)
 		-> updateEstimates :: CastorUpdateEstimates($routingtable, $history)
-		-> CastorAddToHistory($history, false)
+		-> CastorAddToHistory($history)
 		-> CastorPrint('Received', $myIP)
 		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> output;
@@ -242,8 +243,7 @@ crypto::Crypto(sam);
 flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);
 routingtable :: CastorRoutingTable;
-timeout :: CastorTimeout(routingtable,history,500);
-history :: CastorHistory(crypto,timeout);
+history :: CastorHistory(crypto);
 castorclassifier :: CastorClassifier;
 handlepkt :: CastorHandlePKT(fake, routingtable, history, crypto);
 handleack :: CastorHandleACK(fake, routingtable, history, crypto);

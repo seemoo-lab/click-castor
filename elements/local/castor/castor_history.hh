@@ -19,19 +19,17 @@ typedef struct{
 
 typedef long Key; // FIXME currently using only part of pid as key
 
-class CastorTimeout;
-
 class CastorHistory : public Element {
 	public:
 		CastorHistory();
 		~CastorHistory();
 
 		const char *class_name() const	{ return "CastorHistory"; }
-		const char *port_count() const	{ return "0/0"; }
+		const char *port_count() const	{ return PORTS_0_0; }
 		const char *processing() const	{ return AGNOSTIC; }
 		int configure(Vector<String>&, ErrorHandler*);
 
-		void 	addToHistory(Packet*,bool);
+		void 	addToHistory(Packet*);
 		bool 	checkDuplicate(Packet*);
 		Packet*	getPacketById(PacketId);
 		bool	hasACK(PacketId);
@@ -50,8 +48,6 @@ class CastorHistory : public Element {
 		Vector<Packet*> 	_history;
 		Vector<Packet*>  _ackhistory;
 		Crypto* _crypto;
-		CastorTimeout* _timeout;
-
 		HashTable<Key, HistoryEntry> _pkthistory;
 
 };

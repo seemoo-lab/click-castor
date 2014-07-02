@@ -12,13 +12,12 @@ CastorAddToHistory::~CastorAddToHistory() {
 
 int CastorAddToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
      return cp_va_kparse(conf, this, errh,
-        "CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &_history,
-        "StartTimerUponAdding", cpkP+cpkM, cpBool, &_startTimer,
+        "CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
         cpEnd);
 }
 
 void CastorAddToHistory::push(int, Packet *p){
-	_history->addToHistory(p, _startTimer);
+	history->addToHistory(p);
 
 	output(0).push(p);
 }

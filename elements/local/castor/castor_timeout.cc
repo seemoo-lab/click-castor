@@ -19,7 +19,7 @@ int CastorTimeout::configure(Vector<String> &conf, ErrorHandler *errh) {
 			cpEnd);
 }
 
-void CastorTimeout::create_timer(Packet* p) {
+void CastorTimeout::push(int, Packet* p) {
 
 	// Create ACK Timer
 	Timer* timer = new Timer(this);
@@ -37,6 +37,8 @@ void CastorTimeout::create_timer(Packet* p) {
 	entry.routedTo = p->dst_ip_anno();
 
 	timers.set(timer, entry);
+
+	output(0).push(p);
 
 }
 
