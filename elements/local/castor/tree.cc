@@ -4,18 +4,43 @@
 
 CLICK_DECLS
 
+class MerkleTree::Node {
+public:
+	Node(Node* parent = 0, Node* leftChild = 0,	Node* rightChild = 0) :
+			parent(parent), leftChild(leftChild), rightChild(rightChild) {}
+	~Node() { delete leftChild;	delete rightChild; }
+
+	bool isRoot() { return parent == 0; }
+	bool isLeaf() { return leftChild == 0 && rightChild == 0; }
+	bool isLeftChild() { return !isRoot() && (parent->leftChild == this); }
+	bool isRightChild() { return !isRoot() && (parent->rightChild == this); }
+	Node* getSibling() {
+		if(isLeftChild())
+			return parent->rightChild;
+		else if(isRightChild())
+			return parent->leftChild;
+		else
+			return 0;
+	}
+
+	Node* parent;
+	Node* leftChild;
+	Node* rightChild;
+	SValue data;
+};
+
 MerkleTree::MerkleTree(Vector<SValue>& in, Crypto& c) :	crypto(c) {
 
 	// Verify that size of e is power of 2
 	assert(in.size() && !(in.size() & (in.size() - 1)));
 
-	_leaves = Vector<MerkleTreeNode*>();
-	Vector<MerkleTreeNode*>* layer = 0;
-	Vector<MerkleTreeNode*>* nextlayer = new Vector<MerkleTreeNode*>();
+	_leaves = Vector<Node*>();
+	Vector<Node*>* layer = 0;
+	Vector<Node*>* nextlayer = new Vector<Node*>();
 
 	// Create the leaves
 	for (int i = 0; i < in.size(); i++) {
-		MerkleTreeNode* hnode = new MerkleTreeNode();
+		Node* hnode = new Node();
 		hnode->data = crypto.hash(in.at(i));
 		_leaves.push_back(hnode);
 		nextlayer->push_back(hnode);
@@ -25,14 +50,14 @@ MerkleTree::MerkleTree(Vector<SValue>& in, Crypto& c) :	crypto(c) {
 	while (nextlayer->size() > 1) {
 		delete layer;
 		layer = nextlayer;
-		nextlayer = new Vector<MerkleTreeNode*>();
+		nextlayer = new Vector<Node*>();
 
 		for (int j = 0; j < layer->size(); j += 2) {
-			MerkleTreeNode* lc = layer->at(j);
-			MerkleTreeNode* rc = layer->at(j + 1);
+			Node* lc = layer->at(j);
+			Node* rc = layer->at(j + 1);
 
 			// Create a new node
-			MerkleTreeNode* n = new MerkleTreeNode(0, lc, rc);
+			Node* n = new Node(0, lc, rc);
 
 			// Update lower layer nodes
 			lc->parent = n;
@@ -48,10 +73,12 @@ MerkleTree::MerkleTree(Vector<SValue>& in, Crypto& c) :	crypto(c) {
 		}
 	}
 	_root = nextlayer->at(0);
+	delete nextlayer;
 }
 
 MerkleTree::~MerkleTree(){
-	// FIXME: delete all nodes
+	// Node deletes children recursively
+	delete _root;
 }
 
 SValue MerkleTree::getRoot(){
@@ -64,7 +91,7 @@ void MerkleTree::getLeaves(Vector<SValue>& leaves){
 }
 
 void MerkleTree::getSiblings(Vector<SValue>& siblings, int id) {
-	MerkleTreeNode* node = _leaves.at(id);
+	Node* node = _leaves.at(id);
 	while(!node->isRoot()) {
 		siblings.push_back(node->getSibling()->data);
 		node = node->parent;
@@ -75,7 +102,7 @@ String MerkleTree::toString() {
 	StringAccum sa;
 	sa << "Generated Merkle Tree:\n";
 	for (int i = 0; i < _leaves.size(); i++) {
-		MerkleTreeNode* n = _leaves.at(i);
+		Node* n = _leaves.at(i);
 		do {
 			sa << CastorPacket::hexToString(n->data.begin(), n->data.size()) << "->";
 			n = n->parent;

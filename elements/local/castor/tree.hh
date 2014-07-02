@@ -8,24 +8,8 @@
 
 CLICK_DECLS
 
-typedef struct treenode MerkleTreeNode;
-struct treenode {
-	MerkleTreeNode* parent;
-	MerkleTreeNode* leftChild;
-	MerkleTreeNode* rightChild;
-	SValue data;
-	treenode(MerkleTreeNode* parent = 0, MerkleTreeNode* leftChild = 0, MerkleTreeNode* rightChild = 0) : parent(parent), leftChild(leftChild), rightChild(rightChild) {}
-	~treenode() {}
-	bool isRoot() { return parent == 0; }
-	bool isLeaf() {	return leftChild == 0 && rightChild == 0; }
-	bool isLeftChild() { return !isRoot() && (parent->leftChild == this); }
-	bool isRightChild() { return !isRoot() && (parent->rightChild == this); }
-	MerkleTreeNode* getSibling() { return (isLeftChild() ? parent->rightChild : (isRightChild() ? parent->leftChild : 0)); }
-};
-
 class MerkleTree {
 public:
-
 	/**
 	 * Creates a Merkle tree from the given values.
 	 * Size of input vector needs to be a power of 2.
@@ -60,8 +44,10 @@ public:
 	static bool isValidMerkleTree(unsigned int id, SValue& in, Vector<SValue>& siblings, SValue& root, Crypto&);
 
 private:
-	MerkleTreeNode* _root;
-	Vector<MerkleTreeNode*> _leaves;
+	class Node;
+
+	Node* _root;
+	Vector<Node*> _leaves;
 	Crypto& crypto;
 };
 
