@@ -10,13 +10,6 @@
 
 CLICK_DECLS
 
-// TODO Actually only need PacketId, everything else can be retrieved from history
-typedef struct {
-	FlowId fid;
-	PacketId pid;
-	IPAddress routedTo;
-} TimeoutEntry;
-
 class CastorTimeout : public Element {
 public:
 	CastorTimeout();
@@ -31,11 +24,15 @@ public:
 	void run_timer(Timer*);
 
 private:
+	typedef struct {
+		PacketId pid;
+	} Entry;
 	CastorRoutingTable* table;
 	CastorHistory* history;
-	HashTable<Timer*,TimeoutEntry> timers;
+	HashTable<Timer*,Entry> timers;
 	int timeout;
 };
 
 CLICK_ENDDECLS
-#endif /* CASTOR_TIMEOUT_HH_ */
+
+#endif

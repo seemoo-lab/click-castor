@@ -5,7 +5,7 @@
 CLICK_DECLS
 
 CastorTimeout::CastorTimeout() {
-	timers = HashTable<Timer*,TimeoutEntry>();
+	timers = HashTable<Timer*,Entry>();
 }
 
 CastorTimeout::~CastorTimeout() {
@@ -23,19 +23,15 @@ int CastorTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
 }
 
 void CastorTimeout::push(int, Packet* p) {
-	// Create ACK Timer
+	// Create timer
 	Timer* timer = new Timer(this);
 	timer->initialize(this);
 	timer->schedule_after_msec(timeout);
 
-	// Create entry
-	Castor_PKT* header;
-	header = (Castor_PKT*) p->data();
-	TimeoutEntry entry;
-	memcpy(&entry.fid, header->fid, sizeof(FlowId));
-	memcpy(&entry.pid, header->pid, sizeof(PacketId));
-	entry.routedTo = p->dst_ip_anno();
-
+	// Add timer
+	Castor_PKT& header = (Castor_PKT&) *p->data();
+	Entry entry;
+	memcpy(entry.pid, header.pid, sizeof(PacketId));
 	timers.set(timer, entry);
 
 	output(0).push(p);
@@ -43,29 +39,33 @@ void CastorTimeout::push(int, Packet* p) {
 
 void CastorTimeout::run_timer(Timer* timer) {
 
-	TimeoutEntry* entry = timers.get_pointer(timer);
+	Entry* entry = timers.get_pointer(timer);
 	if(!entry) {
-		click_chatter("!!! [%f] Unknown timer fired", Timestamp::now().doubleval());
+		click_chatter("[%f] !!! Unknown timer fired", Timestamp::now().doubleval());
 		return;
 	}
+
+	PacketId& pid = entry->pid;
+	const IPAddress& routedTo = history->routedTo(pid);
 
 	// Check whether ACK has been received in the meantime
-	if (history->hasACK(entry->pid)) {
+	if (history->hasACK(pid)) {
+		//click_chatter("[%f] Timeout: ACK received in the meantime from %s", Timestamp::now().doubleval(), routedTo.unparse().c_str());
 		return;
 	}
 
-	history->setExpired(entry->pid);
+	history->setExpired(pid);
 
 	// Check whether PKT was broadcast, if yes, do nothing
 	// TODO: Why is that?
-	if (history->routedTo(entry->pid) == IPAddress::make_broadcast()) {
+	if (routedTo == IPAddress::make_broadcast()) {
 		return;
 	}
 
 	// decrease ratings
-	click_chatter("[%f] Timeout: no ACK received from %s", Timestamp::now().doubleval(), entry->routedTo.unparse().c_str());
-	table->updateEstimates(entry->fid, entry->routedTo, CastorRoutingTable::decrease, CastorRoutingTable::first);
-	table->updateEstimates(entry->fid, entry->routedTo, CastorRoutingTable::decrease, CastorRoutingTable::all);
+	click_chatter("[%f] Timeout: no ACK received from %s", Timestamp::now().doubleval(), routedTo.unparse().c_str());
+	table->updateEstimates(pid, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::first);
+	table->updateEstimates(pid, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::all);
 
 	// delete timer
 	timers.erase(timer);
