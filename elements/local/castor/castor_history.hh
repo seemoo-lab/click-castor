@@ -2,54 +2,48 @@
 #define CLICK_CASTOR_HISTORY_HH
 
 #include <click/element.hh>
+#include <click/hashtable.hh>
 #include "castor.hh"
-#include "crypto.hh"
 
 CLICK_DECLS
 
-typedef struct{
-	FlowId 		flow;
-	IPAddress		routedTo;
-	Vector<IPAddress> ACKedBy;
-}HistoryEntry;
+class CastorHistory: public Element {
+public:
+	CastorHistory();
+	~CastorHistory();
 
-typedef struct{
-	ACKAuth 	aauth;
-}ACKHistoryEntry;
+	const char *class_name() const { return "CastorHistory"; }
+	const char *port_count() const { return PORTS_0_0; }
+	const char *processing() const { return AGNOSTIC; }
 
-typedef long Key; // FIXME currently using only part of pid as key
+	void addPKT(const PacketId&, const FlowId&, const IPAddress& nextHop);
+	bool addACKFor(const PacketId&, const IPAddress& prevHop);
 
-class CastorHistory : public Element {
-	public:
-		CastorHistory();
-		~CastorHistory();
+	bool hasPkt(const PacketId&) const;
+	bool hasACK(const PacketId&) const;
+	bool hasACK(const PacketId&, const IPAddress&) const;
+	size_t getACKs(const PacketId&) const;
 
-		const char *class_name() const	{ return "CastorHistory"; }
-		const char *port_count() const	{ return PORTS_0_0; }
-		const char *processing() const	{ return AGNOSTIC; }
-		int configure(Vector<String>&, ErrorHandler*);
+	const FlowId& getFlowId(const PacketId&) const;
+	const IPAddress& routedTo(const PacketId&) const;
 
-		void 	addToHistory(Packet*);
-		bool 	checkDuplicate(Packet*);
-		Packet*	getPacketById(PacketId);
-		bool	hasACK(PacketId);
-		bool 	ValidateACK(Packet*);
-		bool 	IsFirstACK(Packet*);
-		IPAddress PKTroutedto(Packet*);
-		void GetFlowId(Packet*, FlowId*);
+	bool isExpired(const PacketId&) const;
+	void setExpired(const PacketId&);
 
-	private:
-		void 	addACKToHistory(Packet*);
-		void 	addPKTToHistory(Packet*);
-		inline Key getKeyForPacket(ACKAuth);
-		inline HistoryEntry* getEntryForAuth(ACKAuth);
-		inline HistoryEntry* getEntryForPid(PacketId);
+private:
+	typedef long Key; // FIXME currently using only part of pid as key
+	typedef struct {
+		FlowId fid;
+		IPAddress nextHop;
+		Vector<IPAddress> recievedACKs;
+		bool expired;
+	} CastorHistoryEntry;
 
-		Vector<Packet*> 	_history;
-		Vector<Packet*>  _ackhistory;
-		Crypto* _crypto;
-		HashTable<Key, HistoryEntry> _pkthistory;
+	inline Key pidToKey(const PacketId& pid) const;
+	inline const CastorHistoryEntry* getEntry(const PacketId&) const;
+	inline CastorHistoryEntry* getEntry(const PacketId&);
 
+	HashTable<Key, CastorHistoryEntry> history;
 };
 
 CLICK_ENDDECLS

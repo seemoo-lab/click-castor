@@ -10,15 +10,14 @@
 
 CLICK_DECLS
 
-// TODO Could be merged with HistoryEntry, but would require exposure of this data type
+// TODO Actually only need PacketId, everything else can be retrieved from history
 typedef struct {
 	FlowId fid;
 	PacketId pid;
 	IPAddress routedTo;
 } TimeoutEntry;
 
-class CastorTimeout: public Element {
-
+class CastorTimeout : public Element {
 public:
 	CastorTimeout();
 	~CastorTimeout();
@@ -36,7 +35,6 @@ private:
 	CastorHistory* history;
 	HashTable<Timer*,TimeoutEntry> timers;
 	int timeout;
-
 };
 
 CLICK_ENDDECLS

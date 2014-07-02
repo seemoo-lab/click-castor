@@ -14,53 +14,38 @@ CastorUpdateEstimates::~CastorUpdateEstimates() {
 
 int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
     return cp_va_kparse(conf, this, errh,
+        "Crypto", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
 		"CastorRoutingTable", cpkP+cpkM, cpElementCast, "CastorRoutingTable", &_table,
 		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &_history,
         cpEnd);
 }
 
 void CastorUpdateEstimates::push(int, Packet *p){
+	Castor_ACK& ack = (Castor_ACK&) *p->data();
 
-	// The Address Annotation should contain the Source IP
-	IPAddress src = p->dst_ip_anno();
+	PacketId pid;
+	crypto->hash(pid, ack.auth, sizeof(ACKAuth));
+	const FlowId& fid = _history->getFlowId(pid);
 
-	// Determine Destination of the origin Packet
-	IPAddress dest = _history->PKTroutedto(p);
+	const IPAddress& routedTo = _history->routedTo(pid);
+	const IPAddress from = p->dst_ip_anno();
 
-	// Determine the Flow ID
-	FlowId fid;
-	_history->GetFlowId(p, &fid);
-
-	if (dest == IPAddress::make_broadcast()) {
+	if (routedTo == IPAddress::make_broadcast()) {
 		// PKT was broadcast
-		if (_history->IsFirstACK(p)){
-			_table->updateEstimates(fid, src,
-					CastorRoutingTable::increase,
-					CastorRoutingTable::first);
-			_table->updateEstimates(fid, src,
-					CastorRoutingTable::increase,
-					CastorRoutingTable::all);
-		} else {
-			_table->updateEstimates(fid, src,
-					CastorRoutingTable::increase,
-					CastorRoutingTable::all);
-		}
-	} else if (src == dest) {
-		// PKT was unicast, increase all estimates
-		_table->updateEstimates(fid, src,
-				CastorRoutingTable::increase,
-				CastorRoutingTable::first);
-		_table->updateEstimates(fid, src,
-				CastorRoutingTable::increase,
-				CastorRoutingTable::all);
+		bool isFirstAck = _history->getACKs(pid) == 1;
+		if (isFirstAck)
+			_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
+		_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
+	} else if (routedTo == from) {
+		// PKT was unicast
+		_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
+		_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
 	} else {
-		// We have never forwarded this PKT
-		output(1).push(p); // -> discard
+		output(1).push(p); // received from wrong neighbor -> discard
 		return;
 	}
 
     output(0).push(p);
-
 }
 
 CLICK_ENDDECLS

@@ -3,6 +3,7 @@
 
 #include <click/element.hh>
 #include "castor.hh"
+#include "crypto.hh"
 #include "castor_history.hh"
 
 CLICK_DECLS
@@ -13,13 +14,14 @@ public:
 	~CastorValidateACK();
 
 	const char *class_name() const { return "CastorValidateACK"; }
-	const char *port_count() const { return "1/2"; }
+	const char *port_count() const { return "1/4"; }
 	const char *processing() const { return PUSH; }
 	int configure(Vector<String>&, ErrorHandler*);
 
 	void push(int, Packet *);
 private:
-	CastorHistory* _history;
+	Crypto* crypto;
+	CastorHistory* history;
 };
 
 CLICK_ENDDECLS

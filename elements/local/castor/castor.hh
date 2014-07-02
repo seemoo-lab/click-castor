@@ -11,7 +11,7 @@
 
 CLICK_DECLS
 
-struct CastorType { // C++11's strongly typed enum class does not work, so create artificial namespace
+struct CastorType { // C++11's strongly typed 'enum class' does not work, so create artificial namespace
 	enum {
 		PKT = 0xC0,
 		ACK = 0xA0,

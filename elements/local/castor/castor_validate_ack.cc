@@ -18,16 +18,29 @@ CastorValidateACK::~CastorValidateACK() {
 
 int CastorValidateACK::configure(Vector<String>& conf, ErrorHandler* errh) {
     return cp_va_kparse(conf, this, errh,
-		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &_history,
+    	"Crypto", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
+		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
         cpEnd);
 }
 
 void CastorValidateACK::push(int, Packet* p) {
 
-	if(_history->ValidateACK(p)) {
-	    output(0).push(p);
+	Castor_ACK& ack = (Castor_ACK&) *p->data();
+
+	// Compute the corresponding packet id
+	// TODO: Put computed hash in user annotation to serve other modules
+	PacketId pid;
+	crypto->hash(pid, ack.auth, sizeof(ACKAuth));
+	IPAddress src = p->dst_ip_anno();
+
+	if(!history->hasPkt(pid)) {
+		output(1).push(p); // never forwarded corresponding PKT -> discard
+	} else if(history->isExpired(pid)) {
+		output(2).push(p); // ACK arrived too late -> discard
+	} else if (history->hasACK(pid, src)) {
+		output(3).push(p); // already received PKT from this neighbor -> discard
 	} else {
-	    output(1).push(p); // -> discard
+	    output(0).push(p);
 	}
 
 }

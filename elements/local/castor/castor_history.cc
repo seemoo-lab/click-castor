@@ -6,215 +6,90 @@
 CLICK_DECLS
 
 CastorHistory::CastorHistory() {
-	_pkthistory = HashTable<Key, HistoryEntry>();
+	history = HashTable<Key, CastorHistoryEntry>();
 }
 
 CastorHistory::~CastorHistory() {
 }
 
-int CastorHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return cp_va_kparse(conf, this, errh,
-		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &_crypto,
-		cpEnd);
+void CastorHistory::addPKT(const PacketId& pid, const FlowId& fid, const IPAddress& nextHop) {
+	CastorHistoryEntry entry;
+	entry.nextHop = nextHop;
+	entry.expired = false;
+	entry.recievedACKs = Vector<IPAddress>();
+	memcpy(&entry.fid, fid, sizeof(FlowId));
+
+	history.set(pidToKey(pid), entry);
 }
 
-void CastorHistory::addToHistory(Packet* p) {
-
-	uint8_t type = CastorPacket::getType(p);
-	// Adding a packet to history
-	if ( type == CastorType::PKT){
-
-		addPKTToHistory(p);
-
-	// Adding an ack to history
-	} else if ( type == CastorType::ACK ){
-
-		addACKToHistory(p);
-
-	}
-	else{
-		click_chatter("Error adding packet to history, unknown Packet type");
-	}
-}
-
-void CastorHistory::addPKTToHistory(Packet* p) {
-
-	Castor_PKT* header;
-	header = (Castor_PKT*) p->data();
-
-	HistoryEntry entry;
-	entry.routedTo = p->dst_ip_anno();
-	entry.ACKedBy = Vector<IPAddress>();
-	memcpy(&entry.flow, &header->fid, sizeof(FlowId));
-
-	Key pid;
-	memcpy(&pid, header->pid, sizeof(Key));
-	_pkthistory.set(pid, entry);
-}
-
-void CastorHistory::addACKToHistory(Packet* p) {
-
-	Castor_ACK* header;
-	header = (Castor_ACK*) p->data();
-
-	// Determine the Source of the Packet
-	IPAddress src = p->dst_ip_anno();
-
-	// Get the entry
-	HistoryEntry* entry = getEntryForAuth(header->auth);
-
+bool CastorHistory::addACKFor(const PacketId& pid, const IPAddress& addr) {
+	CastorHistoryEntry* entry = getEntry(pid);
 	if(!entry) {
 		// Received an ACK for an unknown Packet, do not care
-		return;
-	}
-
-	entry->ACKedBy.push_back(src);
-}
-
-bool CastorHistory::ValidateACK(Packet* p){
-	Castor_ACK* header;
-	header = (Castor_ACK*) p->data();
-
-	// Get the entry
-	HistoryEntry* entry = getEntryForAuth(header->auth);
-
-	if(!entry){
+		click_chatter("Error: trying to add ACK for unknown PKT");
 		return false;
 	}
+	entry->recievedACKs.push_back(addr);
 	return true;
 }
 
-void CastorHistory::GetFlowId(Packet* p, FlowId* flow){
-	uint8_t type = CastorPacket::getType(p);
-
-	if ( type == CastorType::PKT){
-		Castor_PKT* header;
-		header = (Castor_PKT*) p->data();
-
-		// Get the entry
-		HistoryEntry* entry = getEntryForPid(header->pid);
-
-		memcpy(flow, &entry->flow, sizeof(FlowId));
-
-	} else if ( type == CastorType::ACK ){
-
-		Castor_ACK* header;
-		header = (Castor_ACK*) p->data();
-
-		// Get the entry
-		HistoryEntry* entry = getEntryForAuth(header->auth);
-
-		memcpy(flow, &entry->flow, sizeof(FlowId));
-	}
-	else{
-		click_chatter("Error adding packet to history, unknown Packet type");
-	}
+bool CastorHistory::hasPkt(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry;
 }
 
-/*
- * Determine destination of origin packet
- */
-IPAddress CastorHistory::PKTroutedto(Packet* ack){
-	Castor_ACK* header;
-	header = (Castor_ACK*) ack->data();
-
-	// Get the entry
-	HistoryEntry* entry = getEntryForAuth(header->auth);
-
-	if(!entry)
-		return IPAddress("0.0.0.0");
-
-	return entry->routedTo;
+bool CastorHistory::hasACK(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry && !entry->recievedACKs.empty();
 }
 
-bool CastorHistory::IsFirstACK(Packet* p){
-	Castor_ACK* header;
-	header = (Castor_ACK*) p->data();
-
-	// Get the entry
-	HistoryEntry* entry = getEntryForAuth(header->auth);
-
-	if(entry->ACKedBy.size()>0){
-		return false;
-	}
-	return true;
-}
-
-
-
-/**
- * Check whether packet has already been forwarded
- */
-bool CastorHistory::checkDuplicate(Packet* p) {
-
-	uint8_t type = CastorPacket::getType(p);
-	if ( type == CastorType::PKT){
-
-		Castor_PKT* header;
-		header = (Castor_PKT*) p->data();
-
-		if(getEntryForPid(header->pid)){
-			// Found a match, this packet is already in history
-			// TODO If a packet with same pid, but different eauth or payload is received -> NO duplicate
-			return true;
-		}
-		return false;
-
-	} else if ( type == CastorType::ACK ){
-
-		Castor_ACK* header;
-		header = (Castor_ACK*) p->data();
-
-		// Determine the Source of the Packet
-		IPAddress src = p->dst_ip_anno();
-
-		HistoryEntry* entry = getEntryForAuth(header->auth);
-		if(entry){
-			// Found a matching packet
-			for(int i=0; i<entry->ACKedBy.size();i++) {
-				if(entry->ACKedBy.at(i) == src){
-					return true;
-				}
-			}
-		}
-		return false;
-
-	} else {
-		click_chatter("Error checking duplicates in history, unknown Packet type");
-		return false;
-	}
-}
-
-bool CastorHistory::hasACK(PacketId pid){
-
-	HistoryEntry* entry = getEntryForPid(pid);
-	if(entry){
-		if (entry->ACKedBy.size() > 0){
-			return true;
-		}
-		return false;
+bool CastorHistory::hasACK(const PacketId& pid, const IPAddress& addr) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	if (entry) {
+		for (int i = 0; i < entry->recievedACKs.size(); i++)
+			if (entry->recievedACKs[i] == addr)
+				return true;
 	}
 	return false;
-
 }
 
-Key CastorHistory::getKeyForPacket(ACKAuth aauth) {
-	//Compute the Packet ID corresponding to the ACK
-	Hash hash;
-	_crypto->hash(hash, aauth, sizeof(ACKAuth));
-	Key pid;
-	memcpy(&pid, hash, sizeof(Key));
-	return pid;
+size_t CastorHistory::getACKs(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry->recievedACKs.size();
 }
 
-HistoryEntry* CastorHistory::getEntryForAuth(ACKAuth aauth) {
-	return _pkthistory.get_pointer( getKeyForPacket(aauth) );
+const FlowId& CastorHistory::getFlowId(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry->fid;
 }
 
-HistoryEntry* CastorHistory::getEntryForPid(PacketId pid){
+const IPAddress& CastorHistory::routedTo(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry->nextHop;
+}
+
+void CastorHistory::setExpired(const PacketId& pid) {
+	CastorHistoryEntry* entry = getEntry(pid);
+	entry->expired = true;
+}
+
+bool CastorHistory::isExpired(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry && entry->expired;
+}
+
+CastorHistory::Key CastorHistory::pidToKey(const PacketId& pid) const {
 	Key key;
 	memcpy(&key, pid, sizeof(Key));
-	return _pkthistory.get_pointer( key );
+	return key;
+}
+
+const CastorHistory::CastorHistoryEntry* CastorHistory::getEntry(const PacketId& pid) const {
+	return history.get_pointer(pidToKey(pid));
+}
+
+CastorHistory::CastorHistoryEntry* CastorHistory::getEntry(const PacketId& pid) {
+	return history.get_pointer(pidToKey(pid));
 }
 
 CLICK_ENDDECLS

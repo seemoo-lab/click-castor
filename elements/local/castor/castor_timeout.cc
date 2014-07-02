@@ -23,13 +23,10 @@ int CastorTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
 }
 
 void CastorTimeout::push(int, Packet* p) {
-
 	// Create ACK Timer
 	Timer* timer = new Timer(this);
 	timer->initialize(this);
 	timer->schedule_after_msec(timeout);
-
-	//click_chatter("[%.2f] Set timer to expire at %.2f", Timestamp::now().doubleval(), timer->expiry().doubleval());
 
 	// Create entry
 	Castor_PKT* header;
@@ -42,7 +39,6 @@ void CastorTimeout::push(int, Packet* p) {
 	timers.set(timer, entry);
 
 	output(0).push(p);
-
 }
 
 void CastorTimeout::run_timer(Timer* timer) {
@@ -55,12 +51,19 @@ void CastorTimeout::run_timer(Timer* timer) {
 
 	// Check whether ACK has been received in the meantime
 	if (history->hasACK(entry->pid)) {
-		//click_chatter("[%.2f] Timer fired, ACK received", Timestamp::now().doubleval());
+		return;
+	}
+
+	history->setExpired(entry->pid);
+
+	// Check whether PKT was broadcast, if yes, do nothing
+	// TODO: Why is that?
+	if (history->routedTo(entry->pid) == IPAddress::make_broadcast()) {
 		return;
 	}
 
 	// decrease ratings
-	//click_chatter("[%.2f] Timer fired, ACK not received", Timestamp::now().doubleval());
+	click_chatter("[%f] Timeout: no ACK received from %s", Timestamp::now().doubleval(), entry->routedTo.unparse().c_str());
 	table->updateEstimates(entry->fid, entry->routedTo, CastorRoutingTable::decrease, CastorRoutingTable::first);
 	table->updateEstimates(entry->fid, entry->routedTo, CastorRoutingTable::decrease, CastorRoutingTable::all);
 

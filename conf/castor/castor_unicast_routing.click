@@ -140,13 +140,13 @@ elementclass CastorLocalPKT {
 		-> CastorPrint('Packet arrived at destination', $myIP)
 		-> CastorDecryptACKAuth($crypto)
 		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
-		-> CastorAddToHistory($history)
+		-> CastorAddPKTToHistory($history)
 		-> genAck :: CastorCreateACK($crypto)
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT
 		-> CastorPrint('Generated', $myIP)
-		-> CastorAddToHistory($history)
+		-> CastorAddACKToHistory($crypto,$history)
 		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> [1]output; // Push ACKs to output 1
 
@@ -164,7 +164,7 @@ elementclass CastorForwardPKT {
 	input
 		-> CastorPrint('Forwarding Packet', $myIP)
 		-> CastorLookupRoute($routingtable)		// Lookup the route for the packet
-		-> CastorAddToHistory($history)
+		-> CastorAddPKTToHistory($history)
 		-> CastorTimeout($routingtable,$history,$timeout)
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
 		-> output;
@@ -214,26 +214,27 @@ elementclass CastorHandleACK{
 
 	// Regular ACK flow
 	input
-		// TODO maybe swap 'validate' and 'checkDuplicate'
-		-> validate :: CastorValidateACK($history)
-		-> checkDuplicate :: CastorCheckDuplicate($history)
-		-> updateEstimates :: CastorUpdateEstimates($routingtable, $history)
-		-> CastorAddToHistory($history)
+		-> validate :: CastorValidateACK($crypto, $history)
+		-> updateEstimates :: CastorUpdateEstimates($crypto, $routingtable, $history)
+		-> CastorAddACKToHistory($crypto, $history)
 		-> CastorPrint('Received', $myIP)
 		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> output;
 
-	// If invalid or duplicate -> discard
+	// Discarding...
 	null :: Discard;
 	validate[1]
-		-> CastorPrint("!!! Invalid", $myIP)
+		-> CastorPrint("Unknown corresponding PKT", $myIP)
 		-> null;
-	checkDuplicate[1]
+	validate[2]
+		-> CastorPrint("Too late", $myIP)
+		-> null;
+	validate[3]
 		-> CastorPrint("Duplicate", $myIP)
 		-> null;
 	updateEstimates[1]
-		-> CastorPrint("Could not update estimates", $myIP)
-		-> null; // TODO why is there a discard in update estimates?
+		-> CastorPrint("Received from wrong neighbor", $myIP)
+		-> null;
 }
 
 
@@ -251,7 +252,7 @@ crypto::Crypto(sam);
 flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);
 routingtable :: CastorRoutingTable($broadcastAdjust, $updateDelta);
-history :: CastorHistory(crypto);
+history :: CastorHistory;
 castorclassifier :: CastorClassifier;
 handlepkt :: CastorHandlePKT(fake, routingtable, history, crypto);
 handleack :: CastorHandleACK(fake, routingtable, history, crypto);

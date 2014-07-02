@@ -19,7 +19,7 @@ class CastorCheckDuplicate : public Element {
 
 	private:
 		void push(int, Packet *);
-		CastorHistory* _history;
+		CastorHistory* history;
 };
 
 CLICK_ENDDECLS
