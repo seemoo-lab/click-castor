@@ -17,7 +17,6 @@ typedef struct {
 	IPAddress routedTo;
 } TimeoutEntry;
 
-// FIXME: Make this an Element to push through, i.e. timer is started when packet is pushed through
 class CastorTimeout: public Element {
 
 public:
