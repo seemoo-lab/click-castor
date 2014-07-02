@@ -8,7 +8,7 @@
 CLICK_DECLS
 
 /**
- * Decrypt the encrypted ACK authenticator of the incoming packet.
+ * Decrypt the encrypted ACK authenticator field of the incoming packet.
  */
 class CastorDecryptACKAuth : public Element {
 

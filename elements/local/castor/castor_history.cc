@@ -27,14 +27,14 @@ void CastorHistory::addToHistory(Packet* p, bool startTimer) {
 
 	uint8_t type = CastorPacket::getType(p);
 	// Adding a packet to history
-	if ( type == CASTOR_TYPE_PKT){
+	if ( type == CastorType::PKT){
 
 		addPKTToHistory(p);
 		if(startTimer)
 			_timeout->create_timer(p);
 
 	// Adding an ack to history
-	} else if ( type == CASTOR_TYPE_ACK ){
+	} else if ( type == CastorType::ACK ){
 
 		addACKToHistory(p);
 
@@ -94,7 +94,7 @@ bool CastorHistory::ValidateACK(Packet* p){
 void CastorHistory::GetFlowId(Packet* p, FlowId* flow){
 	uint8_t type = CastorPacket::getType(p);
 
-	if ( type == CASTOR_TYPE_PKT){
+	if ( type == CastorType::PKT){
 		Castor_PKT* header;
 		header = (Castor_PKT*) p->data();
 
@@ -103,7 +103,7 @@ void CastorHistory::GetFlowId(Packet* p, FlowId* flow){
 
 		memcpy(flow, &entry->flow, sizeof(FlowId));
 
-	} else if ( type == CASTOR_TYPE_ACK ){
+	} else if ( type == CastorType::ACK ){
 
 		Castor_ACK* header;
 		header = (Castor_ACK*) p->data();
@@ -155,7 +155,7 @@ bool CastorHistory::IsFirstACK(Packet* p){
 bool CastorHistory::checkDuplicate(Packet* p) {
 
 	uint8_t type = CastorPacket::getType(p);
-	if ( type == CASTOR_TYPE_PKT){
+	if ( type == CastorType::PKT){
 
 		Castor_PKT* header;
 		header = (Castor_PKT*) p->data();
@@ -167,7 +167,7 @@ bool CastorHistory::checkDuplicate(Packet* p) {
 		}
 		return false;
 
-	} else if ( type == CASTOR_TYPE_ACK ){
+	} else if ( type == CastorType::ACK ){
 
 		Castor_ACK* header;
 		header = (Castor_ACK*) p->data();

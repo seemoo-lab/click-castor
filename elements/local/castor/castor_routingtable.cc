@@ -18,10 +18,6 @@ CastorRoutingTable::CastorRoutingTable() {
 CastorRoutingTable::~CastorRoutingTable() {
 }
 
-void CastorRoutingTable::updateNeighbor(IPAddress neighbor) {
-	// FIXME What is to be implemented here?
-}
-
 IPAddress CastorRoutingTable::lookup(FlowId flow) {
 	//Check the Routing Table for this specific flow
 	Vector<RoutingEntry>* table = getRoutingTable(flow);

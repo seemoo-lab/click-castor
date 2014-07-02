@@ -1,8 +1,10 @@
 #ifndef CLICK_CASTORADDHEADER_HH
 #define CLICK_CASTORADDHEADER_HH
+
 #include <click/element.hh>
 #include "castor.hh"
 #include "castor_flow_stub.hh"
+
 CLICK_DECLS
 
 class CastorAddHeader : public Element { 

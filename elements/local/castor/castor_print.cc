@@ -32,7 +32,7 @@ void CastorPrint::push(int, Packet *p){
 
 	uint8_t type = CastorPacket::getType(p);
 
-	if( type == CASTOR_TYPE_PKT ){
+	if( type == CastorType::PKT ){
 
 		Castor_PKT pkt;
 		CastorPacket::getCastorPKTHeader(p, &pkt);
@@ -50,7 +50,7 @@ void CastorPrint::push(int, Packet *p){
 			sa << "PKT (" << pkt.src << " -> " << pkt.dst << "): " << spid;
 		}
 
-	} else if( type == CASTOR_TYPE_ACK ){
+	} else if( type == CastorType::ACK ){
 
 		Castor_ACK ack;
 		CastorPacket::getCastorACKHeader(p, &ack);

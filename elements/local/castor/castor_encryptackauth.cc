@@ -12,19 +12,16 @@ CastorEncryptACKAuth::~CastorEncryptACKAuth() {
 }
 
 int CastorEncryptACKAuth::configure(Vector<String> &conf, ErrorHandler *errh) {
-	if (cp_va_kparse(conf, this, errh,
+	return cp_va_kparse(conf, this, errh,
 			"CRYPT", cpkP + cpkM, cpElementCast, "Crypto", &_crypto,
-			cpEnd)
-			< 0)
-		return -1;
-	return 0;
+			cpEnd);
 }
 
 void CastorEncryptACKAuth::push(int, Packet *p) {
 
 	WritablePacket* q = p->uniqueify();
 	Castor_PKT* pkt = (Castor_PKT*) q->data();
-	SValue auth(pkt->eauth, CASTOR_HASHLENGTH);
+	SValue auth(pkt->eauth, sizeof(ACKAuth));
 
 	SymmetricKey* sk = _crypto->getSharedKey(pkt->dst);
 	if (!sk) {
@@ -33,13 +30,13 @@ void CastorEncryptACKAuth::push(int, Packet *p) {
 		return;
 	}
 	SValue cipher = _crypto->encrypt(auth, *sk);
-	if (cipher.size() != CASTOR_ENCLENGTH) {
+	if (cipher.size() != sizeof(EACKAuth)) {
 		click_chatter("Cannot create ciphertext: Crypto subsystem returned wrong ciphertext length. Discarding PKT...");
 		q->kill();
 		return;
 	}
 
-	memcpy(pkt->eauth, cipher.begin(), CASTOR_ENCLENGTH);
+	memcpy(pkt->eauth, cipher.begin(), sizeof(EACKAuth));
 
 	output(0).push(q);
 
@@ -47,4 +44,3 @@ void CastorEncryptACKAuth::push(int, Packet *p) {
 
 CLICK_ENDDECLS
 EXPORT_ELEMENT(CastorEncryptACKAuth)
-

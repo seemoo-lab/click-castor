@@ -26,10 +26,10 @@ void CastorCreateACKDummy::push(int, Packet *p) {
 
 	// Generate a new ACK packet
 	Castor_ACK ack;
-	ack.type = CASTOR_TYPE_ACK;
-	ack.hsize = CASTOR_HASHLENGTH;
+	ack.type = CastorType::DUMMY_ACK;
+	ack.hsize = sizeof(Hash);
 	ack.len = sizeof(Castor_ACK);
-	memcpy(&ack.auth, pkt->eauth, CASTOR_HASHLENGTH);
+	memcpy(&ack.auth, pkt->eauth, sizeof(Hash));
 
 	// Broadcast ACK
 	WritablePacket* q = Packet::make(&ack, sizeof(Castor_ACK));

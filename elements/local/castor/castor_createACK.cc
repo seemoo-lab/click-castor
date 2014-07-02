@@ -12,12 +12,9 @@ CastorCreateACK::~CastorCreateACK() {
 }
 
 int CastorCreateACK::configure(Vector<String> &conf, ErrorHandler *errh) {
-	if(cp_va_kparse(conf, this, errh,
+	return cp_va_kparse(conf, this, errh,
 			"CRYPT", cpkP + cpkM, cpElementCast, "Crypto", &crypto,
-			cpEnd)
-			< 0)
-		return -1;
-	return 0;
+			cpEnd);
 }
 
 void CastorCreateACK::push(int, Packet* p) {
@@ -26,7 +23,7 @@ void CastorCreateACK::push(int, Packet* p) {
 
 	// Generate new ACK
 	Castor_ACK ack;
-	ack.type = CASTOR_TYPE_ACK;
+	ack.type = CastorType::MERKLE_ACK;
 	ack.hsize = sizeof(Hash);
 	ack.len = sizeof(Castor_ACK);
 	memcpy(ack.auth, pkt->eauth, sizeof(ACKAuth)); // eauth should be already decrypted!

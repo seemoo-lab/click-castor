@@ -19,7 +19,7 @@ typedef struct{
 	FlowId		flow_id	;
 	PacketId 	packet_id;
 	uint16_t	packet_number;
-	FlowAuth 	flow_auth[CASTOR_FLOWSIZE];
+	FlowAuth 	flow_auth;
 	ACKAuth 	ack_auth;
 } PacketLabel;
 

@@ -10,27 +10,31 @@ CLICK_DECLS
 
 bool CastorFlowMerkle::hasFlow(Host source, Host destination) {
 	HashTable<Host, Flow> * t = _flows.get_pointer(source);
-	if(!t) return false;
+	if (!t)
+		return false;
 
 	Flow* f = t->get_pointer(destination);
-	if(!f) return false;
+	if (!f)
+		return false;
 
 	return true;
 }
 
 void CastorFlowMerkle::createFlow(Host source, Host destination) {
 	// Create a new Flow Object
-	click_chatter("Creating a new Flow object (%s -> %s) with %d elements", source.unparse().c_str(), destination.unparse().c_str(), CASTOR_REAL_FLOWSIZE);
+	click_chatter("Creating a new Flow object (%s -> %s) with %d elements",
+			source.unparse().c_str(), destination.unparse().c_str(),
+			CASTOR_REAL_FLOWSIZE);
 	Flow flow;
 	flow.position = 0;
 
 	// Generate random nonces
 	Vector<SValue> ack_auths = Vector<SValue>(); // The ACK authenticator
-	Vector<SValue> pids 	= Vector<SValue>();	// Packet IDs
+	Vector<SValue> pids = Vector<SValue>();	// Packet IDs
 
-	for(int f=0;f<CASTOR_REAL_FLOWSIZE;f++){
-		SValue nonce 	= _crypto->random(sizeof(ACKAuth));
-		SValue pid 		= _crypto->hash(nonce);
+	for (int f = 0; f < CASTOR_REAL_FLOWSIZE; f++) {
+		SValue nonce = _crypto->random(sizeof(ACKAuth));
+		SValue pid = _crypto->hash(nonce);
 		ack_auths.push_back(nonce);
 		pids.push_back(pid);
 	}
@@ -38,7 +42,7 @@ void CastorFlowMerkle::createFlow(Host source, Host destination) {
 	// Create labels
 	MerkleTree tree = MerkleTree(pids, *_crypto);
 
-	for(unsigned int i=0;i<CASTOR_REAL_FLOWSIZE;i++){
+	for (unsigned int i = 0; i < CASTOR_REAL_FLOWSIZE; i++) {
 		PacketLabel lbl;
 		lbl.packet_number = i;
 
@@ -53,20 +57,20 @@ void CastorFlowMerkle::createFlow(Host source, Host destination) {
 		Vector<SValue> siblings;
 		tree.getSiblings(siblings, i);
 		assert(siblings.size() == CASTOR_FLOWSIZE);
-		for(int j = 0; j < siblings.size(); j++)
-			memcpy(&lbl.flow_auth[j].flow, siblings.at(j).begin(), sizeof(FlowAuth));
+		for (int j = 0; j < siblings.size(); j++)
+			memcpy(&lbl.flow_auth[j].data, siblings.at(j).begin(), sizeof(FlowAuthElement));
 
 		// Set unencrypted (!) ACK authenticator
-		memcpy(&lbl.ack_auth,ack_auths.at(i).begin(), sizeof(ACKAuth));
+		memcpy(&lbl.ack_auth, ack_auths.at(i).begin(), sizeof(ACKAuth));
 		flow.labels[i] = lbl;
 	}
 
 	//Check if a hashtable for the source exists
-	if(!_flows.get_pointer(source))
+	if (!_flows.get_pointer(source))
 		_flows.set(source, HashTable<Host, Flow>());
 
 	HashTable<Host, Flow>* fdest = _flows.get_pointer(source);
-	fdest->set(destination,flow);
+	fdest->set(destination, flow);
 }
 
 PacketLabel CastorFlowMerkle::useFlow(Host source, Host destination) {
@@ -79,7 +83,7 @@ void CastorFlowMerkle::updateFlow(Host source, Host destination) {
 
 	f->position++;
 
-	if(f->position >= CASTOR_REAL_FLOWSIZE){
+	if (f->position >= CASTOR_REAL_FLOWSIZE) {
 		(_flows.get_pointer(source))->erase(destination);
 	}
 }

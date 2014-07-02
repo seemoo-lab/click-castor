@@ -38,12 +38,12 @@ int Crypto::configure(Vector<String> &conf, ErrorHandler *errh)
 void Crypto::hash(Hash hash, uint8_t* data, uint8_t length) {
 	Botan::SHA_160 sha160;
 	Botan::SecureVector<Botan::byte> hashed = sha160.process(data, length);
-	memcpy(hash, hashed.begin(), CASTOR_HASHLENGTH);
+	memcpy(hash, hashed.begin(), sizeof(Hash));
 }
 
 void Crypto::randomize(Hash r) {
 	Botan::AutoSeeded_RNG rng;
-	rng.randomize((uint8_t*) r, CASTOR_HASHLENGTH);
+	rng.randomize((uint8_t*) r, sizeof(Hash));
 }
 
 SValue Crypto::random(int bytes) {
