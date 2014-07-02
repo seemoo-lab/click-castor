@@ -3,9 +3,17 @@
  **************/
 
 define(
-	$EthDev eth0, /** eth0 for ns3 **/
-	$HostDev tap0, /** tap0 for ns3 **/
-	$CASTORTYPE	201);
+	/** Device names for ns3 **/
+	$EthDev eth0,
+	$HostDev tap0,
+
+	$CASTORTYPE 201,
+
+	/** Castor parameters (settings from experimental setup of Castor technical report) **/
+	$broadcastAdjust 8.0, // bandwidth investment for route discovery (larger values reduce the broadcast probability)
+	$updateDelta 0.8, // adaptivity of the reliability estimators
+	$timeout 500 // in msec
+);
 
 AddressInfo(fake $EthDev);
 AddressInfo(netAddr 192.168.201.0)
@@ -157,7 +165,7 @@ elementclass CastorForwardPKT {
 		-> CastorPrint('Forwarding Packet', $myIP)
 		-> CastorLookupRoute($routingtable)		// Lookup the route for the packet
 		-> CastorAddToHistory($history)
-		-> CastorTimeout($routingtable,$history,500)
+		-> CastorTimeout($routingtable,$history,$timeout)
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
 		-> output;
 
@@ -242,7 +250,7 @@ sam::SAManagement(fake, netAddr, 10);
 crypto::Crypto(sam);
 flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);
-routingtable :: CastorRoutingTable;
+routingtable :: CastorRoutingTable($broadcastAdjust, $updateDelta);
 history :: CastorHistory(crypto);
 castorclassifier :: CastorClassifier;
 handlepkt :: CastorHandlePKT(fake, routingtable, history, crypto);

@@ -20,7 +20,6 @@ typedef struct {
 class CastorTimeout: public Element {
 
 public:
-
 	CastorTimeout();
 	~CastorTimeout();
 

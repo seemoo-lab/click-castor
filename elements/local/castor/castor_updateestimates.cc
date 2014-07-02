@@ -5,9 +5,12 @@
 #include "castor_updateestimates.hh"
 
 CLICK_DECLS
-CastorUpdateEstimates::CastorUpdateEstimates(){}
 
-CastorUpdateEstimates::~ CastorUpdateEstimates(){}
+CastorUpdateEstimates::CastorUpdateEstimates() {
+}
+
+CastorUpdateEstimates::~CastorUpdateEstimates() {
+}
 
 int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
     return cp_va_kparse(conf, this, errh,
@@ -18,12 +21,8 @@ int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void CastorUpdateEstimates::push(int, Packet *p){
 
-	//Get the Packet Header
-	Castor_ACK header;
-	CastorPacket::getCastorACKHeader(p, &header);
-
-    // The Address Annotation should contain the Source IP
-    IPAddress src = p->dst_ip_anno();
+	// The Address Annotation should contain the Source IP
+	IPAddress src = p->dst_ip_anno();
 
 	// Determine Destination of the origin Packet
 	IPAddress dest = _history->PKTroutedto(p);
@@ -32,28 +31,32 @@ void CastorUpdateEstimates::push(int, Packet *p){
 	FlowId fid;
 	_history->GetFlowId(p, &fid);
 
-	// Check if we have uni or broadcasted the packet
-	if(dest == IPAddress::make_broadcast()){
-		if(_history->IsFirstACK(p)){
-    		//This is the first ACK for the Packet
-    		//click_chatter("Receiving first ack for packet");
-        	_table->updateEstimates(fid,src, increase, first);
-        	_table->updateEstimates(fid,src, increase, all);
+	if (dest == IPAddress::make_broadcast()) {
+		// PKT was broadcast
+		if (_history->IsFirstACK(p)){
+			_table->updateEstimates(fid, src,
+					CastorRoutingTable::increase,
+					CastorRoutingTable::first);
+			_table->updateEstimates(fid, src,
+					CastorRoutingTable::increase,
+					CastorRoutingTable::all);
 		} else {
-			_table->updateEstimates(fid,src, increase, all);
+			_table->updateEstimates(fid, src,
+					CastorRoutingTable::increase,
+					CastorRoutingTable::all);
 		}
-	} else if(src == dest){
-    	//The Packet has been unicasted, increase all estimates
-    	//click_chatter("Receiving ack for unicasted packet");
-    	_table->updateEstimates(fid,src, increase, first);
-    	_table->updateEstimates(fid,src, increase, all);
+	} else if (src == dest) {
+		// PKT was unicast, increase all estimates
+		_table->updateEstimates(fid, src,
+				CastorRoutingTable::increase,
+				CastorRoutingTable::first);
+		_table->updateEstimates(fid, src,
+				CastorRoutingTable::increase,
+				CastorRoutingTable::all);
 	} else {
-		// Received ACK from unknwon source
-		 StringAccum sa;
-		 sa << "Received ACK from  " << src << " but packet was routed to " << src;
-		 click_chatter(sa.c_str());
-		 output(1).push(p); // -> discard
-		 return;
+		// We have never forwarded this PKT
+		output(1).push(p); // -> discard
+		return;
 	}
 
     output(0).push(p);

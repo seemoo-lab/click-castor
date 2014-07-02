@@ -11,11 +11,14 @@ CastorTimeout::CastorTimeout() {
 CastorTimeout::~CastorTimeout() {
 }
 
-int CastorTimeout::configure(Vector<String> &conf, ErrorHandler *errh) {
+int CastorTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
+	// Default value from experimental setup of Castor technical paper
+	timeout = 500;
+
 	return cp_va_kparse(conf, this, errh,
 			"CastorRoutingTable", cpkP + cpkM, cpElementCast, "CastorRoutingTable", &table,
 			"CastorHistory", cpkP + cpkM, cpElementCast, "CastorHistory", &history,
-			"TIMEOUT", cpkP + cpkM, cpInteger, &timeout,
+			"TIMEOUT", cpkP, cpInteger, &timeout,
 			cpEnd);
 }
 
@@ -58,8 +61,8 @@ void CastorTimeout::run_timer(Timer* timer) {
 
 	// decrease ratings
 	//click_chatter("[%.2f] Timer fired, ACK not received", Timestamp::now().doubleval());
-	table->updateEstimates(entry->fid, entry->routedTo, decrease, first);
-	table->updateEstimates(entry->fid, entry->routedTo, decrease, all);
+	table->updateEstimates(entry->fid, entry->routedTo, CastorRoutingTable::decrease, CastorRoutingTable::first);
+	table->updateEstimates(entry->fid, entry->routedTo, CastorRoutingTable::decrease, CastorRoutingTable::all);
 
 	// delete timer
 	timers.erase(timer);

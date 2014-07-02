@@ -7,26 +7,13 @@
 
 CLICK_DECLS
 
-// TODO: Make those configurable
-#define BROADCAST_ADJUST 1
-#define UPDATE_DELTA 0.5
-
-typedef uint32_t Id;
-
-// TODO: Make those scoped
-enum Operation {
-	increase, decrease
-};
-enum Estimate {
-	first, all
-};
-
-typedef struct {
+typedef struct RoutingEntry {
 	IPAddress nextHop;
 	double alpha_all;
 	double beta_all;
 	double alpha_first;
 	double beta_first;
+	RoutingEntry(IPAddress nextHop) : nextHop(nextHop), alpha_all(0), beta_all(1), alpha_first(0), beta_first(1) { };
 } RoutingEntry;
 
 typedef struct {
@@ -39,33 +26,40 @@ public:
 	CastorRoutingTable();
 	~CastorRoutingTable();
 
+	enum Operation { increase, decrease };
+	enum Estimate { first, all };
+
 	const char *class_name() const { return "CastorRoutingTable"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
+	int configure(Vector<String>&, ErrorHandler*);
 
 	/**
 	 * Perform the Lookup operation, determines the best route for Packet with given FlowID
 	 */
-	IPAddress lookup(FlowId);
+	IPAddress lookup(const FlowId&);
 
 	/**
 	 * Updates the Estimation values in the Database for Flow Host
 	 * Third parameter is true for successfull updading, else
 	 */
-	void updateEstimates(FlowId, IPAddress, Operation, Estimate);
-
-	//int configure(Vector<String>&, ErrorHandler*);
+	void updateEstimates(const FlowId&, const IPAddress&, Operation, Estimate);
 
 private:
+	Vector<RoutingEntry>& getRoutingTable(const FlowId& flow);
+	RoutingEntry& getRoutingEntry(Vector<RoutingEntry>&, const IPAddress&);
+	double getEstimate(const RoutingEntry&) const;
+	void printRoutingTable(const FlowId&);
+
 	Vector<FlowEntry> _flows;
-
-	Vector<RoutingEntry>* getRoutingTable(FlowId flow);
-
-	RoutingEntry* getRoutingEntry(Vector<RoutingEntry>*, IPAddress);
-
-	void printRoutingTable(FlowId);
-
-	double getEstimate(RoutingEntry*);
+	/**
+	 * Bandwidth investment for route discovery (larger values reduce the broadcast probability)
+	 */
+	double broadcastAdjust;
+	/**
+	 * Adaptivity of the reliability estimators
+	 */
+	double updateDelta;
 
 };
 
