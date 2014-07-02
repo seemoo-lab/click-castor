@@ -57,7 +57,7 @@ void CastorTimeout::run_timer(Timer* timer) {
 	history->setExpired(pid);
 
 	// Check whether PKT was broadcast, if yes, do nothing
-	// TODO: Why is that?
+	// FIXME: Why is that?
 	if (routedTo == IPAddress::make_broadcast()) {
 		return;
 	}

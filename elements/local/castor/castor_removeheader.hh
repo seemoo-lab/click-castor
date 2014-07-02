@@ -6,22 +6,19 @@
 
 CLICK_DECLS
 
-class CastorRemoveHeader : public Element {
-
-	public:
+/**
+ * Removes the Castor header
+ */
+class CastorRemoveHeader: public Element {
+public:
 	CastorRemoveHeader();
-		~CastorRemoveHeader();
+	~CastorRemoveHeader();
 		
-		const char *class_name() const	{ return "CastorRemoveHeader"; }
-		const char *port_count() const	{ return "1/1"; }
-		const char *processing() const	{ return PUSH; }
-		int configure(Vector<String>&, ErrorHandler*);
-		
-		void push(int, Packet *);
+	const char *class_name() const { return "CastorRemoveHeader"; }
+	const char *port_count() const { return "1/1"; }
+	const char *processing() const { return PUSH; }
 
-	private:
-		void init();
-		click_ip _iph;
+	void push(int, Packet *);
 };
 
 CLICK_ENDDECLS

@@ -7,23 +7,25 @@
 
 CLICK_DECLS
 
-class CastorAddHeader : public Element { 
-	public:
-		CastorAddHeader();
-		~CastorAddHeader();
+/**
+ * Add Castor header to IP packet
+ * TODO: Should replace IP header instead of add
+ */
+class CastorAddHeader: public Element {
+public:
+	CastorAddHeader();
+	~CastorAddHeader();
 		
-		const char *class_name() const	{ return "CastorAddHeader"; }
-		const char *port_count() const	{ return "1/1"; }
-		const char *processing() const	{ return PUSH; }
-		int configure(Vector<String>&, ErrorHandler*);
-		
-		void push(int, Packet *);
+	const char *class_name() const { return "CastorAddHeader"; }
+	const char *port_count() const { return "1/1"; }
+	const char *processing() const { return PUSH; }
+	int configure(Vector<String>&, ErrorHandler*);
 
-	protected:
-		CastorFlowStub* cflow;
+	void push(int, Packet*);
+private:
+	CastorFlowStub* cflow;
 };
 
 CLICK_ENDDECLS
 
 #endif
-

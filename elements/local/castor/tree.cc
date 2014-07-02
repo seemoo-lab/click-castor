@@ -51,7 +51,7 @@ MerkleTree::MerkleTree(Vector<SValue>& in, Crypto& c) :	crypto(c) {
 }
 
 MerkleTree::~MerkleTree(){
-	// TODO: delete all nodes
+	// FIXME: delete all nodes
 }
 
 SValue MerkleTree::getRoot(){
