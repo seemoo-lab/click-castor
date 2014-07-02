@@ -1,5 +1,6 @@
-#ifndef CLICK_CASTORCHECKDUPLICATE_HH
-#define CLICK_CASTORCHECKDUPLICATE_HH
+#ifndef CLICK_CASTOR_CHECKDUPLICATE_HH
+#define CLICK_CASTOR_CHECKDUPLICATE_HH
+
 #include <click/element.hh>
 #include "castor.hh"
 #include "castor_history.hh"
@@ -22,4 +23,5 @@ class CastorCheckDuplicate : public Element {
 };
 
 CLICK_ENDDECLS
+
 #endif

@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTORCREATEACK_HH
-#define CLICK_CASTORCREATEACK_HH
+#ifndef CLICK_CASTOR_CREATE_ACK_HH
+#define CLICK_CASTOR_CREATE_ACK_HH
 
 #include <click/element.hh>
 #include "castor.hh"
@@ -15,9 +15,9 @@ class CastorCreateACK : public Element {
 		CastorCreateACK();
 		~CastorCreateACK();
 		
-		const char *class_name() const	{ return "CastorCreateACK"; }
-		const char *port_count() const	{ return "1/2"; }
-		const char *processing() const	{ return PUSH; }
+		const char *class_name() const { return "CastorCreateACK"; }
+		const char *port_count() const { return "1/2"; }
+		const char *processing() const { return PUSH; }
 		int configure(Vector<String>&, ErrorHandler*);
 		
 		void push(int, Packet *);

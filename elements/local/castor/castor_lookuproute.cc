@@ -4,11 +4,13 @@
 #include "castor_lookuproute.hh"
 #include <click/etheraddress.hh>
 
-
 CLICK_DECLS
-CastorLookupRoute::CastorLookupRoute(){}
 
-CastorLookupRoute::~ CastorLookupRoute(){}
+CastorLookupRoute::CastorLookupRoute() {
+}
+
+CastorLookupRoute::~CastorLookupRoute() {
+}
 
 int CastorLookupRoute::configure(Vector<String> &conf, ErrorHandler *errh) {
     return cp_va_kparse(conf, this, errh,

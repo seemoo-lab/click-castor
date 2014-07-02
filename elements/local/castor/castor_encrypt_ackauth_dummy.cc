@@ -1,7 +1,7 @@
 #include <click/config.h>
 #include <click/args.hh>
 #include <click/confparse.hh>
-#include "castor_encryptackauth_dummy.hh"
+#include "castor_encrypt_ackauth_dummy.hh"
 
 CLICK_DECLS
 

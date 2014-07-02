@@ -1,9 +1,3 @@
-/*
- * castor_routingtable.cc
- *
- *  Created on: 05.12.2013
- *      Author: dast
- */
 #include <click/config.h>
 #include <click/confparse.hh>
 #include <click/straccum.hh>

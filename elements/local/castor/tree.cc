@@ -1,7 +1,6 @@
-#include "tree.hh"
-#include "castor.hh"
-#include "crypto.hh"
+#include <click/config.h>
 #include <click/straccum.hh>
+#include "tree.hh"
 
 CLICK_DECLS
 

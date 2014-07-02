@@ -3,7 +3,6 @@
 #include <click/error.hh>
 #include <click/straccum.hh>
 #include "castor_flow_merkle.hh"
-#include "crypto.hh"
 #include "tree.hh"
 
 CLICK_DECLS

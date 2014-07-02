@@ -1,9 +1,11 @@
-#ifndef CLICK_CASTORFLOW_HH
-#define CLICK_CASTORFLOW_HH
+#ifndef CLICK_CASTOR_FLOW_HH
+#define CLICK_CASTOR_FLOW_HH
+
 #include <click/element.hh>
 #include "castor.hh"
-#include "castor_flow_stub.hh"
 #include "crypto.hh"
+#include "castor_flow_stub.hh"
+
 CLICK_DECLS
 
 class CastorFlow : public Element { 
@@ -11,9 +13,9 @@ class CastorFlow : public Element {
 		CastorFlow();
 		~CastorFlow();
 		
-		const char *class_name() const	{ return "CastorFlow"; }
-		const char *port_count() const	{ return PORTS_0_0; }
-		const char *processing() const	{ return AGNOSTIC; }
+		const char *class_name() const { return "CastorFlow"; }
+		const char *port_count() const { return PORTS_0_0; }
+		const char *processing() const { return AGNOSTIC; }
 
 		int configure(Vector<String>&, ErrorHandler*);
 		
@@ -33,5 +35,5 @@ class CastorFlow : public Element {
 };
 
 CLICK_ENDDECLS
-#endif
 
+#endif

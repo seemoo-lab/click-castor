@@ -1,11 +1,5 @@
-/*
- * castor_routingtable.hh
- *
- *  Created on: 05.12.2013
- *      Author: dast
- */
-#ifndef CASTOR_ROUTINGTABLE_HH_
-#define CASTOR_ROUTINGTABLE_HH_
+#ifndef CLICK_CASTOR_ROUTINGTABLE_HH
+#define CLICK_CASTOR_ROUTINGTABLE_HH
 
 #include <click/element.hh>
 #include <click/vector.hh>
@@ -13,11 +7,13 @@
 
 CLICK_DECLS
 
+// TODO: Make those configurable
 #define BROADCAST_ADJUST 1
 #define UPDATE_DELTA 0.5
 
 typedef uint32_t Id;
 
+// TODO: Make those scoped
 enum Operation {
 	increase, decrease
 };
@@ -75,4 +71,4 @@ private:
 
 CLICK_ENDDECLS
 
-#endif /* CASTOR_ROUTINGTABLE_HH_ */
+#endif

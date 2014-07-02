@@ -5,12 +5,12 @@
 
 CLICK_DECLS
 
-CastorFlowStub::CastorFlowStub(){
+CastorFlowStub::CastorFlowStub() {
 	_defaultType = 0;
 }
 
-CastorFlowStub::~ CastorFlowStub()
-{}
+CastorFlowStub::~CastorFlowStub() {
+}
 
 PacketLabel CastorFlowStub::getPacketLabel(Host source, Host destination){
 

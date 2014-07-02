@@ -24,5 +24,6 @@ class CastorAddHeader : public Element {
 };
 
 CLICK_ENDDECLS
+
 #endif
 

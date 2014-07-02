@@ -174,10 +174,10 @@ elementclass CastorHandlePKT{
 	input
 		-> checkDuplicate :: CastorCheckDuplicate($history)
 		-> validate :: CastorValidateFlow($crypto)
-		-> cdst :: CastorDstClassifier($myIP);
+		-> destinationClassifier :: CastorDestClassifier($myIP);
 
  	// PKT arrived at destination
-	cdst[0]
+	destinationClassifier[0]
 		-> handleLocal :: CastorLocalPKT($myIP, $history, $crypto)
 		-> [0]output;
 
@@ -185,7 +185,7 @@ elementclass CastorHandlePKT{
 		-> [1]output;
 	
 	// PKT needs to be forwarded
-	cdst[1]
+	destinationClassifier[1]
 		-> forward :: CastorForwardPKT($myIP, $routingtable, $history)
 		-> [2]output;
 
@@ -242,7 +242,7 @@ crypto::Crypto(sam);
 flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);
 routingtable :: CastorRoutingTable;
-timeout :: CastorTimeout(routingtable,history);
+timeout :: CastorTimeout(routingtable,history,500);
 history :: CastorHistory(crypto,timeout);
 castorclassifier :: CastorClassifier;
 handlepkt :: CastorHandlePKT(fake, routingtable, history, crypto);

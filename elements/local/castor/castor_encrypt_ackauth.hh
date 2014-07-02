@@ -1,5 +1,6 @@
-#ifndef CLICK_CASTORENCRYPTACKAUTH_HH
-#define CLICK_CASTORENCRYPTACKAUTH_HH
+#ifndef CLICK_CASTOR_ENCRYPT_ACKAUTH_HH
+#define CLICK_CASTOR_ENCRYPT_ACKAUTH_HH
+
 #include <click/element.hh>
 #include "castor.hh"
 #include "crypto.hh"
@@ -23,4 +24,5 @@ class CastorEncryptACKAuth : public Element {
 };
 
 CLICK_ENDDECLS
+
 #endif

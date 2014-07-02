@@ -1,12 +1,15 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include <click/packet.hh>
-#include "castor_createACK_dummy.hh"
+#include "castor_create_ack_dummy.hh"
 
 CLICK_DECLS
-CastorCreateACKDummy::CastorCreateACKDummy(){}
 
-CastorCreateACKDummy::~CastorCreateACKDummy(){}
+CastorCreateACKDummy::CastorCreateACKDummy() {
+}
+
+CastorCreateACKDummy::~CastorCreateACKDummy() {
+}
 
 int CastorCreateACKDummy::configure(Vector<String> &conf, ErrorHandler *errh)
 {

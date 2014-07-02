@@ -1,5 +1,6 @@
-#ifndef CLICK_CASTORHISTORY_HH
-#define CLICK_CASTORHISTORY_HH
+#ifndef CLICK_CASTOR_HISTORY_HH
+#define CLICK_CASTOR_HISTORY_HH
+
 #include <click/element.hh>
 #include "castor.hh"
 #include "crypto.hh"
@@ -56,4 +57,5 @@ class CastorHistory : public Element {
 };
 
 CLICK_ENDDECLS
+
 #endif

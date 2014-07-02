@@ -3,6 +3,7 @@
 #include "castor_removeheader.hh"
 
 CLICK_DECLS
+
 CastorRemoveHeader::CastorRemoveHeader(){
 	init();
 }

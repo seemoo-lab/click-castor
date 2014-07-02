@@ -1,10 +1,13 @@
-#ifndef CLICK_CASTORREMOVEHEADER_HH
-#define CLICK_CASTORREMOVEHEADER_HH
+#ifndef CLICK_CASTOR_REMOVEHEADER_HH
+#define CLICK_CASTOR_REMOVEHEADER_HH
+
 #include <click/element.hh>
 #include "castor.hh"
+
 CLICK_DECLS
 
 class CastorRemoveHeader : public Element {
+
 	public:
 	CastorRemoveHeader();
 		~CastorRemoveHeader();
@@ -22,5 +25,6 @@ class CastorRemoveHeader : public Element {
 };
 
 CLICK_ENDDECLS
+
 #endif
 

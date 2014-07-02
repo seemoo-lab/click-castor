@@ -4,6 +4,7 @@
 #include "castor_flow.hh"
 
 CLICK_DECLS
+
 CastorFlow::CastorFlow(){
 }
 
@@ -65,4 +66,3 @@ void CastorFlow::updateFlow(Host, Host) {
 
 CLICK_ENDDECLS
 EXPORT_ELEMENT(CastorFlow)
-

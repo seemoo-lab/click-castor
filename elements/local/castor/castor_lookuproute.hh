@@ -1,5 +1,6 @@
-#ifndef CLICK_CASTORLOOKUPROUTE_HH
-#define CLICK_CASTORLOOKUPROUTE_HH
+#ifndef CLICK_CASTOR_LOOKUPROUTE_HH
+#define CLICK_CASTOR_LOOKUPROUTE_HH
+
 #include <click/element.hh>
 #include "castor.hh"
 #include "castor_routingtable.hh"

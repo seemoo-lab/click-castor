@@ -1,12 +1,5 @@
-/*
- * castor_translate_localhost.hh
- *
- *  Created on: Jun 30, 2014
- *      Author: milan
- */
-
-#ifndef CASTOR_TRANSLATE_LOCALHOST_HH_
-#define CASTOR_TRANSLATE_LOCALHOST_HH_
+#ifndef CLICK_CASTOR_TRANSLATE_LOCALHOST_HH
+#define CLICK_CASTOR_TRANSLATE_LOCALHOST_HH
 
 #include <click/element.hh>
 #include "castor.hh"
@@ -34,4 +27,4 @@ private:
 
 CLICK_ENDDECLS
 
-#endif /* CASTOR_TRANSLATE_LOCALHOST_HH_ */
+#endif

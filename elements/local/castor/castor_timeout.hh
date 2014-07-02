@@ -1,13 +1,12 @@
-#ifndef CASTOR_TIMEOUT_HH_
-#define CASTOR_TIMEOUT_HH_
+#ifndef CLICK_CASTOR_TIMEOUT_HH
+#define CLICK_CASTOR_TIMEOUT_HH
+
 #include <click/element.hh>
 #include <click/hashtable.hh>
 #include <click/timer.hh>
 #include "castor.hh"
 #include "castor_routingtable.hh"
 #include "castor_history.hh"
-
-#define TIMEOUT_MS 500 // Timeout in milliseconds
 
 CLICK_DECLS
 
@@ -18,6 +17,7 @@ typedef struct {
 	IPAddress routedTo;
 } TimeoutEntry;
 
+// FIXME: Make this an Element to push through, i.e. timer is started when packet is pushed through
 class CastorTimeout: public Element {
 
 public:
@@ -33,9 +33,10 @@ public:
 	void run_timer(Timer*);
 
 private:
-	CastorRoutingTable* _table;
-	CastorHistory* _history;
-	HashTable<Timer*,TimeoutEntry> _timers;
+	CastorRoutingTable* table;
+	CastorHistory* history;
+	HashTable<Timer*,TimeoutEntry> timers;
+	int timeout;
 
 };
 

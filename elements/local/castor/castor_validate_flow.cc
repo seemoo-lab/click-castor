@@ -1,6 +1,6 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-#include "castor_validateflow.hh"
+#include "castor_validate_flow.hh"
 #include "tree.hh"
 
 CLICK_DECLS

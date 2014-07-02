@@ -2,8 +2,8 @@
 #define CLICK_CASTOR_FLOW_MERKLE_HH
 
 #include <click/element.hh>
-#include "castor_flow.hh"
 #include <click/vector.hh>
+#include "castor_flow.hh"
 
 #define CASTOR_REAL_FLOWSIZE (1 << (CASTOR_FLOWSIZE))
 
@@ -17,7 +17,6 @@ typedef struct{
 typedef HashTable<Host, HashTable<Host, Flow> > Flows;
 
 class CastorFlowMerkle : public CastorFlow {
-
 	public:
 		const char *class_name() const	{ return "CastorFlowMerkle"; }
 

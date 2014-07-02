@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTORVALIDATEFLOW_HH
-#define CLICK_CASTORVALIDATEFLOW_HH
+#ifndef CLICK_CASTOR_CREATE_ACK_DUMMY_HH
+#define CLICK_CASTOR_CREATE_ACK_DUMMY_HH
 
 #include <click/element.hh>
 #include "castor.hh"
@@ -7,23 +7,21 @@
 
 CLICK_DECLS
 
-/**
- * Flow validation takes place at every intermediate node
- */
-class CastorValidateFlow : public Element {
+class CastorCreateACKDummy : public Element {
 	public:
-		CastorValidateFlow();
-		~CastorValidateFlow();
+		CastorCreateACKDummy();
+		~CastorCreateACKDummy();
 		
-		const char *class_name() const	{ return "CastorValidateFlow"; }
+		const char *class_name() const	{ return "CastorCreateACKDummy"; }
 		const char *port_count() const	{ return "1/2"; }
 		const char *processing() const	{ return PUSH; }
 		int configure(Vector<String>&, ErrorHandler*);
 		
 		void push(int, Packet *);
 	private:
-		Crypto* crypto;
+		Crypto* _crypto;
 };
 
 CLICK_ENDDECLS
+
 #endif
