@@ -130,7 +130,8 @@ elementclass CastorLocalPKT {
 
 	input
 		-> CastorPrint('Packet arrived at destination', $myIP)
-		-> validateAtDest :: CastorValidateFlowAtDestination
+		-> CastorDecryptACKAuth($crypto)
+		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
 		-> CastorAddToHistory($history, false)
 		-> genAck :: CastorCreateACK($crypto)
 		-> [0]output;

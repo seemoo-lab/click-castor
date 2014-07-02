@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTORFLOWMERKLE_HH
-#define CLICK_CASTORFLOWMERKLE_HH
+#ifndef CLICK_CASTOR_FLOW_MERKLE_HH
+#define CLICK_CASTOR_FLOW_MERKLE_HH
 
 #include <click/element.hh>
 #include "castor_flow.hh"
@@ -13,7 +13,6 @@ typedef struct{
 	unsigned int position;
 	PacketLabel labels[CASTOR_REAL_FLOWSIZE];
 } Flow;
-
 
 typedef HashTable<Host, HashTable<Host, Flow> > Flows;
 

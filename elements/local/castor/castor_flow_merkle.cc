@@ -6,7 +6,6 @@
 #include "crypto.hh"
 #include "tree.hh"
 
-
 CLICK_DECLS
 
 bool CastorFlowMerkle::hasFlow(Host source, Host destination) {
@@ -20,12 +19,12 @@ bool CastorFlowMerkle::hasFlow(Host source, Host destination) {
 }
 
 void CastorFlowMerkle::createFlow(Host source, Host destination) {
-	//Create a new Flow Object
-	click_chatter("Creating a new Flow Object with %d elements", CASTOR_REAL_FLOWSIZE);
+	// Create a new Flow Object
+	click_chatter("Creating a new Flow object (%s -> %s) with %d elements", source.unparse().c_str(), destination.unparse().c_str(), CASTOR_REAL_FLOWSIZE);
 	Flow flow;
 	flow.position = 0;
 
-	//Generate some random nonces
+	// Generate random nonces
 	Vector<SValue> ack_auths = Vector<SValue>(); // The ACK authenticator
 	Vector<SValue> pids 	= Vector<SValue>();	// Packet IDs
 
@@ -36,10 +35,9 @@ void CastorFlowMerkle::createFlow(Host source, Host destination) {
 		pids.push_back(pid);
 	}
 
-	//Build the Merkle Tree
+	// Create labels
 	MerkleTree tree = MerkleTree(pids, *_crypto);
 
-	// Create labels
 	for(unsigned int i=0;i<CASTOR_REAL_FLOWSIZE;i++){
 		PacketLabel lbl;
 		lbl.packet_number = i;
@@ -57,8 +55,6 @@ void CastorFlowMerkle::createFlow(Host source, Host destination) {
 		assert(siblings.size() == CASTOR_FLOWSIZE);
 		for(int j = 0; j < siblings.size(); j++)
 			memcpy(&lbl.flow_auth[j].flow, siblings.at(j).begin(), sizeof(FlowAuth));
-
-		click_chatter("Sibling ");
 
 		// Set unencrypted (!) ACK authenticator
 		memcpy(&lbl.ack_auth,ack_auths.at(i).begin(), sizeof(ACKAuth));
@@ -91,6 +87,3 @@ void CastorFlowMerkle::updateFlow(Host source, Host destination) {
 CLICK_ENDDECLS
 ELEMENT_REQUIRES(TREE)
 EXPORT_ELEMENT(CastorFlowMerkle)
-
-
-

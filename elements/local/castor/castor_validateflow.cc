@@ -19,11 +19,11 @@ void CastorValidateFlow::push(int, Packet *p){
 
 	Castor_PKT* pkt = (Castor_PKT*) p->data();
 
-	SValue fid(pkt->fid, CASTOR_HASHLENGTH);
-	SValue pid(pkt->pid, CASTOR_HASHLENGTH);
+	SValue fid(pkt->fid, sizeof(FlowId));
+	SValue pid(pkt->pid, sizeof(PacketId));
 	Vector<SValue> flow_auth;
 	for(int i = 0; i < CASTOR_FLOWSIZE; i++)
-		flow_auth.push_back(SValue(pkt->fauth[i].flow, CASTOR_HASHLENGTH));
+		flow_auth.push_back(SValue(pkt->fauth[i].flow, sizeof(Hash)));
 
 	if(MerkleTree::isValidMerkleTree(pkt->packet_num, pid, flow_auth, fid, *crypto))
 		output(0).push(p);

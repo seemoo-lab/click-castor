@@ -1,28 +1,34 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-
 #include "castor_validateflow_atdest.hh"
 
 CLICK_DECLS
-CastorValidateFlowAtDestination::CastorValidateFlowAtDestination(){}
 
-CastorValidateFlowAtDestination::~ CastorValidateFlowAtDestination(){}
+CastorValidateFlowAtDestination::CastorValidateFlowAtDestination() {
+}
 
-//int CastorValidateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
-//    //return cp_va_kparse(conf, this, errh,
-//	//	"CastorAddHeader", cpkP+cpkM, cpElementCast, cpEnd);
-//	return 0;
-//}
+CastorValidateFlowAtDestination::~CastorValidateFlowAtDestination() {
+}
 
-void CastorValidateFlowAtDestination::push(int, Packet *p){
+int CastorValidateFlowAtDestination::configure(Vector<String> &conf, ErrorHandler *errh) {
+	return cp_va_kparse(conf, this, errh,
+		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
+		cpEnd);
+}
 
-	// TODO: Implement validation check here
-	bool isPacketValid = true;
+void CastorValidateFlowAtDestination::push(int, Packet *p) {
 
-	if(isPacketValid)
+	Castor_PKT* pkt = (Castor_PKT*) p->data();
+
+	PacketId computedPid;
+	crypto->hash(computedPid, pkt->eauth, sizeof(PacketId)); // eauth should be already decrypted!
+
+	bool isPidValid = (memcmp(computedPid, pkt->pid, sizeof(PacketId)) == 0);
+
+	if (isPidValid)
 		output(0).push(p);
 	else
-		output(1).push(p); // Invalid; -> discard
+		output(1).push(p); // Invalid -> discard
 
 }
 

@@ -1,10 +1,15 @@
 #ifndef CLICK_CASTORCREATEACK_HH
 #define CLICK_CASTORCREATEACK_HH
+
 #include <click/element.hh>
 #include "castor.hh"
 #include "crypto.hh"
+
 CLICK_DECLS
 
+/**
+ * Create an ACK for incoming packet, assuming that the ACK authenticator is already decrypted. The original packet is pushed to output 0, the ACK is pushed on output 1.
+ */
 class CastorCreateACK : public Element {
 	public:
 		CastorCreateACK();
@@ -17,8 +22,9 @@ class CastorCreateACK : public Element {
 		
 		void push(int, Packet *);
 	private:
-		Crypto* _crypto;
+		Crypto* crypto;
 };
 
 CLICK_ENDDECLS
+
 #endif
