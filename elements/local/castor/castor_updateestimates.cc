@@ -32,7 +32,7 @@ void CastorUpdateEstimates::push(int, Packet *p){
 
 	if (routedTo == IPAddress::make_broadcast()) {
 		// PKT was broadcast
-		bool isFirstAck = _history->getACKs(pid) == 1;
+		bool isFirstAck = _history->getACKs(pid) == 0;
 		if (isFirstAck)
 			_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
 		_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::all);

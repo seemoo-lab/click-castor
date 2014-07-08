@@ -31,7 +31,7 @@ public:
 	void setExpired(const PacketId&);
 
 private:
-	typedef long Key; // FIXME currently using only part of pid as key
+	typedef long Key; // TODO currently using only part of pid as key
 	typedef struct {
 		FlowId fid;
 		IPAddress nextHop;
