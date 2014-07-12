@@ -30,9 +30,10 @@ void CastorUpdateEstimates::push(int, Packet *p){
 	const IPAddress& routedTo = _history->routedTo(pid);
 	const IPAddress from = p->dst_ip_anno();
 
+	bool isFirstAck = _history->getACKs(pid) == 0;
+
 	if (routedTo == IPAddress::make_broadcast()) {
 		// PKT was broadcast
-		bool isFirstAck = _history->getACKs(pid) == 0;
 		if (isFirstAck)
 			_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
 		_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
@@ -41,11 +42,15 @@ void CastorUpdateEstimates::push(int, Packet *p){
 		_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
 		_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
 	} else {
-		output(1).push(p); // received from wrong neighbor -> discard
+		output(2).push(p); // received from wrong neighbor -> discard
 		return;
 	}
 
-    output(0).push(p);
+	if(isFirstAck) {
+	    output(0).push(p); // only forward 1st ACK
+	} else {
+		output(1).push(p); // don't forward ACK again
+	}
 }
 
 CLICK_ENDDECLS

@@ -44,8 +44,9 @@ elementclass InputEth{
 	$myEthDev, $myAddr |
 
 	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096)
+		-> ToDump(ethin,PER_NODE 1)
 		-> HostEtherFilter($myEthDev)
-		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Replay / Default)
+		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Reply / Default)
 
 	arpclassifier[0] // Handle ARP request
 		-> ARPResponder($myAddr)
@@ -89,6 +90,7 @@ elementclass FromHost {
 	$myHostDev, $myIP |
 
 	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096)
+		-> ToDump(hostin,PER_NODE 1)
 		-> CheckIPHeader2
 		-> MarkIPHeader
 		-> CastorTranslateLocalhost($myIP) // Packets coming from host have 127.0.0.1 set as source address, so replace with address of 
@@ -230,9 +232,12 @@ elementclass CastorHandleACK{
 		-> CastorPrint("Too late", $myIP)
 		-> null;
 	validate[3]
-		-> CastorPrint("Duplicate", $myIP)
+		-> CastorPrint("Duplicate from same neighbor", $myIP)
 		-> null;
 	updateEstimates[1]
+		-> CastorPrint("Duplicate", $myIP)
+		-> null;
+	updateEstimates[2]
 		-> CastorPrint("Received from wrong neighbor", $myIP)
 		-> null;
 }
