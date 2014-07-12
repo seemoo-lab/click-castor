@@ -32,7 +32,7 @@ void CastorAddHeader::push(int, Packet *p) {
 	Castor_PKT* header = (Castor_PKT*) q->data();
 	header->type = CastorType::MERKLE_PKT;
 	header->hsize = sizeof(Hash);
-	header->fsize = CASTOR_FLOWSIZE;
+	header->fsize = CASTOR_FLOWAUTH_ELEM;
 	header->len = sizeof(Castor_PKT);
 
 	header->ctype = p->ip_header()->ip_p;
@@ -45,7 +45,7 @@ void CastorAddHeader::push(int, Packet *p) {
 	memcpy(&header->fid, &label.flow_id, sizeof(FlowId));
 	memcpy(&header->pid, &label.packet_id, sizeof(PacketId));
 	header->packet_num = label.packet_number;
-	for (int i = 0; i < CASTOR_FLOWSIZE; i++)
+	for (int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)
 		memcpy(&header->fauth[i], &label.flow_auth[i], sizeof(Hash));
 	if (sizeof(Hash) > sizeof(EACKAuth)) {
 		click_chatter("[Warning] Copying ACKAuth: Hash length is larger than ciphertext length, loosing entropy.");

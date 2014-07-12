@@ -7,7 +7,8 @@
 #define CASTOR_CONTENT_TYPE_IP	0x0800
 
 #define CASTOR_HASHLENGTH		20
-#define CASTOR_ENCLENGTH		32	// needs to be larger than CASTOR_HASHLENGTH, and multiple of cipher block size (16)#define CASTOR_FLOWSIZE			4	// Number of flow auth elements in the header#define CASTOR_MAX_GROUP_SIZE	10	// Maximal allowed group size
+#define CASTOR_ENCLENGTH		32	// needs to be larger than CASTOR_HASHLENGTH, and multiple of cipher block size (16)#define CASTOR_FLOWSIZE			16	// Number of flow auth elements in the header
+#define CASTOR_FLOWAUTH_ELEM	 4  // log2(CASTOR_FLOW_SIZE)#define CASTOR_MAX_GROUP_SIZE	10	// Maximal allowed group size
 
 CLICK_DECLS
 
@@ -37,7 +38,7 @@ typedef Hash PacketId;
 typedef struct {
 	Hash data;
 } FlowAuthElement;
-typedef FlowAuthElement FlowAuth[CASTOR_FLOWSIZE];
+typedef FlowAuthElement FlowAuth[CASTOR_FLOWAUTH_ELEM];
 typedef Hash ACKAuth;
 typedef uint8_t EACKAuth[CASTOR_ENCLENGTH];
 

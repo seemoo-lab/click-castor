@@ -44,7 +44,7 @@ void CastorPrint::push(int, Packet *p){
 			sa << "   | Type: \tPKT   Length: " <<  pkt.len << "\n";
 			sa << "   | Flow: \t" << pkt.src << " -> " << pkt.dst << "\n";
 			sa << "   | Flow ID: \t" << sfid << "\n";
-			sa << "   | Pkt ID: \t" << spid << " (" << pkt.packet_num << "/" << (1 << CASTOR_FLOWSIZE) << ")\n";
+			sa << "   | Pkt ID: \t" << spid << " (" << pkt.packet_num << "/" << (1 << pkt.fsize) << ")\n";
 			sa << "   | Enc Auth: \t" << seauth;
 		} else {
 			sa << "PKT (" << pkt.src << " -> " << pkt.dst << "): " << spid;
