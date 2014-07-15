@@ -12,7 +12,9 @@ define(
 	/** Castor parameters (settings from experimental setup of Castor technical report) **/
 	$broadcastAdjust 8.0, // bandwidth investment for route discovery (larger values reduce the broadcast probability)
 	$updateDelta 0.8, // adaptivity of the reliability estimators
-	$timeout 500 // in msec
+	$timeout 500, // in msec
+
+	$jitter 300, // jitter in microseconds to avoid collisions for broadcast traffic
 );
 
 AddressInfo(fake $EthDev);
@@ -34,6 +36,7 @@ elementclass OutputEth{
 
 	input[0]
 		-> Queue
+		-> JitterUnqueue($jitter) // Jitter in microseconds
 		-> ethdev :: ToSimDevice($myEthDev);
 }
 
@@ -252,7 +255,7 @@ ethout :: OutputEth($EthDev);
 fromhost :: FromHost($HostDev, fake);
 tohost :: ToHost($HostDev);
 
-sam::SAManagement(fake, netAddr, 10);
+sam::SAManagement(fake, netAddr, 100);
 crypto::Crypto(sam);
 flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);
