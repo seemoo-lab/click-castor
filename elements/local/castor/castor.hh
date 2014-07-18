@@ -2,6 +2,7 @@
 #define CLICK_CASTOR_H
 
 #include <click/ipaddress.hh>
+#include <click/packet_anno.hh>
 
 #define ETHERTYPE_CASTOR		0x0CA0
 #define CASTOR_CONTENT_TYPE_IP	0x0800
@@ -83,7 +84,7 @@ typedef struct {
 	uint8_t*	assign; // size n
 	IPAddress*	dsts;
 	PacketId*	ipid; // Individual packet ids; sizeof(dests)
-} Castor_Xcast_PKT;
+} CastorXcastPkt;
 
 // The ACK Header Structure for Explicit Multicast (Xcast)
 typedef struct {
@@ -91,7 +92,7 @@ typedef struct {
 	uint8_t 	hsize;
 	uint16_t 	len;
 	EACKAuth 	eauth;
-} Castor_Xcast_ACK;
+} CastorXcastAck;
 
 /**
  * The Castor Class with utility functions to handle Packet Processing
@@ -122,6 +123,15 @@ public:
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Returns user annotation space to store computed packet id in an ACK
+	 */
+	static inline PacketId& getPidAnnotationFromAck(Packet* p) {
+		uint8_t* pidAnno = p->anno_u8();
+		pidAnno += DST_IP_ANNO_OFFSET + DST_IP_ANNO_SIZE;
+		return (PacketId&) *pidAnno;
 	}
 
 	static inline bool isXcast(Packet* p) {

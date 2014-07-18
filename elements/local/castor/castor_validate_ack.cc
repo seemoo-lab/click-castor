@@ -25,13 +25,8 @@ int CastorValidateACK::configure(Vector<String>& conf, ErrorHandler* errh) {
 
 void CastorValidateACK::push(int, Packet* p) {
 
-	Castor_ACK& ack = (Castor_ACK&) *p->data();
-
-	// Compute the corresponding packet id
-	// TODO: Put computed hash in user annotation to serve other modules
-	PacketId pid;
-	crypto->hash(pid, ack.auth, sizeof(ACKAuth));
-	IPAddress src = p->dst_ip_anno();
+	const PacketId& pid = CastorPacket::getPidAnnotationFromAck(p);
+	const IPAddress src = p->dst_ip_anno();
 
 	if(!history->hasPkt(pid)) {
 		output(1).push(p); // never forwarded corresponding PKT -> discard

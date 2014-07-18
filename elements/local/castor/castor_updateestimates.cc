@@ -21,15 +21,12 @@ int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorUpdateEstimates::push(int, Packet *p){
-	Castor_ACK& ack = (Castor_ACK&) *p->data();
 
-	PacketId pid;
-	crypto->hash(pid, ack.auth, sizeof(ACKAuth));
+	const PacketId& pid = CastorPacket::getPidAnnotationFromAck(p);
+
 	const FlowId& fid = _history->getFlowId(pid);
-
 	const IPAddress& routedTo = _history->routedTo(pid);
 	const IPAddress from = p->dst_ip_anno();
-
 	bool isFirstAck = _history->getACKs(pid) == 0;
 
 	if (routedTo == IPAddress::make_broadcast()) {

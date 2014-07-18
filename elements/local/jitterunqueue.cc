@@ -48,7 +48,6 @@ bool JitterUnqueue::run_task(Task *) {
 
 		// generate random jitter
 		unsigned int randVal = (double) click_random() / CLICK_RAND_MAX * _jitter.usec();
-		click_chatter("Random jitter %d", randVal);
 		_p->timestamp_anno() += Timestamp::make_usec(randVal);
 	}
 

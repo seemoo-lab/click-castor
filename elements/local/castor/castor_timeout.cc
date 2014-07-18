@@ -42,6 +42,9 @@ void CastorTimeout::run_timer(Timer* timer) {
 	Entry* entry = timers.get_pointer(timer);
 	if(!entry) {
 		click_chatter("[%f] !!! Unknown timer fired", Timestamp::now().doubleval());
+		// delete timer
+		timers.erase(timer);
+		delete timer;
 		return;
 	}
 
@@ -51,6 +54,9 @@ void CastorTimeout::run_timer(Timer* timer) {
 	// Check whether ACK has been received in the meantime
 	if (history->hasACK(pid)) {
 		//click_chatter("[%f] Timeout: ACK received in the meantime from %s", Timestamp::now().doubleval(), routedTo.unparse().c_str());
+		// delete timer
+		timers.erase(timer);
+		delete timer;
 		return;
 	}
 
@@ -59,6 +65,9 @@ void CastorTimeout::run_timer(Timer* timer) {
 	// Check whether PKT was broadcast, if yes, do nothing
 	// FIXME: Why is that?
 	if (routedTo == IPAddress::make_broadcast()) {
+		// delete timer
+		timers.erase(timer);
+		delete timer;
 		return;
 	}
 

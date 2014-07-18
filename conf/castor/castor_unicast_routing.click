@@ -14,7 +14,7 @@ define(
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 	$timeout 500, // in msec
 
-	$jitter 300, // jitter in microseconds to avoid collisions for broadcast traffic
+	$jitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
 );
 
 AddressInfo(fake $EthDev);
@@ -219,6 +219,7 @@ elementclass CastorHandleACK{
 
 	// Regular ACK flow
 	input
+		-> calcPid :: CastorAnnotatePid($crypto)
 		-> validate :: CastorValidateACK($crypto, $history)
 		-> updateEstimates :: CastorUpdateEstimates($crypto, $routingtable, $history)
 		-> CastorAddACKToHistory($crypto, $history)
