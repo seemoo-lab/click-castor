@@ -4,6 +4,7 @@
 #include <click/element.hh>
 #include <click/hashtable.hh>
 #include <click/timer.hh>
+#include <click/straccum.hh>
 #include "castor.hh"
 #include "castor_routingtable.hh"
 #include "castor_history.hh"
@@ -31,6 +32,7 @@ private:
 	CastorHistory* history;
 	HashTable<Timer*,Entry> timers;
 	int timeout;
+	IPAddress myIP;
 };
 
 CLICK_ENDDECLS

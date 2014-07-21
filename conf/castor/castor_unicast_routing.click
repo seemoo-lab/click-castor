@@ -14,7 +14,7 @@ define(
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 	$timeout 500, // in msec
 
-	$jitter 200, // jitter in microseconds to avoid collisions for broadcast traffic
+	$jitter 250, // jitter in microseconds to avoid collisions for broadcast traffic
 );
 
 AddressInfo(fake $EthDev);
@@ -170,7 +170,7 @@ elementclass CastorForwardPKT {
 		-> CastorPrint('Forwarding Packet', $myIP)
 		-> CastorLookupRoute($routingtable)		// Lookup the route for the packet
 		-> CastorAddPKTToHistory($history)
-		-> CastorTimeout($routingtable,$history,$timeout)
+		-> CastorTimeout($routingtable,$history,$timeout,$myIP)
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
 		-> output;
 

@@ -1,6 +1,7 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include "castor_annotate_pid.hh"
+#include "castor_xcast.hh"
 
 CLICK_DECLS
 
@@ -19,9 +20,15 @@ int CastorAnnotatePid::configure(Vector<String>& conf, ErrorHandler* errh) {
 void CastorAnnotatePid::push(int, Packet* p) {
 
 	// Compute the corresponding packet id
-	Castor_ACK& ack = (Castor_ACK&) *p->data();
 	PacketId pid;
-	crypto->hash(pid, ack.auth, sizeof(ACKAuth));
+
+	if(CastorPacket::isXcast(p)) {
+		CastorXcastAck& ack = (CastorXcastAck&) *p->data();
+		crypto->hash(pid, ack.auth, ack.esize);
+	} else {
+		Castor_ACK& ack = (Castor_ACK&) *p->data();
+		crypto->hash(pid, ack.auth, ack.hsize);
+	}
 
 	// Store it as packet annotation
 	PacketId& pidAnno = (PacketId&) *CastorPacket::getCastorAnno(p);

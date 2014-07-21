@@ -12,13 +12,11 @@ CastorTimeout::~CastorTimeout() {
 }
 
 int CastorTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
-	// Default value from experimental setup of Castor technical paper
-	timeout = 500;
-
 	return cp_va_kparse(conf, this, errh,
 			"CastorRoutingTable", cpkP + cpkM, cpElementCast, "CastorRoutingTable", &table,
 			"CastorHistory", cpkP + cpkM, cpElementCast, "CastorHistory", &history,
-			"TIMEOUT", cpkP, cpInteger, &timeout,
+			"TIMEOUT", cpkP + cpkM, cpInteger, &timeout,
+			"IP", cpkP + cpkM, cpIPAddress, &myIP,
 			cpEnd);
 }
 
@@ -41,7 +39,9 @@ void CastorTimeout::run_timer(Timer* timer) {
 
 	Entry* entry = timers.get_pointer(timer);
 	if(!entry) {
-		click_chatter("[%f] !!! Unknown timer fired", Timestamp::now().doubleval());
+		StringAccum sa;
+		sa << "[" << Timestamp::now() << "@" << myIP << "] !!! Unknown timer fired";
+		click_chatter(sa.c_str());
 		// delete timer
 		timers.erase(timer);
 		delete timer;
@@ -52,7 +52,6 @@ void CastorTimeout::run_timer(Timer* timer) {
 
 	// Check whether ACK has been received in the meantime
 	if (history->hasAck(pid)) {
-		//click_chatter("[%f] Timeout: ACK received in the meantime from %s", Timestamp::now().doubleval(), routedTo.unparse().c_str());
 		// delete timer
 		timers.erase(timer);
 		delete timer;
@@ -75,7 +74,9 @@ void CastorTimeout::run_timer(Timer* timer) {
 	IPAddress destination = history->getDestination(pid);
 
 	// decrease ratings
-	click_chatter("[%f] Timeout: no ACK received from %s", Timestamp::now().doubleval(), routedTo.unparse().c_str());
+	StringAccum sa;
+	sa << "[" << Timestamp::now() << "@" << myIP << "] Timeout: no ACK received from " << routedTo.unparse();
+	click_chatter(sa.c_str());
 	table->updateEstimates(fid, destination, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::first);
 	table->updateEstimates(fid, destination, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::all);
 
