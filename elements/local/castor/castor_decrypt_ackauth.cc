@@ -25,13 +25,14 @@ void CastorDecryptACKAuth::push(int, Packet *p) {
 	SValue encAuth(pkt->eauth, sizeof(EACKAuth));
 
 	// Get appropriate key and decrypt encrypted ACK authenticator
-	SymmetricKey* sk = crypto->getSharedKey(pkt->src);
+	const SymmetricKey* sk = crypto->getSharedKey(pkt->src);
 	if (!sk) {
 		click_chatter("Could not find shared key for host %s. Discarding PKT...", pkt->dst.unparse().c_str());
 		q->kill();
 		return;
 	}
 	SValue auth = crypto->decrypt(encAuth, *sk);
+	delete sk;
 	if (auth.size() != sizeof(EACKAuth)) {
 		click_chatter("Cannot create ciphertext: Crypto subsystem returned wrong plaintext length. Discarding PKT...");
 		q->kill();

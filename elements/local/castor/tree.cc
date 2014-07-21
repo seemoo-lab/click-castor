@@ -112,7 +112,7 @@ String MerkleTree::toString() {
 	return sa.take_string();
 }
 
-bool MerkleTree::isValidMerkleTree(unsigned int id, SValue& in, Vector<SValue>& siblings, SValue& root, Crypto& crypto) {
+bool MerkleTree::isValidMerkleTree(unsigned int id, const SValue& in, const Vector<SValue>& siblings, const SValue& root, const Crypto& crypto) {
 	// First hash the input
 	SValue current = crypto.hash(in);
 

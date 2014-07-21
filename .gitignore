@@ -40,3 +40,10 @@ stamp-h
 *.exe
 *.out
 *.app
+
+# Click
+.cproject
+.project
+compile
+ns/elements.csmk
+doc/testie.1

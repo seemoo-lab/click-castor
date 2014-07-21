@@ -23,13 +23,14 @@ void CastorEncryptACKAuth::push(int, Packet *p) {
 	Castor_PKT* pkt = (Castor_PKT*) q->data();
 	SValue auth(pkt->eauth, sizeof(ACKAuth));
 
-	SymmetricKey* sk = _crypto->getSharedKey(pkt->dst);
+	const SymmetricKey* sk = _crypto->getSharedKey(pkt->dst);
 	if (!sk) {
 		click_chatter("Could not find shared key for host %s. Discarding PKT...", pkt->dst.unparse().c_str());
 		q->kill();
 		return;
 	}
 	SValue cipher = _crypto->encrypt(auth, *sk);
+	delete sk;
 	if (cipher.size() != sizeof(EACKAuth)) {
 		click_chatter("Cannot create ciphertext: Crypto subsystem returned wrong ciphertext length. Discarding PKT...");
 		q->kill();
