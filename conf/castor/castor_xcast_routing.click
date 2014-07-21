@@ -144,7 +144,7 @@ elementclass CastorLocalPKT {
 		-> CastorPrint('Packet arrived at destination', $myIP)
 		-> CastorDecryptACKAuth($crypto)
 		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
-		-> CastorAddPKTToHistory($history)
+		-> CastorAddXcastPktToHistory($history)
 		-> genAck :: CastorXcastCreateAck
 		-> [0]output;
 
@@ -168,7 +168,7 @@ elementclass CastorForwardPKT {
 	input
 		-> CastorPrint('Forwarding Packet', $myIP)
 		-> CastorLookupRoute($routingtable)		// Lookup the route for the packet
-		-> CastorAddPKTToHistory($history)
+		-> CastorAddXcastPktToHistory($history)
 		-> CastorTimeout($routingtable,$history,$timeout,$myIP)
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
 		-> output;
