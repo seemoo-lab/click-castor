@@ -145,7 +145,7 @@ elementclass CastorLocalPKT {
 		-> CastorDecryptACKAuth($crypto)
 		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
 		-> CastorAddPKTToHistory($history)
-		-> genAck :: CastorCreateACK
+		-> genAck :: CastorXcastCreateAck
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT
@@ -187,7 +187,7 @@ elementclass CastorHandlePKT{
 	input
 		-> forwarderClassifier :: CastorXcastForwarderClassifier($myIP)
 		-> checkDuplicate :: CastorCheckDuplicate($history)
-		-> validate :: CastorValidateFlow($crypto)
+		-> validate :: CastorXcastValidateFlow($crypto)
 		-> destinationClassifier :: CastorXcastDestClassifier($myIP);
 
  	// PKT arrived at destination
