@@ -41,7 +41,7 @@ public:
 	 *
 	 * id is needed to determine whether siblings[i] is right or left sibling
 	 */
-	static bool isValidMerkleTree(unsigned int id, SValue& in, Vector<SValue>& siblings, SValue& root, Crypto&);
+	static bool isValidMerkleTree(unsigned int id, const SValue& in, const Vector<SValue>& siblings, const SValue& root, const Crypto&);
 
 private:
 	class Node;

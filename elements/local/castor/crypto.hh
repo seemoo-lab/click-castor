@@ -23,27 +23,21 @@ public:
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	// Public key crypto
-	PrivateKey* getPrivateKey(IPAddress);
-	PublicKey* getPublicKey(IPAddress);
-	SValue encrypt(SValue*, PublicKey*);
-	SValue decrypt(SValue*, PrivateKey*);
+	/**
+	 * Returns a new SymmetricKey instance or NULL if no corresponding key exists
+	 */
+	const SymmetricKey* getSharedKey(IPAddress) const;
+	SValue encrypt(const SValue&, const SymmetricKey&) const;
+	SValue decrypt(const SValue&, const SymmetricKey&) const;
 
-	// Symmetric crypto
-	SymmetricKey* getSharedKey(const IPAddress&);
-	SValue encrypt(const SValue&, const SymmetricKey&);
-	SValue decrypt(const SValue&, const SymmetricKey&);
+	void hash(Hash hash, const uint8_t* data, uint8_t length) const;
+	SValue random(int bytes) const;
+	SValue hash(const SValue& data) const;
 
-	void hash(Hash hash, uint8_t* data, uint8_t length);
-	void randomize(Hash r);
-	SValue random(int bytes);
-	SValue hash(SValue& data);
-
-	void testcrypt(SValue*, IPAddress);
-	void testSymmetricCrypt(SValue, IPAddress);
+	void testSymmetricCrypt(SValue, IPAddress) const;
 
 private:
-	inline size_t numberOfBlocks(size_t blocksize, size_t ciphersize) {
+	inline size_t numberOfBlocks(size_t blocksize, size_t ciphersize) const {
 		return (ciphersize + blocksize - 1) / blocksize; // Round up
 	}
 
