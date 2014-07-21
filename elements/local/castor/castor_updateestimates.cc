@@ -22,7 +22,7 @@ int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void CastorUpdateEstimates::push(int, Packet *p){
 
-	const PacketId& pid = CastorPacket::getPidAnnotationFromAck(p);
+	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
 
 	// TODO do all that with a single call
 	const FlowId& fid = _history->getFlowId(pid);

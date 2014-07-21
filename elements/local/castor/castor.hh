@@ -99,12 +99,12 @@ public:
 	}
 
 	/**
-	 * Returns user annotation space to store computed packet id in an ACK
+	 * User annotation space for Castor
 	 */
-	static inline PacketId& getPidAnnotationFromAck(Packet* p) {
-		uint8_t* pidAnno = p->anno_u8();
-		pidAnno += DST_IP_ANNO_OFFSET + DST_IP_ANNO_SIZE;
-		return (PacketId&) *pidAnno;
+	static inline uint8_t* getCastorAnno(Packet* p) {
+		uint8_t* cAnno = p->anno_u8();
+		cAnno += DST_IP_ANNO_OFFSET + DST_IP_ANNO_SIZE;
+		return cAnno;
 	}
 
 	static inline bool isXcast(Packet* p) {

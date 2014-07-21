@@ -21,7 +21,7 @@ void CastorValidateFlowAtDestination::push(int, Packet *p) {
 	Castor_PKT* pkt = (Castor_PKT*) p->data();
 
 	PacketId computedPid;
-	crypto->hash(computedPid, pkt->eauth, sizeof(PacketId)); // eauth should be already decrypted!
+	crypto->hash(computedPid, CastorPacket::getCastorAnno(p), sizeof(PacketId)); // eauth should be already decrypted!
 
 	bool isPidValid = (memcmp(computedPid, pkt->pid, sizeof(PacketId)) == 0);
 

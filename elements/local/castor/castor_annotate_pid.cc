@@ -24,7 +24,7 @@ void CastorAnnotatePid::push(int, Packet* p) {
 	crypto->hash(pid, ack.auth, sizeof(ACKAuth));
 
 	// Store it as packet annotation
-	PacketId& pidAnno = CastorPacket::getPidAnnotationFromAck(p);
+	PacketId& pidAnno = (PacketId&) *CastorPacket::getCastorAnno(p);
 	memcpy(pidAnno, pid, sizeof(PacketId));
 
 	output(0).push(p);

@@ -14,7 +14,7 @@ define(
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 	$timeout 500, // in msec
 
-	$jitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
+	$jitter 200, // jitter in microseconds to avoid collisions for broadcast traffic
 );
 
 AddressInfo(fake $EthDev);
@@ -146,7 +146,7 @@ elementclass CastorLocalPKT {
 		-> CastorDecryptACKAuth($crypto)
 		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
 		-> CastorAddPKTToHistory($history)
-		-> genAck :: CastorCreateACK($crypto)
+		-> genAck :: CastorCreateAck
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT

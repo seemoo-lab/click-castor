@@ -38,7 +38,7 @@ void CastorDecryptACKAuth::push(int, Packet *p) {
 		return;
 	}
 
-	memcpy(pkt->eauth, auth.begin(), sizeof(ACKAuth));
+	memcpy(CastorPacket::getCastorAnno(p), auth.begin(), sizeof(ACKAuth));
 
 	output(0).push(q);
 

@@ -25,7 +25,7 @@ int CastorValidateACK::configure(Vector<String>& conf, ErrorHandler* errh) {
 
 void CastorValidateACK::push(int, Packet* p) {
 
-	const PacketId& pid = CastorPacket::getPidAnnotationFromAck(p);
+	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
 	const IPAddress src = p->dst_ip_anno();
 
 	if(!history->hasPkt(pid)) {
