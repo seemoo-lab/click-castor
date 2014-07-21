@@ -16,24 +16,26 @@ public:
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 
-	void addPKT(const PacketId&, const FlowId&, const IPAddress& nextHop);
-	bool addACKFor(const PacketId&, const IPAddress& prevHop);
+	void addPkt(const PacketId&, const FlowId&, IPAddress nextHop, IPAddress destination);
+	bool addAckFor(const PacketId&, IPAddress prevHop);
 
 	bool hasPkt(const PacketId&) const;
-	bool hasACK(const PacketId&) const;
-	bool hasACK(const PacketId&, const IPAddress&) const;
-	size_t getACKs(const PacketId&) const;
+	bool hasAck(const PacketId&) const;
+	bool hasAckFrom(const PacketId&, IPAddress) const;
+	size_t getAcks(const PacketId&) const;
 
 	const FlowId& getFlowId(const PacketId&) const;
-	const IPAddress& routedTo(const PacketId&) const;
+	IPAddress getDestination(const PacketId&) const;
+	IPAddress routedTo(const PacketId&) const;
 
 	bool isExpired(const PacketId&) const;
 	void setExpired(const PacketId&);
 
 private:
 	typedef long Key; // TODO currently using only part of pid as key
-	typedef struct {
+	typedef struct CastorHistoryEntry {
 		FlowId fid;
+		IPAddress destination; // Indicates Xcast subflow
 		IPAddress nextHop;
 		Vector<IPAddress> recievedACKs;
 		bool expired;

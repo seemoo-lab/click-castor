@@ -67,33 +67,6 @@ typedef struct {
 	ACKAuth 	auth;
 } Castor_ACK;
 
-// The Packet Header Structure for Explicit Multicast (Xcast)
-typedef struct {
-	uint8_t 	type;
-	uint8_t 	hsize;
-	uint8_t 	fsize;
-	uint8_t 	ctype;
-	uint16_t 	len;
-	uint8_t		n; // number of next hops
-	IPAddress	src;
-	FlowId	 	fid;
-	PacketId 	pid;
-	FlowAuth 	fauth;
-	ACKAuth 	auth; // In contrast to unicast Castor, we include the auth in plaintext
-	IPAddress*	rcvs; // intended receivers of the message; size n
-	uint8_t*	assign; // size n
-	IPAddress*	dsts;
-	PacketId*	ipid; // Individual packet ids; sizeof(dests)
-} CastorXcastPkt;
-
-// The ACK Header Structure for Explicit Multicast (Xcast)
-typedef struct {
-	uint8_t  	type;
-	uint8_t 	hsize;
-	uint16_t 	len;
-	EACKAuth 	eauth;
-} CastorXcastAck;
-
 /**
  * The Castor Class with utility functions to handle Packet Processing
  */
@@ -140,54 +113,6 @@ public:
 		type = type & 0x0F;
 		return (type == CastorType::XCAST);
 	}
-
-//	static inline bool isDestinedFor(Packet* p, IPAddress localAddr) {
-//
-//	}
-
-//	static inline bool getCastorXcastPKTHeader(Packet* p, Castor_Xcast_PKT* header) {
-//		if(getType(p) == CASTOR_TYPE_PKT && isXcast(p)) {
-//			// Copy fix part
-//			memcpy(header, p->data(), sizeof(Castor_Xcast_PKT_Fix));
-//
-//			char* pt = (char* ) p;
-//
-//			// Copy next hops
-//		 	pt += sizeof(Castor_Xcast_PKT_Fix);
-//			header->rcvs = new IPAddress[header->n];
-//			memcpy(header->rcvs, pt, header->n * sizeof(IPAddress));
-//
-//			// Copy assignments
-//			pt += header->n * sizeof(IPAddress);
-//			header->assign = new uint8_t[header->n];
-//			memcpy(header->assign, pt, header->n * sizeof(uint8_t));
-//
-//			// Copy destinations
-//			pt += header->n * sizeof(uint8_t));
-//			unsigned int ndsts = 0;
-//			for(int i = 0; i < header->n; i++)
-//				ndsts += header->assign[i]; // Count number of Xcast destinations
-//			header->dsts = new IPAddress[ndsts];
-//			memcpy(header->assign, pt, ndsts * sizeof(IPAddress));
-//
-//			// Copy individual pids
-//			pt += ndsts * sizeof(IPAddress);
-//			header->ipid = new PacketId[ndsts];
-//
-//
-//
-//			return true;
-//		}
-//		return false;
-//	};
-//
-//	static inline bool getCastorXcastACKHeader(Packet* p, Castor_Xcast_ACK* header) {
-//		if(getType(p) == CASTOR_TYPE_ACK && isXcast(p)) {
-//			memcpy(header, p->data(), sizeof(Castor_Xcast_ACK));
-//			return true;
-//		}
-//		return false;
-//	};
 
 	static inline String hexToString(const unsigned char* hex, uint8_t length) {
 		char buffer[2*length];

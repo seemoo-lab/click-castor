@@ -24,20 +24,22 @@ void CastorUpdateEstimates::push(int, Packet *p){
 
 	const PacketId& pid = CastorPacket::getPidAnnotationFromAck(p);
 
+	// TODO do all that with a single call
 	const FlowId& fid = _history->getFlowId(pid);
-	const IPAddress& routedTo = _history->routedTo(pid);
-	const IPAddress from = p->dst_ip_anno();
-	bool isFirstAck = _history->getACKs(pid) == 0;
+	IPAddress subfid = _history->getDestination(pid);
+	IPAddress routedTo = _history->routedTo(pid);
+	IPAddress from = p->dst_ip_anno();
+	bool isFirstAck = _history->getAcks(pid) == 0;
 
 	if (routedTo == IPAddress::make_broadcast()) {
 		// PKT was broadcast
 		if (isFirstAck)
-			_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
-		_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
+			_table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
+		_table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
 	} else if (routedTo == from) {
 		// PKT was unicast
-		_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
-		_table->updateEstimates(fid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
+		_table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
+		_table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
 	} else {
 		output(2).push(p); // received from wrong neighbor -> discard
 		return;

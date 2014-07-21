@@ -49,10 +49,9 @@ void CastorTimeout::run_timer(Timer* timer) {
 	}
 
 	PacketId& pid = entry->pid;
-	const IPAddress& routedTo = history->routedTo(pid);
 
 	// Check whether ACK has been received in the meantime
-	if (history->hasACK(pid)) {
+	if (history->hasAck(pid)) {
 		//click_chatter("[%f] Timeout: ACK received in the meantime from %s", Timestamp::now().doubleval(), routedTo.unparse().c_str());
 		// delete timer
 		timers.erase(timer);
@@ -61,6 +60,7 @@ void CastorTimeout::run_timer(Timer* timer) {
 	}
 
 	history->setExpired(pid);
+	IPAddress routedTo = history->routedTo(pid);
 
 	// Check whether PKT was broadcast, if yes, do nothing
 	// FIXME: Why is that?
@@ -71,10 +71,13 @@ void CastorTimeout::run_timer(Timer* timer) {
 		return;
 	}
 
+	const FlowId& fid = history->getFlowId(pid);
+	IPAddress destination = history->getDestination(pid);
+
 	// decrease ratings
 	click_chatter("[%f] Timeout: no ACK received from %s", Timestamp::now().doubleval(), routedTo.unparse().c_str());
-	table->updateEstimates(pid, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::first);
-	table->updateEstimates(pid, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::all);
+	table->updateEstimates(fid, destination, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::first);
+	table->updateEstimates(fid, destination, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::all);
 
 	// delete timer
 	timers.erase(timer);

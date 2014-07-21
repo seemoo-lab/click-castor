@@ -23,11 +23,11 @@ int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 			cpEnd);
 }
 
-IPAddress CastorRoutingTable::lookup(const FlowId& flow) {
+IPAddress CastorRoutingTable::lookup(const FlowId& flow, IPAddress subflow) {
 	// FOR DEBUG Print the Routing Table
-	printRoutingTable(flow);
+	printRoutingTable(flow, subflow);
 
-	Vector<RoutingEntry>& table = getRoutingTable(flow);
+	Vector<RoutingEntry>& table = getRoutingTable(flow, subflow);
 
 	// Case 1: Routing Table is empty -> broadcast
 	if (table.size() == 0) {
@@ -69,13 +69,13 @@ IPAddress CastorRoutingTable::lookup(const FlowId& flow) {
 
 }
 
-void CastorRoutingTable::updateEstimates(const FlowId& flow, const IPAddress& hop, Operation op, Estimate est) {
+void CastorRoutingTable::updateEstimates(const FlowId& flow, IPAddress subflow, IPAddress neighbor, Operation op, Estimate est) {
 
 	//Retrieve the  routing table
-	Vector<RoutingEntry>& table = getRoutingTable(flow);
+	Vector<RoutingEntry>& table = getRoutingTable(flow, subflow);
 
 	//Retrieve the entry for our hop
-	RoutingEntry& entry = getRoutingEntry(table, hop);
+	RoutingEntry& entry = getRoutingEntry(table, neighbor);
 
 	if(est == first && op == increase){
 		entry.alpha_first 	= updateDelta * entry.alpha_first +1;
@@ -94,24 +94,22 @@ void CastorRoutingTable::updateEstimates(const FlowId& flow, const IPAddress& ho
 	}
 }
 
-Vector<RoutingEntry>& CastorRoutingTable::getRoutingTable(const FlowId& flow) {
+Vector<CastorRoutingTable::RoutingEntry>& CastorRoutingTable::getRoutingTable(const FlowId& flow, IPAddress subflow) {
 	for (int i = 0; i < _flows.size(); i++) {
 		FlowEntry& entry = _flows.at(i);
-		if (!memcmp(entry.flow, flow, sizeof(FlowId))) {
+		if (!memcmp(entry.flow, flow, sizeof(FlowId)) && (entry.subflow == subflow)) {
 			// Found a matching entry
 			return entry.routes;
 		}
 	}
 
 	// We have not found a matching entry in the table. Create a new one
-	FlowEntry entry;
-	memcpy(entry.flow, flow, sizeof(FlowId));
-	entry.routes = Vector<RoutingEntry>();
-	_flows.push_front(entry);
-	return _flows.front().routes;
+	FlowEntry entry(flow, subflow);
+	_flows.push_back(entry); // TODO: this was push_front() before. Why?
+	return _flows.back().routes;
 }
 
-RoutingEntry& CastorRoutingTable::getRoutingEntry(Vector<RoutingEntry>& table, const IPAddress& hop) {
+CastorRoutingTable::RoutingEntry& CastorRoutingTable::getRoutingEntry(Vector<RoutingEntry>& table, IPAddress hop) {
 	for(int i=0; i<table.size(); i++){
 		RoutingEntry& entry = table[i];
 		if(entry.nextHop == hop)
@@ -123,12 +121,12 @@ RoutingEntry& CastorRoutingTable::getRoutingEntry(Vector<RoutingEntry>& table, c
 	return table.back();
 }
 
-void CastorRoutingTable::printRoutingTable(const FlowId& flow) {
+void CastorRoutingTable::printRoutingTable(const FlowId& flow, IPAddress subflow) {
 
 	StringAccum sa;
-	sa << "Routing Table for Flow " << CastorPacket::hexToString(flow,sizeof(FlowId)) << ":\n";
+	sa << "Routing Table for Flow " << CastorPacket::hexToString(flow,sizeof(FlowId)) << " (" << subflow<< "):\n";
 
-	Vector<RoutingEntry>& table = getRoutingTable(flow);
+	Vector<RoutingEntry>& table = getRoutingTable(flow, subflow);
 	// Iterate over the Table
 	for(int i=0; i<table.size(); i++){
 		RoutingEntry& entry = table[i];

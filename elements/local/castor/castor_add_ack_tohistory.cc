@@ -24,7 +24,7 @@ void CastorAddACKToHistory::push(int, Packet *p){
 	crypto->hash(pid, ack.auth, sizeof(ACKAuth));
 	IPAddress prevHop = p->dst_ip_anno();
 
-	history->addACKFor(pid, prevHop);
+	history->addAckFor(pid, prevHop);
 
 	output(0).push(p);
 }

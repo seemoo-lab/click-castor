@@ -12,8 +12,9 @@ CastorHistory::CastorHistory() {
 CastorHistory::~CastorHistory() {
 }
 
-void CastorHistory::addPKT(const PacketId& pid, const FlowId& fid, const IPAddress& nextHop) {
+void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, IPAddress nextHop, IPAddress destination) {
 	CastorHistoryEntry entry;
+	entry.destination = destination;
 	entry.nextHop = nextHop;
 	entry.expired = false;
 	entry.recievedACKs = Vector<IPAddress>();
@@ -22,7 +23,7 @@ void CastorHistory::addPKT(const PacketId& pid, const FlowId& fid, const IPAddre
 	history.set(pidToKey(pid), entry);
 }
 
-bool CastorHistory::addACKFor(const PacketId& pid, const IPAddress& addr) {
+bool CastorHistory::addAckFor(const PacketId& pid, IPAddress addr) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	if(!entry) {
 		// Received an ACK for an unknown Packet, do not care
@@ -38,12 +39,12 @@ bool CastorHistory::hasPkt(const PacketId& pid) const {
 	return entry;
 }
 
-bool CastorHistory::hasACK(const PacketId& pid) const {
+bool CastorHistory::hasAck(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry && !entry->recievedACKs.empty();
 }
 
-bool CastorHistory::hasACK(const PacketId& pid, const IPAddress& addr) const {
+bool CastorHistory::hasAckFrom(const PacketId& pid, IPAddress addr) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	if (entry) {
 		for (int i = 0; i < entry->recievedACKs.size(); i++)
@@ -53,7 +54,7 @@ bool CastorHistory::hasACK(const PacketId& pid, const IPAddress& addr) const {
 	return false;
 }
 
-size_t CastorHistory::getACKs(const PacketId& pid) const {
+size_t CastorHistory::getAcks(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->recievedACKs.size();
 }
@@ -63,7 +64,12 @@ const FlowId& CastorHistory::getFlowId(const PacketId& pid) const {
 	return entry->fid;
 }
 
-const IPAddress& CastorHistory::routedTo(const PacketId& pid) const {
+IPAddress CastorHistory::getDestination(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry->destination;
+}
+
+IPAddress CastorHistory::routedTo(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->nextHop;
 }

@@ -32,7 +32,7 @@ void CastorValidateACK::push(int, Packet* p) {
 		output(1).push(p); // never forwarded corresponding PKT -> discard
 	} else if(history->isExpired(pid)) {
 		output(2).push(p); // ACK arrived too late -> discard
-	} else if (history->hasACK(pid, src)) {
+	} else if (history->hasAckFrom(pid, src)) {
 		output(3).push(p); // already received PKT from this neighbor -> discard
 	} else {
 	    output(0).push(p);

@@ -1,5 +1,6 @@
 #ifndef CLICK_CASTOR_ADD_PKT_TOHISTORY_HH
 #define CLICK_CASTOR_ADD_PKT_TOHISTORY_HH
+
 #include <click/element.hh>
 #include "castor.hh"
 #include "castor_history.hh"
@@ -22,4 +23,5 @@ private:
 };
 
 CLICK_ENDDECLS
+
 #endif

@@ -123,7 +123,7 @@ elementclass CastorClassifier{
 	input
 		-> CheckIPHeader
 		-> ipclassifier :: IPClassifier(ip proto $CASTORTYPE, -)
-		-> GetIPAddress(12)
+		-> annotateSenderAddress :: GetIPAddress(12)
 		-> StripIPHeader
 		-> cclassifier :: Classifier(0/c?, 0/a?);
 

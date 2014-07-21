@@ -19,16 +19,12 @@ int CastorLookupRoute::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorLookupRoute::push(int, Packet *p){
-	IPAddress nextHop;
-	Castor_PKT header;
+	Castor_PKT* header = (Castor_PKT*) p->data();
 
-    // Copy the header from packet
-    memcpy(&header, p->data(), sizeof(Castor_PKT));
+	// Lookup
+	IPAddress nextHop = _table->lookup(header->fid, header->dst);
 
-	//Lookup
-	nextHop = _table->lookup(header.fid);
-
-	//Set annotation for destination and push Packet to Output
+	// Set annotation for destination and push Packet to Output
 	p->set_dst_ip_anno(nextHop);
 
     output(0).push(p);
