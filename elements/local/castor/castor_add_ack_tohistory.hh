@@ -4,15 +4,16 @@
 #include "castor.hh"
 #include "crypto.hh"
 #include "castor_history.hh"
+#include <click/ipaddress.hh>
 
 CLICK_DECLS
 
-class CastorAddACKToHistory: public Element {
+class CastorAddAckToHistory: public Element {
 public:
-	CastorAddACKToHistory();
-	~CastorAddACKToHistory();
+	CastorAddAckToHistory();
+	~CastorAddAckToHistory();
 
-	const char *class_name() const	{ return "CastorAddACKToHistory"; }
+	const char *class_name() const	{ return "CastorAddAckToHistory"; }
 	const char *port_count() const	{ return PORTS_1_1; }
 	const char *processing() const	{ return PUSH; }
 	int configure(Vector<String>&, ErrorHandler*);
@@ -21,6 +22,8 @@ public:
 private:
 	Crypto* crypto;
 	CastorHistory* history;
+	bool useDstAnno;
+	IPAddress myAddr;
 };
 
 CLICK_ENDDECLS
