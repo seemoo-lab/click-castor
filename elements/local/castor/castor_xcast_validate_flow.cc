@@ -22,6 +22,7 @@ void CastorXcastValidateFlow::push(int, Packet *p){
 
 	SValue fid(pkt.getFlowId(), sizeof(FlowId));
 
+	// Pid is implicitly given by the AckAuth
 	PacketId calcPid;
 	crypto->hash(calcPid, pkt.getAckAuth(), sizeof(ACKAuth));
 	SValue pid(calcPid, sizeof(PacketId));
