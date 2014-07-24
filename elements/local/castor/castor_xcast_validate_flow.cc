@@ -12,11 +12,13 @@ CastorXcastValidateFlow::~ CastorXcastValidateFlow(){}
 
 int CastorXcastValidateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
-		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", crypto,
-		cpEnd);
+			"CRYPT", cpkP + cpkM, cpElementCast, "Crypto", &crypto,
+			cpEnd);
 }
 
 void CastorXcastValidateFlow::push(int, Packet *p){
+
+	click_chatter("Validating flow...");
 
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 

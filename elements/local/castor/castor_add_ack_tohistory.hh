@@ -8,6 +8,11 @@
 
 CLICK_DECLS
 
+/**
+ * Adds an acknowledgement to the history.
+ * The IP address entry depends on the configuration.
+ * Uses either 'DST_ANNO' of the incoming packet, or a fixed IP address.
+ */
 class CastorAddAckToHistory: public Element {
 public:
 	CastorAddAckToHistory();

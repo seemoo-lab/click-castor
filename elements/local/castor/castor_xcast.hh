@@ -1,6 +1,7 @@
 #ifndef CLICK_CASTOR_XCAST_H
 #define CLICK_CASTOR_XCAST_H
 
+#include <click/straccum.hh>
 #include "castor.hh"
 
 CLICK_DECLS
@@ -29,7 +30,7 @@ public:
 	inline uint16_t getKPkt() const { return _fixed->kPkt; }
 	inline void setKPkt(uint16_t k) { _fixed->kPkt = k; }
 	inline IPAddress getSource() const { return _fixed->source; }
-	inline void getSource(IPAddress source) { _fixed->source = source; }
+	inline void setSource(IPAddress source) { _fixed->source = source; }
 	inline const FlowId& getFlowId() const { return _fixed->flowId; }
 	inline void setFlowId(const FlowId& fid) { memcpy(&_fixed->flowId, &fid, sizeof(FlowId)); }
 	inline const FlowAuth& getFlowAuth() const { return _fixed->flowAuth; }
@@ -48,13 +49,16 @@ public:
 
 	// Variable length header fields
 	inline IPAddress getDestination(unsigned int i) const { return IPAddress(_var[getDestinationOff(i)]); }
-	inline void setDestinations(IPAddress destinations[], size_t n) { return; /* TODO implement */ }
+	inline void setDestinations(const IPAddress destinations[], size_t n) { return; /* TODO implement */ }
 	inline const PacketId& getPid(unsigned int i) const { return (PacketId&) _var[getPidOff(i)]; }
-	inline void setPids(PacketId pids[], size_t n) { return; /* TODO implement */ };
+	inline void setPid(const PacketId& pid, unsigned int i) { memcpy(&_var[getPidOff(i)], &pid, sizeof(PacketId)); }
+	inline void setPids(const PacketId pids[], size_t n) { return; /* TODO implement */ };
 	inline IPAddress getNextHop(unsigned int j) const { return IPAddress(_var[getNextHopOff(j)]); }
-	inline void setNextHops(IPAddress nextHops[], size_t n) { return; /* TODO implement */ }
+	inline void setNextHop(IPAddress nextHop, unsigned int j) { (IPAddress&) _var[getNextHopOff(j)] = nextHop; }
+	inline void setNextHops(const IPAddress nextHops[], size_t n) { return; /* TODO implement */ }
 	inline uint8_t getNextHopNAssign(unsigned int j) const { return _var[getNextHopNAssignOff(j)]; }
-	inline void setNextHopNAssign(uint8_t assigns[], size_t n) { return; /* TODO implement */ }
+	inline void setNextHopAssign(uint8_t assign, unsigned int j) { _var[getNextHopNAssignOff(j)] = assign; }
+	inline void setNextHopNAssign(const uint8_t assigns[], size_t n) { return; /* TODO implement */ }
 
 	/*
 	 * TODO method that takes a mapping and writes everything to the packet,
@@ -63,6 +67,48 @@ public:
 	 * or padding occurs (if header size decreases -> bad for efficiency)
 	 * Bad thing: always have to rewrite PKT header... but what else can we do?
 	 */
+
+	/**
+	 * Return the size of the fixed header fields
+	 */
+	inline static size_t getFixedSize() {
+		return sizeof(FixedSizeHeader);
+	}
+
+	inline size_t getSize() {
+		return getFixedSize()
+				+ getNDestinations() * (sizeof(IPAddress) + sizeof(PacketId))
+				+ getNNextHops() * (sizeof(IPAddress) + sizeof(uint8_t));
+	}
+
+	void print(bool full) {
+		StringAccum sa;
+//		sa << "[" << Timestamp::now() << "@" << _address << "] " << _label << " ";
+
+			if(full) {
+				String sfid = CastorPacket::hexToString(getFlowId(), getHashSize());
+				String sauth = CastorPacket::hexToString(getAckAuth(), getHashSize());
+				sa << "\n";
+				sa << "   | From: \t" << _p->dst_ip_anno() << "\n";
+				sa << "   | Type: \tXcast PKT   Length: " <<  getLength() << "\n";
+				sa << "   | Flow: \t" << getSource() << " -> ";
+				for(int i = 0; i < getNDestinations(); i++)
+					sa << getDestination(i) << ", ";
+				sa << "\n";
+				sa << "   | Flow ID: \t" << sfid << "\n";
+				//sa << "   | Pkt ID: \t" << spid << " (" << pkt.packet_num << "/" << (1 << pkt.fsize) << ")\n";
+				sa << "   | Ack Auth: \t" << sauth;
+			} else {
+				sa << "Xcast PKT (from " << _p->dst_ip_anno() << ", flow " << getSource() << " -> ";
+				for(int i = 0; i < getNDestinations(); i++)
+					sa << getDestination(i) << ", ";
+				sa << ")";
+			}
+
+			click_chatter("%s", sa.c_str());
+
+	}
+
 private:
 	struct FixedSizeHeader {
 		uint8_t type;

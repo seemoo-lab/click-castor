@@ -111,8 +111,11 @@ elementclass FromHost {
 elementclass CastorHandleIPPacket{
 	$myIP, $flowDB, $crypto |
 
-	-> CastorAddHeader($flowDB)
-	-> CastorEncryptACKAuth($crypto)
+	map :: CastorXcastDestinationMap
+
+	input
+	-> CastorXcastSetFixedHeader($flowDB, 290) // reserve space for 10 destinations and 10 next hops (10 * (sizeof(IP) + sizeof(Hash) + 10 * (sizeof(IP) + sizeof(uint8_t))
+	-> CastorXcastSetDestinations($crypto, map)
 	-> CastorPrint('Send', $myIP)
 	-> output;
 }

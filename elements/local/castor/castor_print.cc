@@ -48,7 +48,7 @@ void CastorPrint::push(int, Packet *p){
 			sa << "   | Pkt ID: \t" << spid << " (" << pkt.packet_num << "/" << (1 << pkt.fsize) << ")\n";
 			sa << "   | Enc Auth: \t" << seauth;
 		} else {
-			sa << "PKT (from: " << p->dst_ip_anno() << ", flow: " << pkt.src << " -> " << pkt.dst << "): " << spid;
+			sa << "PKT (from " << p->dst_ip_anno() << ", flow " << pkt.src << " -> " << pkt.dst << "): " << spid;
 		}
 
 	} else if( type == CastorType::ACK ){
