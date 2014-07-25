@@ -22,9 +22,9 @@ void CastorXcastForwarderClassifier::push(int, Packet *p) {
 
 	CastorXcastPkt header = CastorXcastPkt(p);
 
-	for (unsigned int i = 0; i < header.getNDestinations(); i++)
-		if (header.getDestination(i) == IPAddress::make_broadcast() //
-				|| header.getDestination(i) == myAddr) {
+	for (unsigned int i = 0; i < header.getNNextHops(); i++)
+		if (header.getNextHop(i) == IPAddress::make_broadcast() //
+				|| header.getNextHop(i) == myAddr) {
 			// TODO: cleanup destination list before pushing, i.e., include only destinations for this forwarder
 			output(0).push(p); // Node is in the forwarder list
 			return;

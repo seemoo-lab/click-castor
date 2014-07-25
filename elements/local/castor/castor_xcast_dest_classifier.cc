@@ -38,7 +38,7 @@ void CastorXcastDestClassifier::push(int, Packet *p) {
 			q = p->clone()->uniqueify();
 		else
 			q = p;
-		output(1).push(p);
+		output(1).push(q);
 	}
 
 	assert(delivered || forwarded);
