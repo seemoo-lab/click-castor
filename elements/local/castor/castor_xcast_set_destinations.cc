@@ -21,7 +21,10 @@ int CastorXcastSetDestinations::configure(Vector<String> &conf, ErrorHandler *er
 
 void CastorXcastSetDestinations::push(int, Packet *p) {
 
-	IPAddress multicastDst = p->dst_ip_anno();
+	WritablePacket* q = p->uniqueify();
+	CastorXcastPkt header = CastorXcastPkt(q);
+
+	IPAddress multicastDst = header.getMulticastGroup();
 	const Vector<IPAddress>& destinations = _map->getDestinations(multicastDst);
 
 	if(destinations.size() == 0)
@@ -37,8 +40,6 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 //		return;
 
 	// Write destinations to PKT
-	WritablePacket* q = p->uniqueify();
-	CastorXcastPkt header = CastorXcastPkt(q);
 	header.setDestinations(destinations.data(), destinations.size());
 
 	Vector<PacketId> pids;
@@ -56,9 +57,10 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 			break;
 		}
 		SValue pid = _crypto->hash(encAckAuth);
-		header.setPid((PacketId&) *pid.begin(), pid.size());
+		header.setPid((PacketId&) *pid.begin(), i);
 	}
 
+	// Set local node as single forwarder
 	header.setNNextHops(1);
 	header.setNextHopAssign(destinations.size(), 0);
 	header.setNextHop(header.getSource(), 0);

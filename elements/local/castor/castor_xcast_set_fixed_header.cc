@@ -39,7 +39,7 @@ void CastorXcastSetFixedHeader::push(int, Packet *p) {
 
 	header.setContentType(p->ip_header()->ip_p);
 	header.setSource(src);
-	q->set_dst_ip_anno(dst); // The multicast address
+	header.setMulticastGroup(dst);
 
 	// Access the flow settings
 	PacketLabel label = cflow->getPacketLabel(src, dst);
