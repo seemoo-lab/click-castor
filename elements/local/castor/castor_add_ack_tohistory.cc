@@ -19,15 +19,8 @@ int CastorAddAckToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 	if(cp_va_kparse(conf, this, errh,
 			"Crypto", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
 			"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
-			"PrevHop", cpkP+cpkM, cpString, &dst_str,
 			cpEnd) < 0)
 		return -1;
-
-	useDstAnno = dst_str == "DST_ANNO";
-	if (useDstAnno)
-		myAddr = IPAddress(0);
-	else if (!IPAddressArg::parse(dst_str, myAddr, this))
-		return errh->error("PrevHop argument should be IP address of this node or 'DST_ANNO'");
 
 	return 0;
 }
@@ -44,7 +37,9 @@ void CastorAddAckToHistory::push(int, Packet *p) {
 		crypto->hash(pid, ack.auth, ack.hsize);
 	}
 
-	history->addAckFor(pid, useDstAnno ? p->dst_ip_anno() : myAddr);
+	history->addAckFor(pid, p->dst_ip_anno());
+
+	p->set_dst_ip_anno(IPAddress::make_broadcast()); // Fix DST_ANNO
 
 	output(0).push(p);
 }

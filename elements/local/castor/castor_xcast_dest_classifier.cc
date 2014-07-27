@@ -13,9 +13,11 @@ CastorXcastDestClassifier::~CastorXcastDestClassifier() {
 }
 
 int CastorXcastDestClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return Args(conf, this, errh)
+	if(Args(conf, this, errh)
 			.read_mp("ADDR", myAddr)
-			.complete();
+			.complete() < 0)
+		return -1;
+	return 0;
 }
 
 void CastorXcastDestClassifier::push(int, Packet *p) {

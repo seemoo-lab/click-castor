@@ -148,12 +148,12 @@ elementclass CastorLocalPKT {
 		-> CastorXcastAnnotateAckAuth($crypto)
 		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
 		-> CastorAddXcastPktToHistory($history)
-		-> genAck :: CastorXcastCreateAck
+		-> genAck :: CastorXcastCreateAck($myIP)
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT
 		-> CastorPrint('Generated', $myIP)
-		-> CastorAddAckToHistory($crypto,$history,$myIP:ip)
+		-> CastorAddAckToHistory($crypto,$history)
 		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> [1]output; // Push ACKs to output 1
 
@@ -228,7 +228,7 @@ elementclass CastorHandleACK{
 		-> calcPid :: CastorAnnotatePid($crypto)
 		-> validate :: CastorValidateACK($crypto, $history)
 		-> updateEstimates :: CastorUpdateEstimates($crypto, $routingtable, $history)
-		-> CastorAddAckToHistory($crypto, $history, DST_ANNO)
+		-> CastorAddAckToHistory($crypto, $history)
 		-> CastorPrint('Received valid', $myIP)
 		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> output;

@@ -22,7 +22,7 @@ void CastorCreateAck::push(int, Packet* p) {
 
 	// Broadcast ACK
 	WritablePacket* q = Packet::make(&ack, sizeof(Castor_ACK));
-	q->set_dst_ip_anno(IPAddress::make_broadcast());
+	q->set_dst_ip_anno(((Castor_PKT*) p)->dst); // Set DST_ANNO for AddAckToHistory
 
 	output(0).push(p); // PKT -> output 0
 	output(1).push(q); // ACK -> output 1

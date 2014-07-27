@@ -1,4 +1,5 @@
 #include <click/config.h>
+#include <click/args.hh>
 #include <click/confparse.hh>
 #include <click/packet.hh>
 #include "castor_xcast_create_ack.hh"
@@ -12,9 +13,17 @@ CastorXcastCreateAck::CastorXcastCreateAck() {
 CastorXcastCreateAck::~CastorXcastCreateAck() {
 }
 
+int CastorXcastCreateAck::configure(Vector<String> &conf, ErrorHandler *errh) {
+	if(Args(conf, this, errh)
+			.read_mp("ADDR", myAddr)
+			.complete() < 0)
+		return -1;
+	return 0;
+}
+
 void CastorXcastCreateAck::push(int, Packet* p) {
 
-	CastorXcastPkt pkt = CastorXcastPkt(pkt);
+	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	// Generate new ACK
 	CastorXcastAck ack;
@@ -25,7 +34,7 @@ void CastorXcastCreateAck::push(int, Packet* p) {
 
 	// Broadcast ACK
 	WritablePacket* q = Packet::make(&ack, sizeof(CastorXcastAck));
-	q->set_dst_ip_anno(IPAddress::make_broadcast());
+	q->set_dst_ip_anno(myAddr);
 
 	output(0).push(p); // PKT -> output 0
 	output(1).push(q); // ACK -> output 1

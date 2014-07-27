@@ -27,8 +27,6 @@ public:
 private:
 	Crypto* crypto;
 	CastorHistory* history;
-	bool useDstAnno;
-	IPAddress myAddr;
 };
 
 CLICK_ENDDECLS

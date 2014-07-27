@@ -151,7 +151,7 @@ elementclass CastorLocalPKT {
 
 	genAck[1] // Generate ACK for received PKT
 		-> CastorPrint('Generated', $myIP)
-		-> CastorAddAckToHistory($crypto,$history,$myIP:ip)
+		-> CastorAddAckToHistory($crypto, $history)
 		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> [1]output; // Push ACKs to output 1
 
@@ -170,7 +170,7 @@ elementclass CastorForwardPKT {
 		-> CastorPrint('Forwarding Packet', $myIP)
 		-> CastorLookupRoute($routingtable)		// Lookup the route for the packet
 		-> CastorAddPKTToHistory($history)
-		-> CastorTimeout($routingtable,$history,$timeout,$myIP)
+		-> CastorTimeout($routingtable, $history, $timeout, $myIP)
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
 		-> output;
 
@@ -222,7 +222,7 @@ elementclass CastorHandleACK{
 		-> calcPid :: CastorAnnotatePid($crypto)
 		-> validate :: CastorValidateACK($crypto, $history)
 		-> updateEstimates :: CastorUpdateEstimates($crypto, $routingtable, $history)
-		-> CastorAddAckToHistory($crypto, $history, DST_ANNO)
+		-> CastorAddAckToHistory($crypto, $history)
 		-> CastorPrint('Received', $myIP)
 		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> output;
