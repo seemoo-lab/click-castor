@@ -2,6 +2,7 @@
 #include <click/args.hh>
 #include <click/confparse.hh>
 #include "castor_xcast_annotate_ackauth.hh"
+#include "castor_xcast.hh"
 
 CLICK_DECLS
 
@@ -20,14 +21,14 @@ int CastorXcastAnnotateAckAuth::configure(Vector<String>& conf, ErrorHandler* er
 void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
 
 	WritablePacket* q = p->uniqueify();
-	Castor_PKT* pkt = (Castor_PKT*) q->data();
+	CastorXcastPkt pkt = CastorXcastPkt(p);
 
-	SValue pktAuth(pkt->eauth, sizeof(EACKAuth));
+	SValue pktAuth(pkt.getAckAuth(), sizeof(ACKAuth));
 
 	// Get appropriate key and decrypt encrypted ACK authenticator
-	const SymmetricKey* sk = crypto->getSharedKey(pkt->src);
+	const SymmetricKey* sk = crypto->getSharedKey(pkt.getSource());
 	if (!sk) {
-		click_chatter("Could not find shared key for host %s. Discarding PKT...", pkt->dst.unparse().c_str());
+		click_chatter("Could not find shared key for host %s. Discarding PKT...", pkt.getDestination(0).unparse().c_str());
 		q->kill();
 		return;
 	}
@@ -39,7 +40,7 @@ void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
 		return;
 	}
 
-	memcpy(CastorPacket::getCastorAnno(p), ackAuth.begin(), sizeof(ACKAuth));
+	memcpy(CastorPacket::getCastorAnno(p), ackAuth.begin(), sizeof(EACKAuth));
 
 	output(0).push(q);
 
