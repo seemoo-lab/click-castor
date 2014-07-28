@@ -1,6 +1,7 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include "castor_timeout.hh"
+#include "castor_xcast.hh"
 
 CLICK_DECLS
 
@@ -27,10 +28,20 @@ void CastorTimeout::push(int, Packet* p) {
 	timer->schedule_after_msec(timeout);
 
 	// Add timer
-	Castor_PKT& header = (Castor_PKT&) *p->data();
-	Entry entry;
-	memcpy(entry.pid, header.pid, sizeof(PacketId));
-	timers.set(timer, entry);
+	if(CastorPacket::isXcast(p)) {
+		CastorXcastPkt header = CastorXcastPkt(p);
+		// Set timer for each destination individually
+		for(unsigned int i = 0; i < header.getNDestinations(); i++) {
+			Entry entry;
+			memcpy(entry.pid, header.getPid(i), sizeof(PacketId));
+			timers.set(timer, entry);
+		}
+	} else {
+		Castor_PKT& header = (Castor_PKT&) *p->data();
+		Entry entry;
+		memcpy(entry.pid, header.pid, sizeof(PacketId));
+		timers.set(timer, entry);
+	}
 
 	output(0).push(p);
 }
@@ -62,7 +73,7 @@ void CastorTimeout::run_timer(Timer* timer) {
 	IPAddress routedTo = history->routedTo(pid);
 
 	// Check whether PKT was broadcast, if yes, do nothing
-	// FIXME: Why is that?
+	// TODO: Why is that?
 	if (routedTo == IPAddress::make_broadcast()) {
 		// delete timer
 		timers.erase(timer);
