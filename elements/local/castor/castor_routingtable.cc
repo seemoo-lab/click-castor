@@ -77,19 +77,19 @@ void CastorRoutingTable::updateEstimates(const FlowId& flow, IPAddress subflow, 
 	//Retrieve the entry for our hop
 	RoutingEntry& entry = getRoutingEntry(table, neighbor);
 
-	if(est == first && op == increase){
-		entry.alpha_first 	= updateDelta * entry.alpha_first +1;
+	if (est == first && op == increase) {
+		entry.alpha_first 	= updateDelta * entry.alpha_first + 1;
 		entry.beta_first	= updateDelta * entry.beta_first;
-	} else if (est == all && op == increase){
+	} else if (est == all && op == increase) {
 		entry.alpha_all 	= updateDelta * entry.alpha_all + 1;
 		entry.beta_all		= updateDelta * entry.beta_all;
-	}else if(est == first && op == decrease){
+	} else if (est == first && op == decrease) {
 		entry.alpha_first 	= updateDelta * entry.alpha_first;
-		entry.beta_first	= entry.beta_first -1;
-	} else if (est == all && op == decrease){
+		entry.beta_first	= updateDelta * entry.beta_first + 1;
+	} else if (est == all && op == decrease) {
 		entry.alpha_all 	= updateDelta * entry.alpha_all;
-		entry.beta_all		= entry.beta_all -1;
-	}else {
+		entry.beta_all		= updateDelta * entry.beta_all + 1;
+	} else {
 		click_chatter("Error, enum error.");
 	}
 }
