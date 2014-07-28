@@ -12,9 +12,9 @@ define(
 	/** Castor parameters (settings from experimental setup of Castor technical report) **/
 	$broadcastAdjust 8.0, // bandwidth investment for route discovery (larger values reduce the broadcast probability)
 	$updateDelta 0.8, // adaptivity of the reliability estimators
-	$timeout 500, // in msec
+	$timeout 500, // in milliseconds
 
-	$jitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
+	$jitter 300, // jitter in microseconds to avoid collisions for broadcast traffic
 );
 
 AddressInfo(fake $EthDev);
@@ -144,9 +144,9 @@ elementclass CastorLocalPKT {
 	$myIP, $history, $crypto |
 
 	input
-		-> CastorPrint('Packet arrived at destination', $myIP)
 		-> CastorXcastAnnotateAckAuth($crypto)
 		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
+		-> CastorPrint('Packet arrived at destination', $myIP)
 		-> CastorAddXcastPktToHistory($history)
 		-> genAck :: CastorXcastCreateAck($myIP)
 		-> [0]output;
@@ -170,7 +170,7 @@ elementclass CastorForwardPKT {
 
 	input
 		-> CastorPrint('Forwarding Packet', $myIP)
-		-> CastorLookupRoute($routingtable)		// Lookup the route for the packet
+		-> CastorXcastLookupRoute($routingtable)		// Lookup the route for the packet
 		-> CastorAddXcastPktToHistory($history)
 		-> CastorTimeout($routingtable,$history,$timeout,$myIP)
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
@@ -188,8 +188,9 @@ elementclass CastorHandlePKT{
 	$myIP, $routingtable, $history, $crypto |
 
 	input
+		//-> CastorPrint('Incoming', $myIP)
 		-> forwarderClassifier :: CastorXcastForwarderClassifier($myIP)
-		-> checkDuplicate :: CastorCheckDuplicate($history)
+		-> checkDuplicate :: CastorXcastCheckDuplicate($history)
 		-> validate :: CastorXcastValidateFlow($crypto)
 		-> destinationClassifier :: CastorXcastDestClassifier($myIP);
 
@@ -209,10 +210,10 @@ elementclass CastorHandlePKT{
 	// If invalid or duplicate -> discard
 	null :: Discard;
 	forwarderClassifier[1]
-		-> CastorPrint("Node not in forwarder list", $myIP)
+		//-> CastorPrint("Node not in forwarder list", $myIP)
 		-> null;
 	checkDuplicate[1]
-		-> CastorPrint("Duplicate", $myIP)
+		//-> CastorPrint("Duplicate", $myIP)
 		-> null;
 	validate[1]
 		-> CastorPrint("!!! Invalid", $myIP)

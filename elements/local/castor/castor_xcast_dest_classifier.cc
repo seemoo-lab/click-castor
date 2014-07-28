@@ -28,19 +28,30 @@ void CastorXcastDestClassifier::push(int, Packet *p) {
 	bool forwarded = false;
 
 	for (unsigned int i = 0; i < header.getNDestinations(); i++)
-		if (!delivered && myAddr == header.getDestination(i)) {
+		if (myAddr == header.getDestination(i)) {
 			delivered = true;
-			output(0).push(p); // local node is destination
+
+			Packet* q = p->clone()->uniqueify();
+			CastorXcastPkt localPkt = CastorXcastPkt(q);
+
+			// Cleanup PKT header
+			localPkt.setSingleDestination(i);
+			localPkt.setSingleNextHop(myAddr);
+
+			output(0).push(q); // local node is destination
+			break;
 		}
 
 	if (header.getNDestinations() > (delivered ? 1 : 0)) {
 		forwarded = true;
-		Packet* q;
-		if(delivered)
-			q = p->clone()->uniqueify();
-		else
-			q = p;
-		output(1).push(q);
+
+		// If packet was delivered, remove own address from destination list
+		if(delivered) {
+			header.removeDestination(myAddr);
+			header.setSingleNextHop(myAddr);
+		}
+
+		output(1).push(p);
 	}
 
 	assert(delivered || forwarded);
