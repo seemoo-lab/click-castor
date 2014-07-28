@@ -18,8 +18,6 @@ int CastorXcastValidateFlow::configure(Vector<String> &conf, ErrorHandler *errh)
 
 void CastorXcastValidateFlow::push(int, Packet *p){
 
-	click_chatter("Validating flow...");
-
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	SValue fid(pkt.getFlowId(), sizeof(FlowId));

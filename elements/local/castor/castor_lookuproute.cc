@@ -2,7 +2,6 @@
 #include <click/confparse.hh>
 #include <click/straccum.hh>
 #include "castor_lookuproute.hh"
-#include <click/etheraddress.hh>
 
 CLICK_DECLS
 

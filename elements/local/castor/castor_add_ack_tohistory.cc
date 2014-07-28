@@ -39,8 +39,6 @@ void CastorAddAckToHistory::push(int, Packet *p) {
 
 	history->addAckFor(pid, p->dst_ip_anno());
 
-	p->set_dst_ip_anno(IPAddress::make_broadcast()); // Fix DST_ANNO
-
 	output(0).push(p);
 }
 
