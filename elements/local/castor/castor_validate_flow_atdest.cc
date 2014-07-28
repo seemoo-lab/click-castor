@@ -1,6 +1,7 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include "castor_validate_flow_atdest.hh"
+#include "castor_xcast.hh"
 
 CLICK_DECLS
 
@@ -18,12 +19,23 @@ int CastorValidateFlowAtDestination::configure(Vector<String> &conf, ErrorHandle
 
 void CastorValidateFlowAtDestination::push(int, Packet *p) {
 
-	Castor_PKT* pkt = (Castor_PKT*) p->data();
+	bool isPidValid;
 
-	PacketId computedPid;
-	crypto->hash(computedPid, CastorPacket::getCastorAnno(p), sizeof(ACKAuth));
+	if(CastorPacket::isXcast(p)) {
+		CastorXcastPkt pkt = CastorXcastPkt(p);
 
-	bool isPidValid = (memcmp(computedPid, pkt->pid, sizeof(PacketId)) == 0);
+		PacketId computedPid;
+		crypto->hash(computedPid, CastorPacket::getCastorAnno(p), sizeof(EACKAuth));
+
+		isPidValid = (memcmp(computedPid, pkt.getPid(0), sizeof(PacketId)) == 0); // Pkt should only include a single pid
+	} else {
+		Castor_PKT* pkt = (Castor_PKT*) p->data();
+
+		PacketId computedPid;
+		crypto->hash(computedPid, CastorPacket::getCastorAnno(p), sizeof(ACKAuth));
+
+		isPidValid = (memcmp(computedPid, pkt->pid, sizeof(PacketId)) == 0);
+	}
 
 	if (isPidValid)
 		output(0).push(p);
