@@ -15,6 +15,8 @@ define(
 	$timeout 500, // in milliseconds
 
 	$jitter 300, // jitter in microseconds to avoid collisions for broadcast traffic
+	
+	$maxGroupSize 10, // how many destinations per Xcast PKT?
 );
 
 AddressInfo(fake $EthDev);
@@ -114,7 +116,7 @@ elementclass CastorHandleIPPacket{
 	map :: CastorXcastDestinationMap
 
 	input
-	-> CastorXcastSetFixedHeader($flowDB, 290) // reserve space for 10 destinations and 10 next hops (10 * (sizeof(IP) + sizeof(Hash) + 10 * (sizeof(IP) + sizeof(uint8_t))
+	-> CastorXcastSetFixedHeader($flowDB, $maxGroupSize) // reserve space for 10 destinations and 10 next hops (10 * (sizeof(IP) + sizeof(Hash) + 10 * (sizeof(IP) + sizeof(uint8_t))
 	-> CastorXcastSetDestinations($crypto, map)
 	-> CastorPrint('Send', $myIP)
 	-> output;

@@ -13,10 +13,18 @@ CastorXcastSetFixedHeader::~CastorXcastSetFixedHeader() {
 }
 
 int CastorXcastSetFixedHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
-     return cp_va_kparse(conf, this, errh,
+	unsigned int maxGroupSize;
+
+     int result = cp_va_kparse(conf, this, errh,
         "CastorXcastSetHeader", cpkP+cpkM, cpElementCast, "CastorFlowStub", &cflow,
-        "SpaceForVariableSizeHeader", cpkP+cpkM, cpUnsigned, &varSpace, // TODO for simpler implementation -> no need to resize packet in subsequent elements, but transmits potentially larger packets
+        "MaxGroupSize", cpkP+cpkM, cpUnsigned, &maxGroupSize, // TODO for simpler implementation -> no need to resize packet in subsequent elements, but transmits potentially larger packets
         cpEnd);
+     varSpace =  maxGroupSize      * (sizeof(IPAddress) + sizeof(PacketId)) + // Space for 'maxGroupSize' destinations
+     	 	 	(maxGroupSize + 1) * (sizeof(IPAddress) + sizeof(uint8_t));   // Space for one next hop per destination + broadcast address
+
+     if(result < 0)
+    	 return -1;
+     return 0;
 }
 
 void CastorXcastSetFixedHeader::push(int, Packet *p) {
