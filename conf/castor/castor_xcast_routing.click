@@ -49,7 +49,6 @@ elementclass InputEth{
 	$myEthDev, $myAddr |
 
 	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096)
-		-> ToDump(ethin,PER_NODE 1)
 		-> HostEtherFilter($myEthDev)
 		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Reply / Default)
 
@@ -77,10 +76,9 @@ elementclass ToHost {
 	hostdevice :: ToSimDevice($myHostDev, IP);
 
 	input[0]
-		-> CastorRemoveHeader
-		-> CheckIPHeader
+		-> CastorXcastRemoveHeader($maxGroupSize)
+		-> CheckIPHeader2
 		-> MarkIPHeader
-		-> EtherEncap(0x0800, 1:1:1:1:1:1, ff:ff:ff:ff:ff:ff)
 		-> hostdevice;
 
 	input[1]
@@ -97,7 +95,7 @@ elementclass FromHost {
 	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096)
 		-> CheckIPHeader2
 		-> MarkIPHeader
-		-> CastorTranslateLocalhost($myIP) // Packets coming from host have 127.0.0.1 set as source address, so replace with address of 
+		-> CastorTranslateLocalhost($myIP) // Packets coming from host have 127.0.0.1 set as source address, so replace with address of local host
 		-> output;
 
 }
@@ -116,7 +114,7 @@ elementclass CastorHandleIPPacket{
 	map :: CastorXcastDestinationMap
 
 	input
-	-> CastorXcastSetFixedHeader($flowDB, $maxGroupSize) // reserve space for 10 destinations and 10 next hops (10 * (sizeof(IP) + sizeof(Hash) + 10 * (sizeof(IP) + sizeof(uint8_t))
+	-> CastorXcastSetFixedHeader($flowDB, $maxGroupSize)
 	-> CastorXcastSetDestinations($crypto, map)
 	-> CastorPrint('Send', $myIP)
 	-> output;
@@ -125,6 +123,7 @@ elementclass CastorHandleIPPacket{
 elementclass CastorClassifier{
 
 	input
+		-> MarkIPHeader
 		-> CheckIPHeader
 		-> ipclassifier :: IPClassifier(ip proto $CASTORTYPE, -)
 		-> annotateSenderAddress :: GetIPAddress(12)
@@ -283,13 +282,13 @@ arpquerier :: ARPQuerier(fake);
  * Wire the Blocks *
  *******************/
 
-ethin[1] -> ethout;		// PUSH new ARP Responses back to device
+ethin[1] -> ethout;			// Push new ARP Responses back to device
 ethin[0] -> [1]arpquerier;	// Push incoming arp responses to querer
 ethin[2]
 	-> removeEthernetHeader :: Strip(14)
  	-> castorclassifier;	// Classify received packets			
  
-arpquerier -> ethout; // Send Ethernet packets to output
+arpquerier -> ethout;	// Send Ethernet packets to output
 
 fromhost	
 	-> handleIPPacket 
@@ -303,4 +302,4 @@ castorclassifier[2] -> [1]tohost; // Deliver non-Castor packets directly to host
 handlepkt[0]		-> [0]tohost;  // Deliver PKT to host
 handlepkt[1]		-> arpquerier; // Return ACK		
 handlepkt[2] 		-> arpquerier; // Forward PKT
-handleack 		-> arpquerier; // Forward ACK
+handleack 			-> arpquerier; // Forward ACK

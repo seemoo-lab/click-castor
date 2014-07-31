@@ -47,7 +47,6 @@ elementclass InputEth{
 	$myEthDev, $myAddr |
 
 	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096)
-		-> ToDump(ethin,PER_NODE 1)
 		-> HostEtherFilter($myEthDev)
 		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Reply / Default)
 
@@ -76,9 +75,8 @@ elementclass ToHost {
 
 	input[0]
 		-> CastorRemoveHeader
-		-> CheckIPHeader
+		-> CheckIPHeader2
 		-> MarkIPHeader
-		-> EtherEncap(0x0800, 1:1:1:1:1:1, ff:ff:ff:ff:ff:ff)
 		-> hostdevice;
 
 	input[1]
@@ -93,7 +91,6 @@ elementclass FromHost {
 	$myHostDev, $myIP |
 
 	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096)
-		-> ToDump(hostin,PER_NODE 1)
 		-> CheckIPHeader2
 		-> MarkIPHeader
 		-> CastorTranslateLocalhost($myIP) // Packets coming from host have 127.0.0.1 set as source address, so replace with address of 
