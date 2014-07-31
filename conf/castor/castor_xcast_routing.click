@@ -108,7 +108,7 @@ elementclass FromHost {
 /**
  * Transforms IP packet (from local host) to valid Castor PKT
  */
-elementclass CastorHandleIPPacket{
+elementclass CastorHandleIpPacket{
 	$myIP, $flowDB, $crypto |
 
 	map :: CastorXcastDestinationMap
@@ -141,7 +141,7 @@ elementclass CastorClassifier{
 
 }
 
-elementclass CastorLocalPKT {
+elementclass CastorLocalXcastPkt {
 	$myIP, $history, $crypto |
 
 	input
@@ -166,7 +166,7 @@ elementclass CastorLocalPKT {
 
 }
 
-elementclass CastorForwardPKT {
+elementclass CastorForwardXcastPkt {
 	$myIP, $routingtable, $history |
 
 	input
@@ -185,7 +185,7 @@ elementclass CastorForwardPKT {
  * Output(1):	New ACK
  * Output(2):	Forwarded PKT
  */
-elementclass CastorHandlePKT{
+elementclass CastorHandleXcastPkt{
 	$myIP, $routingtable, $history, $crypto |
 
 	input
@@ -197,7 +197,7 @@ elementclass CastorHandlePKT{
 
  	// PKT arrived at destination
 	destinationClassifier[0]
-		-> handleLocal :: CastorLocalPKT($myIP, $history, $crypto)
+		-> handleLocal :: CastorLocalXcastPkt($myIP, $history, $crypto)
 		-> [0]output;
 
 	handleLocal[1]
@@ -205,7 +205,7 @@ elementclass CastorHandlePKT{
 	
 	// PKT needs to be forwarded
 	destinationClassifier[1]
-		-> forward :: CastorForwardPKT($myIP, $routingtable, $history)
+		-> forward :: CastorForwardXcastPkt($myIP, $routingtable, $history)
 		-> [2]output;
 
 	// If invalid or duplicate -> discard
@@ -222,7 +222,7 @@ elementclass CastorHandlePKT{
 
 }
 
-elementclass CastorHandleACK{
+elementclass CastorHandleXcastAck{
 	$myIP, $routingtable, $history, $crypto |
 
 	// Regular ACK flow
@@ -271,10 +271,10 @@ flow_merkle :: CastorFlowMerkle(flowDB, crypto);
 routingtable :: CastorRoutingTable($broadcastAdjust, $updateDelta);
 history :: CastorHistory;
 castorclassifier :: CastorClassifier;
-handlepkt :: CastorHandlePKT(fake, routingtable, history, crypto);
-handleack :: CastorHandleACK(fake, routingtable, history, crypto);
+handlepkt :: CastorHandleXcastPkt(fake, routingtable, history, crypto);
+handleack :: CastorHandleXcastAck(fake, routingtable, history, crypto);
 
-handleIPPacket :: CastorHandleIPPacket(fake, flowDB, crypto);
+handleIPPacket :: CastorHandleIpPacket(fake, flowDB, crypto);
 arpquerier :: ARPQuerier(fake);
 
 
