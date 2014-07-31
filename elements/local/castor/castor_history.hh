@@ -32,7 +32,7 @@ public:
 	void setExpired(const PacketId&);
 
 private:
-	typedef long Key; // TODO currently using only part of pid as key
+	typedef long Key; // XXX currently using only part of pid as key
 	typedef struct CastorHistoryEntry {
 		FlowId fid;
 		IPAddress destination; // Indicates Xcast subflow

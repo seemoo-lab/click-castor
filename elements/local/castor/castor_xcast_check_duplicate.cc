@@ -29,7 +29,7 @@ void CastorXcastCheckDuplicate::push(int, Packet *p) {
 
 	if(isDuplicate){
 		/**
-		 * TODO: According to Castor technical paper: If a packet with same pid, but different eauth or payload is received, it should not be considered a duplicate. In that case, however, the timer should not be restarted.
+		 * XXX: According to Castor technical paper: If a packet with same pid, but different eauth or payload is received, it should not be considered a duplicate. In that case, however, the timer should not be restarted.
 		 */
 		output(1).push(p); // -> discard
 	} else{

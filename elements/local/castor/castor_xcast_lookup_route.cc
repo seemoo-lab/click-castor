@@ -38,7 +38,7 @@ void CastorXcastLookupRoute::push(int, Packet *p){
 	header.setNextHopMapping(map);
 
 	// Set annotation for destination and push Packet to Output
-	p->set_dst_ip_anno(IPAddress::make_broadcast()); // TODO unicast if only one next hop
+	p->set_dst_ip_anno(IPAddress::make_broadcast()); // XXX: unicast if only one next hop
 
     output(0).push(p);
 }

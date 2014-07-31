@@ -73,7 +73,7 @@ void CastorTimeout::run_timer(Timer* timer) {
 	IPAddress routedTo = history->routedTo(pid);
 
 	// Check whether PKT was broadcast, if yes, do nothing
-	// TODO: Why is that?
+	// XXX: Why is that?
 	if (routedTo == IPAddress::make_broadcast()) {
 		// delete timer
 		timers.erase(timer);

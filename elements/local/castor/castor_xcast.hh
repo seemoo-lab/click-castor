@@ -130,7 +130,7 @@ public:
 	void setNextHopMapping(const HashTable<IPAddress,Vector<unsigned int> >& map) {
 		setNNextHops(map.size());
 
-		// TODO use swapping instead
+		// XXX use swapping instead
 
 		// Cache old destinations and pids
 		Vector<IPAddress> oldDestinations;
@@ -153,7 +153,7 @@ public:
 	}
 
 	/*
-	 * TODO method that takes a mapping and writes everything to the packet,
+	 * XXX method that takes a mapping and writes everything to the packet,
 	 * when resizing packet, use _p->pull() and _p->push() (depending on whether packet size increases or decreases)
 	 * otherwise, packet payload (partly) overwritten (if header size increases -> very bad)
 	 * or padding occurs (if header size decreases -> bad for efficiency)
