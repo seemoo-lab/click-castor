@@ -12,9 +12,9 @@ define(
 	/** Castor parameters (settings from experimental setup of Castor technical report) **/
 	$broadcastAdjust 8.0, // bandwidth investment for route discovery (larger values reduce the broadcast probability)
 	$updateDelta 0.8, // adaptivity of the reliability estimators
-	$timeout 500, // in msec
+	$timeout 500, // in milliseconds
 
-	$jitter 250, // jitter in microseconds to avoid collisions for broadcast traffic
+	$jitter 300, // jitter in microseconds to avoid collisions for broadcast traffic
 );
 
 AddressInfo(fake $EthDev);
@@ -264,7 +264,7 @@ handlepkt :: CastorHandlePKT(fake, routingtable, history, crypto);
 handleack :: CastorHandleACK(fake, routingtable, history, crypto);
 
 handleIPPacket :: CastorHandleIPPacket(fake, flowDB, crypto);
-arpquerier :: ARPQuerier(fake);
+arpquerier :: ARPQuerier(fake, TIMEOUT 100);
 
 
 /*******************

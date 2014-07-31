@@ -275,7 +275,7 @@ handlepkt :: CastorHandleXcastPkt(fake, routingtable, history, crypto);
 handleack :: CastorHandleXcastAck(fake, routingtable, history, crypto);
 
 handleIPPacket :: CastorHandleIpPacket(fake, flowDB, crypto);
-arpquerier :: ARPQuerier(fake);
+arpquerier :: ARPQuerier(fake, TIMEOUT 100);
 
 
 /*******************
