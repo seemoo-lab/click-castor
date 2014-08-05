@@ -111,17 +111,22 @@ int main(int argc, char *argv[]) {
 
 	uint32_t MaxPacketSize = 256;
 
+	Time interPacketInterval = Seconds(0.25);
 
-	const Time duration = Seconds(2.0);
+	const Time duration = Seconds(60.0);
 
 	// Network
 	const Ipv4Address baseAddr("192.168.201.0");
 	const Ipv4Mask networkMask("255.255.255.0");
 	const Ipv4Address groupAddr("224.0.2.0");
 
-	// Setup groups
-
+	// Setup groups based on 'nSenders' (e.g. 2) and 'groupSize' (e.g. 3) in the format:
+	// 'senderGroupAssign':
+	// 		192.168.201.1 -> 224.0.2.1; 192.168.201.5 -> 224.0.2.5
 	std::map<Ipv4Address, Ipv4Address, LessIpv4Address> senderGroupAssign;
+	// 'groups':
+	// 		192.168.201.1 -> 192.168.201.2, 192.168.201.3, 192.168.201.4;
+	// 		192.168.201.5 -> 192.168.201.6, 192.168.201.7, 192.168.201.8
 	std::map<Ipv4Address, std::vector<Ipv4Address>, LessIpv4Address> groups; // multicast group -> xcast receivers
 
 	for (unsigned int i = 0, iAddr = 1; i < nSenders; i++) {
@@ -220,31 +225,34 @@ int main(int argc, char *argv[]) {
 
 	NS_LOG_INFO("Create Applications.");
 	//
-	// Create one udpServer applications on node one.
+	// Create UdpClient and Server applications
 	//
-	// TODO Install servers on all destinations
+	ApplicationContainer apps;
 	uint16_t port = 4000;
-	UdpServerHelper server(port);
-	ApplicationContainer apps = server.Install(n.Get(n.GetN() - 1));
-	apps.Start(Seconds(1.0));
-	apps.Stop(duration + Seconds(3.0));
-
-	//
-	// Create one UdpClient application to send UDP datagrams from node zero to
-	// node one.
-	//
-	Time interPacketInterval = Seconds(0.25);
 	uint32_t maxPacketCount = UINT32_MAX;
+	unsigned int nodeIndex = 0;
+	for (std::map<Ipv4Address, Ipv4Address>::iterator it = senderGroupAssign.begin(); it != senderGroupAssign.end(); it++) {
+		Ipv4Address groupIp = it->second;
 
-	for (unsigned int i = 1; i <= nSenders; i++) {
-		Ipv4Address ip = Ipv4Address(groupAddr.Get() + i);
-		UdpClientHelper client(ip, port);
+		// Setup multicast source
+		UdpClientHelper client(groupIp, port);
 		client.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
 		client.SetAttribute("Interval", TimeValue(interPacketInterval));
 		client.SetAttribute("PacketSize", UintegerValue(MaxPacketSize));
-		apps = client.Install(NodeContainer(n.Get(i - 1)));
-		apps.Start(Seconds(2.0) + interPacketInterval / nSenders * (i - 1));
+		apps = client.Install(NodeContainer(n.Get(nodeIndex)));
+		apps.Start(Seconds(2.0) + interPacketInterval / nSenders * nodeIndex);
 		apps.Stop(duration + Seconds(2.0));
+
+		nodeIndex++;
+
+		std::vector<Ipv4Address> dsts = groups.at(groupIp);
+		for(std::vector<Ipv4Address>::iterator itDst = dsts.begin(); itDst != dsts.end(); itDst++) {
+			UdpServerHelper server(port);
+			apps = server.Install(n.Get(nodeIndex));
+			apps.Start(Seconds(1.0));
+			apps.Stop(duration + Seconds(3.0));
+		}
+
 	}
 
 	//wifiPhy.EnablePcap("castor-xcast", d);
