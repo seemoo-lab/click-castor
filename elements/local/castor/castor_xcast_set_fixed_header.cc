@@ -43,7 +43,6 @@ void CastorXcastSetFixedHeader::push(int, Packet *p) {
 	header.setType(CastorType::XCAST_PKT);
 	header.setHashSize(sizeof(Hash));
 	header.setNFlowAuthElements(CASTOR_FLOWAUTH_ELEM);
-	header.setLength(length);
 
 	header.setContentType(p->ip_header()->ip_p);
 	header.setSource(src);

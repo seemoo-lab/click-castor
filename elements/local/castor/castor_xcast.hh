@@ -27,7 +27,6 @@ public:
 	inline uint8_t getContentType() const { return _fixed->contentType; }
 	inline void setContentType(uint8_t type) { _fixed->contentType = type; }
 	inline uint16_t getLength() const { return _fixed->length; }
-	inline void setLength(uint16_t length) { _fixed->length = length; } // FIXME: always update upon changes
 	/** Indicates k-th PKT of the flow, required for flow validation (right or left siblings in Merkle tree?) */
 	inline uint16_t getKPkt() const { return _fixed->kPkt; }
 	inline void setKPkt(uint16_t k) { _fixed->kPkt = k; }
@@ -46,10 +45,10 @@ public:
 	inline void setAckAuth(const ACKAuth& ackAuth) { memcpy(&_fixed->ackAuth, &ackAuth, sizeof(ACKAuth)); }
 	/** Get the number of multicast receivers */
 	inline uint8_t getNDestinations() const { return _fixed->nDestinations; }
-	inline void setNDestinations(uint8_t n) { _fixed->nDestinations = n; }
+	inline void setNDestinations(uint8_t n) { _fixed->nDestinations = n; setLength(); }
 	/** Get the number of intended next hops */
 	inline uint8_t getNNextHops() const { return _fixed->nNextHops; }
-	inline void setNNextHops(uint8_t n) { _fixed->nNextHops = n; }
+	inline void setNNextHops(uint8_t n) { _fixed->nNextHops = n; setLength(); }
 
 	// Variable length header fields
 	inline IPAddress getDestination(unsigned int i) const {	return IPAddress(&_var[getDestinationOff(i)]); }
@@ -73,20 +72,23 @@ public:
 		for(unsigned int i = 0; i < getNDestinations(); i++) {
 			found = destination == getDestination(i);
 			if(found) {
-				// Cache old pids
+				// Cache old destinations & pids
+				Vector<IPAddress> dests;
 				Vector<PacketId> pids;
 				for(unsigned int j = 0; j < getNDestinations(); j++)
-					if(j != i) // omit pid from destination being removed
+					if(j != i) {
+						// omit pid from destination being removed
+						dests.push_back(getDestination(j));
 						pids.push_back(getPid(j));
+					}
 
-				// Copy last destination in list to this position
-				setDestination(getDestination(getNDestinations() - 1), i);
 				setNDestinations(getNDestinations() - 1);
 
 				// Write pids back
-				for(unsigned int j = 0; j < getNDestinations(); j++)
+				for(unsigned int j = 0; j < getNDestinations(); j++) {
+					setDestination(dests[j], j);
 					setPid(pids[j], j);
-
+				}
 				break;
 			}
 		}
@@ -153,14 +155,6 @@ public:
 		}
 	}
 
-	/*
-	 * XXX method that takes a mapping and writes everything to the packet,
-	 * when resizing packet, use _p->pull() and _p->push() (depending on whether packet size increases or decreases)
-	 * otherwise, packet payload (partly) overwritten (if header size increases -> very bad)
-	 * or padding occurs (if header size decreases -> bad for efficiency)
-	 * Bad thing: always have to rewrite PKT header... but what else can we do?
-	 */
-
 	/**
 	 * Return the size of the fixed header fields
 	 */
@@ -169,7 +163,7 @@ public:
 	}
 
 	inline size_t getSize() {
-		return getFixedSize()
+		return sizeof(FixedSizeHeader)
 				+ getNDestinations() * (sizeof(IPAddress) + sizeof(PacketId))
 				+ getNNextHops() * (sizeof(IPAddress) + sizeof(uint8_t));
 	}
@@ -180,7 +174,7 @@ public:
 			String sfid = CastorPacket::hexToString(getFlowId(), getHashSize());
 			String sauth = CastorPacket::hexToString(getAckAuth(), getHashSize());
 			sa << "   | From:\t" << _p->dst_ip_anno() << "\n";
-			sa << "   | Type:\tXcast PKT (" <<  getSize() << ")\n";
+			sa << "   | Type:\tXcast PKT (" <<  getLength() << ")\n";
 			sa << "   | Flow:\t" << getSource() << " -> " << getMulticastGroup() << "\n";
 			for(unsigned int i = 0; i < getNDestinations(); i++)
 				sa << "   | \t\t -> " << getDestination(i) << " (pid " << CastorPacket::hexToString(getPid(i), getHashSize()) << ")\n";
@@ -203,7 +197,7 @@ public:
 		} else {
 			sa << "Xcast PKT (from " << _p->dst_ip_anno() << ", flow " << getSource() << " -> ";
 			sa << getDestination(0);
-			for(unsigned int i = 0; i < getNDestinations(); i++)
+			for(unsigned int i = 1; i < getNDestinations(); i++)
 				sa << ", " << getDestination(i);
 			sa << ")";
 		}
@@ -240,6 +234,13 @@ private:
 	inline unsigned int getPidOff(unsigned int i) const { return getDestinationOff(getNDestinations()) + sizeof(PacketId) * i; }
 	inline unsigned int getNextHopOff(unsigned int i) const { return getPidOff(getNDestinations()) + sizeof(IPAddress) * i; }
 	inline unsigned int getNextHopNAssignOff(unsigned int i) const { return getNextHopOff(getNNextHops()) + sizeof(uint8_t) * i; }
+
+	inline void setLength() {
+		_fixed->length = sizeof(FixedSizeHeader)
+			+ getNDestinations() * (sizeof(IPAddress) + sizeof(PacketId))
+			+ getNNextHops() * (sizeof(IPAddress) + sizeof(uint8_t));
+		// FIXME when settings length, also resize packet accordingly!
+	}
 };
 
 // The ACK Header Structure for Explicit Multicast (Xcast)
