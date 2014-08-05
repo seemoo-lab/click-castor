@@ -20,9 +20,14 @@ public:
 
 	const Vector<IPAddress>& getDestinations(IPAddress multicastAddr) const;
 
+    void add_handlers();
 private:
 	HashTable<IPAddress, Vector<IPAddress> > _map;
 	Vector<IPAddress> _empty;
+
+	int insertDestinations(IPAddress group, const Vector<IPAddress>&);
+
+    static int write_handler(const String &, Element *, void *, ErrorHandler *);
 };
 
 CLICK_ENDDECLS

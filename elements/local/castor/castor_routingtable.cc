@@ -25,7 +25,7 @@ int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 IPAddress CastorRoutingTable::lookup(const FlowId& flow, IPAddress subflow) {
 	// FOR DEBUG Print the Routing Table
-	printRoutingTable(flow, subflow);
+	//printRoutingTable(flow, subflow);
 
 	Vector<RoutingEntry>& table = getRoutingTable(flow, subflow);
 
@@ -59,11 +59,11 @@ IPAddress CastorRoutingTable::lookup(const FlowId& flow, IPAddress subflow) {
 
 	if(rand <= broadcastProb) {
 		// Case 2a: Broadcast
-		click_chatter("Broadcasting probability %f -> deciding to broadcast", broadcastProb);
+		//click_chatter("Broadcasting probability %f -> deciding to broadcast", broadcastProb);
 		return IPAddress::make_broadcast();
 	} else {
 		// Case 2b: Unicast
-		click_chatter("Broadcasting probability %f -> deciding to unicast to %s", broadcastProb, bestEntry.nextHop.unparse().c_str());
+		//click_chatter("Broadcasting probability %f -> deciding to unicast to %s", broadcastProb, bestEntry.nextHop.unparse().c_str());
 		return bestEntry.nextHop;
 	}
 

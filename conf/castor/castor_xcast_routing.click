@@ -14,7 +14,7 @@ define(
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 	$timeout 500, // in milliseconds
 
-	$jitter 300, // jitter in microseconds to avoid collisions for broadcast traffic
+	$jitter 10, // jitter in microseconds to avoid collisions for broadcast traffic
 	
 	$maxGroupSize 10, // how many destinations per Xcast PKT?
 );
@@ -38,7 +38,7 @@ elementclass OutputEth{
 
 	input[0]
 		-> Queue
-		-> JitterUnqueue($jitter) // Jitter in microseconds
+		//-> JitterUnqueue($jitter) // Jitter in microseconds
 		-> ethdev :: ToSimDevice($myEthDev);
 }
 
@@ -170,7 +170,7 @@ elementclass CastorForwardXcastPkt {
 	$myIP, $routingtable, $history |
 
 	input
-		-> CastorPrint('Forwarding Packet', $myIP)
+		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> CastorXcastLookupRoute($routingtable)		// Lookup the route for the packet
 		-> CastorAddXcastPktToHistory($history)
 		-> CastorTimeout($routingtable,$history,$timeout,$myIP)
@@ -231,26 +231,26 @@ elementclass CastorHandleXcastAck{
 		-> validate :: CastorValidateACK($crypto, $history)
 		-> updateEstimates :: CastorUpdateEstimates($crypto, $routingtable, $history)
 		-> CastorAddAckToHistory($crypto, $history)
-		-> CastorPrint('Received valid', $myIP)
+		//-> CastorPrint('Received valid', $myIP)
 		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> output;
 
 	// Discarding...
 	null :: Discard;
 	validate[1]
-		-> CastorPrint("Unknown corresponding PKT", $myIP)
+		//-> CastorPrint("Unknown corresponding PKT", $myIP)
 		-> null;
 	validate[2]
-		-> CastorPrint("Too late", $myIP)
+		//-> CastorPrint("Too late", $myIP)
 		-> null;
 	validate[3]
-		-> CastorPrint("Duplicate from same neighbor", $myIP)
+		//-> CastorPrint("Duplicate from same neighbor", $myIP)
 		-> null;
 	updateEstimates[1]
-		-> CastorPrint("Duplicate", $myIP)
+		//-> CastorPrint("Duplicate", $myIP)
 		-> null;
 	updateEstimates[2]
-		-> CastorPrint("Received from wrong neighbor", $myIP)
+		//-> CastorPrint("Received from wrong neighbor", $myIP)
 		-> null;
 }
 
@@ -274,7 +274,7 @@ castorclassifier :: CastorClassifier;
 handlepkt :: CastorHandleXcastPkt(fake, routingtable, history, crypto);
 handleack :: CastorHandleXcastAck(fake, routingtable, history, crypto);
 
-handleIPPacket :: CastorHandleIpPacket(fake, flowDB, crypto);
+handleIpPacket :: CastorHandleIpPacket(fake, flowDB, crypto);
 arpquerier :: ARPQuerier(fake, TIMEOUT 100);
 
 
@@ -291,7 +291,7 @@ ethin[2]
 arpquerier -> ethout;	// Send Ethernet packets to output
 
 fromhost	
-	-> handleIPPacket 
+	-> handleIpPacket 
 	-> handlepkt;		// Process new generated packets
  
 

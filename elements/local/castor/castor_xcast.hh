@@ -27,7 +27,7 @@ public:
 	inline uint8_t getContentType() const { return _fixed->contentType; }
 	inline void setContentType(uint8_t type) { _fixed->contentType = type; }
 	inline uint16_t getLength() const { return _fixed->length; }
-	inline void setLength(uint16_t length) { _fixed->length = length; } // TODO: always update upon changes
+	inline void setLength(uint16_t length) { _fixed->length = length; } // FIXME: always update upon changes
 	/** Indicates k-th PKT of the flow, required for flow validation (right or left siblings in Merkle tree?) */
 	inline uint16_t getKPkt() const { return _fixed->kPkt; }
 	inline void setKPkt(uint16_t k) { _fixed->kPkt = k; }
