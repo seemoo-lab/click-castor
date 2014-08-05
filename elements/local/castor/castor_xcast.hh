@@ -76,7 +76,8 @@ public:
 				// Cache old pids
 				Vector<PacketId> pids;
 				for(unsigned int j = 0; j < getNDestinations(); j++)
-					pids.push_back(getPid(j));
+					if(j != i) // omit pid from destination being removed
+						pids.push_back(getPid(j));
 
 				// Copy last destination in list to this position
 				setDestination(getDestination(getNDestinations() - 1), i);
