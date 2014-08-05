@@ -14,7 +14,7 @@ define(
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 	$timeout 500, // in milliseconds
 
-	$jitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
+	$jitter 300, // jitter in microseconds to avoid collisions for broadcast traffic
 );
 
 AddressInfo(fake $EthDev);
@@ -37,7 +37,7 @@ elementclass OutputEth{
 
 	input[0]
 		-> Queue
-		-> JitterUnqueue($jitter)
+		-> JitterUnqueue($jitter, true) // 'true' set for simulator -> much better performance
 		-> ethdev :: ToSimDevice($myEthDev);
 }
 

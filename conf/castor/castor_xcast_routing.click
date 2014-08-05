@@ -14,7 +14,7 @@ define(
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 	$timeout 500, // in milliseconds
 
-	$jitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
+	$jitter 300, // jitter in microseconds to avoid collisions for broadcast traffic
 	
 	$maxGroupSize 10, // how many destinations per Xcast PKT?
 );
@@ -39,7 +39,7 @@ elementclass OutputEth{
 
 	input[0]
 		-> Queue
-		-> JitterUnqueue($jitter)
+		-> JitterUnqueue($jitter, true) // 'true' set for simulator -> much better performance
 		-> ethdev :: ToSimDevice($myEthDev);
 }
 
@@ -171,8 +171,8 @@ elementclass CastorForwardXcastPkt {
 	$myIP, $routingtable, $history |
 
 	input
-		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> CastorXcastLookupRoute($routingtable)		// Lookup the route for the packet
+		-> CastorPrint('Forwarding Packet', $myIP, true)
 		-> CastorAddXcastPktToHistory($history)
 		-> CastorTimeout($routingtable,$history,$timeout,$myIP)
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet

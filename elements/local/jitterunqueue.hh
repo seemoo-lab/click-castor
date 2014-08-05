@@ -28,7 +28,7 @@ public:
     bool run_task(Task *);
 
   private:
-
+    bool simulatorTime;
     Packet *_p;
     Timestamp _jitter;
     Task _task;

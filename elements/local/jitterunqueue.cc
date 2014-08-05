@@ -20,9 +20,12 @@ JitterUnqueue::~JitterUnqueue() {
 
 int JitterUnqueue::configure(Vector<String> &conf, ErrorHandler *errh) {
 	uint32_t jitter = 0;
-	int result = Args(conf, this, errh).read_mp("JITTER", jitter).complete();
+	int result = Args(conf, this, errh)
+			.read_mp("JITTER", jitter)
+			.read_mp("SIMTIME", simulatorTime)
+			.complete();
 	_jitter = Timestamp::make_usec(jitter);
-	return result;
+	return result < 0 ? -1 : 0;
 }
 
 int JitterUnqueue::initialize(ErrorHandler *errh) {
@@ -61,15 +64,21 @@ bool JitterUnqueue::run_task(Task *) {
 			goto retry;
 		}
 
-		Timestamp expiry = _p->timestamp_anno() - Timer::adjustment();
-		if (expiry <= now)
+		// If 'simulatorTime' is set, no need to busy wait; just reschedule at that time
+		Timestamp expiry;
+		if(simulatorTime)
+			expiry = _p->timestamp_anno();
+		else
+			expiry = _p->timestamp_anno() - Timer::adjustment();
+		if (!simulatorTime && expiry <= now) {
 			// small delta, reschedule Task
-			/* Task rescheduled below */;
-		else {
+			/* Task rescheduled below */
+		} else {
 			// large delta, schedule Timer
 			_timer.schedule_at(expiry);
 			return false;		// without rescheduling
 		}
+
 	} else {
 		// no Packet available
 		if (!_signal)
