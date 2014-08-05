@@ -22,6 +22,7 @@ define(
 AddressInfo(fake $EthDev);
 AddressInfo(netAddr 192.168.201.0)
 
+// Need an IP routing table for ns-3 (dummy)
 rt :: StaticIPLookup(0.0.0.0/0 0);
 Idle() -> rt -> Discard;
 
@@ -38,7 +39,7 @@ elementclass OutputEth{
 
 	input[0]
 		-> Queue
-		-> JitterUnqueue($jitter) // Jitter in microseconds
+		-> JitterUnqueue($jitter)
 		-> ethdev :: ToSimDevice($myEthDev);
 }
 
@@ -161,7 +162,7 @@ elementclass CastorLocalXcastPkt {
 	// If invalid -> discard
 	null :: Discard;
 	validateAtDest[1]
-		-> CastorPrint("!!! Invalid @ destination", $myIP)
+		-> CastorPrint("Packet authentication failed", $myIP)
 		-> null;
 
 }
@@ -189,7 +190,6 @@ elementclass CastorHandleXcastPkt{
 	$myIP, $routingtable, $history, $crypto |
 
 	input
-		//-> CastorPrint('Incoming', $myIP)
 		-> forwarderClassifier :: CastorXcastForwarderClassifier($myIP)
 		-> checkDuplicate :: CastorXcastCheckDuplicate($history)
 		-> validate :: CastorXcastValidateFlow($crypto)
@@ -217,7 +217,7 @@ elementclass CastorHandleXcastPkt{
 		//-> CastorPrint("Duplicate", $myIP)
 		-> null;
 	validate[1]
-		-> CastorPrint("!!! Invalid", $myIP)
+		-> CastorPrint("Flow authentication failed", $myIP)
 		-> null;
 
 }
@@ -241,7 +241,7 @@ elementclass CastorHandleXcastAck{
 		//-> CastorPrint("Unknown corresponding PKT", $myIP)
 		-> null;
 	validate[2]
-		//-> CastorPrint("Too late", $myIP)
+		-> CastorPrint("Too late", $myIP)
 		-> null;
 	validate[3]
 		//-> CastorPrint("Duplicate from same neighbor", $myIP)
@@ -275,7 +275,7 @@ handlepkt :: CastorHandleXcastPkt(fake, routingtable, history, crypto);
 handleack :: CastorHandleXcastAck(fake, routingtable, history, crypto);
 
 handleIpPacket :: CastorHandleIpPacket(fake, flowDB, crypto);
-arpquerier :: ARPQuerier(fake, TIMEOUT 100);
+arpquerier :: ARPQuerier(fake, TIMEOUT 3600); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)
 
 
 /*******************
@@ -294,12 +294,11 @@ fromhost
 	-> handleIpPacket 
 	-> handlepkt;		// Process new generated packets
  
-
 castorclassifier[0] -> handlepkt; // Process PKTs
 castorclassifier[1] -> handleack; // Process ACKs
 castorclassifier[2] -> [1]tohost; // Deliver non-Castor packets directly to host
 
 handlepkt[0]		-> [0]tohost;  // Deliver PKT to host
 handlepkt[1]		-> arpquerier; // Return ACK		
-handlepkt[2] 		-> arpquerier; // Forward PKT
-handleack 			-> arpquerier; // Forward ACK
+handlepkt[2]		-> arpquerier; // Forward PKT
+handleack		-> arpquerier; // Forward ACK

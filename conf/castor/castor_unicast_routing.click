@@ -14,12 +14,13 @@ define(
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 	$timeout 500, // in milliseconds
 
-	$jitter 300, // jitter in microseconds to avoid collisions for broadcast traffic
+	$jitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
 );
 
 AddressInfo(fake $EthDev);
 AddressInfo(netAddr 192.168.201.0)
 
+// Need an IP routing table for ns-3 (dummy)
 rt :: StaticIPLookup(0.0.0.0/0 0);
 Idle() -> rt -> Discard;
 
@@ -36,7 +37,7 @@ elementclass OutputEth{
 
 	input[0]
 		-> Queue
-		-> JitterUnqueue($jitter) // Jitter in microseconds
+		-> JitterUnqueue($jitter)
 		-> ethdev :: ToSimDevice($myEthDev);
 }
 
@@ -155,7 +156,7 @@ elementclass CastorLocalPKT {
 	// If invalid -> discard
 	null :: Discard;
 	validateAtDest[1]
-		-> CastorPrint("!!! Invalid @ destination", $myIP)
+		-> CastorPrint("Packet authentication failed", $myIP)
 		-> null;
 
 }
@@ -164,7 +165,7 @@ elementclass CastorForwardPKT {
 	$myIP, $routingtable, $history |
 
 	input
-		-> CastorPrint('Forwarding Packet', $myIP)
+		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> CastorLookupRoute($routingtable)		// Lookup the route for the packet
 		-> CastorAddPKTToHistory($history)
 		-> CastorTimeout($routingtable, $history, $timeout, $myIP)
@@ -203,10 +204,10 @@ elementclass CastorHandlePKT{
 	// If invalid or duplicate -> discard
 	null :: Discard;
 	checkDuplicate[1]
-		-> CastorPrint("Duplicate", $myIP)
+		//-> CastorPrint("Duplicate", $myIP)
 		-> null;
 	validate[1]
-		-> CastorPrint("!!! Invalid", $myIP)
+		-> CastorPrint("Packet authentication failed", $myIP)
 		-> null;
 
 }
@@ -227,19 +228,19 @@ elementclass CastorHandleACK{
 	// Discarding...
 	null :: Discard;
 	validate[1]
-		-> CastorPrint("Unknown corresponding PKT", $myIP)
+		//-> CastorPrint("Unknown corresponding PKT", $myIP)
 		-> null;
 	validate[2]
 		-> CastorPrint("Too late", $myIP)
 		-> null;
 	validate[3]
-		-> CastorPrint("Duplicate from same neighbor", $myIP)
+		//-> CastorPrint("Duplicate from same neighbor", $myIP)
 		-> null;
 	updateEstimates[1]
-		-> CastorPrint("Duplicate", $myIP)
+		//-> CastorPrint("Duplicate", $myIP)
 		-> null;
 	updateEstimates[2]
-		-> CastorPrint("Received from wrong neighbor", $myIP)
+		//-> CastorPrint("Received from wrong neighbor", $myIP)
 		-> null;
 }
 
@@ -264,7 +265,7 @@ handlepkt :: CastorHandlePKT(fake, routingtable, history, crypto);
 handleack :: CastorHandleACK(fake, routingtable, history, crypto);
 
 handleIPPacket :: CastorHandleIPPacket(fake, flowDB, crypto);
-arpquerier :: ARPQuerier(fake, TIMEOUT 100);
+arpquerier :: ARPQuerier(fake, TIMEOUT 3600); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)
 
 
 /*******************
@@ -290,5 +291,5 @@ castorclassifier[2] -> [1]tohost; // Deliver non-Castor packets directly to host
 
 handlepkt[0]		-> [0]tohost;  // Deliver PKT to host
 handlepkt[1]		-> arpquerier; // Return ACK		
-handlepkt[2] 		-> arpquerier; // Forward PKT
-handleack 		-> arpquerier; // Forward ACK
+handlepkt[2]		-> arpquerier; // Forward PKT
+handleack		-> arpquerier; // Forward ACK
