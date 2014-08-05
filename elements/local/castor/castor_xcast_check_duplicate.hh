@@ -20,6 +20,7 @@ class CastorXcastCheckDuplicate : public Element {
 	private:
 		void push(int, Packet *);
 		CastorHistory* history;
+		IPAddress myAddr;
 };
 
 CLICK_ENDDECLS

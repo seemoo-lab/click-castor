@@ -191,7 +191,7 @@ elementclass CastorHandleXcastPkt{
 
 	input
 		-> forwarderClassifier :: CastorXcastForwarderClassifier($myIP)
-		-> checkDuplicate :: CastorXcastCheckDuplicate($history)
+		-> checkDuplicate :: CastorXcastCheckDuplicate($history, $myIP)
 		-> validate :: CastorXcastValidateFlow($crypto)
 		-> destinationClassifier :: CastorXcastDestClassifier($myIP);
 

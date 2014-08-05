@@ -14,6 +14,7 @@ CastorXcastCheckDuplicate::~CastorXcastCheckDuplicate() {
 int CastorXcastCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *errh) {
      return cp_va_kparse(conf, this, errh,
         "CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
+        "ADDR", cpkP+cpkM, cpIPAddress, &myAddr,
         cpEnd);
 }
 
@@ -22,17 +23,21 @@ void CastorXcastCheckDuplicate::push(int, Packet *p) {
 
 	// FIXME Adapt for Xcast: if any pid is new, forward, but only for those pkts
 
-	bool isDuplicate = true;
 	for(unsigned int i = 0; i < pkt.getNDestinations(); i++)
-		if(!history->hasPkt(pkt.getPid(i)))
-			isDuplicate = false;
+		if(history->hasPkt(pkt.getPid(i))) {
+			pkt.removeDestination(pkt.getDestination(i)); // XXX not very efficient to delete one by one
+			i--; // current position has changed, try again
+		}
 
-	if(isDuplicate){
+	bool isDuplicate = pkt.getNDestinations() == 0;
+
+	if(isDuplicate) {
 		/**
 		 * XXX: According to Castor technical paper: If a packet with same pid, but different eauth or payload is received, it should not be considered a duplicate. In that case, however, the timer should not be restarted.
 		 */
 		output(1).push(p); // -> discard
-	} else{
+	} else {
+		pkt.setSingleNextHop(myAddr);
 		output(0).push(p);
 	}
 }
