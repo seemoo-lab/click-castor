@@ -14,7 +14,7 @@ define(
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 	$timeout 500, // in milliseconds
 
-	$jitter 10, // jitter in microseconds to avoid collisions for broadcast traffic
+	$jitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
 	
 	$maxGroupSize 10, // how many destinations per Xcast PKT?
 );
@@ -38,7 +38,7 @@ elementclass OutputEth{
 
 	input[0]
 		-> Queue
-		//-> JitterUnqueue($jitter) // Jitter in microseconds
+		-> JitterUnqueue($jitter) // Jitter in microseconds
 		-> ethdev :: ToSimDevice($myEthDev);
 }
 

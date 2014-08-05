@@ -19,8 +19,8 @@ int CastorXcastSetFixedHeader::configure(Vector<String> &conf, ErrorHandler *err
         "CastorXcastSetHeader", cpkP+cpkM, cpElementCast, "CastorFlowStub", &cflow,
         "MaxGroupSize", cpkP+cpkM, cpUnsigned, &maxGroupSize, // TODO for simpler implementation -> no need to resize packet in subsequent elements, but transmits potentially larger packets
         cpEnd);
-     varSpace =  maxGroupSize      * (sizeof(IPAddress) + sizeof(PacketId)) + // Space for 'maxGroupSize' destinations
-     	 	 	(maxGroupSize + 1) * (sizeof(IPAddress) + sizeof(uint8_t));   // Space for one next hop per destination + broadcast address
+     varSpace = maxGroupSize * (sizeof(IPAddress) + sizeof(PacketId)) + // Space for 'maxGroupSize' destinations
+     	 	 	maxGroupSize * (sizeof(IPAddress) + sizeof(uint8_t));   // Space for one next hop per destination
 
      if(result < 0)
     	 return -1;
