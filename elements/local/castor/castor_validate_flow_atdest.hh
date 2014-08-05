@@ -7,6 +7,8 @@
 
 CLICK_DECLS
 
+// XXX Should be named CastorAuthenticatePkt
+
 /**
  * Flow validation takes place at the destination node
  */

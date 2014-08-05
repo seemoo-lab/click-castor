@@ -8,6 +8,8 @@
 
 CLICK_DECLS
 
+// XXX Should be named CastorAuthenticateAck
+
 class CastorValidateACK: public Element {
 public:
 	CastorValidateACK();

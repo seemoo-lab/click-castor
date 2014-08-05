@@ -7,6 +7,8 @@
 
 CLICK_DECLS
 
+// XXX Should be named CastorXcastAuthenticateFlow
+
 /**
  * Flow validation takes place at every intermediate node
  */
