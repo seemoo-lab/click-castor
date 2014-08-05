@@ -173,44 +173,44 @@ public:
 				+ getNNextHops() * (sizeof(IPAddress) + sizeof(uint8_t));
 	}
 
-	void print(bool full) {
+	StringAccum toString(bool full = false) {
 		StringAccum sa;
-//		sa << "[" << Timestamp::now() << "@" << _address << "] " << _label << " ";
-
-			if(full) {
-				String sfid = CastorPacket::hexToString(getFlowId(), getHashSize());
-				String sauth = CastorPacket::hexToString(getAckAuth(), getHashSize());
-				//sa << "\n";
-				sa << "   | From:\t" << _p->dst_ip_anno() << "\n";
-				sa << "   | Type:\tXcast PKT (" <<  getSize() << ")\n";
-				sa << "   | Flow:\t" << getSource() << " -> " << getMulticastGroup() << "\n";
-				for(unsigned int i = 0; i < getNDestinations(); i++)
-					sa << "   | \t\t -> " << getDestination(i) << " (pid " << CastorPacket::hexToString(getPid(i), getHashSize()) << ")\n";
-				sa << "   | Flow ID:\t" << sfid << "\n";
-				//sa << "   | Pkt ID: \t" << spid << " (" << pkt.packet_num << "/" << (1 << pkt.fsize) << ")\n";
-				sa << "   | Ack Auth:\t" << sauth << "\n";
-				sa << "   | Next Hops:\t";
-				unsigned int i = 0;
-				sa << getNextHop(0) << " -> ";
-				for(; i < getNextHopNAssign(0); i++)
+		if(full) {
+			String sfid = CastorPacket::hexToString(getFlowId(), getHashSize());
+			String sauth = CastorPacket::hexToString(getAckAuth(), getHashSize());
+			sa << "   | From:\t" << _p->dst_ip_anno() << "\n";
+			sa << "   | Type:\tXcast PKT (" <<  getSize() << ")\n";
+			sa << "   | Flow:\t" << getSource() << " -> " << getMulticastGroup() << "\n";
+			for(unsigned int i = 0; i < getNDestinations(); i++)
+				sa << "   | \t\t -> " << getDestination(i) << " (pid " << CastorPacket::hexToString(getPid(i), getHashSize()) << ")\n";
+			sa << "   | Flow ID:\t" << sfid << "\n";
+			sa << "   | Pkt Num: \t" << (getKPkt() + 1) << "/" << (1 << getNFlowAuthElements()) << "\n";
+			sa << "   | Ack Auth:\t" << sauth << "\n";
+			sa << "   | Next Hops:\t";
+			unsigned int i = 0;
+			sa << getNextHop(0) << " -> ";
+			for(; i < getNextHopNAssign(0); i++)
+				sa << getDestination(i) << ", ";
+			sa << "\n";
+			for(int j = 1; j < getNNextHops(); j++) {
+				sa << "   | \t\t" << getNextHop(j) << " -> ";
+				unsigned int off = i;
+				for(; i < off + getNextHopNAssign(j); i++)
 					sa << getDestination(i) << ", ";
 				sa << "\n";
-				for(int j = 1; j < getNNextHops(); j++) {
-					sa << "   | \t\t" << getNextHop(j) << " -> ";
-					unsigned int off = i;
-					for(; i < off + getNextHopNAssign(j); i++)
-						sa << getDestination(i) << ", ";
-					sa << "\n";
-				}
-			} else {
-				sa << "Xcast PKT (from " << _p->dst_ip_anno() << ", flow " << getSource() << " -> ";
-				for(unsigned int i = 0; i < getNDestinations(); i++)
-					sa << getDestination(i) << ", ";
-				sa << ")";
 			}
+		} else {
+			sa << "Xcast PKT (from " << _p->dst_ip_anno() << ", flow " << getSource() << " -> ";
+			sa << getDestination(0);
+			for(unsigned int i = 0; i < getNDestinations(); i++)
+				sa << ", " << getDestination(i);
+			sa << ")";
+		}
+		return sa;
+	}
 
-			click_chatter("%s", sa.c_str());
-
+	void print(bool full) {
+		click_chatter("%s", toString(full).c_str());
 	}
 
 private:

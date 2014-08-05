@@ -3,6 +3,7 @@
 #include <click/confparse.hh>
 #include <click/straccum.hh>
 #include "castor_print.hh"
+#include "castor_xcast.hh"
 #include <click/timestamp.hh>
 
 CLICK_DECLS
@@ -37,18 +38,22 @@ void CastorPrint::push(int, Packet *p){
 		Castor_PKT pkt;
 		CastorPacket::getCastorPKTHeader(p, &pkt);
 		String spid = CastorPacket::hexToString(pkt.pid, sizeof(PacketId));
-		if(_fullpkt) {
-			String sfid = CastorPacket::hexToString(pkt.fid, sizeof(FlowId));
-			String seauth = CastorPacket::hexToString(pkt.eauth, sizeof(EACKAuth));
-			sa << "\n";
-			sa << "   | From: \t" << p->dst_ip_anno() << "\n";
-			sa << "   | Type: \tPKT   Length: " <<  pkt.len << "\n";
-			sa << "   | Flow: \t" << pkt.src << " -> " << pkt.dst << "\n";
-			sa << "   | Flow ID: \t" << sfid << "\n";
-			sa << "   | Pkt ID: \t" << spid << " (" << pkt.packet_num << "/" << (1 << pkt.fsize) << ")\n";
-			sa << "   | Enc Auth: \t" << seauth;
+		if(CastorPacket::isXcast(p)) {
+			sa << (_fullpkt ? "\n" : "") << CastorXcastPkt(p).toString(_fullpkt).c_str();
 		} else {
-			sa << "PKT (from " << p->dst_ip_anno() << ", flow " << pkt.src << " -> " << pkt.dst << ")";
+			if(_fullpkt) {
+				String sfid = CastorPacket::hexToString(pkt.fid, sizeof(FlowId));
+				String seauth = CastorPacket::hexToString(pkt.eauth, sizeof(EACKAuth));
+				sa << "\n";
+				sa << "   | From: \t" << p->dst_ip_anno() << "\n";
+				sa << "   | Type: \tPKT   Length: " <<  pkt.len << "\n";
+				sa << "   | Flow: \t" << pkt.src << " -> " << pkt.dst << "\n";
+				sa << "   | Flow ID: \t" << sfid << "\n";
+				sa << "   | Pkt ID: \t" << spid << " (" << (pkt.packet_num + 1) << "/" << (1 << pkt.fsize) << ")\n";
+				sa << "   | Enc Auth: \t" << seauth;
+			} else {
+				sa << "PKT (from " << p->dst_ip_anno() << ", flow " << pkt.src << " -> " << pkt.dst << ")";
+			}
 		}
 
 	} else if( type == CastorType::ACK ){
