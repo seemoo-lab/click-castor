@@ -14,7 +14,7 @@ CastorXcastRemoveHeader::~CastorXcastRemoveHeader() {
 void CastorXcastRemoveHeader::push(int, Packet* p) {
 	CastorXcastPkt pkt(p);
 
-	p->pull(pkt.getLength());
+	p->pull(pkt.getHeaderLength());
 
 	output(0).push(p);
 }

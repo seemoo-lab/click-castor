@@ -42,7 +42,12 @@ public:
 	inline void setNFlowAuthElements(uint8_t n) { _fixed->nFlowAuthElements = n; }
 	inline uint8_t getContentType() const { return _fixed->contentType; }
 	inline void setContentType(uint8_t type) { _fixed->contentType = type; }
-	inline uint16_t getLength() const { return _fixed->length; }
+	/** Returns the length of the Castor header */
+	inline uint16_t getHeaderLength() const { return _fixed->length; }
+	/** Returns the length of entire Packet, i.e., header and payload */
+	inline uint32_t getTotalLength() const { return _p->length(); }
+	/** Returns the length of the payload */
+	inline uint32_t getPayloadLength() const { return getTotalLength() - getHeaderLength(); }
 	/** Indicates k-th PKT of the flow, required for flow validation (right or left siblings in Merkle tree?) */
 	inline uint16_t getKPkt() const { return _fixed->kPkt; }
 	inline void setKPkt(uint16_t k) { _fixed->kPkt = k; }
@@ -177,7 +182,7 @@ public:
 			String sfid = CastorPacket::hexToString(getFlowId(), getHashSize());
 			String sauth = CastorPacket::hexToString(getAckAuth(), getHashSize());
 			sa << "   | From:\t" << _p->dst_ip_anno() << "\n";
-			sa << "   | Type:\tXcast PKT (header " <<  getLength() << " / payload " << (_p->length() - getLength()) << " byte)\n";
+			sa << "   | Type:\tXcast PKT (header " <<  getHeaderLength() << " / payload " << getPayloadLength() << " byte)\n";
 			sa << "   | Flow:\t" << getSource() << " -> " << getMulticastGroup() << "\n";
 			for(unsigned int i = 0; i < getNDestinations(); i++)
 				sa << "   | \t\t -> " << getDestination(i) << " (pid " << CastorPacket::hexToString(getPid(i), getHashSize()) << ")\n";
