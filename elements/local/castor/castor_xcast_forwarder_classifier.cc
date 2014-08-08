@@ -20,19 +20,19 @@ int CastorXcastForwarderClassifier::configure(Vector<String> &conf, ErrorHandler
 
 void CastorXcastForwarderClassifier::push(int, Packet *p) {
 
-	CastorXcastPkt header = CastorXcastPkt(p);
+	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	// Get responsible destinations
 	Vector<unsigned int> destinations;
-	for (unsigned int i = 0, dstPos = 0; i < header.getNNextHops(); dstPos += header.getNextHopNAssign(i), i++) {
-		if (header.getNextHop(i) == IPAddress::make_broadcast()
-				|| header.getNextHop(i) == myAddr) {
-			header.getNextHopDestintaions(i, destinations);
+	for (unsigned int i = 0, dstPos = 0; i < pkt.getNNextHops(); dstPos += pkt.getNextHopNAssign(i), i++) {
+		if (pkt.getNextHop(i) == IPAddress::make_broadcast()
+				|| pkt.getNextHop(i) == myAddr) {
+			pkt.getNextHopDestintaions(i, destinations);
 		}
 	}
 
 	if(destinations.empty()) {
-		output(1).push(p); // Node is not in the forwarder list -> discard
+		output(1).push(pkt.getPacket()); // Node is not in the forwarder list -> discard
 		return;
 	}
 
@@ -40,18 +40,18 @@ void CastorXcastForwarderClassifier::push(int, Packet *p) {
 	Vector<PacketId> pids;
 	for(int i = 0; i < destinations.size(); i++) {
 		unsigned int dst = destinations[i];
-		header.setDestination(header.getDestination(dst), i);
-		pids.push_back(header.getPid(dst)); // Store corresponding pid
+		pkt.setDestination(pkt.getDestination(dst), i);
+		pids.push_back(pkt.getPid(dst)); // Store corresponding pid
 	}
-	header.setNDestinations(destinations.size());
+	pkt.setNDestinations(destinations.size());
 	for(int i = 0; i < pids.size(); i++) {
-		header.setPid(pids[i], i);
+		pkt.setPid(pids[i], i);
 	}
 
 	// Set local node as single forwarder
-	header.setSingleNextHop(myAddr);
+	pkt.setSingleNextHop(myAddr);
 
-	output(0).push(p); // Node is in the forwarder list
+	output(0).push(pkt.getPacket()); // Node is in the forwarder list
 }
 
 CLICK_ENDDECLS

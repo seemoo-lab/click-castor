@@ -21,29 +21,19 @@ int CastorXcastSetDestinations::configure(Vector<String> &conf, ErrorHandler *er
 
 void CastorXcastSetDestinations::push(int, Packet *p) {
 
-	WritablePacket* q = p->uniqueify();
-	CastorXcastPkt header = CastorXcastPkt(q);
+	CastorXcastPkt pkt = CastorXcastPkt(p);
 
-	IPAddress multicastDst = header.getMulticastGroup();
+	IPAddress multicastDst = pkt.getMulticastGroup();
 	const Vector<IPAddress>& destinations = _map->getDestinations(multicastDst);
 
 	if(destinations.size() == 0)
 		click_chatter("!!! No Xcast destination mapping found for multicast address %s", multicastDst.unparse().c_str());
 
-//	// TODO Resize for destinations and pids
-//	CastorXcastPkt header(p);
-//	size_t oldLength = header.getSize();
-//	header.setNDestinations(destinations.size());
-//	size_t length = header.getSize() - oldLength;
-//	WritablePacket *q = p->push(length);
-//	if (!q)
-//		return;
-
 	// Write destinations to PKT
-	header.setDestinations(destinations.data(), destinations.size());
+	pkt.setDestinations(destinations.data(), destinations.size());
 
 	Vector<PacketId> pids;
-	SValue ackAuth = SValue(header.getAckAuth(), header.getHashSize());
+	SValue ackAuth = SValue(pkt.getAckAuth(), pkt.getHashSize());
 	for(int i = 0; i < destinations.size(); i++) {
 		// Generate individual PKT id
 		const SymmetricKey* key = _crypto->getSharedKey(destinations[i]);
@@ -57,15 +47,15 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 			break;
 		}
 		SValue pid = _crypto->hash(encAckAuth);
-		header.setPid((PacketId&) *pid.begin(), i);
+		pkt.setPid((PacketId&) *pid.begin(), i);
 	}
 
 	// Set local node as single forwarder
-	header.setSingleNextHop(header.getSource());
+	pkt.setSingleNextHop(pkt.getSource());
 
-	q->set_dst_ip_anno(header.getSource()); // Fix DST_ANNO
+	pkt.getPacket()->set_dst_ip_anno(pkt.getSource()); // Fix DST_ANNO
 
-	output(0).push(q);
+	output(0).push(pkt.getPacket());
 
 }
 

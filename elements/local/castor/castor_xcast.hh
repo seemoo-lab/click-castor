@@ -13,9 +13,25 @@ CLICK_DECLS
  */
 class CastorXcastPkt {
 public:
-	CastorXcastPkt(Packet* p) : _p(p), _data((unsigned char*) p->data()), _fixed((FixedSizeHeader*) p->data()), _var((unsigned char*) (p->data() + sizeof(FixedSizeHeader))) {
+	/**
+	 * Creates an Xcast PKT. Call this on a Packet that already contains a valid Xcast header at 'p->data()'.
+	 */
+	CastorXcastPkt(Packet* p) {
+		setPointers(p);
 	}
 	~CastorXcastPkt() {}
+
+	/**
+	 * Makes room for an Xcast header and then creates an Xcast PKT.
+	 */
+	static CastorXcastPkt initialize(Packet* p) {
+		WritablePacket* q = p->push(sizeof(FixedSizeHeader));
+		CastorXcastPkt pkt(q);
+		pkt._fixed->length = sizeof(FixedSizeHeader);
+		return pkt;
+	}
+
+	Packet* getPacket() { return _p; }
 
 	// Fixed size header part
 	inline uint8_t getType() const { return _fixed->type; }
@@ -155,19 +171,6 @@ public:
 		}
 	}
 
-	/**
-	 * Return the size of the fixed header fields
-	 */
-	inline static size_t getFixedSize() {
-		return sizeof(FixedSizeHeader);
-	}
-
-	inline size_t getSize() {
-		return sizeof(FixedSizeHeader)
-				+ getNDestinations() * (sizeof(IPAddress) + sizeof(PacketId))
-				+ getNNextHops() * (sizeof(IPAddress) + sizeof(uint8_t));
-	}
-
 	StringAccum toString(bool full = false) {
 		StringAccum sa;
 		if(full) {
@@ -208,6 +211,10 @@ public:
 		click_chatter("%s", toString(full).c_str());
 	}
 
+	inline static size_t getFixedSize() {
+		return sizeof(FixedSizeHeader);
+	}
+
 private:
 	struct FixedSizeHeader {
 		uint8_t type;
@@ -226,20 +233,58 @@ private:
 	};
 
 	Packet* _p;
-	unsigned char* _data;
 	FixedSizeHeader* _fixed; // Accessor to fixed fields
-	unsigned char* _var; // Pointer to beginning of var fields
+	uint8_t* _var; // Pointer to beginning of var fields
 
 	inline unsigned int getDestinationOff(unsigned int i) const { return sizeof(IPAddress) * i; }
 	inline unsigned int getPidOff(unsigned int i) const { return getDestinationOff(getNDestinations()) + sizeof(PacketId) * i; }
 	inline unsigned int getNextHopOff(unsigned int i) const { return getPidOff(getNDestinations()) + sizeof(IPAddress) * i; }
 	inline unsigned int getNextHopNAssignOff(unsigned int i) const { return getNextHopOff(getNNextHops()) + sizeof(uint8_t) * i; }
 
-	inline void setLength() {
-		_fixed->length = sizeof(FixedSizeHeader)
+	void setPointers(Packet* p) {
+		_p = p;
+		_fixed = (FixedSizeHeader*) _p->data();
+		_var = (unsigned char*) (_p->data() + sizeof(FixedSizeHeader));
+	}
+
+	/**
+	 * Resizes the PKT header in front of the user data to accommodate currently set 'nDestinations' and 'nNextHops'.
+	 * If shrunken, bytes are removed from the back of the header.
+	 */
+	void setLength() {
+		size_t oldLength = _fixed->length;
+
+		size_t newLength = sizeof(FixedSizeHeader)
 			+ getNDestinations() * (sizeof(IPAddress) + sizeof(PacketId))
 			+ getNNextHops() * (sizeof(IPAddress) + sizeof(uint8_t));
-		// FIXME when settings length, also resize packet accordingly!
+
+		if(oldLength == newLength)
+			return; // No need to resize -> cheap
+
+		// Expensive copy
+		uint8_t copy[newLength];
+
+		memcpy(&copy, _p->data(), newLength);
+
+		// Remove space or add space, respectively
+		WritablePacket* q;
+		if(oldLength > newLength) {
+			_p->pull(oldLength - newLength);
+			q = _p->uniqueify();
+		} else { // oldLength < newLength
+			q = _p->push(newLength - oldLength);
+		}
+		if(!q) {
+			click_chatter("Resizing header: Could not uniqueify Packet!");
+			return;
+		}
+
+		memcpy(q->data(), &copy, newLength);
+
+		// Fix pointers
+		setPointers(q);
+
+		_fixed->length = newLength;
 	}
 };
 

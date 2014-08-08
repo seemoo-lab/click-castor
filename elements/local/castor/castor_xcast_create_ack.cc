@@ -22,9 +22,6 @@ int CastorXcastCreateAck::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorXcastCreateAck::push(int, Packet* p) {
-
-	CastorXcastPkt pkt = CastorXcastPkt(p);
-
 	// Generate new ACK
 	CastorXcastAck ack;
 	ack.type = CastorType::XCAST_ACK;

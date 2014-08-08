@@ -13,16 +13,9 @@ CastorXcastSetFixedHeader::~CastorXcastSetFixedHeader() {
 }
 
 int CastorXcastSetFixedHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
-	unsigned int maxGroupSize;
-
-     int result = cp_va_kparse(conf, this, errh,
+     if(cp_va_kparse(conf, this, errh,
         "CastorXcastSetHeader", cpkP+cpkM, cpElementCast, "CastorFlowStub", &cflow,
-        "MaxGroupSize", cpkP+cpkM, cpUnsigned, &maxGroupSize, // TODO for simpler implementation -> no need to resize packet in subsequent elements, but transmits potentially larger packets
-        cpEnd);
-     varSpace = maxGroupSize * (sizeof(IPAddress) + sizeof(PacketId)) + // Space for 'maxGroupSize' destinations
-     	 	 	maxGroupSize * (sizeof(IPAddress) + sizeof(uint8_t));   // Space for one next hop per destination
-
-     if(result < 0)
+        cpEnd) < 0)
     	 return -1;
      return 0;
 }
@@ -34,31 +27,26 @@ void CastorXcastSetFixedHeader::push(int, Packet *p) {
 	IPAddress dst = p->ip_header()->ip_dst.s_addr;
 
 	// Add Space for the new Header
-	size_t length = CastorXcastPkt::getFixedSize();
-	WritablePacket *q = p->push(length + varSpace);
-	if (!q)
-		return;
+	CastorXcastPkt pkt = CastorXcastPkt::initialize(p);
+	pkt.setType(CastorType::XCAST_PKT);
+	pkt.setHashSize(sizeof(Hash));
+	pkt.setNFlowAuthElements(CASTOR_FLOWAUTH_ELEM);
 
-	CastorXcastPkt header = CastorXcastPkt(q);
-	header.setType(CastorType::XCAST_PKT);
-	header.setHashSize(sizeof(Hash));
-	header.setNFlowAuthElements(CASTOR_FLOWAUTH_ELEM);
-
-	header.setContentType(p->ip_header()->ip_p);
-	header.setSource(src);
-	header.setMulticastGroup(dst);
+	pkt.setContentType(p->ip_header()->ip_p);
+	pkt.setSource(src);
+	pkt.setMulticastGroup(dst);
 
 	// Access the flow settings
 	PacketLabel label = cflow->getPacketLabel(src, dst);
-	header.setFlowId(label.flow_id);
-	header.setFlowAuth(label.flow_auth);
-	header.setKPkt(label.packet_number);
-	header.setAckAuth(label.ack_auth);
+	pkt.setFlowId(label.flow_id);
+	pkt.setFlowAuth(label.flow_auth);
+	pkt.setKPkt(label.packet_number);
+	pkt.setAckAuth(label.ack_auth);
 
-	header.setNDestinations(0);
-	header.setNNextHops(0);
+	pkt.setNDestinations(0);
+	pkt.setNNextHops(0);
 
-	output(0).push(q);
+	output(0).push(pkt.getPacket());
 
 }
 

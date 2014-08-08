@@ -14,9 +14,7 @@ define(
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 	$timeout 500, // in milliseconds
 
-	$jitter 300, // jitter in microseconds to avoid collisions for broadcast traffic
-	
-	$maxGroupSize 10, // how many destinations per Xcast PKT?
+	$jitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
 );
 
 AddressInfo(fake $EthDev);
@@ -77,7 +75,7 @@ elementclass ToHost {
 	hostdevice :: ToSimDevice($myHostDev, IP);
 
 	input[0]
-		-> CastorXcastRemoveHeader($maxGroupSize)
+		-> CastorXcastRemoveHeader
 		-> CheckIPHeader2
 		-> MarkIPHeader
 		-> hostdevice;
@@ -115,7 +113,7 @@ elementclass CastorHandleIpPacket{
 	map :: CastorXcastDestinationMap
 
 	input
-	-> CastorXcastSetFixedHeader($flowDB, $maxGroupSize)
+	-> CastorXcastSetFixedHeader($flowDB)
 	-> CastorXcastSetDestinations($crypto, map)
 	-> CastorPrint('Send', $myIP)
 	-> output;
@@ -148,13 +146,13 @@ elementclass CastorLocalXcastPkt {
 	input
 		-> CastorXcastAnnotateAckAuth($crypto)
 		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
-		-> CastorPrint('Packet arrived at destination', $myIP)
+		-> CastorPrint('Arrived at destination', $myIP)
 		-> CastorAddXcastPktToHistory($history)
 		-> genAck :: CastorXcastCreateAck($myIP)
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT
-		-> CastorPrint('Generated', $myIP)
+		//-> CastorPrint('Generated', $myIP)
 		-> CastorAddAckToHistory($crypto,$history)
 		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> [1]output; // Push ACKs to output 1
@@ -171,8 +169,9 @@ elementclass CastorForwardXcastPkt {
 	$myIP, $routingtable, $history |
 
 	input
+		-> CastorPrint('Forwarding', $myIP)
 		-> CastorXcastLookupRoute($routingtable)		// Lookup the route for the packet
-		-> CastorPrint('Forwarding Packet', $myIP, true)
+		-> CastorPrint('Forwarding', $myIP, true)
 		-> CastorAddXcastPktToHistory($history)
 		-> CastorTimeout($routingtable,$history,$timeout,$myIP)
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet

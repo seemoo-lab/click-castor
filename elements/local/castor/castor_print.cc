@@ -35,12 +35,12 @@ void CastorPrint::push(int, Packet *p){
 
 	if( type == CastorType::PKT ){
 
-		Castor_PKT pkt;
-		CastorPacket::getCastorPKTHeader(p, &pkt);
-		String spid = CastorPacket::hexToString(pkt.pid, sizeof(PacketId));
 		if(CastorPacket::isXcast(p)) {
 			sa << (_fullpkt ? "\n" : "") << CastorXcastPkt(p).toString(_fullpkt).c_str();
 		} else {
+			Castor_PKT pkt;
+			CastorPacket::getCastorPKTHeader(p, &pkt);
+			String spid = CastorPacket::hexToString(pkt.pid, sizeof(PacketId));
 			if(_fullpkt) {
 				String sfid = CastorPacket::hexToString(pkt.fid, sizeof(FlowId));
 				String seauth = CastorPacket::hexToString(pkt.eauth, sizeof(EACKAuth));
@@ -57,6 +57,8 @@ void CastorPrint::push(int, Packet *p){
 		}
 
 	} else if( type == CastorType::ACK ){
+
+		// TODO handle XcastAck
 
 		Castor_ACK ack;
 		CastorPacket::getCastorACKHeader(p, &ack);

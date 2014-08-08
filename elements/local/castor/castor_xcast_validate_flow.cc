@@ -31,9 +31,9 @@ void CastorXcastValidateFlow::push(int, Packet *p){
 		flow_auth.push_back(SValue(pkt.getFlowAuth()[i].data, sizeof(Hash)));
 
 	if(MerkleTree::isValidMerkleTree(pkt.getKPkt(), pid, flow_auth, fid, *crypto))
-		output(0).push(p);
+		output(0).push(pkt.getPacket());
 	else
-		output(1).push(p); // Invalid -> discard
+		output(1).push(pkt.getPacket()); // Invalid -> discard
 
 }
 

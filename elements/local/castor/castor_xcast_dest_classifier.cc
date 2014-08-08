@@ -22,13 +22,15 @@ int CastorXcastDestClassifier::configure(Vector<String> &conf, ErrorHandler *err
 
 void CastorXcastDestClassifier::push(int, Packet *p) {
 
-	CastorXcastPkt header = CastorXcastPkt(p);
+	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	bool delivered = false;
 	bool forwarded = false;
 
-	for (unsigned int i = 0; i < header.getNDestinations(); i++)
-		if (myAddr == header.getDestination(i)) {
+	unsigned int nDests = pkt.getNDestinations();
+
+	for (unsigned int i = 0; i < nDests; i++)
+		if (myAddr == pkt.getDestination(i)) {
 			delivered = true;
 
 			Packet* q = p->clone()->uniqueify();
@@ -38,20 +40,20 @@ void CastorXcastDestClassifier::push(int, Packet *p) {
 			localPkt.setSingleDestination(i);
 			localPkt.setSingleNextHop(myAddr);
 
-			output(0).push(q); // local node is destination
+			output(0).push(localPkt.getPacket()); // local node is destination
 			break;
 		}
 
-	if (header.getNDestinations() > (delivered ? 1 : 0)) {
+	if (nDests > (delivered ? 1 : 0)) {
 		forwarded = true;
 
 		// If packet was delivered, remove own address from destination list
 		if(delivered) {
-			header.removeDestination(myAddr);
-			header.setSingleNextHop(myAddr);
+			pkt.removeDestination(myAddr);
+			pkt.setSingleNextHop(myAddr);
 		}
 
-		output(1).push(p);
+		output(1).push(pkt.getPacket());
 	}
 
 	assert(delivered || forwarded);

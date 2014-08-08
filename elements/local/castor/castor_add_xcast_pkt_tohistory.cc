@@ -28,7 +28,7 @@ void CastorAddXcastPktToHistory::push(int, Packet *p){
 		}
 	}
 
-	output(0).push(p);
+	output(0).push(pkt.getPacket());
 }
 
 CLICK_ENDDECLS

@@ -24,7 +24,6 @@ public:
 	void push(int, Packet*);
 private:
 	CastorFlowStub* cflow;
-	size_t varSpace;
 };
 
 CLICK_ENDDECLS

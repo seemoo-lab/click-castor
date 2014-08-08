@@ -21,13 +21,13 @@ int CastorXcastLookupRoute::configure(Vector<String> &conf, ErrorHandler *errh) 
 }
 
 void CastorXcastLookupRoute::push(int, Packet *p){
-	CastorXcastPkt header = CastorXcastPkt(p);
+	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	HashTable<IPAddress,Vector<unsigned int> > map;
 
 	// Lookup routes
-	for(unsigned int i = 0; i < header.getNDestinations(); i++) {
-		IPAddress nextHop = _table->lookup(header.getFlowId(), header.getDestination(i));
+	for(unsigned int i = 0; i < pkt.getNDestinations(); i++) {
+		IPAddress nextHop = _table->lookup(pkt.getFlowId(), pkt.getDestination(i));
 		if(!map.get_pointer(nextHop))
 			map.set(nextHop, Vector<unsigned int>());
 		Vector<unsigned int>* entry = map.get_pointer(nextHop);
@@ -35,12 +35,12 @@ void CastorXcastLookupRoute::push(int, Packet *p){
 	}
 
 	// Write new routes to packet
-	header.setNextHopMapping(map);
+	pkt.setNextHopMapping(map);
 
 	// Set annotation for destination and push Packet to Output
-	p->set_dst_ip_anno(IPAddress::make_broadcast()); // XXX: unicast if only one next hop
+	pkt.getPacket()->set_dst_ip_anno(IPAddress::make_broadcast()); // XXX: unicast if only one next hop
 
-    output(0).push(p);
+    output(0).push(pkt.getPacket());
 }
 
 CLICK_ENDDECLS

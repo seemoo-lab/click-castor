@@ -20,8 +20,7 @@ int CastorXcastAnnotateAckAuth::configure(Vector<String>& conf, ErrorHandler* er
 
 void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
 
-	WritablePacket* q = p->uniqueify();
-	CastorXcastPkt pkt = CastorXcastPkt(p);
+	CastorXcastPkt pkt = CastorXcastPkt(p->clone());
 
 	SValue pktAuth(pkt.getAckAuth(), sizeof(ACKAuth));
 
@@ -29,20 +28,20 @@ void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
 	const SymmetricKey* sk = crypto->getSharedKey(pkt.getSource());
 	if (!sk) {
 		click_chatter("Could not find shared key for host %s. Discarding PKT...", pkt.getDestination(0).unparse().c_str());
-		q->kill();
+		pkt.getPacket()->kill();
 		return;
 	}
 	SValue ackAuth = crypto->encrypt(pktAuth, *sk);
 	delete sk;
 	if (ackAuth.size() != sizeof(EACKAuth)) {
 		click_chatter("Cannot create ciphertext: Crypto subsystem returned wrong plaintext length. Discarding PKT...");
-		q->kill();
+		pkt.getPacket()->kill();
 		return;
 	}
 
-	memcpy(CastorPacket::getCastorAnno(p), ackAuth.begin(), sizeof(EACKAuth));
+	memcpy(CastorPacket::getCastorAnno(pkt.getPacket()), ackAuth.begin(), sizeof(EACKAuth));
 
-	output(0).push(q);
+	output(0).push(pkt.getPacket());
 
 }
 
