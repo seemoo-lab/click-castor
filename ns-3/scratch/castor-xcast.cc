@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
 	const size_t nSenders = 1;
 	const size_t groupSize = 2;
 
-	uint32_t MaxPacketSize = 256;
+	uint32_t MaxPacketSize = 256 - 28; // IP+UDP header size: 28 byte
 
 	Time interPacketInterval = Seconds(0.25);
 
