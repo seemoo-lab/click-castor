@@ -11,13 +11,9 @@ CastorRemoveHeader::~CastorRemoveHeader() {
 }
 
 void CastorRemoveHeader::push(int, Packet* p){
-	WritablePacket *q = p->uniqueify();
-	if(!q)
-		return;
+	p->pull(sizeof(Castor_PKT));
 
-	q->pull(sizeof(Castor_PKT));
-
-	output(0).push(q);
+	output(0).push(p);
 }
 
 CLICK_ENDDECLS
