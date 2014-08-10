@@ -9,16 +9,6 @@ CLICK_DECLS
 CastorXcastDestinationMap::CastorXcastDestinationMap() {
 	_map = HashTable<IPAddress, Vector<IPAddress> >();
 	_empty = Vector<IPAddress>();
-
-//	IPAddress baseMulti = IPAddress("224.0.2.0");
-//	IPAddress baseUni = IPAddress("192.168.201.0");
-//
-//	for(unsigned int i = 1; i <= 5; i++) {
-//		Vector<IPAddress> dsts;
-//		dsts.push_back(IPAddress(baseUni.addr() + ((100 - i) << 24)));
-//		_map.set(IPAddress(baseMulti.addr() + (i << 24)), dsts);
-//	}
-
 }
 
 CastorXcastDestinationMap::~CastorXcastDestinationMap() {
