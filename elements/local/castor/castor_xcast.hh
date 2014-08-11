@@ -75,9 +75,9 @@ public:
 	inline IPAddress getDestination(unsigned int i) const {	return IPAddress(&_var[getDestinationOff(i)]); }
 	inline void setDestination(IPAddress destination, unsigned int i) { memcpy(&_var[getDestinationOff(i)], &destination, sizeof(IPAddress)); }
 	inline void setDestinations(const IPAddress destinations[], size_t n) {
+		setNDestinations(n);
 		for(unsigned int i = 0; i < n; i++)
 			setDestination(destinations[i], i);
-		setNDestinations(n);
 	}
 	inline void setDestinations(const Vector<IPAddress>& destinations) { setDestinations(destinations.data(), destinations.size()); }
 
