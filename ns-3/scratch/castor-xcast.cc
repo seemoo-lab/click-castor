@@ -38,6 +38,33 @@ NS_LOG_COMPONENT_DEFINE("NsclickCastor");
 
 #ifdef NS3_CLICK
 
+unsigned int readIntStat(Ptr<Ipv4ClickRouting> clickRouter, std::string what, std::string where) {
+	std::string result = clickRouter->ReadHandler(where, what);
+	unsigned int i;
+	sscanf(result.c_str(), "%d", &i);
+	return i;
+}
+
+unsigned int readPidCount(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
+	return readIntStat(clickRouter, "num", where);
+}
+
+unsigned int readPktCount(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
+	return readIntStat(clickRouter, "numUnique", where);
+}
+
+unsigned int readAccumPktSize(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
+	return readIntStat(clickRouter, "size", where);
+}
+
+unsigned int readBroadcasts(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
+	return readIntStat(clickRouter, "broadcasts", where);
+}
+
+unsigned int readUnicasts(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
+	return readIntStat(clickRouter, "unicasts", where);
+}
+
 void WriteArp(Ptr<Ipv4ClickRouting> clickRouter, size_t nNodes,	const Ipv4Address& base) {
 	// Access the handler
 	for (unsigned int i = 1; i <= nNodes; i++) {
@@ -91,23 +118,67 @@ struct LessIpv4Address {
 	}
 };
 
+Ptr <PositionAllocator> getRandomRectanglePositionAllocator(double xSize, double ySize) {
+	ObjectFactory pos;
+	pos.SetTypeId("ns3::RandomRectanglePositionAllocator");
+	std::ostringstream xSizeUniformRandomVariable;
+	xSizeUniformRandomVariable << "ns3::UniformRandomVariable[Min=0.0|Max=" << xSize << "]";
+	pos.Set("X", StringValue(xSizeUniformRandomVariable.str()));
+	std::ostringstream ySizeUniformRandomVariable;
+	ySizeUniformRandomVariable << "ns3::UniformRandomVariable[Min=0.0|Max=" << ySize << "]";
+	pos.Set("Y", StringValue(ySizeUniformRandomVariable.str()));
+	return pos.Create ()->GetObject <PositionAllocator> ();
+}
+
+void setRandomWaypointMobility(NodeContainer& nodes, double xSize, double ySize, double speed, double pause) {
+	MobilityHelper mobility;
+	Ptr <PositionAllocator> taPositionAlloc = getRandomRectanglePositionAllocator(xSize, ySize);
+
+	std::ostringstream speedVariable;
+	speedVariable << "ns3::UniformRandomVariable[Min=0.0|Max="<< speed << "]";
+	std::ostringstream pauseVariable;
+	pauseVariable << "ns3::UniformRandomVariable[Min=0.0|Max=" << pause << "]";
+
+	mobility.SetMobilityModel("ns3::RandomWaypointMobilityModel",
+			"Speed", StringValue(speedVariable.str()),
+			"Pause", StringValue(pauseVariable.str()),
+			"PositionAllocator", PointerValue(taPositionAlloc));
+	mobility.SetPositionAllocator(taPositionAlloc);
+	mobility.Install (nodes);
+}
+
+void setConstantPositionMobility(NodeContainer& nodes, double xSize, double ySize) {
+	MobilityHelper mobility;
+	Ptr <PositionAllocator> taPositionAlloc = getRandomRectanglePositionAllocator(xSize, ySize);
+	mobility.SetPositionAllocator(taPositionAlloc);
+	mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+	mobility.Install(nodes);
+}
+
 #endif
 
 int main(int argc, char *argv[]) {
 #ifdef NS3_CLICK
+	//
+	// Enable logging
+	//
+	LogComponentEnable("NsclickCastor", LOG_LEVEL_INFO);
 
-	RngSeedManager::SetSeed(100);
+	CommandLine cmd;
+	cmd.Parse (argc, argv);
+
+	RngSeedManager::SetSeed(12345);
 	RngSeedManager::SetRun(1);
 
 	// Simulation parameters / topology
 	const double xSize = 3000.0;
 	const double ySize = 3000.0;
-	const double transmissionRange = 500.0;
+	const double transmissionRange = 550.0;
 	const size_t nNodes = 100;
 
 	// number of senders/flows/groups
-	const size_t nSenders = 1;
-	const size_t groupSize = 2;
+	const size_t nSenders = 5;
+	const size_t groupSize = 1;
 
 	uint32_t MaxPacketSize = 256 - 28; // IP+UDP header size: 28 byte
 
@@ -133,19 +204,14 @@ int main(int argc, char *argv[]) {
 		Ipv4Address sender = Ipv4Address(baseAddr.Get() + iAddr);
 		Ipv4Address group = Ipv4Address(groupAddr.Get() + iAddr);
 		std::vector<Ipv4Address> xcastDestinations;
-		iAddr++;
-		for (unsigned int j = 0; j < groupSize; j++, iAddr++) {
+		iAddr = iAddr % nNodes + 1; // Circular count from 1..nNodes
+		for (unsigned int j = 0; j < groupSize; j++, iAddr = iAddr % nNodes + 1) {
 			Ipv4Address dest = Ipv4Address(baseAddr.Get() + iAddr);
 			xcastDestinations.push_back(dest);
 		}
 		senderGroupAssign.insert(std::make_pair(sender, group));
 		groups.insert(std::make_pair(group, xcastDestinations));
 	}
-
-	//
-	// Enable logging
-	//
-	LogComponentEnable("NsclickCastor", LOG_LEVEL_INFO);
 
 	//
 	// Explicitly create the nodes required by the topology (shown above).
@@ -158,7 +224,7 @@ int main(int argc, char *argv[]) {
 	//
 	// Explicitly create the channels required by the topology (shown above).
 	//
-	std::string phyMode("DsssRate1Mbps");
+	std::string phyMode("DsssRate11Mbps");
 
 	// disable fragmentation for frames below 2200 bytes
 	Config::SetDefault("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue("2200"));
@@ -171,17 +237,13 @@ int main(int argc, char *argv[]) {
 	wifi.SetStandard(WIFI_PHY_STANDARD_80211b);
 
 	YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default();
-	// This is one parameter that matters when using FixedRssLossModel
-	// set it to zero; otherwise, gain will be added
-//  wifiPhy.Set ("RxGain", DoubleValue (0) );
 	// ns-3 supports RadioTap and Prism tracing extensions for 802.11b
 	wifiPhy.SetPcapDataLinkType(YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
 
 	YansWifiChannelHelper wifiChannel;
 	//wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel", "Speed", DoubleValue(299792458.0));
 	wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
-	// The below FixedRssLossModel will cause the rss to be fixed regardless
-	// of the distance between the two stations, and the transmit power
+
 	wifiChannel.AddPropagationLoss("ns3::RangePropagationLossModel", "MaxRange", DoubleValue(transmissionRange));
 	//wifiChannel.AddPropagationLoss("ns3::FriisPropagationLossModel");
 	wifiPhy.SetChannel(wifiChannel.Create());
@@ -194,17 +256,8 @@ int main(int argc, char *argv[]) {
 	wifiMac.SetType("ns3::AdhocWifiMac");
 	NetDeviceContainer d = wifi.Install(wifiPhy, wifiMac, n);
 
-	MobilityHelper mobility;
-	Ptr<ListPositionAllocator> positionAlloc = CreateObject<
-			ListPositionAllocator>();
-	for (unsigned int i = 0; i < nNodes; i++) {
-		double x = getRand(xSize);
-		double y = getRand(ySize);
-		positionAlloc->Add(Vector(x, y, 0));
-	}
-	mobility.SetPositionAllocator(positionAlloc);
-	mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-	mobility.Install(n);
+//	setConstantPositionMobility(n, xSize, ySize);
+	setRandomWaypointMobility(n, xSize, ySize, 20, 0);
 
 	//
 	// Install Click on the nodes
@@ -257,13 +310,7 @@ int main(int argc, char *argv[]) {
 
 	//wifiPhy.EnablePcap("castor-xcast", d);
 
-	// Force the MAC address of the second node: The current ARP
-	// implementation of Click sends only one ARP request per incoming
-	// packet for an unknown destination and does not retransmit if no
-	// response is received. With the scenario of this example, all ARP
-	// requests of node 3 are lost due to interference from node
-	// 1. Hence, we fill in the ARP table of node 2 before at the
-	// beginning of the simulation
+	// We fill in the ARP table of node 2 before at the beginning of the simulation
 	for (unsigned int i = 0; i < n.GetN(); i++) {
 		Simulator::Schedule(Seconds(0.5), &WriteArp, n.Get(i)->GetObject<Ipv4ClickRouting>(), nNodes, baseAddr);
 		// Write Xcast destination mapping
@@ -271,14 +318,53 @@ int main(int argc, char *argv[]) {
 			Simulator::Schedule(Seconds(0.5), &WriteXcastMap, n.Get(i)->GetObject<Ipv4ClickRouting>(), it->first, it->second);
 	}
 
+
+
 	//
 	// Now, do the actual simulation.
 	//
 	NS_LOG_INFO("Run Simulation.");
-	Simulator::Stop(duration + Seconds(4.0));
+	time_t start; time(&start);
+	Simulator::Stop(duration + Seconds(6.0));
 	Simulator::Run();
+	time_t end; time(&end);
+	NS_LOG_INFO("Done after " << difftime(end, start) << " seconds");
+
+	//
+	// Schedule evaluation
+	//
+	uint32_t numPidsSent = 0;
+	uint32_t numPidsRecv = 0;
+	uint32_t bandwidthUsage = 0;
+	uint32_t numPktsSent = 0;
+	uint32_t broadcasts = 0;
+	uint32_t unicasts = 0;
+	uint32_t numPktsForwarded = 0;
+
+	std::string forwarding = "handlepkt/forward/rec";
+	std::string sending = "handleIpPacket/rec";
+	std::string delivering = "handlepkt/handleLocal/rec";
+	for(unsigned int i = 0; i < nNodes; i++) {
+		//Simulator::Schedule(duration + Seconds(4.0), &readPidCount, n.Get(i)->GetObject<Ipv4ClickRouting>(), "handleIpPacket/rec");
+		numPidsSent += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), sending);
+		numPidsRecv += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), delivering);
+		bandwidthUsage += readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
+		numPktsSent += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), sending);
+		numPktsForwarded += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
+		broadcasts += readBroadcasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
+		unicasts += readUnicasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
+
+	}
+	NS_LOG_INFO("STAT PDR        " << ((double) numPidsRecv / numPidsSent) << " (" << numPidsRecv << "/" << numPidsSent << ")");
+	NS_LOG_INFO("STAT BU per PKT " << ((double) bandwidthUsage / numPktsSent));
+	NS_LOG_INFO("STAT HOP COUNT  " << ((double) numPktsForwarded / numPktsSent));
+	NS_LOG_INFO("STAT BROADCAST  " << ((double) broadcasts / (unicasts + broadcasts)) << " (" << broadcasts << "/" << (unicasts + broadcasts) << ")");
+
+	//
+	// Cleanup
+	//
 	Simulator::Destroy();
-	NS_LOG_INFO("Done.");
+
 #else
 	NS_FATAL_ERROR ("Can't use ns-3-click without NSCLICK compiled in");
 #endif

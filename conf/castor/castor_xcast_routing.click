@@ -116,6 +116,7 @@ elementclass CastorHandleIpPacket{
 	-> CastorXcastSetFixedHeader($flowDB)
 	-> CastorXcastSetDestinations($crypto, map)
 	-> CastorPrint('Send', $myIP)
+	-> rec :: CastorRecordXcastPkt
 	-> output;
 }
 
@@ -146,6 +147,7 @@ elementclass CastorLocalXcastPkt {
 	input
 		-> CastorXcastAnnotateAckAuth($crypto)
 		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
+		-> rec :: CastorRecordXcastPkt
 		-> CastorPrint('Arrived at destination', $myIP)
 		-> CastorAddXcastPktToHistory($history)
 		-> genAck :: CastorXcastCreateAck($myIP)
@@ -169,11 +171,12 @@ elementclass CastorForwardXcastPkt {
 	$myIP, $routingtable, $history |
 
 	input
-		-> CastorPrint('Forwarding', $myIP)
+		//-> CastorPrint('Forwarding', $myIP)
 		-> CastorXcastLookupRoute($routingtable)		// Lookup the route for the packet
-		-> CastorPrint('Forwarding', $myIP, true)
+		//-> CastorPrint('Forwarding', $myIP, true)
 		-> CastorAddXcastPktToHistory($history)
 		-> CastorTimeout($routingtable,$history,$timeout,$myIP)
+		-> rec :: CastorRecordXcastPkt
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
 		-> output;
 
