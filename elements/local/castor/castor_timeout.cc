@@ -18,6 +18,7 @@ int CastorTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
 			"CastorHistory", cpkP + cpkM, cpElementCast, "CastorHistory", &history,
 			"TIMEOUT", cpkP + cpkM, cpInteger, &timeout,
 			"IP", cpkP + cpkM, cpIPAddress, &myIP,
+			"VERBOSE", cpkP + cpkM, cpBool, &verbose,
 			cpEnd);
 }
 
@@ -54,8 +55,9 @@ void CastorTimeout::run_timer(Timer* timer) {
 
 	Entry* entry = timers.get_pointer(timer);
 	if(!entry) {
+		// This should not happen!
 		StringAccum sa;
-		sa << "[" << Timestamp::now() << "@" << myIP << "] !!! Unknown timer fired";
+		sa << "[" << Timestamp::now() << "@" << myIP << "] Error: Unknown timer fired";
 		click_chatter(sa.c_str());
 		// delete timer
 		timers.erase(timer);
@@ -89,9 +91,11 @@ void CastorTimeout::run_timer(Timer* timer) {
 	IPAddress destination = history->getDestination(pid);
 
 	// decrease ratings
-	StringAccum sa;
-	sa << "[" << Timestamp::now() << "@" << myIP << "] Timeout: no ACK received from " << routedTo.unparse();
-	click_chatter(sa.c_str());
+	if(verbose) {
+		StringAccum sa;
+		sa << "[" << Timestamp::now() << "@" << myIP << "] Timeout: no ACK received from " << routedTo.unparse();
+		click_chatter(sa.c_str());
+	}
 	table->updateEstimates(fid, destination, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::first);
 	table->updateEstimates(fid, destination, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::all);
 

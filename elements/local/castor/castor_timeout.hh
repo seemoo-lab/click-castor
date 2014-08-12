@@ -33,6 +33,8 @@ private:
 	HashTable<Timer*,Entry> timers;
 	int timeout;
 	IPAddress myIP;
+
+	bool verbose;
 };
 
 CLICK_ENDDECLS

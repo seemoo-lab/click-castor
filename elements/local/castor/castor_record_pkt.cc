@@ -19,27 +19,31 @@ CastorRecordPkt::~CastorRecordPkt() {
 
 void CastorRecordPkt::push(int, Packet *p) {
 
-	if(CastorPacket::isXcast(p)) {
-		CastorXcastPkt pkt = CastorXcastPkt(p);
+	if(CastorPacket::getType(p) == CastorType::PKT) {
+		if(CastorPacket::isXcast(p)) {
+			CastorXcastPkt pkt = CastorXcastPkt(p);
 
-		for(unsigned int i = 0; i < pkt.getNDestinations(); i++) {
-			Entry newEntry(pkt.getPid(i));
+			for(unsigned int i = 0; i < pkt.getNDestinations(); i++) {
+				Entry newEntry(pkt.getPid(i));
+				records.push_back(newEntry);
+				numPids++;
+			}
+
+			for(unsigned int i = 0; i < pkt.getNNextHops(); i++) {
+				if(pkt.getNextHop(i) == IPAddress::make_broadcast())
+					broadcastDecisions += pkt.getNextHopNAssign(i);
+			}
+		} else {
+			// Regular Castor PKT
+			Castor_PKT& pkt = (Castor_PKT&) *p->data();
+			Entry newEntry(pkt.pid);
 			records.push_back(newEntry);
 			numPids++;
+			if(p->dst_ip_anno() == IPAddress::make_broadcast())
+				broadcastDecisions++;
 		}
-
-		for(unsigned int i = 0; i < pkt.getNNextHops(); i++) {
-			if(pkt.getNextHop(i) == IPAddress::make_broadcast())
-				broadcastDecisions += pkt.getNextHopNAssign(i);
-		}
-	} else {
-		// Regular Castor PKT
-		Castor_PKT& pkt = (Castor_PKT&) *p->data();
-		Entry newEntry(pkt.pid);
-		records.push_back(newEntry);
-		numPids++;
-		if(p->dst_ip_anno() == IPAddress::make_broadcast())
-			broadcastDecisions++;
+	} else { // CastorType::ACK
+		broadcastDecisions++;
 	}
 
 	numPkts++;

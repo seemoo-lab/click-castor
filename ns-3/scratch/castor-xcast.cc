@@ -222,42 +222,44 @@ void setClickRouter(NodeContainer& nodes, StringValue clickConfig) {
 	clickinternet.Install(nodes);
 }
 
-#endif
+typedef struct NetworkConfiguration {
+	double x, y;
+	double range;
+	size_t nNodes;
+	NetworkConfiguration(double x, double y, double range, size_t nNodes) :
+		x(x), y(y), range(range), nNodes(nNodes) {}
+	NetworkConfiguration() : x(0), y(0), range(0), nNodes(0) {}
+} NetworkConfiguration;
 
-int main(int argc, char *argv[]) {
-#ifdef NS3_CLICK
-	//
-	// Enable logging
-	//
-	LogComponentEnable("NsclickCastor", LOG_LEVEL_INFO);
+typedef struct TrafficConfiguration {
+	size_t nSenders, groupSize;
+	size_t packetSize;
+	Time sendInterval;
+	TrafficConfiguration(size_t nSenders, size_t groupSize, size_t packetSize, Time sendInterval) :
+		nSenders(nSenders), groupSize(groupSize), packetSize(packetSize), sendInterval(sendInterval) {}
+	TrafficConfiguration() : nSenders(0), groupSize(0), packetSize(0), sendInterval(Seconds(0)) {}
+} TrafficConfiguration;
 
-	CommandLine cmd;
-	cmd.Parse (argc, argv);
+typedef struct MobilityConfiguration {
+	double speed, pause;
+	MobilityConfiguration(double speed, double pause) :
+		speed(speed), pause(pause) {}
+	MobilityConfiguration() : speed(0), pause(0) {}
+} MobilityConfiguration;
+
+void simulate(
+		int run,
+		StringValue clickConfig,
+		Time duration,
+		const NetworkConfiguration& netConfig,
+		const TrafficConfiguration& trafficConfig,
+		const MobilityConfiguration& mobilityConfig
+		) {
 
 	RngSeedManager::SetSeed(12345);
-	RngSeedManager::SetRun(1);
+	RngSeedManager::SetRun(run);
 
-	// Simulation parameters / topology
-	const double xSize = 3000.0;
-	const double ySize = 3000.0;
-	const double transmissionRange = 550.0;
-	const size_t nNodes = 100;
-
-	const double speed = 0.0;
-	const double pause = 60.0;
-
-	// number of senders/flows/groups
-	const size_t nSenders = 5;
-	const size_t groupSize = 1;
-
-	uint32_t MaxPacketSize = 256 - 28; // IP+UDP header size = 28 byte
-
-	Time interPacketInterval = Seconds(0.25);
-
-	const Time duration = Seconds(60.0);
-
-	const StringValue clickConfig("/home/milan/click/conf/castor/castor_xcast_routing.click");
-//	const StringValue clickConfig("/home/milan/click/conf/castor/castor_multicast_via_unicast_routing.click");
+	uint32_t MaxPacketSize = trafficConfig.packetSize - 28; // IP+UDP header size = 28 byte
 
 	// Network
 	const Ipv4Address baseAddr("192.168.201.0");
@@ -273,12 +275,12 @@ int main(int argc, char *argv[]) {
 	// 		192.168.201.5 -> 192.168.201.6, 192.168.201.7, 192.168.201.8
 	std::map<Ipv4Address, std::vector<Ipv4Address>, LessIpv4Address> groups; // multicast group -> xcast receivers
 
-	for (unsigned int i = 0, iAddr = 1; i < nSenders; i++) {
+	for (unsigned int i = 0, iAddr = 1; i < trafficConfig.nSenders; i++) {
 		Ipv4Address sender = Ipv4Address(baseAddr.Get() + iAddr);
 		Ipv4Address group = Ipv4Address(groupAddr.Get() + iAddr);
 		std::vector<Ipv4Address> xcastDestinations;
-		iAddr = iAddr % nNodes + 1; // Circular count from 1..nNodes
-		for (unsigned int j = 0; j < groupSize; j++, iAddr = iAddr % nNodes + 1) {
+		iAddr = iAddr % netConfig.nNodes + 1; // Circular count from 1..nNodes
+		for (unsigned int j = 0; j < trafficConfig.groupSize; j++, iAddr = iAddr % netConfig.nNodes + 1) {
 			Ipv4Address dest = Ipv4Address(baseAddr.Get() + iAddr);
 			xcastDestinations.push_back(dest);
 		}
@@ -286,41 +288,36 @@ int main(int argc, char *argv[]) {
 		groups.insert(std::make_pair(group, xcastDestinations));
 	}
 
-	//
-	// Explicitly create the nodes required by the topology (shown above).
-	//
-	NS_LOG_INFO("Create nodes.");
+	// Set up network
 	NodeContainer n;
-	n.Create(nNodes);
+	n.Create(netConfig.nNodes);
 
-	NS_LOG_INFO("Create channels.");
-	NetDeviceContainer d = setPhysicalChannel(n, transmissionRange);
-//	setConstantPositionMobility(n, xSize, ySize);
-	setRandomWaypointMobility(n, xSize, ySize, speed, pause);
+	NetDeviceContainer d = setPhysicalChannel(n, netConfig.range);
+	if(mobilityConfig.speed == 0.0)
+		setConstantPositionMobility(n, netConfig.x, netConfig.y);
+	else
+		setRandomWaypointMobility(n, netConfig.x, netConfig.y, mobilityConfig.speed, mobilityConfig.pause);
 
-	NS_LOG_INFO("Setup Click Routers");
 	setClickRouter(n, clickConfig);
 
-	NS_LOG_INFO("Assign IP addresses.");
 	Ipv4AddressHelper ipv4;
 	ipv4.SetBase(baseAddr, networkMask);
 	Ipv4InterfaceContainer i = ipv4.Assign(d);
 
-	NS_LOG_INFO("Create Applications.");
+	// Set up traffic generation
 	ApplicationContainer apps;
-	uint16_t port = 4000;
-	uint32_t maxPacketCount = UINT32_MAX;
+	uint16_t port = 4242;
 	unsigned int nodeIndex = 0;
 	for (std::map<Ipv4Address, Ipv4Address>::iterator it = senderGroupAssign.begin(); it != senderGroupAssign.end(); it++) {
 		Ipv4Address groupIp = it->second;
 
 		// Setup multicast source
 		UdpClientHelper client(groupIp, port);
-		client.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
-		client.SetAttribute("Interval", TimeValue(interPacketInterval));
+		client.SetAttribute("MaxPackets", UintegerValue(UINT32_MAX));
+		client.SetAttribute("Interval", TimeValue(trafficConfig.sendInterval));
 		client.SetAttribute("PacketSize", UintegerValue(MaxPacketSize));
 		apps = client.Install(NodeContainer(n.Get(nodeIndex)));
-		apps.Start(Seconds(2.0) + interPacketInterval / nSenders * nodeIndex);
+		apps.Start(Seconds(2.0) + trafficConfig.sendInterval / trafficConfig.nSenders * nodeIndex);
 		apps.Stop(duration + Seconds(2.0));
 
 		nodeIndex++;
@@ -338,7 +335,7 @@ int main(int argc, char *argv[]) {
 
 	// We fill in the ARP tables at the beginning of the simulation
 	for (unsigned int i = 0; i < n.GetN(); i++) {
-		Simulator::Schedule(Seconds(0.5), &WriteArp, n.Get(i)->GetObject<Ipv4ClickRouting>(), nNodes, baseAddr);
+		Simulator::Schedule(Seconds(0.5), &WriteArp, n.Get(i)->GetObject<Ipv4ClickRouting>(), netConfig.nNodes, baseAddr);
 		// Write Xcast destination mapping
 		for (std::map<Ipv4Address, std::vector<Ipv4Address> >::iterator it = groups.begin(); it != groups.end(); it++)
 			Simulator::Schedule(Seconds(0.5), &WriteXcastMap, n.Get(i)->GetObject<Ipv4ClickRouting>(), it->first, it->second);
@@ -347,47 +344,61 @@ int main(int argc, char *argv[]) {
 	//
 	// Now, do the actual simulation.
 	//
-	NS_LOG_INFO("Run Simulation.");
+	NS_LOG_INFO("Run #" << run << " (" << duration.GetSeconds() << " seconds, " << clickConfig.Get() << ")");
+	NS_LOG_INFO("  CONFIG " << netConfig.x << "x" << netConfig.y << ", " << netConfig.nNodes << " nodes @ " << netConfig.range << " range");
+	NS_LOG_INFO("  CONFIG " << trafficConfig.nSenders << " senders -> " << trafficConfig.groupSize << " each, " << trafficConfig.packetSize << " bytes / " << trafficConfig.sendInterval.GetSeconds() << " s");
+	NS_LOG_INFO("  CONFIG " << "speed " << mobilityConfig.speed << ", pause " << mobilityConfig.pause);
+
 	time_t start; time(&start);
 	Simulator::Stop(duration + Seconds(6.0));
 	Simulator::Run();
 	time_t end; time(&end);
-	NS_LOG_INFO("Done after " << difftime(end, start) << " seconds");
+	NS_LOG_INFO("  Done after " << difftime(end, start) << " seconds");
 
 	//
 	// Schedule evaluation
 	//
 	uint32_t numPidsSent = 0;
 	uint32_t numPidsRecv = 0;
-	uint32_t bandwidthUsage = 0;
+	uint32_t pktBandwidthUsage = 0;
+	uint32_t ackBandwidthUsage = 0;
+	uint32_t totalBandwidthUsage = 0;
 	uint32_t numPktsSent = 0;
 	uint32_t broadcasts = 0;
 	uint32_t unicasts = 0;
 	uint32_t numPktsForwarded = 0;
+	uint32_t numAcksForwarded = 0;
 	std::map<std::string, double> pidsSent;
 	std::vector<double> delays;
 	double avgDelay;
 
-	std::string forwarding = "handlepkt/forward/rec";
-	std::string sending = "handleIpPacket/rec";
-	std::string delivering = "handlepkt/handleLocal/rec";
-	for(unsigned int i = 0; i < nNodes; i++) {
-		numPidsSent += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), sending);
-		numPidsRecv += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), delivering);
-		bandwidthUsage += readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
-		numPktsSent += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), sending);
-		numPktsForwarded += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
-		broadcasts += readBroadcasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
-		unicasts += readUnicasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
+	std::string pktForward = "handlepkt/forward/rec";
+	std::string pktSend = "handleIpPacket/rec";
+	std::string pktDeliver = "handlepkt/handleLocal/rec";
+	std::string ackForward = "handleack/recAck";
+	std::string ackSend = "handlepkt/handleLocal/recAck";
+	for(unsigned int i = 0; i < netConfig.nNodes; i++) {
+		numPidsSent += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktSend);
+		numPidsRecv += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDeliver);
+		pktBandwidthUsage += readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
+		ackBandwidthUsage += readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackSend) +
+							 readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackForward);
+		numPktsSent += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktSend);
+		numPktsForwarded += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
+		numAcksForwarded += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackSend) +
+							readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackForward);
+		broadcasts += readBroadcasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
+		unicasts += readUnicasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
 		std::string pid;
 		double timestamp;
-		while(readPidTimestamp(n.Get(i)->GetObject<Ipv4ClickRouting>(), sending, pid, timestamp))
+		while(readPidTimestamp(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktSend, pid, timestamp))
 			pidsSent.insert(std::make_pair(pid, timestamp));
 	}
-	for(unsigned int i = 0; i < nNodes; i++) {
+	totalBandwidthUsage = pktBandwidthUsage + ackBandwidthUsage;
+	for(unsigned int i = 0; i < netConfig.nNodes; i++) {
 		std::string pid;
 		double recTimestamp;
-		while(readPidTimestamp(n.Get(i)->GetObject<Ipv4ClickRouting>(), delivering, pid, recTimestamp)) {
+		while(readPidTimestamp(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDeliver, pid, recTimestamp)) {
 			if(pidsSent[pid] == 0.0) {
 				NS_LOG_INFO("" << pid << " was received but never sent");
 				break;
@@ -399,20 +410,83 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	NS_LOG_INFO("STAT PDR        " << ((double) numPidsRecv / numPidsSent) << " (" << numPidsRecv << "/" << numPidsSent << ")");
-	NS_LOG_INFO("STAT BU         " << bandwidthUsage << " bytes");
-	NS_LOG_INFO("       per PKT  " << ((double) bandwidthUsage / numPktsSent));
-	NS_LOG_INFO("       per PID  " << ((double) bandwidthUsage / numPidsSent));
-	NS_LOG_INFO("STAT DELAY      " << (avgDelay / numPidsRecv * 1000) << " ms");
-	NS_LOG_INFO("STAT HOP COUNT  " << numPktsForwarded);
-	NS_LOG_INFO("       per PKT  " << ((double) numPktsForwarded / numPktsSent));
-	NS_LOG_INFO("       per PID  " << ((double) numPktsForwarded / numPidsSent));
-	NS_LOG_INFO("STAT BROADCAST  " << ((double) broadcasts / (unicasts + broadcasts)) << " (" << broadcasts << "/" << (unicasts + broadcasts) << ")");
+	NS_LOG_INFO("  STAT PDR        " << ((double) numPidsRecv / numPidsSent) << " (" << numPidsRecv << "/" << numPidsSent << ")");
+	NS_LOG_INFO("  STAT BU         " << totalBandwidthUsage  << " bytes");
+	NS_LOG_INFO("         for PKT  " << ((double) pktBandwidthUsage / totalBandwidthUsage) << " (" << pktBandwidthUsage << " bytes)");
+	NS_LOG_INFO("         for ACK  " << ((double) ackBandwidthUsage / totalBandwidthUsage) << " (" << ackBandwidthUsage << " bytes)");
+	NS_LOG_INFO("         per PKT  " << ((double) totalBandwidthUsage / numPktsSent) << " bytes");
+	NS_LOG_INFO("         per PID  " << ((double) totalBandwidthUsage / numPidsSent) << " bytes");
+	NS_LOG_INFO("  STAT DELAY      " << (avgDelay / numPidsRecv * 1000) << " ms");
+	NS_LOG_INFO("  STAT HOP COUNT  " << numPktsForwarded);
+	NS_LOG_INFO("         per PKT  " << ((double) numPktsForwarded / numPktsSent));
+	NS_LOG_INFO("         per PID  " << ((double) numPktsForwarded / numPidsSent));
+	NS_LOG_INFO("  STAT BROADCAST  " << ((double) broadcasts / (unicasts + broadcasts)) << " (" << broadcasts << "/" << (unicasts + broadcasts) << ")");
 
 	//
 	// Cleanup
 	//
 	Simulator::Destroy();
+
+}
+
+#endif
+
+int main(int argc, char *argv[]) {
+#ifdef NS3_CLICK
+
+	// Possible run configurations
+	StringValue
+		xcast   ("/home/milan/click/conf/castor/castor_xcast_routing.click"),
+		regular ("/home/milan/click/conf/castor/castor_multicast_via_unicast_routing.click");
+
+	NetworkConfiguration
+		small  (1000.0, 1000.0, 500.0,  10),
+		medium (2000.0, 2000.0, 500.0,  50),
+		large  (3000.0, 3000.0, 500.0, 100);
+
+	TrafficConfiguration
+		normal (3, 3, 256, Seconds(0.25));
+
+	MobilityConfiguration
+		constant ( 0.0, 0.0),
+		moving   (20.0, 0.0);
+
+	std::map<std::string, StringValue> clickConfigs;
+	clickConfigs.insert(std::make_pair("xcast", xcast));
+	clickConfigs.insert(std::make_pair("regular", regular));
+	std::map<std::string, NetworkConfiguration> networkConfigs;
+	networkConfigs.insert(std::make_pair("small", small));
+	networkConfigs.insert(std::make_pair("medium", medium));
+	networkConfigs.insert(std::make_pair("large", large));
+	std::map<std::string, TrafficConfiguration> trafficConfigs;
+	trafficConfigs.insert(std::make_pair("normal", normal));
+	std::map<std::string, MobilityConfiguration> mobilityConfigs;
+	mobilityConfigs.insert(std::make_pair("constant", constant));
+	mobilityConfigs.insert(std::make_pair("moving", moving));
+
+	// Enable logging
+	LogComponentEnable("NsclickCastor", LOG_LEVEL_INFO);
+
+	// Set up command line usage
+	CommandLine cmd;
+	// Default values
+	uint32_t run = 1;
+	double duration = 60.0;
+	std::string click          = "xcast";
+	std::string networkConfig  = "small";
+	std::string trafficConfig  = "normal";
+	std::string mobilityConfig = "constant";
+
+	cmd.AddValue("run",      "The instance of this experiment.",                                           run);
+	cmd.AddValue("duration", "The simulated time in seconds.",                                             duration);
+	cmd.AddValue("click",    "The Click configuration file to be used.",                                   click);
+	cmd.AddValue("network",  "The network configuration to use, e.g., 'small', 'medium' or 'large'.",      networkConfig);
+	cmd.AddValue("traffic",  "The traffic configuration to use, e.g., 'normal'.",                          trafficConfig);
+	cmd.AddValue("mobility", "The mobility model and configuration to use, e.g., 'constant' or 'moving'.", mobilityConfig);
+
+	cmd.Parse (argc, argv);
+
+	simulate(run, clickConfigs[click], Seconds(duration), networkConfigs[networkConfig], trafficConfigs[trafficConfig], mobilityConfigs[mobilityConfig]);
 
 #else
 	NS_FATAL_ERROR ("Can't use ns-3-click without NSCLICK compiled in");

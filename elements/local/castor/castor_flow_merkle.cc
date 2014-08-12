@@ -21,9 +21,9 @@ bool CastorFlowMerkle::hasFlow(Host source, Host destination) {
 
 void CastorFlowMerkle::createFlow(Host source, Host destination) {
 	// Create a new Flow Object
-	click_chatter("Creating a new Flow object (%s -> %s) with %d elements",
-			source.unparse().c_str(), destination.unparse().c_str(),
-			CASTOR_FLOWSIZE);
+//	click_chatter("Creating a new Flow object (%s -> %s) with %d elements",
+//			source.unparse().c_str(), destination.unparse().c_str(),
+//			CASTOR_FLOWSIZE);
 	Flow flow;
 	flow.position = 0;
 

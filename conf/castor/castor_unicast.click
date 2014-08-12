@@ -2,7 +2,7 @@ elementclass CastorLocalPkt {
 	$myIP, $history, $crypto |
 
 	input
-		-> CastorPrint('Packet arrived at destination', $myIP)
+		//-> CastorPrint('Packet arrived at destination', $myIP)
 		-> CastorDecryptACKAuth($crypto)
 		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
 		-> CastorAddPKTToHistory($history)
@@ -11,8 +11,9 @@ elementclass CastorLocalPkt {
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT
-		-> CastorPrint('Generated', $myIP)
+		//-> CastorPrint('Generated', $myIP)
 		-> CastorAddAckToHistory($crypto, $history)
+		-> recAck :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> [1]output; // Push ACKs to output 1
 
@@ -31,7 +32,7 @@ elementclass CastorForwardPkt {
 		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> CastorLookupRoute($routingtable)		// Lookup the route for the packet
 		-> CastorAddPKTToHistory($history)
-		-> CastorTimeout($routingtable, $history, $timeout, $myIP)
+		-> CastorTimeout($routingtable, $history, $timeout, $myIP, false)
 		-> rec :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
 		-> output;
@@ -71,7 +72,7 @@ elementclass CastorHandlePkt {
 		//-> CastorPrint("Duplicate", $myIP)
 		-> null;
 	validate[1]
-		-> CastorPrint("Packet authentication failed", $myIP)
+		-> CastorPrint("Flow authentication failed", $myIP)
 		-> null;
 
 }

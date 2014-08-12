@@ -5,7 +5,7 @@ elementclass CastorLocalXcastPkt {
 		-> CastorXcastAnnotateAckAuth($crypto)
 		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
 		-> rec :: CastorRecordPkt
-		-> CastorPrint('Arrived at destination', $myIP)
+		//-> CastorPrint('Arrived at destination', $myIP)
 		-> CastorAddXcastPktToHistory($history)
 		-> genAck :: CastorXcastCreateAck($myIP)
 		-> [0]output;
@@ -13,6 +13,7 @@ elementclass CastorLocalXcastPkt {
 	genAck[1] // Generate ACK for received PKT
 		//-> CastorPrint('Generated', $myIP)
 		-> CastorAddAckToHistory($crypto, $history)
+		-> recAck :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> [1]output; // Push ACKs to output 1
 
@@ -28,11 +29,10 @@ elementclass CastorForwardXcastPkt {
 	$myIP, $routingtable, $history |
 
 	input
-		-> CastorPrint('Forwarding', $myIP)
+		//-> CastorPrint('Forwarding', $myIP)
 		-> CastorXcastLookupRoute($routingtable)		// Lookup the route for the packet
-		-> CastorPrint('Forwarding', $myIP, true)
 		-> CastorAddXcastPktToHistory($history)
-		-> CastorTimeout($routingtable,$history,$timeout,$myIP)
+		-> CastorTimeout($routingtable, $history, $timeout, $myIP, false)
 		-> rec :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
 		-> output;
