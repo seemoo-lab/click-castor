@@ -1,43 +1,51 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include <click/straccum.hh>
-#include "castor_record_xcast_pkt.hh"
+#include "castor_record_pkt.hh"
 #include "castor_xcast.hh"
 
 CLICK_DECLS
 
-CastorRecordXcastPkt::CastorRecordXcastPkt() {
+CastorRecordPkt::CastorRecordPkt() {
 	numPkts = 0;
 	numPids = 0;
 	pktAccumSize = 0;
 	broadcastDecisions = 0;
 }
 
-CastorRecordXcastPkt::~CastorRecordXcastPkt() {
+CastorRecordPkt::~CastorRecordPkt() {
 }
 
-void CastorRecordXcastPkt::push(int, Packet *p){
-	CastorXcastPkt pkt = CastorXcastPkt(p);
+void CastorRecordPkt::push(int, Packet *p) {
 
-	for(unsigned int i = 0; i < pkt.getNDestinations(); i++) {
-		Entry newEntry(pkt.getPid(i), pkt.getTotalLength());
-		records.push_back(newEntry);
+	if(CastorPacket::isXcast(p)) {
+		CastorXcastPkt pkt = CastorXcastPkt(p);
+
+		for(unsigned int i = 0; i < pkt.getNDestinations(); i++) {
+			Entry newEntry(pkt.getPid(i), pkt.getTotalLength());
+			records.push_back(newEntry);
+			numPids++;
+		}
+
+		for(unsigned int i = 0; i < pkt.getNNextHops(); i++) {
+			if(pkt.getNextHop(i) == IPAddress::make_broadcast())
+				broadcastDecisions += pkt.getNextHopNAssign(i);
+		}
+	} else {
+		// Regular Castor PKT
 		numPids++;
-	}
-
-	for(unsigned int i = 0; i < pkt.getNNextHops(); i++) {
-		if(pkt.getNextHop(i) == IPAddress::make_broadcast())
+		if(p->dst_ip_anno() == IPAddress::make_broadcast())
 			broadcastDecisions++;
 	}
 
 	numPkts++;
-	pktAccumSize += (uint32_t) pkt.getTotalLength();
+	pktAccumSize += p->length();
 
-    output(0).push(pkt.getPacket());
+    output(0).push(p);
 }
 
-String CastorRecordXcastPkt::read_handler(Element *e, void *thunk) {
-	CastorRecordXcastPkt* recorder = static_cast<CastorRecordXcastPkt*>(e);
+String CastorRecordPkt::read_handler(Element *e, void *thunk) {
+	CastorRecordPkt* recorder = static_cast<CastorRecordPkt*>(e);
 
 	switch(reinterpret_cast<uintptr_t>(thunk)) {
 	case Statistics::num:
@@ -57,7 +65,7 @@ String CastorRecordXcastPkt::read_handler(Element *e, void *thunk) {
 	}
 }
 
-void CastorRecordXcastPkt::add_handlers() {
+void CastorRecordPkt::add_handlers() {
 	add_read_handler("num", read_handler, Statistics::num);
 	add_read_handler("numUnique", read_handler, Statistics::numUnique);
 	add_read_handler("size", read_handler, Statistics::size);
@@ -66,4 +74,4 @@ void CastorRecordXcastPkt::add_handlers() {
 }
 
 CLICK_ENDDECLS
-EXPORT_ELEMENT(CastorRecordXcastPkt)
+EXPORT_ELEMENT(CastorRecordPkt)

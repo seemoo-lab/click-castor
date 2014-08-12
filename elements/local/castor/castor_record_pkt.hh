@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTOR_RECORD_XCAST_PKT_HH
-#define CLICK_CASTOR_RECORD_XCAST_PKT_HH
+#ifndef CLICK_CASTOR_RECORD_PKT_HH
+#define CLICK_CASTOR_RECORD_PKT_HH
 
 #include <click/element.hh>
 #include <click/timestamp.hh>
@@ -8,12 +8,12 @@
 
 CLICK_DECLS
 
-class CastorRecordXcastPkt: public Element {
+class CastorRecordPkt: public Element {
 public:
-	CastorRecordXcastPkt();
-	~CastorRecordXcastPkt();
+	CastorRecordPkt();
+	~CastorRecordPkt();
 		
-	const char *class_name() const { return "CastorRecordXcastPkt"; }
+	const char *class_name() const { return "CastorRecordPkt"; }
 	const char *port_count() const { return PORTS_1_1; }
 	const char *processing() const { return PUSH; }
 

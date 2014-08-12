@@ -11,8 +11,8 @@ CastorValidateFlow::~ CastorValidateFlow(){}
 
 int CastorValidateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
-		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", crypto,
-		cpEnd);
+			"CRYPT", cpkP + cpkM, cpElementCast, "Crypto", &crypto,
+			cpEnd);
 }
 
 void CastorValidateFlow::push(int, Packet *p){

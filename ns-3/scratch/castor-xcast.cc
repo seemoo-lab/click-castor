@@ -118,6 +118,40 @@ struct LessIpv4Address {
 	}
 };
 
+NetDeviceContainer setPhysicalChannel(NodeContainer& nodes, double transmissionRange) {
+	std::string phyMode("DsssRate11Mbps");
+
+	// disable fragmentation for frames below 2200 bytes
+	Config::SetDefault("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue("2200"));
+	// turn off RTS/CTS for frames below 2200 bytes
+	Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue("2200"));
+	// Fix non-unicast data rate to be the same as that of unicast
+	Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode",	StringValue(phyMode));
+
+	WifiHelper wifi;
+	wifi.SetStandard(WIFI_PHY_STANDARD_80211b);
+
+	YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default();
+	// ns-3 supports RadioTap and Prism tracing extensions for 802.11b
+	wifiPhy.SetPcapDataLinkType(YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
+
+	YansWifiChannelHelper wifiChannel;
+	wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel", "Speed", DoubleValue(299792458.0));
+	//wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
+
+	wifiChannel.AddPropagationLoss("ns3::RangePropagationLossModel", "MaxRange", DoubleValue(transmissionRange));
+	//wifiChannel.AddPropagationLoss("ns3::FriisPropagationLossModel");
+	wifiPhy.SetChannel(wifiChannel.Create());
+
+	// Add a non-QoS upper mac, and disable rate control
+	NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default();
+	wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager", "DataMode",
+			StringValue(phyMode), "ControlMode", StringValue(phyMode));
+	// Set it to adhoc mode
+	wifiMac.SetType("ns3::AdhocWifiMac");
+	return wifi.Install(wifiPhy, wifiMac, nodes);
+}
+
 Ptr <PositionAllocator> getRandomRectanglePositionAllocator(double xSize, double ySize) {
 	ObjectFactory pos;
 	pos.SetTypeId("ns3::RandomRectanglePositionAllocator");
@@ -155,6 +189,14 @@ void setConstantPositionMobility(NodeContainer& nodes, double xSize, double ySiz
 	mobility.Install(nodes);
 }
 
+void setClickRouter(NodeContainer& nodes, StringValue clickConfig) {
+	ClickInternetStackHelper clickinternet;
+	for (unsigned int i = 0; i < nodes.GetN(); i++)
+		clickinternet.SetClickFile(nodes.Get(i), clickConfig.Get());
+	clickinternet.SetRoutingTableElement(nodes, "rt");
+	clickinternet.Install(nodes);
+}
+
 #endif
 
 int main(int argc, char *argv[]) {
@@ -168,23 +210,29 @@ int main(int argc, char *argv[]) {
 	cmd.Parse (argc, argv);
 
 	RngSeedManager::SetSeed(12345);
-	RngSeedManager::SetRun(1);
+	RngSeedManager::SetRun(4);
 
 	// Simulation parameters / topology
-	const double xSize = 3000.0;
-	const double ySize = 3000.0;
+	const double xSize = 1000.0;
+	const double ySize = 1000.0;
 	const double transmissionRange = 550.0;
-	const size_t nNodes = 100;
+	const size_t nNodes = 10;
+
+	const double speed = 0.0;
+	const double pause = 60.0;
 
 	// number of senders/flows/groups
-	const size_t nSenders = 5;
-	const size_t groupSize = 1;
+	const size_t nSenders = 2;
+	const size_t groupSize = 5;
 
-	uint32_t MaxPacketSize = 256 - 28; // IP+UDP header size: 28 byte
+	uint32_t MaxPacketSize = 256 - 28; // IP+UDP header size = 28 byte
 
 	Time interPacketInterval = Seconds(0.25);
 
-	const Time duration = Seconds(60.0);
+	const Time duration = Seconds(30.0);
+
+	const StringValue clickConfig("/home/milan/click/conf/castor/castor_xcast_routing.click");
+//	const StringValue clickConfig("/home/milan/click/conf/castor/castor_multicast_via_unicast_routing.click");
 
 	// Network
 	const Ipv4Address baseAddr("192.168.201.0");
@@ -221,65 +269,19 @@ int main(int argc, char *argv[]) {
 	n.Create(nNodes);
 
 	NS_LOG_INFO("Create channels.");
-	//
-	// Explicitly create the channels required by the topology (shown above).
-	//
-	std::string phyMode("DsssRate11Mbps");
-
-	// disable fragmentation for frames below 2200 bytes
-	Config::SetDefault("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue("2200"));
-	// turn off RTS/CTS for frames below 2200 bytes
-	Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue("2200"));
-	// Fix non-unicast data rate to be the same as that of unicast
-	Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode",	StringValue(phyMode));
-
-	WifiHelper wifi;
-	wifi.SetStandard(WIFI_PHY_STANDARD_80211b);
-
-	YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default();
-	// ns-3 supports RadioTap and Prism tracing extensions for 802.11b
-	wifiPhy.SetPcapDataLinkType(YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
-
-	YansWifiChannelHelper wifiChannel;
-	//wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel", "Speed", DoubleValue(299792458.0));
-	wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
-
-	wifiChannel.AddPropagationLoss("ns3::RangePropagationLossModel", "MaxRange", DoubleValue(transmissionRange));
-	//wifiChannel.AddPropagationLoss("ns3::FriisPropagationLossModel");
-	wifiPhy.SetChannel(wifiChannel.Create());
-
-	// Add a non-QoS upper mac, and disable rate control
-	NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default();
-	wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager", "DataMode",
-			StringValue(phyMode), "ControlMode", StringValue(phyMode));
-	// Set it to adhoc mode
-	wifiMac.SetType("ns3::AdhocWifiMac");
-	NetDeviceContainer d = wifi.Install(wifiPhy, wifiMac, n);
-
+	NetDeviceContainer d = setPhysicalChannel(n, transmissionRange);
 //	setConstantPositionMobility(n, xSize, ySize);
-	setRandomWaypointMobility(n, xSize, ySize, 20, 0);
+	setRandomWaypointMobility(n, xSize, ySize, speed, pause);
 
-	//
-	// Install Click on the nodes
-	//
-	ClickInternetStackHelper clickinternet;
-	for (unsigned int i = 0; i < n.GetN(); i++)
-		clickinternet.SetClickFile(n.Get(i), "/home/milan/click/conf/castor/castor_xcast_routing.click");
-	clickinternet.SetRoutingTableElement(n, "rt");
-	clickinternet.Install(n);
+	NS_LOG_INFO("Setup Click Routers");
+	setClickRouter(n, clickConfig);
+
+	NS_LOG_INFO("Assign IP addresses.");
 	Ipv4AddressHelper ipv4;
-
-	//
-	// We've got the "hardware" in place.  Now we need to add IP addresses.
-	//
-	NS_LOG_INFO("Assign IP Addresses.");
 	ipv4.SetBase(baseAddr, networkMask);
 	Ipv4InterfaceContainer i = ipv4.Assign(d);
 
 	NS_LOG_INFO("Create Applications.");
-	//
-	// Create UdpClient and Server applications
-	//
 	ApplicationContainer apps;
 	uint16_t port = 4000;
 	uint32_t maxPacketCount = UINT32_MAX;
@@ -305,20 +307,17 @@ int main(int argc, char *argv[]) {
 			apps.Start(Seconds(1.0));
 			apps.Stop(duration + Seconds(3.0));
 		}
-
 	}
 
 	//wifiPhy.EnablePcap("castor-xcast", d);
 
-	// We fill in the ARP table of node 2 before at the beginning of the simulation
+	// We fill in the ARP tables at the beginning of the simulation
 	for (unsigned int i = 0; i < n.GetN(); i++) {
 		Simulator::Schedule(Seconds(0.5), &WriteArp, n.Get(i)->GetObject<Ipv4ClickRouting>(), nNodes, baseAddr);
 		// Write Xcast destination mapping
 		for (std::map<Ipv4Address, std::vector<Ipv4Address> >::iterator it = groups.begin(); it != groups.end(); it++)
 			Simulator::Schedule(Seconds(0.5), &WriteXcastMap, n.Get(i)->GetObject<Ipv4ClickRouting>(), it->first, it->second);
 	}
-
-
 
 	//
 	// Now, do the actual simulation.
@@ -345,7 +344,6 @@ int main(int argc, char *argv[]) {
 	std::string sending = "handleIpPacket/rec";
 	std::string delivering = "handlepkt/handleLocal/rec";
 	for(unsigned int i = 0; i < nNodes; i++) {
-		//Simulator::Schedule(duration + Seconds(4.0), &readPidCount, n.Get(i)->GetObject<Ipv4ClickRouting>(), "handleIpPacket/rec");
 		numPidsSent += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), sending);
 		numPidsRecv += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), delivering);
 		bandwidthUsage += readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
@@ -353,11 +351,14 @@ int main(int argc, char *argv[]) {
 		numPktsForwarded += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
 		broadcasts += readBroadcasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
 		unicasts += readUnicasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
-
 	}
 	NS_LOG_INFO("STAT PDR        " << ((double) numPidsRecv / numPidsSent) << " (" << numPidsRecv << "/" << numPidsSent << ")");
-	NS_LOG_INFO("STAT BU per PKT " << ((double) bandwidthUsage / numPktsSent));
-	NS_LOG_INFO("STAT HOP COUNT  " << ((double) numPktsForwarded / numPktsSent));
+	NS_LOG_INFO("STAT BU         " << bandwidthUsage << " bytes");
+	NS_LOG_INFO("     per PKT    " << ((double) bandwidthUsage / numPktsSent));
+	NS_LOG_INFO("     per PID    " << ((double) bandwidthUsage / numPidsSent));
+	NS_LOG_INFO("STAT HOP COUNT  " << numPktsForwarded);
+	NS_LOG_INFO("     per PKT    " << ((double) numPktsForwarded / numPktsSent));
+	NS_LOG_INFO("     per PID    " << ((double) numPktsForwarded / numPidsSent));
 	NS_LOG_INFO("STAT BROADCAST  " << ((double) broadcasts / (unicasts + broadcasts)) << " (" << broadcasts << "/" << (unicasts + broadcasts) << ")");
 
 	//

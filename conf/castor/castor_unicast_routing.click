@@ -109,7 +109,11 @@ elementclass FromHost {
  */
 elementclass CastorHandleIPPacket{
 	$myIP, $flowDB, $crypto |
+	
+	map :: CastorXcastDestinationMap
 
+	input
+	-> CastorXcastToUnicast(map)
 	-> CastorAddHeader($flowDB)
 	-> CastorEncryptACKAuth($crypto)
 	-> CastorPrint('Send', $myIP)
