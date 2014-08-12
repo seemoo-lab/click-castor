@@ -182,7 +182,7 @@ public:
 			String sfid = CastorPacket::hexToString(getFlowId(), getHashSize());
 			String sauth = CastorPacket::hexToString(getAckAuth(), getHashSize());
 			sa << "   | From:\t" << _p->dst_ip_anno() << "\n";
-			sa << "   | Type:\tXcast PKT (header " <<  getHeaderLength() << " / payload " << getPayloadLength() << " byte)\n";
+			sa << "   | Type:\tXcast PKT (header " <<  getHeaderLength() << " / payload " << getPayloadLength() << " bytes)\n";
 			sa << "   | Flow:\t" << getSource() << " -> " << getMulticastGroup() << "\n";
 			for(unsigned int i = 0; i < getNDestinations(); i++)
 				sa << "   | \t\t -> " << getDestination(i) << " (pid " << CastorPacket::hexToString(getPid(i), getHashSize()) << ")\n";

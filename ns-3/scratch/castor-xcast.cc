@@ -38,8 +38,12 @@ NS_LOG_COMPONENT_DEFINE("NsclickCastor");
 
 #ifdef NS3_CLICK
 
+std::string readStringStat(Ptr<Ipv4ClickRouting> clickRouter, std::string what, std::string where) {
+	return clickRouter->ReadHandler(where, what);
+}
+
 unsigned int readIntStat(Ptr<Ipv4ClickRouting> clickRouter, std::string what, std::string where) {
-	std::string result = clickRouter->ReadHandler(where, what);
+	std::string result = readStringStat(clickRouter, what, where);
 	unsigned int i;
 	sscanf(result.c_str(), "%d", &i);
 	return i;
@@ -64,6 +68,27 @@ unsigned int readBroadcasts(Ptr<Ipv4ClickRouting> clickRouter, std::string where
 unsigned int readUnicasts(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
 	return readIntStat(clickRouter, "unicasts", where);
 }
+
+std::vector<std::string> split(const std::string &s, char delim) {
+    std::vector<std::string> elems;
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+    return elems;
+}
+
+bool readPidTimestamp(Ptr<Ipv4ClickRouting> clickRouter, std::string where, std::string& pid, double& timestamp) {
+	std::string result = readStringStat(clickRouter, "seq_entry", where);
+	if(result.empty())
+		return false;
+	std::vector<std::string> entry = split(result, ' '); // result is in form of '<pid> <timestamp>'
+	pid = entry[0];
+	sscanf(entry[1].c_str(), "%lf", &timestamp);
+	return true;
+}
+
 
 void WriteArp(Ptr<Ipv4ClickRouting> clickRouter, size_t nNodes,	const Ipv4Address& base) {
 	// Access the handler
@@ -210,26 +235,26 @@ int main(int argc, char *argv[]) {
 	cmd.Parse (argc, argv);
 
 	RngSeedManager::SetSeed(12345);
-	RngSeedManager::SetRun(4);
+	RngSeedManager::SetRun(1);
 
 	// Simulation parameters / topology
-	const double xSize = 1000.0;
-	const double ySize = 1000.0;
+	const double xSize = 3000.0;
+	const double ySize = 3000.0;
 	const double transmissionRange = 550.0;
-	const size_t nNodes = 10;
+	const size_t nNodes = 100;
 
 	const double speed = 0.0;
 	const double pause = 60.0;
 
 	// number of senders/flows/groups
-	const size_t nSenders = 2;
-	const size_t groupSize = 5;
+	const size_t nSenders = 5;
+	const size_t groupSize = 1;
 
 	uint32_t MaxPacketSize = 256 - 28; // IP+UDP header size = 28 byte
 
 	Time interPacketInterval = Seconds(0.25);
 
-	const Time duration = Seconds(30.0);
+	const Time duration = Seconds(60.0);
 
 	const StringValue clickConfig("/home/milan/click/conf/castor/castor_xcast_routing.click");
 //	const StringValue clickConfig("/home/milan/click/conf/castor/castor_multicast_via_unicast_routing.click");
@@ -339,6 +364,9 @@ int main(int argc, char *argv[]) {
 	uint32_t broadcasts = 0;
 	uint32_t unicasts = 0;
 	uint32_t numPktsForwarded = 0;
+	std::map<std::string, double> pidsSent;
+	std::vector<double> delays;
+	double avgDelay;
 
 	std::string forwarding = "handlepkt/forward/rec";
 	std::string sending = "handleIpPacket/rec";
@@ -351,14 +379,34 @@ int main(int argc, char *argv[]) {
 		numPktsForwarded += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
 		broadcasts += readBroadcasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
 		unicasts += readUnicasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), forwarding);
+		std::string pid;
+		double timestamp;
+		while(readPidTimestamp(n.Get(i)->GetObject<Ipv4ClickRouting>(), sending, pid, timestamp))
+			pidsSent.insert(std::make_pair(pid, timestamp));
 	}
+	for(unsigned int i = 0; i < nNodes; i++) {
+		std::string pid;
+		double recTimestamp;
+		while(readPidTimestamp(n.Get(i)->GetObject<Ipv4ClickRouting>(), delivering, pid, recTimestamp)) {
+			if(pidsSent[pid] == 0.0) {
+				NS_LOG_INFO("" << pid << " was received but never sent");
+				break;
+			}
+			double sentTimestamp = pidsSent[pid];
+			double delay = recTimestamp - sentTimestamp;
+			delays.push_back(recTimestamp - sentTimestamp);
+			avgDelay += delay;
+		}
+	}
+
 	NS_LOG_INFO("STAT PDR        " << ((double) numPidsRecv / numPidsSent) << " (" << numPidsRecv << "/" << numPidsSent << ")");
 	NS_LOG_INFO("STAT BU         " << bandwidthUsage << " bytes");
-	NS_LOG_INFO("     per PKT    " << ((double) bandwidthUsage / numPktsSent));
-	NS_LOG_INFO("     per PID    " << ((double) bandwidthUsage / numPidsSent));
+	NS_LOG_INFO("       per PKT  " << ((double) bandwidthUsage / numPktsSent));
+	NS_LOG_INFO("       per PID  " << ((double) bandwidthUsage / numPidsSent));
+	NS_LOG_INFO("STAT DELAY      " << (avgDelay / numPidsRecv * 1000) << " ms");
 	NS_LOG_INFO("STAT HOP COUNT  " << numPktsForwarded);
-	NS_LOG_INFO("     per PKT    " << ((double) numPktsForwarded / numPktsSent));
-	NS_LOG_INFO("     per PID    " << ((double) numPktsForwarded / numPidsSent));
+	NS_LOG_INFO("       per PKT  " << ((double) numPktsForwarded / numPktsSent));
+	NS_LOG_INFO("       per PID  " << ((double) numPktsForwarded / numPidsSent));
 	NS_LOG_INFO("STAT BROADCAST  " << ((double) broadcasts / (unicasts + broadcasts)) << " (" << broadcasts << "/" << (unicasts + broadcasts) << ")");
 
 	//

@@ -38,15 +38,14 @@ void CastorPrint::push(int, Packet *p){
 		if(CastorPacket::isXcast(p)) {
 			sa << (_fullpkt ? "\n" : "") << CastorXcastPkt(p).toString(_fullpkt).c_str();
 		} else {
-			Castor_PKT pkt;
-			CastorPacket::getCastorPKTHeader(p, &pkt);
+			Castor_PKT& pkt = (Castor_PKT&) *p->data();
 			String spid = CastorPacket::hexToString(pkt.pid, sizeof(PacketId));
 			if(_fullpkt) {
 				String sfid = CastorPacket::hexToString(pkt.fid, sizeof(FlowId));
 				String seauth = CastorPacket::hexToString(pkt.eauth, sizeof(EACKAuth));
 				sa << "\n";
 				sa << "   | From: \t" << p->dst_ip_anno() << "\n";
-				sa << "   | Type: \tPKT   Length: " <<  pkt.len << "\n";
+				sa << "   | Type: \tPKT (header " <<  pkt.len << " / payload " << (p->length() - pkt.len) << " bytes)\n";
 				sa << "   | Flow: \t" << pkt.src << " -> " << pkt.dst << "\n";
 				sa << "   | Flow ID: \t" << sfid << "\n";
 				sa << "   | Pkt ID: \t" << spid << " (" << (pkt.packet_num + 1) << "/" << (1 << pkt.fsize) << ")\n";
@@ -60,13 +59,12 @@ void CastorPrint::push(int, Packet *p){
 
 		// TODO handle XcastAck
 
-		Castor_ACK ack;
-		CastorPacket::getCastorACKHeader(p, &ack);
+		Castor_ACK& ack = (Castor_ACK&) *p->data();
 		String sauth = CastorPacket::hexToString(ack.auth, sizeof(ACKAuth));
 		if(_fullpkt) {
 			sa << "\n";
 			sa << "   | From: \t" << p->dst_ip_anno() << "\n";
-			sa << "   | Type: \tACK   Length: " <<  ack.len << "\n";
+			sa << "   | Type: \tACK  (" <<  ack.len << " bytes)\n";
 			sa << "   | Auth: \t" << sauth << "\n";
 		} else {
 			sa << "ACK (from " << p->dst_ip_anno() << "): " << sauth;

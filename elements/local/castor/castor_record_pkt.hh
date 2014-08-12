@@ -23,16 +23,16 @@ public:
 private:
 	class Entry {
 	public:
-		Entry(const PacketId& pid, const size_t pktSize, const Timestamp time = Timestamp::now()) :
-			pktSize(pktSize), time(time) {
+		Entry(const PacketId& pid, const Timestamp time = Timestamp::now()) :
+			time(time) {
 			memcpy(&this->pid, &pid, sizeof(PacketId));
 		};
 		Hash pid;
-		const size_t pktSize;
 		const Timestamp time;
 	};
 
 	Vector<Entry> records;
+	int32_t seq_index;
 
 	atomic_uint32_t numPids;
 	atomic_uint32_t numPkts;
@@ -50,6 +50,7 @@ private:
 			time, // Time @ which pids were received
 			broadcasts, // number of broadcasts
 			unicasts, // number of unicasts
+			seq_entry, // returns entries one after the other
 		};
 	};
 };
