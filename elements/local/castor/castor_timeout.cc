@@ -22,22 +22,26 @@ int CastorTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
 }
 
 void CastorTimeout::push(int, Packet* p) {
-	// Create timer
-	Timer* timer = new Timer(this);
-	timer->initialize(this);
-	timer->schedule_after_msec(timeout);
-
 	// Add timer
 	if(CastorPacket::isXcast(p)) {
 		CastorXcastPkt header = CastorXcastPkt(p);
 		// Set timer for each destination individually
 		for(unsigned int i = 0; i < header.getNDestinations(); i++) {
+			Timer* timer = new Timer(this);
+			timer->initialize(this);
+			timer->schedule_after_msec(timeout);
+
 			Entry entry;
 			memcpy(entry.pid, header.getPid(i), sizeof(PacketId));
 			timers.set(timer, entry);
 		}
 	} else {
 		Castor_PKT& header = (Castor_PKT&) *p->data();
+
+		Timer* timer = new Timer(this);
+		timer->initialize(this);
+		timer->schedule_after_msec(timeout);
+
 		Entry entry;
 		memcpy(entry.pid, header.pid, sizeof(PacketId));
 		timers.set(timer, entry);
