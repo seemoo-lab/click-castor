@@ -22,13 +22,13 @@ void CastorRecordPkt::push(int, Packet *p) {
 	if(CastorPacket::getType(p) == CastorType::PKT) {
 		if(CastorPacket::isXcast(p)) {
 			CastorXcastPkt pkt = CastorXcastPkt(p);
-
+			// Add all pids
 			for(unsigned int i = 0; i < pkt.getNDestinations(); i++) {
 				Entry newEntry(pkt.getPid(i));
 				records.push_back(newEntry);
 				numPids++;
 			}
-
+			// Add next hop decision for each destination
 			for(unsigned int i = 0; i < pkt.getNNextHops(); i++) {
 				if(pkt.getNextHop(i) == IPAddress::make_broadcast())
 					broadcastDecisions += pkt.getNextHopNAssign(i);
@@ -76,7 +76,6 @@ String CastorRecordPkt::read_handler(Element *e, void *thunk) {
 			recorder->seq_index++;
 			return sa.take_string();
 		}
-		// TODO implement more statistics
 	default:
 		click_chatter("enum error");
 		return String();

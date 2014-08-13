@@ -253,7 +253,8 @@ void simulate(
 		Time duration,
 		const NetworkConfiguration& netConfig,
 		const TrafficConfiguration& trafficConfig,
-		const MobilityConfiguration& mobilityConfig
+		const MobilityConfiguration& mobilityConfig,
+		std::string outFile
 		) {
 
 	RngSeedManager::SetSeed(12345);
@@ -344,15 +345,16 @@ void simulate(
 	//
 	// Now, do the actual simulation.
 	//
+	time_t start; time(&start);
+	Simulator::Stop(duration + Seconds(6.0));
+	Simulator::Run();
+	time_t end; time(&end);
+
 	NS_LOG_INFO("Run #" << run << " (" << duration.GetSeconds() << " seconds, " << clickConfig.Get() << ")");
 	NS_LOG_INFO("  CONFIG " << netConfig.x << "x" << netConfig.y << ", " << netConfig.nNodes << " nodes @ " << netConfig.range << " range");
 	NS_LOG_INFO("  CONFIG " << trafficConfig.nSenders << " senders -> " << trafficConfig.groupSize << " each, " << trafficConfig.packetSize << " bytes / " << trafficConfig.sendInterval.GetSeconds() << " s");
 	NS_LOG_INFO("  CONFIG " << "speed " << mobilityConfig.speed << ", pause " << mobilityConfig.pause);
 
-	time_t start; time(&start);
-	Simulator::Stop(duration + Seconds(6.0));
-	Simulator::Run();
-	time_t end; time(&end);
 	NS_LOG_INFO("  Done after " << difftime(end, start) << " seconds");
 
 	//
@@ -410,13 +412,16 @@ void simulate(
 		}
 	}
 
-	NS_LOG_INFO("  STAT PDR        " << ((double) numPidsRecv / numPidsSent) << " (" << numPidsRecv << "/" << numPidsSent << ")");
+	double pdr = (double) numPidsRecv / numPidsSent;
+	double delay = avgDelay / numPidsRecv * 1000;
+
+	NS_LOG_INFO("  STAT PDR        " << pdr << " (" << numPidsRecv << "/" << numPidsSent << ")");
 	NS_LOG_INFO("  STAT BU         " << totalBandwidthUsage  << " bytes");
 	NS_LOG_INFO("         for PKT  " << ((double) pktBandwidthUsage / totalBandwidthUsage) << " (" << pktBandwidthUsage << " bytes)");
 	NS_LOG_INFO("         for ACK  " << ((double) ackBandwidthUsage / totalBandwidthUsage) << " (" << ackBandwidthUsage << " bytes)");
 	NS_LOG_INFO("         per PKT  " << ((double) totalBandwidthUsage / numPktsSent) << " bytes");
 	NS_LOG_INFO("         per PID  " << ((double) totalBandwidthUsage / numPidsSent) << " bytes");
-	NS_LOG_INFO("  STAT DELAY      " << (avgDelay / numPidsRecv * 1000) << " ms");
+	NS_LOG_INFO("  STAT DELAY      " << delay << " ms");
 	NS_LOG_INFO("  STAT HOP COUNT  " << numPktsForwarded);
 	NS_LOG_INFO("         per PKT  " << ((double) numPktsForwarded / numPktsSent));
 	NS_LOG_INFO("         per PID  " << ((double) numPktsForwarded / numPidsSent));
@@ -426,6 +431,23 @@ void simulate(
 	// Cleanup
 	//
 	Simulator::Destroy();
+
+	// Write statistics to output file
+	std::ofstream out;
+
+	out.open(outFile.c_str());
+	if(out.fail()) {
+		NS_LOG_ERROR("Could not write to file '" << outFile << "'");
+		return;
+	}
+
+	out << pdr << " "
+		<< totalBandwidthUsage << " "
+		<< pktBandwidthUsage << " "
+		<< ackBandwidthUsage << " "
+		<< delay;
+
+	out.close();
 
 }
 
@@ -476,6 +498,7 @@ int main(int argc, char *argv[]) {
 	std::string networkConfig  = "small";
 	std::string trafficConfig  = "normal";
 	std::string mobilityConfig = "constant";
+	std::string outFile		   = "";
 
 	cmd.AddValue("run",      "The instance of this experiment.",                                           run);
 	cmd.AddValue("duration", "The simulated time in seconds.",                                             duration);
@@ -483,10 +506,11 @@ int main(int argc, char *argv[]) {
 	cmd.AddValue("network",  "The network configuration to use, e.g., 'small', 'medium' or 'large'.",      networkConfig);
 	cmd.AddValue("traffic",  "The traffic configuration to use, e.g., 'normal'.",                          trafficConfig);
 	cmd.AddValue("mobility", "The mobility model and configuration to use, e.g., 'constant' or 'moving'.", mobilityConfig);
+	cmd.AddValue("outfile",  "File for statistics output.",												   outFile);
 
 	cmd.Parse (argc, argv);
 
-	simulate(run, clickConfigs[click], Seconds(duration), networkConfigs[networkConfig], trafficConfigs[trafficConfig], mobilityConfigs[mobilityConfig]);
+	simulate(run, clickConfigs[click], Seconds(duration), networkConfigs[networkConfig], trafficConfigs[trafficConfig], mobilityConfigs[mobilityConfig], outFile);
 
 #else
 	NS_FATAL_ERROR ("Can't use ns-3-click without NSCLICK compiled in");

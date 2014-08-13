@@ -105,7 +105,7 @@ Vector<CastorRoutingTable::RoutingEntry>& CastorRoutingTable::getRoutingTable(co
 
 	// We have not found a matching entry in the table. Create a new one
 	FlowEntry entry(flow, subflow);
-	_flows.push_back(entry); // XXX: this was push_front() before. Why?
+	_flows.push_back(entry);
 	return _flows.back().routes;
 }
 
