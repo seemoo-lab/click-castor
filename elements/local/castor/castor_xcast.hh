@@ -27,7 +27,14 @@ public:
 	static CastorXcastPkt initialize(Packet* p) {
 		WritablePacket* q = p->push(sizeof(FixedSizeHeader));
 		CastorXcastPkt pkt(q);
+
+		// Important to initialize those two to zero,
+		// otherwise next call to setLength() will result in garbage
+		pkt._fixed->nDestinations = 0;
+		pkt._fixed->nNextHops = 0;
+
 		pkt._fixed->length = sizeof(FixedSizeHeader);
+
 		return pkt;
 	}
 
