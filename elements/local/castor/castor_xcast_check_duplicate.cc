@@ -1,7 +1,10 @@
 #include <click/config.h>
 #include <click/confparse.hh>
+
 #include "castor_xcast_check_duplicate.hh"
 #include "castor_xcast.hh"
+
+#include <click/hashtable.hh>
 
 CLICK_DECLS
 
@@ -21,13 +24,13 @@ int CastorXcastCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *err
 void CastorXcastCheckDuplicate::push(int, Packet *p) {
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
-	for(unsigned int i = 0; i < pkt.getNDestinations(); i++)
-		if(history->hasPkt(pkt.getPid(i))) {
-			pkt.removeDestination(pkt.getDestination(i)); // XXX not very efficient to delete one by one
-			i--; // current position has changed, try again
-		}
+	HashTable<uint8_t, uint8_t> alreadySeen;
 
-	bool isDuplicate = pkt.getNDestinations() == 0;
+	for(unsigned int i = 0; i < pkt.getNDestinations(); i++)
+		if(history->hasPkt(pkt.getPid(i)))
+			alreadySeen.set(i, i);
+
+	bool isDuplicate = pkt.getNDestinations() == alreadySeen.size();
 
 	if(isDuplicate) {
 		/**
@@ -36,6 +39,8 @@ void CastorXcastCheckDuplicate::push(int, Packet *p) {
 		 */
 		output(1).push(pkt.getPacket()); // -> discard
 	} else {
+		// Remove destinations
+		pkt.removeDestinations(alreadySeen);
 		pkt.setSingleNextHop(myAddr);
 		output(0).push(pkt.getPacket());
 	}

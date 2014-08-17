@@ -88,7 +88,7 @@ public:
 	 * Removes an IP address and corresponding Pid from the destination list. Does not affect the next hop mapping, i.e., the mapping might be outdated after this call.
 	 * Returns true if the address was removed from the destination list.
 	 */
-	inline bool removeDestination(IPAddress destination) {
+	bool removeDestination(IPAddress destination) {
 		bool found = false;
 		for(unsigned int i = 0; i < getNDestinations(); i++) {
 			found = destination == getDestination(i);
@@ -114,6 +114,25 @@ public:
 			}
 		}
 		return found;
+	}
+
+	void removeDestinations(HashTable<uint8_t, uint8_t>& toBeRemoved) {
+		Vector<IPAddress> dests;
+		Vector<PacketId> pids;
+		for(uint8_t i = 0; i < getNDestinations(); i++) {
+			if(toBeRemoved.find(getDestination(i)) == toBeRemoved.end()) {
+				dests.push_back(getDestination(i));
+				pids.push_back(getPid(i));
+			}
+		}
+
+		setNDestinations(getNDestinations() - toBeRemoved.size());
+
+		// Write pids back
+		for(unsigned int j = 0; j < getNDestinations(); j++) {
+			setDestination(dests[j], j);
+			setPid(pids[j], j);
+		}
 	}
 
 	inline void setSingleDestination(unsigned int i) {
