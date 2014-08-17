@@ -232,12 +232,13 @@ typedef struct NetworkConfiguration {
 } NetworkConfiguration;
 
 typedef struct TrafficConfiguration {
-	size_t nSenders, groupSize;
+	double senderFraction;
+	size_t groupSize;
 	size_t packetSize;
 	Time sendInterval;
-	TrafficConfiguration(size_t nSenders, size_t groupSize, size_t packetSize, Time sendInterval) :
-		nSenders(nSenders), groupSize(groupSize), packetSize(packetSize), sendInterval(sendInterval) {}
-	TrafficConfiguration() : nSenders(0), groupSize(0), packetSize(0), sendInterval(Seconds(0)) {}
+	TrafficConfiguration(double senderFraction, size_t groupSize, size_t packetSize = 256, Time sendInterval = Seconds(0.25)) :
+		senderFraction(senderFraction), groupSize(groupSize), packetSize(packetSize), sendInterval(sendInterval) {}
+	TrafficConfiguration() : senderFraction(0), groupSize(0), packetSize(256), sendInterval(Seconds(0.25)) {}
 } TrafficConfiguration;
 
 typedef struct MobilityConfiguration {
@@ -260,6 +261,8 @@ void simulate(
 	RngSeedManager::SetSeed(12345);
 	RngSeedManager::SetRun(run);
 
+	size_t nSenders = (size_t) round(netConfig.nNodes * trafficConfig.senderFraction);
+
 	uint32_t MaxPacketSize = trafficConfig.packetSize - 28; // IP+UDP header size = 28 byte
 
 	// Network
@@ -276,7 +279,7 @@ void simulate(
 	// 		192.168.201.5 -> 192.168.201.6, 192.168.201.7, 192.168.201.8
 	std::map<Ipv4Address, std::vector<Ipv4Address>, LessIpv4Address> groups; // multicast group -> xcast receivers
 
-	for (unsigned int i = 0, iAddr = 1; i < trafficConfig.nSenders; i++) {
+	for (unsigned int i = 0, iAddr = 1; i < nSenders; i++) {
 		Ipv4Address sender = Ipv4Address(baseAddr.Get() + iAddr);
 		Ipv4Address group = Ipv4Address(groupAddr.Get() + iAddr);
 		std::vector<Ipv4Address> xcastDestinations;
@@ -318,7 +321,7 @@ void simulate(
 		client.SetAttribute("Interval", TimeValue(trafficConfig.sendInterval));
 		client.SetAttribute("PacketSize", UintegerValue(MaxPacketSize));
 		apps = client.Install(NodeContainer(n.Get(nodeIndex)));
-		apps.Start(Seconds(2.0) + trafficConfig.sendInterval / trafficConfig.nSenders * nodeIndex);
+		apps.Start(Seconds(2.0) + trafficConfig.sendInterval / nSenders * nodeIndex);
 		apps.Stop(duration + Seconds(2.0));
 
 		nodeIndex++;
@@ -352,7 +355,7 @@ void simulate(
 
 	NS_LOG_INFO("Run #" << run << " (" << duration.GetSeconds() << " seconds, " << clickConfig.Get() << ")");
 	NS_LOG_INFO("  CONFIG " << netConfig.x << "x" << netConfig.y << ", " << netConfig.nNodes << " nodes @ " << netConfig.range << " range");
-	NS_LOG_INFO("  CONFIG " << trafficConfig.nSenders << " senders -> " << trafficConfig.groupSize << " each, " << trafficConfig.packetSize << " bytes / " << trafficConfig.sendInterval.GetSeconds() << " s");
+	NS_LOG_INFO("  CONFIG " << nSenders << " senders -> " << trafficConfig.groupSize << " each, " << trafficConfig.packetSize << " bytes / " << trafficConfig.sendInterval.GetSeconds() << " s");
 	NS_LOG_INFO("  CONFIG " << "speed " << mobilityConfig.speed << ", pause " << mobilityConfig.pause);
 
 	NS_LOG_INFO("  Done after " << difftime(end, start) << " seconds");
@@ -414,13 +417,14 @@ void simulate(
 
 	double pdr = (double) numPidsRecv / numPidsSent;
 	double delay = avgDelay / numPidsRecv * 1000;
+	double buPerPid = (double) totalBandwidthUsage / numPidsSent;
+	double buPerPidPkt = (double) pktBandwidthUsage / numPidsSent;
+	double buPerPidAck = (double) ackBandwidthUsage / numPidsSent;
 
 	NS_LOG_INFO("  STAT PDR        " << pdr << " (" << numPidsRecv << "/" << numPidsSent << ")");
-	NS_LOG_INFO("  STAT BU         " << totalBandwidthUsage  << " bytes");
-	NS_LOG_INFO("         for PKT  " << ((double) pktBandwidthUsage / totalBandwidthUsage) << " (" << pktBandwidthUsage << " bytes)");
-	NS_LOG_INFO("         for ACK  " << ((double) ackBandwidthUsage / totalBandwidthUsage) << " (" << ackBandwidthUsage << " bytes)");
-	NS_LOG_INFO("         per PKT  " << ((double) totalBandwidthUsage / numPktsSent) << " bytes");
-	NS_LOG_INFO("         per PID  " << ((double) totalBandwidthUsage / numPidsSent) << " bytes");
+	NS_LOG_INFO("  STAT BU per PID " << buPerPid  << " bytes");
+	NS_LOG_INFO("        frac(PKT) " << ((double) buPerPidPkt / buPerPid));
+	NS_LOG_INFO("        frac(ACK) " << ((double) buPerPidAck / buPerPid));
 	NS_LOG_INFO("  STAT DELAY      " << delay << " ms");
 	NS_LOG_INFO("  STAT HOP COUNT  " << numPktsForwarded);
 	NS_LOG_INFO("         per PKT  " << ((double) numPktsForwarded / numPktsSent));
@@ -442,9 +446,9 @@ void simulate(
 	}
 
 	out << pdr << " "
-		<< totalBandwidthUsage << " "
-		<< pktBandwidthUsage << " "
-		<< ackBandwidthUsage << " "
+		<< buPerPid << " "
+		<< buPerPidPkt << " "
+		<< buPerPidAck << " "
 		<< delay;
 
 	out.close();
@@ -467,11 +471,19 @@ int main(int argc, char *argv[]) {
 		large  (3000.0, 3000.0, 500.0, 100);
 
 	TrafficConfiguration
-		normal (3, 3, 256, Seconds(0.25));
+		fivetoone (0.05, 1), // Configuration as in Castor paper
+		fiftytoone(0.5, 1),
+		twentyfivetotwo(0.25, 2),
+		tentofive (0.1, 5),
+		fivetoten (0.05, 10),
+		fivetofive(0.05,  5),
+		tentotwo  (0.1,   2),
+		twentytoone  (0.2,   1);
 
 	MobilityConfiguration
-		constant ( 0.0, 0.0),
-		moving   (20.0, 0.0);
+		zero   ( 0.0, 0.0),
+		ten    (10.0, 0.0),
+		twenty (20.0, 0.0);
 
 	std::map<std::string, StringValue> clickConfigs;
 	clickConfigs.insert(std::make_pair("xcast", xcast));
@@ -479,12 +491,19 @@ int main(int argc, char *argv[]) {
 	std::map<std::string, NetworkConfiguration> networkConfigs;
 	networkConfigs.insert(std::make_pair("small", small));
 	networkConfigs.insert(std::make_pair("medium", medium));
-	networkConfigs.insert(std::make_pair("large", large));
+	networkConfigs.insert(std::make_pair("large", large)); // as in Castor
 	std::map<std::string, TrafficConfiguration> trafficConfigs;
-	trafficConfigs.insert(std::make_pair("normal", normal));
+	trafficConfigs.insert(std::make_pair("5_1", fivetoone)); // as in Castor (5 unicast flows @ 100 nodes)
+	trafficConfigs.insert(std::make_pair("50_1", fiftytoone));
+	trafficConfigs.insert(std::make_pair("25_2", twentyfivetotwo));
+	trafficConfigs.insert(std::make_pair("10_5", tentofive));
+	trafficConfigs.insert(std::make_pair("5_5", fivetofive));
+	trafficConfigs.insert(std::make_pair("10_2", tentotwo));
+	trafficConfigs.insert(std::make_pair("20_1", twentytoone));
 	std::map<std::string, MobilityConfiguration> mobilityConfigs;
-	mobilityConfigs.insert(std::make_pair("constant", constant));
-	mobilityConfigs.insert(std::make_pair("moving", moving));
+	mobilityConfigs.insert(std::make_pair("0", zero));
+	mobilityConfigs.insert(std::make_pair("10", ten));
+	mobilityConfigs.insert(std::make_pair("20", twenty)); // as in Castor
 
 	// Enable logging
 	LogComponentEnable("NsclickCastor", LOG_LEVEL_INFO);
