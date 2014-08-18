@@ -7,14 +7,12 @@ elementclass CastorLocalXcastPkt {
 		-> rec :: CastorRecordPkt
 		//-> CastorPrint('Arrived at destination', $myIP)
 		-> CastorAddXcastPktToHistory($history)
-		-> genAck :: CastorXcastCreateAck($myIP)
+		-> genAck :: CastorXcastCreateAck
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT
 		//-> CastorPrint('Generated', $myIP)
 		-> CastorAddAckToHistory($crypto, $history)
-		-> recAck :: CastorRecordPkt
-		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> [1]output; // Push ACKs to output 1
 
 	// If invalid -> discard
@@ -29,10 +27,10 @@ elementclass CastorForwardXcastPkt {
 	$myIP, $routingtable, $history |
 
 	input
-		//-> CastorPrint('Forwarding', $myIP)
 		-> CastorXcastLookupRoute($routingtable)		// Lookup the route for the packet
 		-> CastorAddXcastPktToHistory($history)
 		-> CastorTimeout($routingtable, $history, $timeout, $myIP, false)
+		//-> CastorPrint('Forwarding', $myIP)
 		-> rec :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
 		-> output;
@@ -60,6 +58,13 @@ elementclass CastorHandleXcastPkt{
 		-> [0]output;
 
 	handleLocal[1]
+		-> sendAck :: CastorSendAck($myIP)
+		-> [1]output;
+	
+	// Need to retransmit ACK
+	checkDuplicate[1]
+		-> CastorRetransmitAck($history, $myIP)
+		-> sendAck
 		-> [1]output;
 	
 	// PKT needs to be forwarded
@@ -72,8 +77,9 @@ elementclass CastorHandleXcastPkt{
 	forwarderClassifier[1]
 		//-> CastorPrint("Node not in forwarder list", $myIP)
 		-> null;
-	checkDuplicate[1]
+	checkDuplicate[2]
 		//-> CastorPrint("Duplicate", $myIP)
+		-> CastorAddPKTToHistory($history) // Add sender to history
 		-> null;
 	validate[1]
 		-> CastorPrint("Flow authentication failed", $myIP)

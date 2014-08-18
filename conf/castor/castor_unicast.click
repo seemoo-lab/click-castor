@@ -13,8 +13,6 @@ elementclass CastorLocalPkt {
 	genAck[1] // Generate ACK for received PKT
 		//-> CastorPrint('Generated', $myIP)
 		-> CastorAddAckToHistory($crypto, $history)
-		-> recAck :: CastorRecordPkt
-		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
 		-> [1]output; // Push ACKs to output 1
 
 	// If invalid -> discard
@@ -29,10 +27,10 @@ elementclass CastorForwardPkt {
 	$myIP, $routingtable, $history |
 
 	input
-		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> CastorLookupRoute($routingtable)		// Lookup the route for the packet
 		-> CastorAddPKTToHistory($history)
 		-> CastorTimeout($routingtable, $history, $timeout, $myIP, false)
+		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> rec :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
 		-> output;
@@ -59,6 +57,13 @@ elementclass CastorHandlePkt {
 		-> [0]output;
 
 	handleLocal[1]
+		-> sendAck :: CastorSendAck($myIP)
+		-> [1]output;
+	
+	// Need to retransmit ACK
+	checkDuplicate[1]
+		-> CastorRetransmitAck($history, $myIP)
+		-> sendAck
 		-> [1]output;
 	
 	// PKT needs to be forwarded
@@ -68,8 +73,9 @@ elementclass CastorHandlePkt {
 
 	// If invalid or duplicate -> discard
 	null :: Discard;
-	checkDuplicate[1]
+	checkDuplicate[2]
 		//-> CastorPrint("Duplicate", $myIP)
+		-> CastorAddPKTToHistory($history) // Add sender to history
 		-> null;
 	validate[1]
 		-> CastorPrint("Flow authentication failed", $myIP)

@@ -51,7 +51,7 @@ elementclass CastorClassifier {
 		-> MarkIPHeader
 		-> CheckIPHeader
 		-> ipclassifier :: IPClassifier(ip proto $CASTORTYPE, -)
-		-> annotateSenderAddress :: GetIPAddress(12)
+		-> annotateSenderAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
 		-> StripIPHeader
 		-> cclassifier :: Classifier(0/c?, 0/a?);
 
@@ -66,6 +66,15 @@ elementclass CastorClassifier {
 
 }
 
+elementclass CastorSendAck {
+	$myIP |
+	
+	input
+		-> recAck :: CastorRecordPkt
+		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)
+		-> output;
+}
+
 elementclass CastorHandleAck{
 	$myIP, $routingtable, $history, $crypto |
 
@@ -74,10 +83,11 @@ elementclass CastorHandleAck{
 		-> calcPid :: CastorAnnotatePid($crypto)
 		-> validate :: CastorValidateACK($crypto, $history)
 		-> updateEstimates :: CastorUpdateEstimates($crypto, $routingtable, $history)
+		-> CastorSetAckNexthop($history)
 		-> CastorAddAckToHistory($crypto, $history)
 		//-> CastorPrint('Received valid', $myIP)
 		-> recAck :: CastorRecordPkt
-		-> IPEncap($CASTORTYPE, $myIP, 255.255.255.255)
+		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)
 		-> output;
 
 	// Discarding...

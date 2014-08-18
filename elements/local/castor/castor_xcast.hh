@@ -142,6 +142,25 @@ public:
 		}
 	}
 
+	void keepDestinations(HashTable<uint8_t, uint8_t>& toRemain) {
+		Vector<IPAddress> dests;
+		Vector<PacketId> pids;
+		for(uint8_t i = 0; i < getNDestinations(); i++) {
+			if(toRemain.find(i) != toRemain.end()) {
+				dests.push_back(getDestination(i));
+				pids.push_back(getPid(i));
+			}
+		}
+
+		setNDestinations(toRemain.size());
+
+		// Write pids back
+		for(unsigned int j = 0; j < getNDestinations(); j++) {
+			setDestination(dests[j], j);
+			setPid(pids[j], j);
+		}
+	}
+
 	inline void setSingleDestination(unsigned int i) {
 		IPAddress destination = getDestination(i);
 		PacketId pid;
@@ -207,7 +226,8 @@ public:
 		if(full) {
 			String sfid = CastorPacket::hexToString(getFlowId(), getHashSize());
 			String sauth = CastorPacket::hexToString(getAckAuth(), getHashSize());
-			sa << "   | From:\t" << _p->dst_ip_anno() << "\n";
+			sa << "   | From:\t" << CastorPacket::src_ip_anno(_p) << "\n";
+			sa << "   | To:\t" << _p->dst_ip_anno() << "\n";
 			sa << "   | Type:\tXcast PKT (header " <<  getHeaderLength() << " / payload " << getPayloadLength() << " bytes)\n";
 			sa << "   | Flow:\t" << getSource() << " -> " << getMulticastGroup() << "\n";
 			for(unsigned int i = 0; i < getNDestinations(); i++)
@@ -229,7 +249,7 @@ public:
 				sa << "\n";
 			}
 		} else {
-			sa << "Xcast PKT (from " << _p->dst_ip_anno() << ", flow " << getSource() << " -> ";
+			sa << "Xcast PKT (from " << CastorPacket::src_ip_anno(_p) << ", flow " << getSource() << " -> ";
 			sa << getDestination(0);
 			for(unsigned int i = 1; i < getNDestinations(); i++)
 				sa << ", " << getDestination(i);

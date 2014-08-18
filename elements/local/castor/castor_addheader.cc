@@ -54,6 +54,8 @@ void CastorAddHeader::push(int, Packet *p) {
 		memcpy(&header->eauth, &label.ack_auth, sizeof(Hash));
 	}
 
+	CastorPacket::set_src_ip_anno(p, header->src);
+
 	output(0).push(q);
 
 }

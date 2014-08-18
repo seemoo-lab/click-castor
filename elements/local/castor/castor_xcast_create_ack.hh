@@ -18,11 +18,7 @@ public:
 	const char *port_count() const { return "1/2"; }
 	const char *processing() const { return PUSH; }
 
-	int configure(Vector<String> &conf, ErrorHandler *errh);
-
 	void push(int, Packet *);
-private:
-	IPAddress myAddr;
 };
 
 CLICK_ENDDECLS

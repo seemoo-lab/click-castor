@@ -20,9 +20,9 @@ void CastorCreateAck::push(int, Packet* p) {
 	ack.len = sizeof(Castor_ACK);
 	memcpy(ack.auth, CastorPacket::getCastorAnno(p), sizeof(ACKAuth));
 
-	// Broadcast ACK
 	WritablePacket* q = Packet::make(&ack, sizeof(Castor_ACK));
-	q->set_dst_ip_anno(((Castor_PKT*) p)->dst); // Set DST_ANNO for AddAckToHistory
+	CastorPacket::set_src_ip_anno(q, ((Castor_PKT*) p)->dst); // We are source of ACK
+	q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Set DST_ANNO to source of PKT
 
 	output(0).push(p); // PKT -> output 0
 	output(1).push(q); // ACK -> output 1

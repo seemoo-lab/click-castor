@@ -13,14 +13,6 @@ CastorXcastCreateAck::CastorXcastCreateAck() {
 CastorXcastCreateAck::~CastorXcastCreateAck() {
 }
 
-int CastorXcastCreateAck::configure(Vector<String> &conf, ErrorHandler *errh) {
-	if(Args(conf, this, errh)
-			.read_mp("ADDR", myAddr)
-			.complete() < 0)
-		return -1;
-	return 0;
-}
-
 void CastorXcastCreateAck::push(int, Packet* p) {
 	// Generate new ACK
 	CastorXcastAck ack;
@@ -31,7 +23,8 @@ void CastorXcastCreateAck::push(int, Packet* p) {
 
 	// Broadcast ACK
 	WritablePacket* q = Packet::make(&ack, sizeof(CastorXcastAck));
-	q->set_dst_ip_anno(myAddr);
+	CastorPacket::set_src_ip_anno(q, CastorXcastPkt(p).getDestination(0)); // We are source of ACK
+	q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Set DST_ANNO to source of PKT
 
 	output(0).push(p); // PKT -> output 0
 	output(1).push(q); // ACK -> output 1

@@ -43,9 +43,6 @@ void CastorXcastSetFixedHeader::push(int, Packet *p) {
 	pkt.setKPkt(label.packet_number);
 	pkt.setAckAuth(label.ack_auth);
 
-	pkt.setNDestinations(0);
-	pkt.setNNextHops(0);
-
 	output(0).push(pkt.getPacket());
 
 }

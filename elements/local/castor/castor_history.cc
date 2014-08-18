@@ -12,15 +12,54 @@ CastorHistory::CastorHistory() {
 CastorHistory::~CastorHistory() {
 }
 
-void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, IPAddress nextHop, IPAddress destination) {
-	CastorHistoryEntry entry;
-	entry.destination = destination;
-	entry.nextHop = nextHop;
-	entry.expired = false;
-	entry.recievedACKs = Vector<IPAddress>();
-	memcpy(&entry.fid, fid, sizeof(FlowId));
+void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, IPAddress prevHop, IPAddress nextHop, IPAddress destination) {
+	CastorHistoryEntry* entry = getEntry(pid);
+	assert(prevHop.addr() != 0);
+	if(!entry) {
+		CastorHistoryEntry entry;
+		entry.destination = destination;
+		entry.prevHops.push_back(prevHop);
+		entry.nextHop = nextHop;
+		entry.expired = false;
+		entry.recievedACKs = Vector<IPAddress>();
+		memcpy(&entry.fid, &fid, sizeof(FlowId));
+		history.set(pidToKey(pid), entry);
+	} else {
+		// Entry already exists, just add prevHop to list if it does not already exist
+		bool alreadyContains = false;
+		for (int i = 0; i < entry->prevHops.size(); i++) {
+			if (entry->prevHops[i] == prevHop) {
+				alreadyContains = true;
+				break;
+			}
+		}
+		if(!alreadyContains)
+			entry->prevHops.push_back(prevHop);
+	}
+}
 
-	history.set(pidToKey(pid), entry);
+bool CastorHistory::addAckFor(const PacketId& pid, IPAddress addr, const ACKAuth& ackAuth) {
+	CastorHistoryEntry* entry = getEntry(pid);
+	if(!entry) {
+		// Received an ACK for an unknown Packet, do not care
+		click_chatter("Error: trying to add ACK for unknown PKT");
+		return false;
+	}
+	entry->recievedACKs.push_back(addr);
+	memcpy(&entry->ackAuth, &ackAuth, sizeof(ACKAuth));
+	return true;
+}
+
+bool CastorHistory::addAckFor(const PacketId& pid, IPAddress addr, const EACKAuth& ackAuth) {
+	CastorHistoryEntry* entry = getEntry(pid);
+	if(!entry) {
+		// Received an ACK for an unknown Packet, do not care
+		click_chatter("Error: trying to add ACK for unknown PKT");
+		return false;
+	}
+	entry->recievedACKs.push_back(addr);
+	memcpy(&entry->eAckAuth, &ackAuth, sizeof(EACKAuth));
+	return true;
 }
 
 bool CastorHistory::addAckFor(const PacketId& pid, IPAddress addr) {
@@ -30,8 +69,19 @@ bool CastorHistory::addAckFor(const PacketId& pid, IPAddress addr) {
 		click_chatter("Error: trying to add ACK for unknown PKT");
 		return false;
 	}
+	assert(entry->recievedACKs.size() > 0);
 	entry->recievedACKs.push_back(addr);
 	return true;
+}
+
+bool CastorHistory::hasPktFrom(const PacketId& pid, IPAddress addr) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	if (entry) {
+		for (int i = 0; i < entry->prevHops.size(); i++)
+			if (entry->prevHops[i] == addr)
+				return true;
+	}
+	return false;
 }
 
 bool CastorHistory::hasPkt(const PacketId& pid) const {
@@ -54,6 +104,15 @@ bool CastorHistory::hasAckFrom(const PacketId& pid, IPAddress addr) const {
 	return false;
 }
 
+size_t CastorHistory::getPkts(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry->prevHops.size();
+}
+const Vector<IPAddress>& CastorHistory::getPktSenders(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry->prevHops;
+}
+
 size_t CastorHistory::getAcks(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->recievedACKs.size();
@@ -62,6 +121,16 @@ size_t CastorHistory::getAcks(const PacketId& pid) const {
 const FlowId& CastorHistory::getFlowId(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->fid;
+}
+
+const EACKAuth& CastorHistory::getEAckAuth(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry->eAckAuth;
+}
+
+const ACKAuth& CastorHistory::getAckAuth(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry->ackAuth;
 }
 
 IPAddress CastorHistory::getDestination(const PacketId& pid) const {

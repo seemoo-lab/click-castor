@@ -19,8 +19,7 @@ int CastorAddPKTToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorAddPKTToHistory::push(int, Packet *p){
 	Castor_PKT& pkt = (Castor_PKT&) *p->data();
 
-	IPAddress nextHop = p->dst_ip_anno();
-	history->addPkt(pkt.pid, pkt.fid, nextHop, pkt.dst);
+	history->addPkt(pkt.pid, pkt.fid, CastorPacket::src_ip_anno(p), p->dst_ip_anno(), pkt.dst);
 
 	output(0).push(p);
 }

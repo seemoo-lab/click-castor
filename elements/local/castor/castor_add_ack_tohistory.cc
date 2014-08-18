@@ -27,17 +27,25 @@ int CastorAddAckToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void CastorAddAckToHistory::push(int, Packet *p) {
 
-	PacketId pid;
-
 	if(CastorPacket::isXcast(p)) {
+		PacketId pid;
 		CastorXcastAck& ack = (CastorXcastAck&) *p->data();
 		crypto->hash(pid, ack.auth, ack.esize);
+		if (history->hasAck(pid)) {
+			history->addAckFor(pid, CastorPacket::src_ip_anno(p));
+		} else {
+			history->addAckFor(pid, CastorPacket::src_ip_anno(p), ack.auth);
+		}
 	} else {
+		PacketId pid;
 		Castor_ACK& ack = (Castor_ACK&) *p->data();
 		crypto->hash(pid, ack.auth, ack.hsize);
+		if (history->hasAck(pid)) {
+			history->addAckFor(pid, CastorPacket::src_ip_anno(p));
+		} else {
+			history->addAckFor(pid, CastorPacket::src_ip_anno(p), ack.auth);
+		}
 	}
-
-	history->addAckFor(pid, p->dst_ip_anno());
 
 	output(0).push(p);
 }

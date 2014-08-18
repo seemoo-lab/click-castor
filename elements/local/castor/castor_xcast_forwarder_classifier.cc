@@ -31,10 +31,19 @@ void CastorXcastForwarderClassifier::push(int, Packet *p) {
 		}
 	}
 
-	if(destinations.empty()) {
-		output(1).push(pkt.getPacket()); // Node is not in the forwarder list -> discard
-		return;
-	}
+	// FIXME re-initialte
+//	if(destinations.empty()) {
+//		// if we are destination -> deliver
+//		for (unsigned int i = 0; i < pkt.getNDestinations(); i++)
+//			if (pkt.getDestination(i) == myAddr) {
+//				pkt.setSingleDestination(i);
+//				pkt.setSingleNextHop(myAddr);
+//				output(0).push(pkt.getPacket());
+//				return;
+//			}
+//		output(1).push(pkt.getPacket()); // Node is not in the forwarder list -> discard
+//		return;
+//	}
 
 	// Cleanup destination and pid lists
 	Vector<PacketId> pids;

@@ -28,8 +28,8 @@ void CastorUpdateEstimates::push(int, Packet *p){
 	const FlowId& fid = _history->getFlowId(pid);
 	IPAddress subfid = _history->getDestination(pid);
 	IPAddress routedTo = _history->routedTo(pid);
-	IPAddress from = p->dst_ip_anno();
-	bool isFirstAck = _history->getAcks(pid) == 0;
+	IPAddress from = CastorPacket::src_ip_anno(p);
+	bool isFirstAck = !_history->hasAck(pid);
 
 	if (routedTo == IPAddress::make_broadcast()) {
 		// PKT was broadcast

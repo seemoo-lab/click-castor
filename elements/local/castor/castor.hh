@@ -98,12 +98,20 @@ public:
 		return false;
 	}
 
+	static inline IPAddress src_ip_anno(const Packet* p) {
+		return IPAddress(p->anno_u32(src_ip_anno_offset));
+	}
+
+	static inline void set_src_ip_anno(Packet* p, IPAddress addr) {
+		p->set_anno_u32(src_ip_anno_offset, addr.addr());
+	}
+
 	/**
 	 * User annotation space for Castor
 	 */
 	static inline uint8_t* getCastorAnno(Packet* p) {
 		uint8_t* cAnno = p->anno_u8();
-		cAnno += DST_IP_ANNO_OFFSET + DST_IP_ANNO_SIZE;
+		cAnno += castor_anno_offset;
 		return cAnno;
 	}
 
@@ -121,6 +129,10 @@ public:
 		}
 		return String(buffer);
 	}
+
+private:
+	static const uint8_t src_ip_anno_offset = DST_IP_ANNO_OFFSET + DST_IP_ANNO_SIZE;
+	static const uint8_t castor_anno_offset = DST_IP_ANNO_OFFSET + 2 * DST_IP_ANNO_SIZE;
 
 };
 

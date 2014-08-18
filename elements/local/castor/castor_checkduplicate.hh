@@ -13,7 +13,7 @@ class CastorCheckDuplicate : public Element {
 		~CastorCheckDuplicate();
 
 		const char *class_name() const	{ return "CastorCheckDuplicate"; }
-		const char *port_count() const	{ return "1/2"; }
+		const char *port_count() const	{ return "1/3"; }
 		const char *processing() const	{ return PUSH; }
 		int configure(Vector<String>&, ErrorHandler*);
 

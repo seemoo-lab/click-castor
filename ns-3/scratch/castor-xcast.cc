@@ -381,7 +381,7 @@ void simulate(
 	std::string pktSend = "handleIpPacket/rec";
 	std::string pktDeliver = "handlepkt/handleLocal/rec";
 	std::string ackForward = "handleack/recAck";
-	std::string ackSend = "handlepkt/handleLocal/recAck";
+	std::string ackSend = "handlepkt/sendAck/recAck";
 	for(unsigned int i = 0; i < netConfig.nNodes; i++) {
 		numPidsSent += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktSend);
 		numPidsRecv += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDeliver);

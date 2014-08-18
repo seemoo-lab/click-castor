@@ -44,14 +44,15 @@ void CastorPrint::push(int, Packet *p){
 				String sfid = CastorPacket::hexToString(pkt.fid, sizeof(FlowId));
 				String seauth = CastorPacket::hexToString(pkt.eauth, sizeof(EACKAuth));
 				sa << "\n";
-				sa << "   | From: \t" << p->dst_ip_anno() << "\n";
+				sa << "   | From: \t" << CastorPacket::src_ip_anno(p) << "\n";
+				sa << "   | To: \t" << p->dst_ip_anno() << "\n";
 				sa << "   | Type: \tPKT (header " <<  pkt.len << " / payload " << (p->length() - pkt.len) << " bytes)\n";
 				sa << "   | Flow: \t" << pkt.src << " -> " << pkt.dst << "\n";
 				sa << "   | Flow ID: \t" << sfid << "\n";
 				sa << "   | Pkt ID: \t" << spid << " (" << (pkt.packet_num + 1) << "/" << (1 << pkt.fsize) << ")\n";
 				sa << "   | Enc Auth: \t" << seauth;
 			} else {
-				sa << "PKT (from " << p->dst_ip_anno() << ", flow " << pkt.src << " -> " << pkt.dst << ")";
+				sa << "PKT (from " << CastorPacket::src_ip_anno(p) << ", flow " << pkt.src << " -> " << pkt.dst << ")";
 			}
 		}
 
@@ -63,16 +64,17 @@ void CastorPrint::push(int, Packet *p){
 		String sauth = CastorPacket::hexToString(ack.auth, sizeof(ACKAuth));
 		if(_fullpkt) {
 			sa << "\n";
-			sa << "   | From: \t" << p->dst_ip_anno() << "\n";
+			sa << "   | From: \t" << CastorPacket::src_ip_anno(p) << "\n";
+			sa << "   | To: \t" << p->dst_ip_anno() << "\n";
 			sa << "   | Type: \tACK  (" <<  ack.len << " bytes)\n";
 			sa << "   | Auth: \t" << sauth << "\n";
 		} else {
-			sa << "ACK (from " << p->dst_ip_anno() << "): " << sauth;
+			sa << "ACK (from " << CastorPacket::src_ip_anno(p) << "): " << sauth;
 		}
 
 	} else {
 
-		sa << "Unknown type (from " << p->dst_ip_anno() << ")";
+		sa << "Unknown type (from " << CastorPacket::src_ip_anno(p) << ")";
 
 	}
 

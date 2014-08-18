@@ -25,8 +25,10 @@ void CastorXcastLookupRoute::push(int, Packet *p){
 
 	HashTable<IPAddress,Vector<unsigned int> > map;
 
+	size_t nDestinations = pkt.getNDestinations();
+
 	// Lookup routes
-	for(unsigned int i = 0; i < pkt.getNDestinations(); i++) {
+	for(unsigned int i = 0; i < nDestinations; i++) {
 		IPAddress nextHop = _table->lookup(pkt.getFlowId(), pkt.getDestination(i));
 		if(!map.get_pointer(nextHop))
 			map.set(nextHop, Vector<unsigned int>());
@@ -41,7 +43,8 @@ void CastorXcastLookupRoute::push(int, Packet *p){
 	IPAddress nexthop = pkt.getNNextHops() == 1 ? pkt.getNextHop(0) : IPAddress::make_broadcast();
 	pkt.getPacket()->set_dst_ip_anno(nexthop);
 
-    output(0).push(pkt.getPacket());
+	output(0).push(pkt.getPacket());
+
 }
 
 CLICK_ENDDECLS

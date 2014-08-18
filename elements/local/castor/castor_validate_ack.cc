@@ -26,7 +26,7 @@ int CastorValidateACK::configure(Vector<String>& conf, ErrorHandler* errh) {
 void CastorValidateACK::push(int, Packet* p) {
 
 	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
-	const IPAddress src = p->dst_ip_anno();
+	const IPAddress src = CastorPacket::src_ip_anno(p);
 
 	if(!history->hasPkt(pid)) {
 		output(1).push(p); // never forwarded corresponding PKT -> discard
