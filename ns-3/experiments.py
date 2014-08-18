@@ -2,13 +2,14 @@ import multiprocessing
 import subprocess
 import operator
 import os
+import sys
 
 # Settings: possible values are defined in 'castor-xcast.cc'
-runs       = range(1,21) # 20 runs
-duration   = 60.0 * 10.0 # 10 min
+runs       = range(1,2) # 20 runs
+duration   = 60.0 * 1.0 # 10 min
 clicks     = ["xcast", "regular"]
-networks   = ["large"]#, "small"]#, "large"]
-traffics   = ["20_1", "10_2", "5_5"]
+networks   = ["medium"]#, "small"]#, "large"]
+traffics   = ["5_5"]#, "10_2", "5_5"]
 mobilities = ["10"]
 
 def generate_cmd():
@@ -67,7 +68,14 @@ def num(s):
     except ValueError:
         return float(s)
 
-if __name__ == '__main__':
+def main():
+    print "Pre-Build experiment"
+    result = subprocess.call(["./waf", "build"])
+    
+    if result:
+        print >>sys.stderr, "Failed to build experiment, stop"
+        return result
+    
     print "Start experiments on " + `multiprocessing.cpu_count()` + " core(s)"
     pool = multiprocessing.Pool(None) # use 'multiprocessing.cpu_count()' cores
     pool.map_async(subprocess.call, generate_cmd())
@@ -76,4 +84,8 @@ if __name__ == '__main__':
     
     print "Evaluate experiments"
     evaluate()
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
     

@@ -127,7 +127,7 @@ public:
 		Vector<IPAddress> dests;
 		Vector<PacketId> pids;
 		for(uint8_t i = 0; i < getNDestinations(); i++) {
-			if(toBeRemoved.find(getDestination(i)) == toBeRemoved.end()) {
+			if(toBeRemoved.find(i) == toBeRemoved.end()) {
 				dests.push_back(getDestination(i));
 				pids.push_back(getPid(i));
 			}

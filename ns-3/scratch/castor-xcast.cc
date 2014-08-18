@@ -497,6 +497,7 @@ int main(int argc, char *argv[]) {
 	trafficConfigs.insert(std::make_pair("50_1", fiftytoone));
 	trafficConfigs.insert(std::make_pair("25_2", twentyfivetotwo));
 	trafficConfigs.insert(std::make_pair("10_5", tentofive));
+	trafficConfigs.insert(std::make_pair("5_10", fivetoten));
 	trafficConfigs.insert(std::make_pair("5_5", fivetofive));
 	trafficConfigs.insert(std::make_pair("10_2", tentotwo));
 	trafficConfigs.insert(std::make_pair("20_1", twentytoone));
@@ -515,8 +516,8 @@ int main(int argc, char *argv[]) {
 	double duration = 60.0;
 	std::string click          = "xcast";
 	std::string networkConfig  = "small";
-	std::string trafficConfig  = "normal";
-	std::string mobilityConfig = "constant";
+	std::string trafficConfig  = "5_5";
+	std::string mobilityConfig = "10";
 	std::string outFile		   = "";
 
 	cmd.AddValue("run",      "The instance of this experiment.",                                           run);
