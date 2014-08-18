@@ -27,6 +27,8 @@
 #include "ns3/ipv4-click-routing.h"
 #include "ns3/click-internet-stack-helper.h"
 #include "ns3/random-variable-stream.h"
+#include "ns3/flow-monitor-module.h"
+#include "ns3/config.h"
 
 using namespace ns3;
 
@@ -37,6 +39,14 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("NsclickCastor");
 
 #ifdef NS3_CLICK
+
+uint32_t phyTx = 0;
+
+void
+PhyTx(Ptr<const Packet> p)
+{
+	phyTx += p->GetSize();
+}
 
 std::string readStringStat(Ptr<Ipv4ClickRouting> clickRouter, std::string what, std::string where) {
 	return clickRouter->ReadHandler(where, what);
@@ -345,6 +355,12 @@ void simulate(
 			Simulator::Schedule(Seconds(0.5), &WriteXcastMap, n.Get(i)->GetObject<Ipv4ClickRouting>(), it->first, it->second);
 	}
 
+	  // Install FlowMonitor on all nodes
+	  FlowMonitorHelper flowmon;
+	  Ptr<FlowMonitor> monitor = flowmon.InstallAll();
+
+	  Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback(&PhyTx));
+
 	//
 	// Now, do the actual simulation.
 	//
@@ -417,14 +433,15 @@ void simulate(
 
 	double pdr = (double) numPidsRecv / numPidsSent;
 	double delay = avgDelay / numPidsRecv * 1000;
-	double buPerPid = (double) totalBandwidthUsage / numPidsSent;
+	double buPerPidNet = (double) totalBandwidthUsage / numPidsSent;
+	double buPerPidPhy = (double) phyTx / numPidsSent;
 	double buPerPidPkt = (double) pktBandwidthUsage / numPidsSent;
 	double buPerPidAck = (double) ackBandwidthUsage / numPidsSent;
 
 	NS_LOG_INFO("  STAT PDR        " << pdr << " (" << numPidsRecv << "/" << numPidsSent << ")");
-	NS_LOG_INFO("  STAT BU per PID " << buPerPid  << " bytes");
-	NS_LOG_INFO("        frac(PKT) " << ((double) buPerPidPkt / buPerPid));
-	NS_LOG_INFO("        frac(ACK) " << ((double) buPerPidAck / buPerPid));
+	NS_LOG_INFO("  STAT BU per PID " << buPerPidPhy  << " (phy), " << buPerPidNet << " (net) bytes");
+	NS_LOG_INFO("        frac(PKT) " << ((double) buPerPidPkt / buPerPidNet));
+	NS_LOG_INFO("        frac(ACK) " << ((double) buPerPidAck / buPerPidNet));
 	NS_LOG_INFO("  STAT DELAY      " << delay << " ms");
 	NS_LOG_INFO("  STAT HOP COUNT  " << numPktsForwarded);
 	NS_LOG_INFO("         per PKT  " << ((double) numPktsForwarded / numPktsSent));
@@ -446,9 +463,9 @@ void simulate(
 	}
 
 	out << pdr << " "
-		<< buPerPid << " "
-		<< buPerPidPkt << " "
-		<< buPerPidAck << " "
+		<< buPerPidNet << " "
+		<< ((double) buPerPidPkt * (buPerPidPhy/buPerPidNet)) << " "
+		<< ((double) buPerPidAck * (buPerPidPhy/buPerPidNet)) << " "
 		<< delay;
 
 	out.close();
