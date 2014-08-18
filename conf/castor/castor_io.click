@@ -1,14 +1,39 @@
 /**
+ * Delays MAC layer broadcast frames by '$jitter' milliseconds
+ */
+elementclass BroadcastDelayer {
+	$broadcastJitter, $unicastJitter, $isSimulator |
+	
+	input[0]
+		-> MarkIPHeader(14)
+		-> dstFilter :: IPClassifier(dst host 255.255.255.255, -)
+		
+	dstFilter[0]
+		-> Queue
+		-> JitterUnqueue($broadcastJitter, $isSimulator) // 'true' set for simulator -> much better performance
+		-> output;
+	
+	dstFilter[1]
+		-> Queue
+		-> JitterUnqueue($unicastJitter, $isSimulator) // 'true' set for simulator -> much better performance
+		-> output;
+	
+}
+
+/**
  * Handle output to the Ethernet device
  */
 elementclass OutputEth{ 
-	$myEthDev, $jitter |
+	$myEthDev, $broadcastJitter, $unicastJitter |
 
 	input[0]
+		-> BroadcastDelayer($broadcastJitter, $unicastJitter, true)
 		-> Queue
-		-> JitterUnqueue($jitter, true) // 'true' set for simulator -> much better performance
 		-> ethdev :: ToSimDevice($myEthDev);
+
 }
+
+
 
 /**
  * Handle incoming packets on Ethernet device

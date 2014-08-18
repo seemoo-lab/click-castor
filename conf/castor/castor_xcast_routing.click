@@ -10,7 +10,7 @@ require(
  *************************/
 
 ethin :: InputEth($EthDev, fake);
-ethout :: OutputEth($EthDev, $jitter);
+ethout :: OutputEth($EthDev, $broadcastJitter, $unicastJitter);
 fromhost :: FromHost($HostDev, fake);
 tohost :: ToHost($HostDev);
 
