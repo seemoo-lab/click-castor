@@ -463,6 +463,7 @@ void simulate(
 	}
 
 	out << pdr << " "
+		<< buPerPidPhy << " "
 		<< buPerPidNet << " "
 		<< ((double) buPerPidPkt * (buPerPidPhy/buPerPidNet)) << " "
 		<< ((double) buPerPidAck * (buPerPidPhy/buPerPidNet)) << " "
