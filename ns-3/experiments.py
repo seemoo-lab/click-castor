@@ -1,15 +1,15 @@
 import multiprocessing
 import subprocess
-import operator
-import os
 import sys
+import numpy
+import scipy.stats
 
 # Settings: possible values are defined in 'castor-xcast.cc'
-runs       = range(1,2) # 20 runs
-duration   = 60.0 * 1.0 # 10 min
+runs       = range(1,21) # 20 runs
+duration   = 60.0 * 10.0 # 10 min
 clicks     = ["xcast", "regular"]
-networks   = ["medium"]#, "small"]#, "large"]
-traffics   = ["5_5"]#, "10_2", "5_5"]
+networks   = ["large"]
+traffics   = ["4_5"] #, "4_5", "10_2", "20_1"]
 mobilities = ["10"]
 
 def generate_cmd():
@@ -40,33 +40,48 @@ def evaluate():
 
 def average_runs(fileprefix, clicks):
     out_file = file(fileprefix, "w")
+    # Clear old file
     out_file.write("")
     out_file.close()
     for click in clicks:
-        accum = []
+        # Read out metrics from all runs
+        accum = numpy.array([])
         for i in runs:
             current_file_name = fileprefix + "-" + click + "-" + `i`
             current_file = file(current_file_name, "r")
             line = map(num, current_file.readline().split(" "))
             current_file.close()
             #os.remove(current_file_name)
-            if accum:
-                accum = map(operator.add, accum, line)
+            if accum.any():
+                accum = numpy.vstack((accum, numpy.array(line)))
             else:
-                accum = line
-        avg = [x/len(runs) for x in accum]
+                accum = numpy.array(line)
+        result = []
+        # Append mean and confidence interval for every metric
+        for i in range(accum.shape[1]):
+            m, h = mean_confidence_interval(accum[:,i])
+            result.append(`m` + " " + `h`)
+        # Write results for this Click configuration
         out_file = file(fileprefix, "a")
         out_file.write(click)
-        for x in avg:
+        for x in result:
             out_file.write(" " + str(x))
         out_file.write("\n")
         out_file.close()
     
 def num(s):
+    """Converts a string to a number value (int or float)
+    """
     try:
         return int(s)
     except ValueError:
         return float(s)
+
+def mean_confidence_interval(data, confidence=0.95):
+    #n = len(data)
+    m, se = numpy.mean(data), scipy.stats.sem(data)
+    #h = se * scipy.stats.t._ppf((1+confidence)/2., n-1) # The confidence interval
+    return m, se
 
 def main():
     print "Pre-Build experiment"

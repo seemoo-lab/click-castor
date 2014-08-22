@@ -271,7 +271,7 @@ void simulate(
 	RngSeedManager::SetSeed(12345);
 	RngSeedManager::SetRun(run);
 
-	size_t nSenders = (size_t) round(netConfig.nNodes * trafficConfig.senderFraction);
+	size_t nSenders = (size_t) ceil(netConfig.nNodes * trafficConfig.senderFraction);
 
 	uint32_t MaxPacketSize = trafficConfig.packetSize - 28; // IP+UDP header size = 28 byte
 
@@ -479,50 +479,39 @@ int main(int argc, char *argv[]) {
 #ifdef NS3_CLICK
 
 	// Possible run configurations
-	StringValue
-		xcast   ("/home/milan/click/conf/castor/castor_xcast_routing.click"),
-		regular ("/home/milan/click/conf/castor/castor_multicast_via_unicast_routing.click");
-
-	NetworkConfiguration
-		small  (1000.0, 1000.0, 500.0,  10),
-		medium (2000.0, 2000.0, 500.0,  50),
-		large  (3000.0, 3000.0, 500.0, 100);
-
-	TrafficConfiguration
-		fivetoone (0.05, 1), // Configuration as in Castor paper
-		fiftytoone(0.5, 1),
-		twentyfivetotwo(0.25, 2),
-		tentofive (0.1, 5),
-		fivetoten (0.05, 10),
-		fivetofive(0.05,  5),
-		tentotwo  (0.1,   2),
-		twentytoone  (0.2,   1);
-
-	MobilityConfiguration
-		zero   ( 0.0, 0.0),
-		ten    (10.0, 0.0),
-		twenty (20.0, 0.0);
 
 	std::map<std::string, StringValue> clickConfigs;
-	clickConfigs.insert(std::make_pair("xcast", xcast));
-	clickConfigs.insert(std::make_pair("regular", regular));
+	clickConfigs.insert(std::make_pair("xcast",   "/home/milan/click/conf/castor/castor_xcast_routing.click"));
+	clickConfigs.insert(std::make_pair("regular", "/home/milan/click/conf/castor/castor_multicast_via_unicast_routing.click"));
+
+
 	std::map<std::string, NetworkConfiguration> networkConfigs;
-	networkConfigs.insert(std::make_pair("small", small));
-	networkConfigs.insert(std::make_pair("medium", medium));
-	networkConfigs.insert(std::make_pair("large", large)); // as in Castor
+	// Configurations with aprroximately the same node density
+	networkConfigs.insert(std::make_pair("small",  NetworkConfiguration(1000.0, 1000.0, 500.0,  10)));
+	networkConfigs.insert(std::make_pair("medium", NetworkConfiguration(2000.0, 2000.0, 500.0,  50)));
+	networkConfigs.insert(std::make_pair("large",  NetworkConfiguration(3000.0, 3000.0, 500.0, 100))); // as in Castor
+
+
 	std::map<std::string, TrafficConfiguration> trafficConfigs;
-	trafficConfigs.insert(std::make_pair("5_1", fivetoone)); // as in Castor (5 unicast flows @ 100 nodes)
-	trafficConfigs.insert(std::make_pair("50_1", fiftytoone));
-	trafficConfigs.insert(std::make_pair("25_2", twentyfivetotwo));
-	trafficConfigs.insert(std::make_pair("10_5", tentofive));
-	trafficConfigs.insert(std::make_pair("5_10", fivetoten));
-	trafficConfigs.insert(std::make_pair("5_5", fivetofive));
-	trafficConfigs.insert(std::make_pair("10_2", tentotwo));
-	trafficConfigs.insert(std::make_pair("20_1", twentytoone));
+	// as in Castor (5 unicast flows @ 100 nodes)
+	trafficConfigs.insert(std::make_pair( "5_1", TrafficConfiguration(0.05,  1)));
+	// 40% receivers
+	trafficConfigs.insert(std::make_pair("4_10", TrafficConfiguration(0.04, 10)));
+	trafficConfigs.insert(std::make_pair( "8_5", TrafficConfiguration(0.08,  5)));
+	trafficConfigs.insert(std::make_pair("20_2", TrafficConfiguration(0.20,  2)));
+	trafficConfigs.insert(std::make_pair("40_1", TrafficConfiguration(0.40,  1)));
+	// 20% receivers
+	trafficConfigs.insert(std::make_pair("2_10", TrafficConfiguration(0.02, 10)));
+	trafficConfigs.insert(std::make_pair( "4_5", TrafficConfiguration(0.04,  5)));
+	trafficConfigs.insert(std::make_pair("10_2", TrafficConfiguration(0.10,  2)));
+	trafficConfigs.insert(std::make_pair("20_1", TrafficConfiguration(0.20,  1)));
+
+
 	std::map<std::string, MobilityConfiguration> mobilityConfigs;
-	mobilityConfigs.insert(std::make_pair("0", zero));
-	mobilityConfigs.insert(std::make_pair("10", ten));
-	mobilityConfigs.insert(std::make_pair("20", twenty)); // as in Castor
+	mobilityConfigs.insert(std::make_pair( "0", MobilityConfiguration( 0.0, 0.0)));
+	mobilityConfigs.insert(std::make_pair("10", MobilityConfiguration(10.0, 0.0)));
+	mobilityConfigs.insert(std::make_pair("20", MobilityConfiguration(20.0, 0.0))); // as in Castor
+
 
 	// Enable logging
 	LogComponentEnable("NsclickCastor", LOG_LEVEL_INFO);
