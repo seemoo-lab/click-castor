@@ -5,11 +5,15 @@ require(
 	library castor_xcast.click,
 );
 
+define(
+	$promisc true
+);
+
 /*************************
  * Initialize the Blocks *
  *************************/
 
-ethin :: InputEth($EthDev, fake);
+ethin :: InputEth($EthDev, fake, $promisc);
 ethout :: OutputEth($EthDev, $broadcastJitter, $unicastJitter);
 fromhost :: FromHost($HostDev, fake);
 tohost :: ToHost($HostDev);
@@ -20,8 +24,8 @@ flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);
 routingtable :: CastorRoutingTable($broadcastAdjust, $updateDelta);
 history :: CastorHistory;
-castorclassifier :: CastorClassifier;
-handlepkt :: CastorHandleXcastPkt(fake, routingtable, history, crypto, false);
+castorclassifier :: CastorClassifier(fake);
+handlepkt :: CastorHandleXcastPkt(fake, routingtable, history, crypto, $promisc);
 handleack :: CastorHandleAck(fake, routingtable, history, crypto);
 
 handleIpPacket :: CastorHandleMulticastIpPacket(fake, flowDB, crypto);

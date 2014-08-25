@@ -17,7 +17,9 @@ int CastorAddXcastPktToHistory::configure(Vector<String> &conf, ErrorHandler *er
 			cpEnd);
 }
 
-void CastorAddXcastPktToHistory::push(int, Packet *p){
+void CastorAddXcastPktToHistory::push(int, Packet *p) {
+	assert(CastorPacket::isXcast(p));
+
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	unsigned int i = 0;

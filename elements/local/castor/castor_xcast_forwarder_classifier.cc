@@ -46,19 +46,12 @@ void CastorXcastForwarderClassifier::push(int, Packet *p) {
 		return;
 	}
 
-	// Cleanup destination and pid lists
-	Vector<PacketId> pids;
+	HashTable<uint8_t, uint8_t> toRemain;
 	for(int i = 0; i < destinations.size(); i++) {
-		unsigned int dst = destinations[i];
-		pkt.setDestination(pkt.getDestination(dst), i);
-		pids.push_back(pkt.getPid(dst)); // Store corresponding pid
-	}
-	pkt.setNDestinations(destinations.size());
-	for(int i = 0; i < pids.size(); i++) {
-		pkt.setPid(pids[i], i);
+		toRemain.set(destinations[i], destinations[i]);
 	}
 
-	// Set local node as single forwarder
+	pkt.keepDestinations(toRemain);
 	pkt.setSingleNextHop(myAddr);
 
 	output(0).push(pkt.getPacket()); // Node is in the forwarder list

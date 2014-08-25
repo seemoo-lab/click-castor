@@ -33,23 +33,41 @@ elementclass OutputEth{
 
 }
 
-
-
 /**
  * Handle incoming packets on Ethernet device
  */
-elementclass InputEth{
+elementclass InputEth {
 	$myEthDev, $myAddr |
 
 	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096)
-		-> HostEtherFilter($myEthDev)
 		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Reply / Default)
 
 	arpclassifier[0] // Handle ARP request
+		-> HostEtherFilter($myEthDev)
 		-> ARPResponder($myAddr)
 		-> [1]output;
 
 	arpclassifier[1] // Handle ARP response
+		-> HostEtherFilter($myEthDev)
+		-> [0]output;
+
+	arpclassifier[2] // Handle default
+		-> [2]output;
+	
+|| // Overloaded with the option to set device in promiscious mode
+
+	$myEthDev, $myAddr, $promisc |
+
+	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096, PROMISC $promisc)
+		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Reply / Default)
+
+	arpclassifier[0] // Handle ARP request
+		-> HostEtherFilter($myEthDev)
+		-> ARPResponder($myAddr)
+		-> [1]output;
+
+	arpclassifier[1] // Handle ARP response
+		-> HostEtherFilter($myEthDev)
 		-> [0]output;
 
 	arpclassifier[2] // Handle default
@@ -85,7 +103,7 @@ elementclass FromHost {
 	$myHostDev, $myIP |
 
 	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096)
-		-> CheckIPHeader2(VERBOSE true)
+		-> CheckIPHeader2 // Input packets have bad IP checksum, so we don't check it (CheckIPHeader2 instead of CheckIPHeader)
 		-> MarkIPHeader
 		-> CastorTranslateLocalhost($myIP) // Packets coming from host have 127.0.0.1 set as source address, so replace with address of local host
 		-> output;

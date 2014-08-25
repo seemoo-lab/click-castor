@@ -24,7 +24,7 @@ elementclass CastorLocalXcastPkt {
 }
 
 elementclass CastorForwardXcastPkt {
-	$myIP, $routingtable, $history |
+	$myIP, $routingtable, $history, $promisc |
 
 	input
 		-> CastorXcastLookupRoute($routingtable)		// Lookup the route for the packet
@@ -33,8 +33,8 @@ elementclass CastorForwardXcastPkt {
 		//-> CastorPrint('Forwarding', $myIP)
 		-> rec :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
+		-> CastorXcastResetDstAnno($promisc) // We want to unicast if possible
 		-> output;
-
 }
 
 /**
@@ -44,7 +44,7 @@ elementclass CastorForwardXcastPkt {
  * Output(2):	Forwarded PKT
  */
 elementclass CastorHandleXcastPkt{
-	$myIP, $routingtable, $history, $crypto |
+	$myIP, $routingtable, $history, $crypto, $promisc |
 
 	input
 		-> forwarderClassifier :: CastorXcastForwarderClassifier($myIP)
@@ -69,7 +69,7 @@ elementclass CastorHandleXcastPkt{
 	
 	// PKT needs to be forwarded
 	destinationClassifier[1]
-		-> forward :: CastorForwardXcastPkt($myIP, $routingtable, $history)
+		-> forward :: CastorForwardXcastPkt($myIP, $routingtable, $history, $promisc)
 		-> [2]output;
 
 	// If invalid or duplicate -> discard
@@ -79,7 +79,7 @@ elementclass CastorHandleXcastPkt{
 		-> null;
 	checkDuplicate[2]
 		//-> CastorPrint("Duplicate", $myIP)
-		-> CastorAddPKTToHistory($history) // Add sender to history
+		-> CastorAddXcastPktToHistory($history) // Add sender to history
 		-> null;
 	validate[1]
 		-> CastorPrint("Flow authentication failed", $myIP)

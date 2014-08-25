@@ -5,12 +5,12 @@ import numpy
 import scipy.stats
 
 # Settings: possible values are defined in 'castor-xcast.cc'
-runs       = range(1,21) # 20 runs
+runs       = range(1,11) # 20 runs
 duration   = 60.0 * 10.0 # 10 min
-clicks     = ["xcast", "regular"]
-networks   = ["large"]
-traffics   = ["4_5"] #, "4_5", "10_2", "20_1"]
-mobilities = ["10"]
+clicks     = ["xcast", "xcast-promisc", "regular"]
+networks   = ["small"]
+traffics   = ["20_1"] #, "4_5", "10_2", "20_1"]
+mobilities = ["20"]
 
 def generate_cmd():
     """Generates all commands 

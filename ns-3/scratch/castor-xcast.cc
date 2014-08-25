@@ -467,7 +467,9 @@ void simulate(
 		<< buPerPidNet << " "
 		<< ((double) buPerPidPkt * (buPerPidPhy/buPerPidNet)) << " "
 		<< ((double) buPerPidAck * (buPerPidPhy/buPerPidNet)) << " "
-		<< delay;
+		<< delay << " "
+		<< broadcasts << " "
+		<< unicasts;
 
 	out.close();
 
@@ -481,8 +483,9 @@ int main(int argc, char *argv[]) {
 	// Possible run configurations
 
 	std::map<std::string, StringValue> clickConfigs;
-	clickConfigs.insert(std::make_pair("xcast",   "/home/milan/click/conf/castor/castor_xcast_routing.click"));
-	clickConfigs.insert(std::make_pair("regular", "/home/milan/click/conf/castor/castor_multicast_via_unicast_routing.click"));
+	clickConfigs.insert(std::make_pair("xcast",         "/home/milan/click/conf/castor/castor_xcast_routing.click"));
+	clickConfigs.insert(std::make_pair("xcast-promisc", "/home/milan/click/conf/castor/castor_xcast_routing_promisc.click"));
+	clickConfigs.insert(std::make_pair("regular",       "/home/milan/click/conf/castor/castor_multicast_via_unicast_routing.click"));
 
 
 	std::map<std::string, NetworkConfiguration> networkConfigs;
@@ -523,7 +526,7 @@ int main(int argc, char *argv[]) {
 	double duration = 60.0;
 	std::string click          = "xcast";
 	std::string networkConfig  = "small";
-	std::string trafficConfig  = "5_5";
+	std::string trafficConfig  = "4_5";
 	std::string mobilityConfig = "10";
 	std::string outFile		   = "";
 

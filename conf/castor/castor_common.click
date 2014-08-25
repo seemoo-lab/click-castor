@@ -46,7 +46,7 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 }
 
 elementclass CastorClassifier {
-
+	
 	input
 		-> MarkIPHeader
 		-> CheckIPHeader
@@ -54,6 +54,31 @@ elementclass CastorClassifier {
 		-> annotateSenderAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
 		-> StripIPHeader
 		-> cclassifier :: Classifier(0/c?, 0/a?);
+
+	cclassifier[0] // Castor PKTs -> output 0
+		-> [0]output;
+
+	cclassifier[1] // Castor ACKs -> output 1
+		-> [1]output;
+
+	ipclassifier[1] // Other packets -> output 2
+		-> [2]output;
+		
+|| // overloaded version for Xcast with promiscious mode (add addressfilter)
+
+	$myIP |
+	
+	input
+		-> MarkIPHeader
+		-> CheckIPHeader
+		-> addressfilter :: IPClassifier(dst host $myIP or 255.255.255.255, -)
+		-> ipclassifier :: IPClassifier(ip proto $CASTORTYPE, -)
+		-> annotateSenderAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
+		-> StripIPHeader
+		-> cclassifier :: Classifier(0/c?, 0/a?);
+
+	addressfilter[1]
+		-> Discard; // not intended for us
 
 	cclassifier[0] // Castor PKTs -> output 0
 		-> [0]output;

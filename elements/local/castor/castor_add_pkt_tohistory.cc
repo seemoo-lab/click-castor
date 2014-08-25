@@ -17,6 +17,8 @@ int CastorAddPKTToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorAddPKTToHistory::push(int, Packet *p){
+	assert(!CastorPacket::isXcast(p));
+
 	Castor_PKT& pkt = (Castor_PKT&) *p->data();
 
 	history->addPkt(pkt.pid, pkt.fid, CastorPacket::src_ip_anno(p), p->dst_ip_anno(), pkt.dst);

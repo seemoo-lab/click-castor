@@ -40,6 +40,16 @@ void CastorXcastLookupRoute::push(int, Packet *p){
 	pkt.setNextHopMapping(map);
 
 	// Set annotation for destination and push Packet to Output
+	IPAddress nexthopMac = IPAddress::make_broadcast();
+	uint8_t best = 0;
+	for (uint8_t i = 0; i < pkt.getNNextHops(); i++) {
+		if(pkt.getNextHop(i) != IPAddress::make_broadcast() && pkt.getNextHopNAssign(i) > best) {
+			nexthopMac = pkt.getNextHop(i);
+			best = pkt.getNextHopNAssign(i);
+		}
+	}
+	memcpy(CastorPacket::getCastorAnno(pkt.getPacket()), nexthopMac.data(), sizeof(IPAddress));  // This is the address we want the MAC layer to transmit to
+
 	IPAddress nexthop = pkt.getNNextHops() == 1 ? pkt.getNextHop(0) : IPAddress::make_broadcast();
 	pkt.getPacket()->set_dst_ip_anno(nexthop);
 
