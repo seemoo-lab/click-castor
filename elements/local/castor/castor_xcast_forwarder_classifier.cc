@@ -13,9 +13,11 @@ CastorXcastForwarderClassifier::~CastorXcastForwarderClassifier() {
 }
 
 int CastorXcastForwarderClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return Args(conf, this, errh)
+	if(Args(conf, this, errh)
 			.read_mp("ADDR", myAddr)
-			.complete();
+			.complete() < 0)
+		return -1;
+	return 0;
 }
 
 void CastorXcastForwarderClassifier::push(int, Packet *p) {
@@ -31,9 +33,8 @@ void CastorXcastForwarderClassifier::push(int, Packet *p) {
 		}
 	}
 
-	// FIXME re-initialte
-//	if(destinations.empty()) {
-//		// if we are destination -> deliver
+	if(destinations.empty()) {
+//		// FIXME if we are destination -> deliver
 //		for (unsigned int i = 0; i < pkt.getNDestinations(); i++)
 //			if (pkt.getDestination(i) == myAddr) {
 //				pkt.setSingleDestination(i);
@@ -41,9 +42,9 @@ void CastorXcastForwarderClassifier::push(int, Packet *p) {
 //				output(0).push(pkt.getPacket());
 //				return;
 //			}
-//		output(1).push(pkt.getPacket()); // Node is not in the forwarder list -> discard
-//		return;
-//	}
+		output(1).push(pkt.getPacket()); // Node is not in the forwarder list -> discard
+		return;
+	}
 
 	// Cleanup destination and pid lists
 	Vector<PacketId> pids;
