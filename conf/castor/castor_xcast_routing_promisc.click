@@ -26,7 +26,7 @@ routingtable :: CastorRoutingTable($broadcastAdjust, $updateDelta);
 history :: CastorHistory;
 castorclassifier :: CastorClassifier(fake);
 handlepkt :: CastorHandleXcastPkt(fake, routingtable, history, crypto, $promisc);
-handleack :: CastorHandleAck(fake, routingtable, history, crypto);
+handleack :: CastorHandleAck(fake, routingtable, history, crypto, $promisc);
 
 handleIpPacket :: CastorHandleMulticastIpPacket(fake, flowDB, crypto);
 arpquerier :: ARPQuerier(fake, TIMEOUT 3600); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)

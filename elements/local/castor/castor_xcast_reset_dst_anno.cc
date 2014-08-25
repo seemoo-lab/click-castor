@@ -22,7 +22,7 @@ int CastorXcastResetDstAnno::configure(Vector<String>& conf, ErrorHandler* errh)
 void CastorXcastResetDstAnno::push(int, Packet *p){
 
 	if(_promisc) {
-		IPAddress addr(CastorPacket::getCastorAnno(p));
+		IPAddress addr = CastorPacket::mac_ip_anno(p);
 		p->set_dst_ip_anno(addr);
 	}
 

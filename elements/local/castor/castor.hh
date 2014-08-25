@@ -106,6 +106,13 @@ public:
 		p->set_anno_u32(src_ip_anno_offset, addr.addr());
 	}
 
+	static inline IPAddress mac_ip_anno(const Packet* p) {
+		return IPAddress(p->anno_u32(mac_ip_anno_offset));
+	}
+
+	static inline void set_mac_ip_anno(Packet* p, IPAddress addr) {
+		p->set_anno_u32(mac_ip_anno_offset, addr.addr());
+	}
 	/**
 	 * User annotation space for Castor
 	 */
@@ -132,7 +139,8 @@ public:
 
 private:
 	static const uint8_t src_ip_anno_offset = DST_IP_ANNO_OFFSET + DST_IP_ANNO_SIZE;
-	static const uint8_t castor_anno_offset = DST_IP_ANNO_OFFSET + 2 * DST_IP_ANNO_SIZE;
+	static const uint8_t mac_ip_anno_offset = src_ip_anno_offset + DST_IP_ANNO_SIZE;
+	static const uint8_t castor_anno_offset = mac_ip_anno_offset + DST_IP_ANNO_SIZE;
 
 };
 

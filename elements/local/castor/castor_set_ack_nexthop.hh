@@ -25,6 +25,7 @@ public:
 
 private:
 	CastorHistory* _history;
+	bool _promisc;
 
 };
 
