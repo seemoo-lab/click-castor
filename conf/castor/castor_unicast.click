@@ -68,6 +68,7 @@ elementclass CastorHandlePkt {
 	
 	// PKT needs to be forwarded
 	destinationClassifier[1]
+		-> blackhole :: CastorBlackhole($myIP) // By default inactive
 		-> forward :: CastorForwardPkt($myIP, $routingtable, $history)
 		-> [2]output;
 

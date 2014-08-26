@@ -50,7 +50,8 @@ elementclass CastorClassifier {
 	input
 		-> MarkIPHeader
 		-> CheckIPHeader
-		-> annotateSenderAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
+		-> annotateSourceAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
+		-> annotateDestAddress :: GetIPAddress(IP dst, ANNO 0)
 		-> ipclassifier :: IPClassifier(ip proto $CASTORTYPE, -)
 		-> StripIPHeader
 		-> cclassifier :: Classifier(0/c?, 0/a?);
@@ -71,7 +72,8 @@ elementclass CastorClassifier {
 	input
 		-> MarkIPHeader
 		-> CheckIPHeader
-		-> annotateSenderAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
+		-> annotateSourceAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
+		-> annotateDestAddress :: GetIPAddress(IP dst, ANNO 0)
 		-> addressfilter :: IPClassifier(dst host $myIP or 255.255.255.255, -)
 		-> ipclassifier :: IPClassifier(ip proto $CASTORTYPE, -)
 		-> StripIPHeader
@@ -133,4 +135,15 @@ elementclass CastorHandleAck{
 	updateEstimates[2]
 		//-> CastorPrint("Received from wrong neighbor", $myIP)
 		-> null;
+}
+
+elementclass CastorBlackhole {
+	$myIP |
+	
+	input
+		-> filter :: CastorUnicastFilter($myIP)
+		-> output;
+		
+	filter[1]
+		-> Discard;
 }

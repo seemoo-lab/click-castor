@@ -43,7 +43,7 @@ elementclass CastorForwardXcastPkt {
  * Output(1):	New ACK
  * Output(2):	Forwarded PKT
  */
-elementclass CastorHandleXcastPkt{
+elementclass CastorHandleXcastPkt {
 	$myIP, $routingtable, $history, $crypto, $promisc |
 
 	input
@@ -69,6 +69,7 @@ elementclass CastorHandleXcastPkt{
 	
 	// PKT needs to be forwarded
 	destinationClassifier[1]
+		-> blackhole :: CastorBlackhole($myIP) // By default inactive
 		-> forward :: CastorForwardXcastPkt($myIP, $routingtable, $history, $promisc)
 		-> [2]output;
 
