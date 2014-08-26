@@ -249,7 +249,7 @@ public:
 				sa << "\n";
 			}
 		} else {
-			sa << "Xcast PKT (from " << CastorPacket::src_ip_anno(_p) << ", flow " << getSource() << " -> ";
+			sa << "Xcast PKT (from " << CastorPacket::src_ip_anno(_p) << " to " << getPacket()->dst_ip_anno() << ", flow " << getSource() << " -> ";
 			sa << getDestination(0);
 			for(unsigned int i = 1; i < getNDestinations(); i++)
 				sa << ", " << getDestination(i);
