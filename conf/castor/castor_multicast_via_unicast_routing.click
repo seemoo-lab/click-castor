@@ -25,7 +25,7 @@ handlepkt :: CastorHandlePkt(fake, routingtable, history, crypto);
 handleack :: CastorHandleAck(fake, routingtable, history, crypto, false);
 
 handleIpPacket :: CastorHandleMulticastToUnicastIpPacket(fake, flowDB, crypto);
-arpquerier :: ARPQuerier(fake, TIMEOUT 3600); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)
+arpquerier :: ARPQuerier(fake, TIMEOUT 3600, POLL_TIMEOUT 0); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)
 
 
 /*******************

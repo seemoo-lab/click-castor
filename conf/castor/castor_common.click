@@ -48,7 +48,6 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 elementclass CastorClassifier {
 	
 	input
-		-> MarkIPHeader
 		-> CheckIPHeader
 		-> annotateSourceAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
 		-> annotateDestAddress :: GetIPAddress(IP dst, ANNO 0)
@@ -70,7 +69,6 @@ elementclass CastorClassifier {
 	$myIP |
 	
 	input
-		-> MarkIPHeader
 		-> CheckIPHeader
 		-> annotateSourceAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
 		-> annotateDestAddress :: GetIPAddress(IP dst, ANNO 0)

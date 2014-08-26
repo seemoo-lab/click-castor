@@ -23,7 +23,7 @@ elementclass BroadcastDelayer {
 /**
  * Handle output to the Ethernet device
  */
-elementclass OutputEth{ 
+elementclass OutputEth { 
 	$myEthDev, $broadcastJitter, $unicastJitter |
 
 	input[0]
@@ -40,15 +40,14 @@ elementclass InputEth {
 	$myEthDev, $myAddr |
 
 	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096)
+		-> HostEtherFilter($myEthDev)
 		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Reply / Default)
 
 	arpclassifier[0] // Handle ARP request
-		-> HostEtherFilter($myEthDev)
 		-> ARPResponder($myAddr)
 		-> [1]output;
 
 	arpclassifier[1] // Handle ARP response
-		-> HostEtherFilter($myEthDev)
 		-> [0]output;
 
 	arpclassifier[2] // Handle default
@@ -88,7 +87,6 @@ elementclass ToHost {
 
 	input[0]
 		-> CheckIPHeader2
-		-> MarkIPHeader
 		-> hostdevice;
 
 	input[1]
@@ -104,7 +102,6 @@ elementclass FromHost {
 
 	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096)
 		-> CheckIPHeader2 // Input packets have bad IP checksum, so we don't check it (CheckIPHeader2 instead of CheckIPHeader)
-		-> MarkIPHeader
 		-> CastorTranslateLocalhost($myIP) // Packets coming from host have 127.0.0.1 set as source address, so replace with address of local host
 		-> output;
 		
