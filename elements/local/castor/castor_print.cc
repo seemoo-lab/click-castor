@@ -64,7 +64,7 @@ void CastorPrint::push(int, Packet *p){
 		String sauth = CastorPacket::hexToString(ack.auth, sizeof(ACKAuth));
 		if(_fullpkt) {
 			sa << "\n";
-			sa << "   | From: \t" << CastorPacket::src_ip_anno(p) << " To: \t" << p->dst_ip_anno() << "\n";
+			sa << "   | From: \t" << CastorPacket::src_ip_anno(p) << "\n";
 			sa << "   | To: \t" << p->dst_ip_anno() << "\n";
 			sa << "   | Type: \tACK  (" <<  ack.len << " bytes)\n";
 			sa << "   | Auth: \t" << sauth << "\n";
