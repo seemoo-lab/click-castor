@@ -108,9 +108,9 @@ elementclass CastorHandleAck{
 		-> calcPid :: CastorAnnotatePid($crypto)
 		-> validate :: CastorValidateACK($crypto, $history)
 		-> updateEstimates :: CastorUpdateEstimates($crypto, $routingtable, $history)
-		-> CastorSetAckNexthop($history, $promisc)
 		-> CastorAddAckToHistory($crypto, $history)
 		//-> CastorPrint('Received valid', $myIP)
+		-> CastorSetAckNexthop($history, $promisc)
 		-> recAck :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)
 		-> CastorXcastResetDstAnno($promisc)

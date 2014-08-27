@@ -76,7 +76,7 @@ elementclass CastorHandlePkt {
 	null :: Discard;
 	checkDuplicate[2]
 		//-> CastorPrint("Duplicate", $myIP)
-		-> CastorAddPKTToHistory($history) // Add sender to history
+		//-> CastorAddPKTToHistory($history) // Add sender to history (FIXME: if disabled, protocol performs much better... why?!)
 		-> null;
 	validate[1]
 		-> CastorPrint("Flow authentication failed", $myIP)

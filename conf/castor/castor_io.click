@@ -5,7 +5,7 @@ elementclass BroadcastDelayer {
 	$broadcastJitter, $unicastJitter, $isSimulator |
 	
 	input[0]
-		-> MarkIPHeader(14)
+		-> CheckIPHeader(14)
 		-> dstFilter :: IPClassifier(dst host 255.255.255.255, -)
 		
 	dstFilter[0]
