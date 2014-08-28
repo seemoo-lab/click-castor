@@ -191,7 +191,7 @@ NetDeviceContainer setPhysicalChannel(NodeContainer& nodes, double transmissionR
 
 	NetDeviceContainer d = wifi.Install(wifiPhy, wifiMac, nodes);
 
-	wifiPhy.EnablePcap("castor-xcast", d);
+//	wifiPhy.EnablePcap("castor-xcast", d);
 
 	return d;
 }
@@ -511,10 +511,11 @@ int main(int argc, char *argv[]) {
 
 
 	std::map<std::string, NetworkConfiguration> networkConfigs;
-	// Configurations with aprroximately the same node density
-	networkConfigs.insert(std::make_pair("small",  NetworkConfiguration(1000.0, 1000.0, 500.0,  10)));
-	networkConfigs.insert(std::make_pair("medium", NetworkConfiguration(2000.0, 2000.0, 500.0,  50)));
-	networkConfigs.insert(std::make_pair("large",  NetworkConfiguration(3000.0, 3000.0, 500.0, 100))); // as in Castor
+	// Configurations with the same node density
+	networkConfigs.insert(std::make_pair("tiny",   NetworkConfiguration( 948.7,  948.7, 500.0,  10)));
+	networkConfigs.insert(std::make_pair("small",  NetworkConfiguration(2121.3, 2121.3, 500.0,  50)));
+	networkConfigs.insert(std::make_pair("medium", NetworkConfiguration(3000.0, 3000.0, 500.0, 100))); // as in Castor
+	networkConfigs.insert(std::make_pair("large",  NetworkConfiguration(6000.0, 6000.0, 500.0, 400))); // as in Castor
 
 
 	std::map<std::string, TrafficConfiguration> trafficConfigs;
