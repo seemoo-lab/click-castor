@@ -10,15 +10,16 @@ import numpy
 import scipy.stats
 
 # Settings: possible values are defined in 'castor-xcast.cc'
-runs       = range(1,2) # 20 runs
-duration   = 60.0 * 1.0 # 10 min
-clicks     = ["xcast"]#, "xcast-promisc"]#, "regular"]
-networks   = ["small"]
-traffics   = ["20_1"] #, "4_5", "10_2", "20_1"]
+runs       = range(1,21)
+duration   = 60.0 * 10.0
+clicks     = ["xcast-promisc", "xcast", "regular"]
+networks   = ["medium"]
+traffics   = ["4_5"] #, "4_5", "10_2", "20_1"]
 mobilities = ["20"]
+blackholes = [0.0]
 
 def generate_cmd(work_dir):
-    """Generates all commands 
+    """Generates commands for running experiments in ns-3 
     """
     return [["./waf", "--run", "castor-xcast",
             "--command-template",
@@ -28,20 +29,23 @@ def generate_cmd(work_dir):
             " --network="  + network +
             " --traffic="  + traffic +
             " --mobility=" + mobility +
-            " --outfile="  + work_dir + network + "-" + traffic + "-" + mobility + "-" + click + "-" + `run`
+            " --blackholes=" + `blackhole` +
+            " --outfile="  + work_dir + network + "-" + traffic + "-" + mobility + "-" + `blackhole` + "-" + click + "-" + `run`
             ]
-           for run      in runs
-           for click    in clicks
-           for network  in networks
-           for traffic  in traffics
-           for mobility in mobilities
+           for run       in runs
+           for click     in clicks
+           for network   in networks
+           for traffic   in traffics
+           for mobility  in mobilities
+           for blackhole in blackholes
            ]
 
 def evaluate(work_dir):
     for network  in networks:
         for traffic  in traffics:
             for mobility in mobilities:
-                average_runs(work_dir + network + "-" + traffic + "-" + mobility, clicks)
+                for blackhole in blackholes:
+                    average_runs(work_dir + network + "-" + traffic + "-" + mobility + "-" + `blackhole`, clicks)
 
 def average_runs(fileprefix, clicks):
     out_file = file(fileprefix, "w")
@@ -95,26 +99,30 @@ def mean_confidence_interval(data, confidence=0.95):
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--comment", help="Note to the experiment to be run")
+    parser.add_argument("--onlyeval", action="store_true", help="Skips experiments")
     args = parser.parse_args(argv)
+
+    # Create workdir
     comment = "_" + args.comment if args.comment else ""
     i = datetime.now()
     work_dir = "out/" + i.strftime('%Y-%m-%d_%H.%M.%S') + comment + "/"
     if not os.path.exists(os.path.dirname(work_dir)):  
         os.makedirs(os.path.dirname(work_dir)) 
-    
-    print "Pre-Build experiment"
-    result = subprocess.call(["./waf", "build"])
-     
-    if result:
-        print >>sys.stderr, "Failed to build experiment, stop"
-        return result
-     
-    print "Start experiments on " + `multiprocessing.cpu_count()` + " core(s)"
-    pool = multiprocessing.Pool(None) # use 'multiprocessing.cpu_count()' cores
-    pool.map_async(subprocess.call, generate_cmd(work_dir))
-    pool.close()
-    pool.join()
-    
+
+    if not args.onlyeval:
+        print "Pre-Build experiment"
+        result = subprocess.call(["./waf", "build"])
+
+        if result:
+            print >>sys.stderr, "Failed to build experiment, stop"
+            return result
+
+        print "Start experiments on " + `multiprocessing.cpu_count()` + " core(s)"
+        pool = multiprocessing.Pool(None) # use 'multiprocessing.cpu_count()' cores
+        pool.map_async(subprocess.call, generate_cmd(work_dir))
+        pool.close()
+        pool.join()
+
     print "Evaluate experiments"
     evaluate(work_dir)
     return 0

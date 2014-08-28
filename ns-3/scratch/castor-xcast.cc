@@ -134,6 +134,10 @@ void WriteXcastMap(Ptr<Ipv4ClickRouting> clickRouter, Ipv4Address group, const s
 	clickRouter->WriteHandler("handleIpPacket/map", "insert", stream.str().c_str());
 }
 
+void WriteSetBlackhole(Ptr<Ipv4ClickRouting> clickRouter, bool active) {
+	clickRouter->WriteHandler("handlepkt/blackhole/filter", "active", active ? "true" : "false");
+}
+
 /**
  * Returns random value between 0 and max (both inclusive)
  */
@@ -171,8 +175,8 @@ NetDeviceContainer setPhysicalChannel(NodeContainer& nodes, double transmissionR
 	wifiPhy.SetPcapDataLinkType(YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
 
 	YansWifiChannelHelper wifiChannel;
-	wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel", "Speed", DoubleValue(299792458.0));
-	//wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
+	//wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel", "Speed", DoubleValue(299792458.0));
+	wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
 
 	wifiChannel.AddPropagationLoss("ns3::RangePropagationLossModel", "MaxRange", DoubleValue(transmissionRange));
 	//wifiChannel.AddPropagationLoss("ns3::FriisPropagationLossModel");
@@ -184,7 +188,12 @@ NetDeviceContainer setPhysicalChannel(NodeContainer& nodes, double transmissionR
 			StringValue(phyMode), "ControlMode", StringValue(phyMode));
 	// Set it to adhoc mode
 	wifiMac.SetType("ns3::AdhocWifiMac");
-	return wifi.Install(wifiPhy, wifiMac, nodes);
+
+	NetDeviceContainer d = wifi.Install(wifiPhy, wifiMac, nodes);
+
+	wifiPhy.EnablePcap("castor-xcast", d);
+
+	return d;
 }
 
 Ptr <PositionAllocator> getRandomRectanglePositionAllocator(double xSize, double ySize) {
@@ -232,6 +241,11 @@ void setClickRouter(NodeContainer& nodes, StringValue clickConfig) {
 	clickinternet.Install(nodes);
 }
 
+void setBlackHoles(NodeContainer& nodes, unsigned int nBlackholes) {
+	for (unsigned int i = nodes.GetN() - 1; i >= nodes.GetN() - nBlackholes; i--)
+		Simulator::Schedule(Seconds(0.5), &WriteSetBlackhole, nodes.Get(i)->GetObject<Ipv4ClickRouting>(), true);
+}
+
 typedef struct NetworkConfiguration {
 	double x, y;
 	double range;
@@ -265,6 +279,7 @@ void simulate(
 		const NetworkConfiguration& netConfig,
 		const TrafficConfiguration& trafficConfig,
 		const MobilityConfiguration& mobilityConfig,
+		double blackholeFraction,
 		std::string outFile
 		) {
 
@@ -279,28 +294,6 @@ void simulate(
 	const Ipv4Address baseAddr("192.168.201.0");
 	const Ipv4Mask networkMask("255.255.255.0");
 	const Ipv4Address groupAddr("224.0.2.0");
-
-	// Setup groups based on 'nSenders' (e.g. 2) and 'groupSize' (e.g. 3) in the format:
-	// 'senderGroupAssign':
-	// 		192.168.201.1 -> 224.0.2.1; 192.168.201.5 -> 224.0.2.5
-	std::map<Ipv4Address, Ipv4Address, LessIpv4Address> senderGroupAssign;
-	// 'groups':
-	// 		192.168.201.1 -> 192.168.201.2, 192.168.201.3, 192.168.201.4;
-	// 		192.168.201.5 -> 192.168.201.6, 192.168.201.7, 192.168.201.8
-	std::map<Ipv4Address, std::vector<Ipv4Address>, LessIpv4Address> groups; // multicast group -> xcast receivers
-
-	for (unsigned int i = 0, iAddr = 1; i < nSenders; i++) {
-		Ipv4Address sender = Ipv4Address(baseAddr.Get() + iAddr);
-		Ipv4Address group = Ipv4Address(groupAddr.Get() + iAddr);
-		std::vector<Ipv4Address> xcastDestinations;
-		iAddr = iAddr % netConfig.nNodes + 1; // Circular count from 1..nNodes
-		for (unsigned int j = 0; j < trafficConfig.groupSize; j++, iAddr = iAddr % netConfig.nNodes + 1) {
-			Ipv4Address dest = Ipv4Address(baseAddr.Get() + iAddr);
-			xcastDestinations.push_back(dest);
-		}
-		senderGroupAssign.insert(std::make_pair(sender, group));
-		groups.insert(std::make_pair(group, xcastDestinations));
-	}
 
 	// Set up network
 	NodeContainer n;
@@ -318,11 +311,35 @@ void simulate(
 	ipv4.SetBase(baseAddr, networkMask);
 	Ipv4InterfaceContainer i = ipv4.Assign(d);
 
+	// Setup groups based on 'nSenders' (e.g. 2) and 'groupSize' (e.g. 3) in the format:
+	// 'senderGroupAssign':
+	// 		192.168.201.1 -> 224.0.2.1; 192.168.201.5 -> 224.0.2.5
+	std::map<Ptr<Node>, Ipv4Address> senderGroupAssign;
+	// 'groups':
+	// 		192.168.201.1 -> 192.168.201.2, 192.168.201.3, 192.168.201.4;
+	// 		192.168.201.5 -> 192.168.201.6, 192.168.201.7, 192.168.201.8
+	std::map<Ipv4Address, std::vector<Ipv4Address>, LessIpv4Address> groups; // multicast group -> xcast receivers
+
+	for (unsigned int i = 0, iAddr = 1; i < nSenders; i++) {
+		//Ipv4Address sender = Ipv4Address(baseAddr.Get() + iAddr);
+		Ptr<Node> sender = n.Get(iAddr - 1);
+		Ipv4Address group = Ipv4Address(groupAddr.Get() + iAddr);
+		std::vector<Ipv4Address> xcastDestinations;
+		iAddr = iAddr % netConfig.nNodes + 1; // Circular count from 1..nNodes
+		for (unsigned int j = 0; j < trafficConfig.groupSize; j++, iAddr = iAddr % netConfig.nNodes + 1) {
+			Ipv4Address dest = Ipv4Address(baseAddr.Get() + iAddr);
+			xcastDestinations.push_back(dest);
+		}
+		senderGroupAssign.insert(std::make_pair(sender, group));
+		groups.insert(std::make_pair(group, xcastDestinations));
+	}
+
 	// Set up traffic generation
 	ApplicationContainer apps;
 	uint16_t port = 4242;
 	unsigned int nodeIndex = 0;
-	for (std::map<Ipv4Address, Ipv4Address>::iterator it = senderGroupAssign.begin(); it != senderGroupAssign.end(); it++) {
+	for (std::map<Ptr<Node>, Ipv4Address>::iterator it = senderGroupAssign.begin(); it != senderGroupAssign.end(); it++) {
+		Ptr<Node> sender = it->first;
 		Ipv4Address groupIp = it->second;
 
 		// Setup multicast source
@@ -330,7 +347,7 @@ void simulate(
 		client.SetAttribute("MaxPackets", UintegerValue(UINT32_MAX));
 		client.SetAttribute("Interval", TimeValue(trafficConfig.sendInterval));
 		client.SetAttribute("PacketSize", UintegerValue(MaxPacketSize));
-		apps = client.Install(NodeContainer(n.Get(nodeIndex)));
+		apps = client.Install(NodeContainer(sender));
 		apps.Start(Seconds(2.0) + trafficConfig.sendInterval / nSenders * nodeIndex);
 		apps.Stop(duration + Seconds(2.0));
 
@@ -345,8 +362,6 @@ void simulate(
 		}
 	}
 
-	//wifiPhy.EnablePcap("castor-xcast", d);
-
 	// We fill in the ARP tables at the beginning of the simulation
 	for (unsigned int i = 0; i < n.GetN(); i++) {
 		Simulator::Schedule(Seconds(0.5), &WriteArp, n.Get(i)->GetObject<Ipv4ClickRouting>(), netConfig.nNodes, baseAddr);
@@ -355,11 +370,13 @@ void simulate(
 			Simulator::Schedule(Seconds(0.5), &WriteXcastMap, n.Get(i)->GetObject<Ipv4ClickRouting>(), it->first, it->second);
 	}
 
-	  // Install FlowMonitor on all nodes
-	  FlowMonitorHelper flowmon;
-	  Ptr<FlowMonitor> monitor = flowmon.InstallAll();
+	setBlackHoles(n, round(netConfig.nNodes * blackholeFraction));
 
-	  Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback(&PhyTx));
+	// Install FlowMonitor on all nodes
+	FlowMonitorHelper flowmon;
+	Ptr<FlowMonitor> monitor = flowmon.InstallAll();
+
+	Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback(&PhyTx));
 
 	//
 	// Now, do the actual simulation.
@@ -373,6 +390,7 @@ void simulate(
 	NS_LOG_INFO("  CONFIG " << netConfig.x << "x" << netConfig.y << ", " << netConfig.nNodes << " nodes @ " << netConfig.range << " range");
 	NS_LOG_INFO("  CONFIG " << nSenders << " senders -> " << trafficConfig.groupSize << " each, " << trafficConfig.packetSize << " bytes / " << trafficConfig.sendInterval.GetSeconds() << " s");
 	NS_LOG_INFO("  CONFIG " << "speed " << mobilityConfig.speed << ", pause " << mobilityConfig.pause);
+	NS_LOG_INFO("  CONFIG " << "blackholes " << blackholeFraction);
 
 	NS_LOG_INFO("  Done after " << difftime(end, start) << " seconds");
 
@@ -392,12 +410,14 @@ void simulate(
 	std::map<std::string, double> pidsSent;
 	std::vector<double> delays;
 	double avgDelay;
+	uint32_t pktDroppedByBlackhole = 0;
 
 	std::string pktForward = "handlepkt/forward/rec";
 	std::string pktSend = "handleIpPacket/rec";
 	std::string pktDeliver = "handlepkt/handleLocal/rec";
 	std::string ackForward = "handleack/recAck";
 	std::string ackSend = "handlepkt/sendAck/recAck";
+	std::string pktDrop = "handlepkt/blackhole/rec";
 	for(unsigned int i = 0; i < netConfig.nNodes; i++) {
 		numPidsSent += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktSend);
 		numPidsRecv += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDeliver);
@@ -410,6 +430,7 @@ void simulate(
 							readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackForward);
 		broadcasts += readBroadcasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
 		unicasts += readUnicasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
+		pktDroppedByBlackhole += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDrop);
 		std::string pid;
 		double timestamp;
 		while(readPidTimestamp(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktSend, pid, timestamp))
@@ -438,15 +459,16 @@ void simulate(
 	double buPerPidPkt = (double) pktBandwidthUsage / numPidsSent;
 	double buPerPidAck = (double) ackBandwidthUsage / numPidsSent;
 
-	NS_LOG_INFO("  STAT PDR        " << pdr << " (" << numPidsRecv << "/" << numPidsSent << ")");
-	NS_LOG_INFO("  STAT BU per PID " << buPerPidPhy  << " (phy), " << buPerPidNet << " (net) bytes");
-	NS_LOG_INFO("        frac(PKT) " << ((double) buPerPidPkt / buPerPidNet));
-	NS_LOG_INFO("        frac(ACK) " << ((double) buPerPidAck / buPerPidNet));
-	NS_LOG_INFO("  STAT DELAY      " << delay << " ms");
-	NS_LOG_INFO("  STAT HOP COUNT  " << numPktsForwarded);
-	NS_LOG_INFO("         per PKT  " << ((double) numPktsForwarded / numPktsSent));
-	NS_LOG_INFO("         per PID  " << ((double) numPktsForwarded / numPidsSent));
-	NS_LOG_INFO("  STAT BROADCAST  " << ((double) broadcasts / (unicasts + broadcasts)) << " (" << broadcasts << "/" << (unicasts + broadcasts) << ")");
+	NS_LOG_INFO("  STAT PDR          " << pdr << " (" << numPidsRecv << "/" << numPidsSent << ")");
+	NS_LOG_INFO("  STAT BU per PID   " << buPerPidPhy  << " (phy), " << buPerPidNet << " (net) bytes");
+	NS_LOG_INFO("        frac(PKT)   " << ((double) buPerPidPkt / buPerPidNet));
+	NS_LOG_INFO("        frac(ACK)   " << ((double) buPerPidAck / buPerPidNet));
+	NS_LOG_INFO("  STAT DELAY        " << delay << " ms");
+	NS_LOG_INFO("  STAT HOP COUNT    " << numPktsForwarded);
+	NS_LOG_INFO("         per PKT    " << ((double) numPktsForwarded / numPktsSent));
+	NS_LOG_INFO("         per PID    " << ((double) numPktsForwarded / numPidsSent));
+	NS_LOG_INFO("  STAT BROADCAST    " << ((double) broadcasts / (unicasts + broadcasts)) << " (" << broadcasts << "/" << (unicasts + broadcasts) << ")");
+	NS_LOG_INFO("  STAT ATTACK DROPS " << pktDroppedByBlackhole);
 
 	//
 	// Cleanup
@@ -522,25 +544,27 @@ int main(int argc, char *argv[]) {
 	// Set up command line usage
 	CommandLine cmd;
 	// Default values
-	uint32_t run = 1;
-	double duration = 60.0;
-	std::string click          = "xcast";
+	uint32_t run               = 1;
+	double duration            = 60.0;
+	std::string click          = "xcast-promisc";
 	std::string networkConfig  = "small";
 	std::string trafficConfig  = "4_5";
-	std::string mobilityConfig = "10";
+	std::string mobilityConfig = "20";
+	double blackholeFraction   = 0.0;
 	std::string outFile		   = "";
 
-	cmd.AddValue("run",      "The instance of this experiment.",                                           run);
-	cmd.AddValue("duration", "The simulated time in seconds.",                                             duration);
-	cmd.AddValue("click",    "The Click configuration file to be used.",                                   click);
-	cmd.AddValue("network",  "The network configuration to use, e.g., 'small', 'medium' or 'large'.",      networkConfig);
-	cmd.AddValue("traffic",  "The traffic configuration to use, e.g., 'normal'.",                          trafficConfig);
-	cmd.AddValue("mobility", "The mobility model and configuration to use, e.g., 'constant' or 'moving'.", mobilityConfig);
-	cmd.AddValue("outfile",  "File for statistics output.",												   outFile);
+	cmd.AddValue("run",        "The instance of this experiment.",                       run);
+	cmd.AddValue("duration",   "The simulated time in seconds.",                         duration);
+	cmd.AddValue("click",      "The Click configuration file to be used.",               click);
+	cmd.AddValue("network",    "The network configuration to use.",                      networkConfig);
+	cmd.AddValue("traffic",    "The traffic configuration to use.",                      trafficConfig);
+	cmd.AddValue("mobility",   "The mobility model and configuration to use.",           mobilityConfig);
+	cmd.AddValue("blackholes", "Percentage of nodes the will be acting as a blackhole.", blackholeFraction);
+	cmd.AddValue("outfile",    "File for statistics output.",							 outFile);
 
 	cmd.Parse (argc, argv);
 
-	simulate(run, clickConfigs[click], Seconds(duration), networkConfigs[networkConfig], trafficConfigs[trafficConfig], mobilityConfigs[mobilityConfig], outFile);
+	simulate(run, clickConfigs[click], Seconds(duration), networkConfigs[networkConfig], trafficConfigs[trafficConfig], mobilityConfigs[mobilityConfig], blackholeFraction, outFile);
 
 #else
 	NS_FATAL_ERROR ("Can't use ns-3-click without NSCLICK compiled in");
