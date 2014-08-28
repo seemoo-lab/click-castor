@@ -111,6 +111,7 @@ elementclass CastorHandleAck{
 		-> CastorAddAckToHistory($crypto, $history)
 		//-> CastorPrint('Received valid', $myIP)
 		-> CastorSetAckNexthop($history, $promisc)
+		-> noLoopback :: CastorNoLoopback($myIP)
 		-> recAck :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)
 		-> CastorXcastResetDstAnno($promisc)
@@ -133,6 +134,9 @@ elementclass CastorHandleAck{
 	updateEstimates[2]
 		//-> CastorPrint("Received from wrong neighbor", $myIP)
 		-> null;
+	noLoopback[1]
+		//-> CastorPrint("Don't send to myself", $myIP)
+		-> null;
 }
 
 elementclass CastorBlackhole {
@@ -143,5 +147,6 @@ elementclass CastorBlackhole {
 		-> output;
 		
 	filter[1]
+		-> rec :: CastorRecordPkt
 		-> Discard;
 }

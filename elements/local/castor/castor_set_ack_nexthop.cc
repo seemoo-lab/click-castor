@@ -2,9 +2,7 @@
 #include <click/confparse.hh>
 #include <click/packet.hh>
 #include <click/ipaddress.hh>
-#include <click/straccum.hh>
 #include "castor_set_ack_nexthop.hh"
-#include "castor_xcast.hh"
 
 CLICK_DECLS
 
