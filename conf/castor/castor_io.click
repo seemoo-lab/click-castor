@@ -27,7 +27,7 @@ elementclass OutputEth {
 	$myEthDev, $broadcastJitter, $unicastJitter |
 
 	input[0]
-		-> BroadcastDelayer($broadcastJitter, $unicastJitter, true)
+		//-> BroadcastDelayer($broadcastJitter, $unicastJitter, true)
 		-> Queue
 		-> ethdev :: ToSimDevice($myEthDev);
 
