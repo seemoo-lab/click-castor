@@ -13,10 +13,10 @@ import scipy.stats
 runs       = range(1,21)
 duration   = 60.0 * 10.0
 clicks     = ["xcast-promisc", "xcast", "regular"]
-networks   = ["small", "medium"]#, "large"]
+networks   = ["medium", "large"]
 traffics   = ["20_1", "10_2", "4_5", "2_10"]
 mobilities = ["0", "20"]
-blackholes = [0.0, 0.2, 0.4]
+blackholes = ["0.2", "0.4"]
 
 
 
@@ -24,7 +24,7 @@ def base_conf():
     network   = "medium"
     traffic   = "4_5"
     mobility  = "20"
-    blackhole = 0.0
+    blackhole = "0.0"
     return network, traffic, mobility, blackhole
 
 def file_name(
@@ -33,7 +33,7 @@ def file_name(
               traffic=base_conf()[1], 
               mobility=base_conf()[2], 
               blackhole=base_conf()[3]):
-    return work_dir + network + "-" + traffic + "-" + mobility + "-" + `blackhole`
+    return work_dir + network + "-" + traffic + "-" + mobility + "-" + blackhole
 
 def generate_cmd(
                  work_dir, 
@@ -54,7 +54,7 @@ def generate_cmd(
             " --network="  + network +
             " --traffic="  + traffic +
             " --mobility=" + mobility +
-            " --blackholes=" + `blackhole` +
+            " --blackholes=" + blackhole +
             " --outfile="  + file_name(work_dir, network, traffic, mobility, blackhole) + "-" + click + "-" + `run`
             ]
            for run       in runs
@@ -91,15 +91,15 @@ def evaluate(work_dir):
         average_runs(file_name(work_dir, blackhole=blackhole))
 
 def average_runs(fileprefix, clicks=clicks):
-    out_file = file(fileprefix, "w")
-    # Clear old file
-    out_file.write("")
-    out_file.close()
+    if os.path.exists(fileprefix):
+        os.remove(fileprefix)
     for click in clicks:
         # Read out metrics from all runs
         accum = numpy.array([])
         for i in runs:
             current_file_name = fileprefix + "-" + click + "-" + `i`
+            if not os.path.exists(current_file_name):
+                continue
             current_file = file(current_file_name, "r")
             line = map(num, current_file.readline().split(" "))
             current_file.close()
@@ -116,6 +116,10 @@ def average_runs(fileprefix, clicks=clicks):
                 result.append(`m` + " " + `h`)
         else:
             result = accum
+        
+        if not result:
+            continue
+        
         # Write results for this Click configuration
         out_file = file(fileprefix, "a")
         out_file.write(click)
@@ -123,7 +127,86 @@ def average_runs(fileprefix, clicks=clicks):
             out_file.write(" " + str(x))
         out_file.write("\n")
         out_file.close()
+
+def write_list_to_file(file_name, mylist):
+    out_file = file(file_name, "w")
+    for line in mylist:
+        for entry in line:
+            out_file.write(entry + ' ')
+        out_file.write('\n')
+    out_file.close()
+
+def generate_plots(work_dir, setting, networks=[base_conf()[0]], traffics=[base_conf()[1]], mobilities=[base_conf()[2]], blackholes=[base_conf()[3]], clicks=clicks):
     
+    pdr = [['title']]
+    for click in clicks:
+        pdr[0].extend([click, click])
+    bu = [['title']]
+    for click in clicks:
+        bu[0].extend([click, click])
+    delay = [['title']]
+    for click in clicks:
+        delay[0].extend([click, click])
+        
+    num_settings = 0
+    
+    for network in networks:
+        for traffic in traffics:
+            for mobility in mobilities:
+                for blackhole in blackholes:
+                    name = file_name(work_dir, network, traffic, mobility, blackhole)
+                    if not os.path.exists(name):
+                        continue
+                    in_file = file(name, "r")
+                    pdr_entry = [os.path.basename(name)]
+                    bu_entry = [os.path.basename(name)]
+                    delay_entry = [os.path.basename(name)]
+                    for line in in_file.readlines():
+                        split_line = line.split()
+                        pdr_entry.extend(split_line[1:3])
+                        bu_entry.extend(split_line[3:5])
+                        delay_entry.extend(split_line[11:13])
+                    pdr.append(pdr_entry)
+                    bu.append(bu_entry)
+                    delay.append(delay_entry)
+                    num_settings += 1
+    
+    if num_settings == 0:
+        return
+    
+    pdr_file = work_dir + setting + "-pdr.dat"
+    bu_file = work_dir + setting + "-bu.dat"
+    delay_file = work_dir + setting + "-delay.dat"
+    
+    write_list_to_file(pdr_file, pdr)
+    write_list_to_file(bu_file, bu)
+    write_list_to_file(delay_file, delay)
+    
+    common_params = "setting='" + setting + "';" + "minx='" + `-0.5` + "';" + "maxx='" + `num_settings - 0.5` + "';" + "tikz='true'"
+    gnu_script = "plot.gnu"
+    
+    subprocess.call(["gnuplot", "-e",
+                     "filename='" + pdr_file + "';" + 
+                     "metric='Packet Delivery Ratio';" + 
+                     "maxy='1';" +
+                     "outfile='out/" + setting + "-pdr.tikz';" +
+                     common_params,
+                     gnu_script])
+    subprocess.call(["gnuplot", "-e", 
+                     "filename='" + bu_file + "';" +
+                     "metric='Bandwidth Utilization [bytes]';" +
+                     "setting='" + setting + "';" +
+                     "outfile='out/" + setting + "-bu.tikz';" +
+                     common_params,
+                     gnu_script])
+    subprocess.call(["gnuplot", "-e", 
+                     "filename='" + delay_file + "';" + 
+                     "metric='Delay [ms]';" + 
+                     "setting='" + setting + "';" + 
+                     "outfile='out/" + setting + "-delay.tikz';" +
+                     common_params,
+                     gnu_script])
+
 def num(s):
     """Converts a string to a number value (int or float)
     """
@@ -141,30 +224,41 @@ def mean_confidence_interval(data, confidence=0.95):
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--comment", help="Note to the experiment to be run")
+    parser.add_argument("-o", "--onlyeval", help="Whether to only perform the evaluation, specify directory (obsoletes --comment option)")
     args = parser.parse_args(argv)
 
+    work_dir = ""
     # Create workdir
-    comment = "_" + args.comment if args.comment else ""
-    i = datetime.now()
-    work_dir = "out/" + i.strftime('%Y-%m-%d_%H.%M.%S') + comment + "/"
-    if not os.path.exists(os.path.dirname(work_dir)):  
-        os.makedirs(os.path.dirname(work_dir)) 
-
-    print "Pre-Build experiment"
-    result = subprocess.call(["./waf", "build"])
-   
-    if result:
-        print >>sys.stderr, "Failed to build experiment, stop"
-        return result
-  
-    print "Start experiments on " + `multiprocessing.cpu_count()` + " core(s)"
-    pool = multiprocessing.Pool(None) # use 'multiprocessing.cpu_count()' cores
-    pool.map_async(subprocess.call, generate_all_cmd(work_dir))
-    pool.close()
-    pool.join()
+    if args.onlyeval == "":
+        comment = "_" + args.comment if args.comment else ""
+        i = datetime.now()
+        work_dir = "out/" + i.strftime('%Y-%m-%d_%H.%M.%S') + comment + "/"
+        if not os.path.exists(os.path.dirname(work_dir)):  
+            os.makedirs(os.path.dirname(work_dir)) 
+ 
+        print "Pre-Build experiment"
+        result = subprocess.call(["./waf", "build"])
+        
+        if result:
+            print >>sys.stderr, "Failed to build experiment, stop"
+            return result
+       
+        print "Start experiments on " + `multiprocessing.cpu_count()` + " core(s)"
+        pool = multiprocessing.Pool(None) # use 'multiprocessing.cpu_count()' cores
+        pool.map_async(subprocess.call, generate_all_cmd(work_dir))
+        pool.close()
+        pool.join()
+        
+    else:
+        work_dir = args.onlyeval
  
     print "Evaluate experiments"
     evaluate(work_dir)
+    generate_plots(work_dir, "network", networks=networks)
+    generate_plots(work_dir, "traffic", traffics=traffics)
+    generate_plots(work_dir, "mobility", mobilities=mobilities)
+    generate_plots(work_dir, "blackhole", blackholes=blackholes)
+
     return 0
 
 if __name__ == '__main__':
