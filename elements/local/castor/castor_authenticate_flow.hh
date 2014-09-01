@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTOR_VALIDATE_FLOW_HH
-#define CLICK_CASTOR_VALIDATE_FLOW_HH
+#ifndef CLICK_CASTOR_AUTHENTICATE_FLOW_HH
+#define CLICK_CASTOR_AUTHENTICATE_FLOW_HH
 
 #include <click/element.hh>
 #include "castor.hh"
@@ -7,17 +7,15 @@
 
 CLICK_DECLS
 
-// XXX Should be named CastorAuthenticateFlow
-
 /**
  * Flow validation takes place at every intermediate node
  */
-class CastorValidateFlow : public Element {
+class CastorAuthenticateFlow : public Element {
 	public:
-		CastorValidateFlow();
-		~CastorValidateFlow();
+		CastorAuthenticateFlow();
+		~CastorAuthenticateFlow();
 		
-		const char *class_name() const	{ return "CastorValidateFlow"; }
+		const char *class_name() const	{ return "CastorAuthenticateFlow"; }
 		const char *port_count() const	{ return "1/2"; }
 		const char *processing() const	{ return PUSH; }
 		int configure(Vector<String>&, ErrorHandler*);

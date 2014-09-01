@@ -6,24 +6,24 @@
  */
 #include <click/config.h>
 #include <click/confparse.hh>
-#include "castor_validate_ack.hh"
+#include "castor_authenticate_ack.hh"
 
 CLICK_DECLS
 
-CastorValidateACK::CastorValidateACK() {
+CastorAuthenticateAck::CastorAuthenticateAck() {
 }
 
-CastorValidateACK::~CastorValidateACK() {
+CastorAuthenticateAck::~CastorAuthenticateAck() {
 }
 
-int CastorValidateACK::configure(Vector<String>& conf, ErrorHandler* errh) {
+int CastorAuthenticateAck::configure(Vector<String>& conf, ErrorHandler* errh) {
     return cp_va_kparse(conf, this, errh,
     	"Crypto", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
 		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
         cpEnd);
 }
 
-void CastorValidateACK::push(int, Packet* p) {
+void CastorAuthenticateAck::push(int, Packet* p) {
 
 	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
 	const IPAddress src = CastorPacket::src_ip_anno(p);
@@ -42,4 +42,4 @@ void CastorValidateACK::push(int, Packet* p) {
 
 
 CLICK_ENDDECLS
-EXPORT_ELEMENT(CastorValidateACK)
+EXPORT_ELEMENT(CastorAuthenticateAck)

@@ -3,7 +3,7 @@ elementclass CastorLocalXcastPkt {
 
 	input
 		-> CastorXcastAnnotateAckAuth($crypto)
-		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
+		-> authPkt :: CastorAuthenticatePkt($crypto)
 		-> rec :: CastorRecordPkt
 		//-> CastorPrint('Arrived at destination', $myIP)
 		-> CastorAddXcastPktToHistory($history)
@@ -17,7 +17,7 @@ elementclass CastorLocalXcastPkt {
 
 	// If invalid -> discard
 	null :: Discard;
-	validateAtDest[1]
+	authPkt[1]
 		-> CastorPrint("Packet authentication failed", $myIP)
 		-> null;
 
@@ -49,7 +49,7 @@ elementclass CastorHandleXcastPkt {
 	input
 		-> forwarderClassifier :: CastorXcastForwarderClassifier($myIP)
 		-> checkDuplicate :: CastorXcastCheckDuplicate($history, $myIP)
-		-> validate :: CastorXcastValidateFlow($crypto)
+		-> validate :: CastorXcastAuthenticateFlow($crypto)
 		-> destinationClassifier :: CastorXcastDestClassifier($myIP);
 
  	// PKT arrived at destination

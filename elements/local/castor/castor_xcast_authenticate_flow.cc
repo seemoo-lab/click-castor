@@ -1,22 +1,22 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-#include "castor_xcast_validate_flow.hh"
+#include "castor_xcast_authenticate_flow.hh"
 #include "tree.hh"
 #include "castor_xcast.hh"
 
 CLICK_DECLS
 
-CastorXcastValidateFlow::CastorXcastValidateFlow(){}
+CastorXcastAuthenticateFlow::CastorXcastAuthenticateFlow(){}
 
-CastorXcastValidateFlow::~ CastorXcastValidateFlow(){}
+CastorXcastAuthenticateFlow::~ CastorXcastAuthenticateFlow(){}
 
-int CastorXcastValidateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
+int CastorXcastAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
 			"CRYPT", cpkP + cpkM, cpElementCast, "Crypto", &crypto,
 			cpEnd);
 }
 
-void CastorXcastValidateFlow::push(int, Packet *p){
+void CastorXcastAuthenticateFlow::push(int, Packet *p){
 
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
@@ -39,4 +39,4 @@ void CastorXcastValidateFlow::push(int, Packet *p){
 
 CLICK_ENDDECLS
 ELEMENT_REQUIRES(TREE)
-EXPORT_ELEMENT(CastorXcastValidateFlow)
+EXPORT_ELEMENT(CastorXcastAuthenticateFlow)

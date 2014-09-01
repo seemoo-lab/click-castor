@@ -1,23 +1,23 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-#include "castor_validate_flow_atdest.hh"
+#include "castor_authenticate_pkt.hh"
 #include "castor_xcast.hh"
 
 CLICK_DECLS
 
-CastorValidateFlowAtDestination::CastorValidateFlowAtDestination() {
+CastorAuthenticatePkt::CastorAuthenticatePkt() {
 }
 
-CastorValidateFlowAtDestination::~CastorValidateFlowAtDestination() {
+CastorAuthenticatePkt::~CastorAuthenticatePkt() {
 }
 
-int CastorValidateFlowAtDestination::configure(Vector<String> &conf, ErrorHandler *errh) {
+int CastorAuthenticatePkt::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
 		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
 		cpEnd);
 }
 
-void CastorValidateFlowAtDestination::push(int, Packet *p) {
+void CastorAuthenticatePkt::push(int, Packet *p) {
 
 	bool isPidValid;
 
@@ -45,4 +45,4 @@ void CastorValidateFlowAtDestination::push(int, Packet *p) {
 }
 
 CLICK_ENDDECLS
-EXPORT_ELEMENT(CastorValidateFlowAtDestination)
+EXPORT_ELEMENT(CastorAuthenticatePkt)

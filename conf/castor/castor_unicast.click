@@ -4,7 +4,7 @@ elementclass CastorLocalPkt {
 	input
 		//-> CastorPrint('Packet arrived at destination', $myIP)
 		-> CastorDecryptACKAuth($crypto)
-		-> validateAtDest :: CastorValidateFlowAtDestination($crypto)
+		-> authPkt :: CastorAuthenticatePkt($crypto)
 		-> CastorAddPKTToHistory($history)
 		-> rec :: CastorRecordPkt
 		-> genAck :: CastorCreateAck
@@ -17,7 +17,7 @@ elementclass CastorLocalPkt {
 
 	// If invalid -> discard
 	null :: Discard;
-	validateAtDest[1]
+	authPkt[1]
 		-> CastorPrint("Packet authentication failed", $myIP)
 		-> null;
 
@@ -48,7 +48,7 @@ elementclass CastorHandlePkt {
 
 	input
 		-> checkDuplicate :: CastorCheckDuplicate($history)
-		-> validate :: CastorValidateFlow($crypto)
+		-> authenticate :: CastorAuthenticateFlow($crypto)
 		-> destinationClassifier :: CastorDestClassifier($myIP);
 
  	// PKT arrived at destination
@@ -78,7 +78,7 @@ elementclass CastorHandlePkt {
 		//-> CastorPrint("Duplicate", $myIP)
 		//-> CastorAddPKTToHistory($history) // Add sender to history (FIXME: if disabled, protocol performs much better... why?!)
 		-> null;
-	validate[1]
+	authenticate[1]
 		-> CastorPrint("Flow authentication failed", $myIP)
 		-> null;
 

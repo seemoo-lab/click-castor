@@ -1,21 +1,21 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-#include "castor_validate_flow.hh"
+#include "castor_authenticate_flow.hh"
 #include "tree.hh"
 
 CLICK_DECLS
 
-CastorValidateFlow::CastorValidateFlow(){}
+CastorAuthenticateFlow::CastorAuthenticateFlow(){}
 
-CastorValidateFlow::~ CastorValidateFlow(){}
+CastorAuthenticateFlow::~ CastorAuthenticateFlow(){}
 
-int CastorValidateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
+int CastorAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
 			"CRYPT", cpkP + cpkM, cpElementCast, "Crypto", &crypto,
 			cpEnd);
 }
 
-void CastorValidateFlow::push(int, Packet *p){
+void CastorAuthenticateFlow::push(int, Packet *p){
 
 	Castor_PKT* pkt = (Castor_PKT*) p->data();
 
@@ -34,4 +34,4 @@ void CastorValidateFlow::push(int, Packet *p){
 
 CLICK_ENDDECLS
 ELEMENT_REQUIRES(TREE)
-EXPORT_ELEMENT(CastorValidateFlow)
+EXPORT_ELEMENT(CastorAuthenticateFlow)

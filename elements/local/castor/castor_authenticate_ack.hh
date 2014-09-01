@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTOR_VALIDATEACK_HH
-#define CLICK_CASTOR_VALIDATEACK_HH
+#ifndef CLICK_CASTOR_AUTHENTICATE_ACK_HH
+#define CLICK_CASTOR_AUTHENTICATE_ACK_HH
 
 #include <click/element.hh>
 #include "castor.hh"
@@ -8,14 +8,12 @@
 
 CLICK_DECLS
 
-// XXX Should be named CastorAuthenticateAck
-
-class CastorValidateACK: public Element {
+class CastorAuthenticateAck: public Element {
 public:
-	CastorValidateACK();
-	~CastorValidateACK();
+	CastorAuthenticateAck();
+	~CastorAuthenticateAck();
 
-	const char *class_name() const { return "CastorValidateACK"; }
+	const char *class_name() const { return "CastorAuthenticateAck"; }
 	const char *port_count() const { return "1/4"; }
 	const char *processing() const { return PUSH; }
 	int configure(Vector<String>&, ErrorHandler*);

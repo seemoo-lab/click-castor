@@ -106,7 +106,7 @@ elementclass CastorHandleAck{
 	// Regular ACK flow
 	input
 		-> calcPid :: CastorAnnotatePid($crypto)
-		-> validate :: CastorValidateACK($crypto, $history)
+		-> authenticate :: CastorAuthenticateAck($crypto, $history)
 		-> updateEstimates :: CastorUpdateEstimates($crypto, $routingtable, $history)
 		-> CastorAddAckToHistory($crypto, $history)
 		//-> CastorPrint('Received valid', $myIP)
@@ -119,13 +119,13 @@ elementclass CastorHandleAck{
 
 	// Discarding...
 	null :: Discard;
-	validate[1]
+	authenticate[1]
 		//-> CastorPrint("Unknown corresponding PKT", $myIP)
 		-> null;
-	validate[2]
+	authenticate[2]
 		//-> CastorPrint("Too late", $myIP)
 		-> null;
-	validate[3]
+	authenticate[3]
 		//-> CastorPrint("Duplicate from same neighbor", $myIP)
 		-> null;
 	updateEstimates[1]

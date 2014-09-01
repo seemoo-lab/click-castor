@@ -199,8 +199,6 @@ public:
 	void setNextHopMapping(const HashTable<IPAddress,Vector<unsigned int> >& map) {
 		setNNextHops(map.size());
 
-		// XXX use swapping instead
-
 		// Cache old destinations and pids
 		Vector<IPAddress> oldDestinations;
 		Vector<PacketId> oldPids;
