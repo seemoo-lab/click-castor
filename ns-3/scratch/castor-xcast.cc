@@ -112,7 +112,7 @@ void WriteArp(NodeContainer n) {
 		stream << ipv4Addr << " " << macAddr;
 
 		for (NodeContainer::Iterator it2 = n.Begin(); it2 != n.End(); ++it2) {
-			Ptr<Ipv4ClickRouting> clickRouter = (*it)->GetObject<Ipv4ClickRouting>();
+			Ptr<Ipv4ClickRouting> clickRouter = (*it2)->GetObject<Ipv4ClickRouting>();
 			clickRouter->WriteHandler("arpquerier", "insert", stream.str().c_str());
 		}
 
