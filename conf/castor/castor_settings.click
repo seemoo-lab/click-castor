@@ -14,8 +14,8 @@ define(
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 	$timeout 500, // in milliseconds
 
-	$broadcastJitter 300, // jitter in microseconds to avoid collisions for broadcast traffic
-	$unicastJitter 30, // to add some artificial processing delay
+	$broadcastJitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
+	$unicastJitter 0, // to add some artificial processing delay
 );
 
 AddressInfo(fake $EthDev);

@@ -5,8 +5,7 @@ elementclass BroadcastDelayer {
 	$broadcastJitter, $unicastJitter, $isSimulator |
 	
 	input[0]
-		-> CheckIPHeader(14)
-		-> dstFilter :: IPClassifier(dst host 255.255.255.255, -)
+		-> dstFilter :: Classifier(0/ffffffffffff, -);
 		
 	dstFilter[0]
 		-> Queue
@@ -27,7 +26,7 @@ elementclass OutputEth {
 	$myEthDev, $broadcastJitter, $unicastJitter |
 
 	input[0]
-		//-> BroadcastDelayer($broadcastJitter, $unicastJitter, true)
+		-> BroadcastDelayer($broadcastJitter, $unicastJitter, true)
 		-> Queue
 		-> ethdev :: ToSimDevice($myEthDev);
 
