@@ -13,10 +13,10 @@ import scipy.stats
 runs       = range(1,21)
 duration   = 60.0 * 10.0
 clicks     = ["xcast-promisc", "xcast", "regular"]
-networks   = ["medium", "large"]
+networks   = ["small", "medium"]#, "large"]
 traffics   = ["20_1", "10_2", "4_5", "2_10"]
 mobilities = ["0", "20"]
-blackholes = ["0.2", "0.4"]
+blackholes = ["0.0", "0.2", "0.4"]
 
 
 
@@ -229,7 +229,7 @@ def main(argv):
 
     work_dir = ""
     # Create workdir
-    if args.onlyeval == "":
+    if not args.onlyeval:
         comment = "_" + args.comment if args.comment else ""
         i = datetime.now()
         work_dir = "out/" + i.strftime('%Y-%m-%d_%H.%M.%S') + comment + "/"
