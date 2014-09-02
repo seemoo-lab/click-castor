@@ -99,24 +99,25 @@ bool readPidTimestamp(Ptr<Ipv4ClickRouting> clickRouter, std::string where, std:
 	return true;
 }
 
+void WriteArp(NodeContainer n) {
 
-void WriteArp(Ptr<Ipv4ClickRouting> clickRouter, size_t nNodes,	const Ipv4Address& base) {
-	// Access the handler
-	for (unsigned int i = 1; i <= nNodes; i++) {
-		Ipv4Address ip = Ipv4Address(base.Get() + i);
-		Mac48Address mac;
-		uint8_t buf[6] = { 0 };
-		buf[5] = i;
-		mac.CopyFrom(buf);
+	for (NodeContainer::Iterator it = n.Begin(); it != n.End(); ++it) {
+		Ptr<Node> node = *it;
+
+		Ipv4Address ipv4Addr = node->GetObject<Ipv4ClickRouting>()->GetObject<Ipv4>()->GetAddress(1,0).GetLocal();
+		Mac48Address macAddr = DynamicCast<WifiNetDevice>(node->GetDevice(0))->GetMac()->GetAddress();
 
 		// Create entry of form "<IP> <MAC>"
 		std::stringstream stream;
-		ip.Print(stream);
-		stream << " " << mac;
+		stream << ipv4Addr << " " << macAddr;
 
-		clickRouter->WriteHandler("arpquerier", "insert", stream.str().c_str());
+		for (NodeContainer::Iterator it2 = n.Begin(); it2 != n.End(); ++it2) {
+			Ptr<Ipv4ClickRouting> clickRouter = (*it)->GetObject<Ipv4ClickRouting>();
+			clickRouter->WriteHandler("arpquerier", "insert", stream.str().c_str());
+		}
+
 	}
-	// TODO: Currently only works with 254 nodes
+
 }
 
 void WriteXcastMap(Ptr<Ipv4ClickRouting> clickRouter, Ipv4Address group, const std::vector<Ipv4Address>& destinations) {
@@ -291,8 +292,8 @@ void simulate(
 	uint32_t MaxPacketSize = trafficConfig.packetSize - 28; // IP+UDP header size = 28 byte
 
 	// Network
-	const Ipv4Address baseAddr("192.168.201.0");
-	const Ipv4Mask networkMask("255.255.255.0");
+	const Ipv4Address baseAddr("10.0.0.0");
+	const Ipv4Mask networkMask("255.0.0.0");
 	const Ipv4Address groupAddr("224.0.2.0");
 
 	// Set up network
@@ -363,8 +364,8 @@ void simulate(
 	}
 
 	// We fill in the ARP tables at the beginning of the simulation
+	Simulator::Schedule(Seconds(0.5), &WriteArp, n);
 	for (unsigned int i = 0; i < n.GetN(); i++) {
-		Simulator::Schedule(Seconds(0.5), &WriteArp, n.Get(i)->GetObject<Ipv4ClickRouting>(), netConfig.nNodes, baseAddr);
 		// Write Xcast destination mapping
 		for (std::map<Ipv4Address, std::vector<Ipv4Address> >::iterator it = groups.begin(); it != groups.end(); it++)
 			Simulator::Schedule(Seconds(0.5), &WriteXcastMap, n.Get(i)->GetObject<Ipv4ClickRouting>(), it->first, it->second);
@@ -452,6 +453,7 @@ void simulate(
 		}
 	}
 
+	NS_LOG_DEBUG("  " << avgDelay); // FIXME this is here so that delay will not output to '-nan', why does it?
 	double pdr = (double) numPidsRecv / numPidsSent;
 	double delay = avgDelay / numPidsRecv * 1000;
 	double buPerPidNet = (double) totalBandwidthUsage / numPidsSent;

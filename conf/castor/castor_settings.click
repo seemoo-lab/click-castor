@@ -19,7 +19,7 @@ define(
 );
 
 AddressInfo(fake $EthDev);
-AddressInfo(netAddr 192.168.201.0)
+AddressInfo(netAddr 10.0.0.0)
 
 // Need an IP routing table for ns-3 (dummy)
 rt :: StaticIPLookup(0.0.0.0/0 0);
