@@ -14,7 +14,7 @@ runs       = range(1,21)
 duration   = 60.0 * 10.0
 clicks     = ["xcast-promisc", "xcast", "regular", "flooding"]
 networks   = ["small", "medium"]#, "large"]
-traffics   = ["20_1", "10_2", "4_5", "2_10"]
+traffics   = ["20_1", "10_2", "4_5", "2_10", "8_5"]
 mobilities = ["0", "20"]
 blackholes = ["0.0", "0.2", "0.4"]
 
