@@ -174,7 +174,7 @@ public:
 	inline IPAddress getNextHop(unsigned int j) const { return IPAddress(&_var[getNextHopOff(j)]); }
 	inline void setNextHop(IPAddress nextHop, unsigned int j) { memcpy(&_var[getNextHopOff(j)], &nextHop, sizeof(IPAddress));}
 
-	inline void getNextHopDestintaions(unsigned int j, Vector<unsigned int>& destinations) const {
+	inline void getNextHopDestinations(unsigned int j, Vector<unsigned int>& destinations) const {
 		unsigned int off = 0;
 		for(unsigned int i = 0; i < j; i++)
 			off += getNextHopNAssign(i);

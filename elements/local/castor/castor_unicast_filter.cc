@@ -50,7 +50,7 @@ void CastorUnicastFilter::push(int, Packet *p) {
 		} else {
 			// These destinations are broadcast
 			Vector<unsigned int> destinations;
-			pkt.getNextHopDestintaions(index, destinations);
+			pkt.getNextHopDestinations(index, destinations);
 
 			HashTable<uint8_t, uint8_t> toRemain;
 			for(int i = 0; i < destinations.size(); i++) {
