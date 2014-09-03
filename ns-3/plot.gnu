@@ -1,4 +1,4 @@
-if (exists("tikz")) set term tikz
+if (exists("tikz")) set term tikz size 15, 7
 if (exists("outfile")) set output outfile
 set boxwidth 1 relative
 set style data histograms
@@ -19,7 +19,7 @@ set ytics border in scale 0,0
 set xtics border in scale 0,0
 
 # Set legend to column titles
-set key outside center top horizontal reverse Left samplen 1 spacing 1.35 autotitle columnhead nobox
+set key outside right center vertical reverse Left samplen 1 spacing 1.35 autotitle columnhead nobox
 
 set grid y
 
