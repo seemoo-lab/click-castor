@@ -19,15 +19,18 @@ int FloodingCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *errh) 
 
 void FloodingCheckDuplicate::push(int, Packet *p) {
 
-	unsigned long id = Flooding::getId(p);
+	Key id = Flooding::getId(p);
+	Key dst = p->ip_header()->ip_dst.s_addr;
+	HashTable<Key, Key>* ids = history.get_pointer(dst);
 
-	uint32_t dst = p->ip_header()->ip_dst.s_addr;
-	Key key = id ^ (unsigned long) dst;
-
-	if (history.get_pointer(key)) {
-		output(1).push(p);
+	if (ids && ids->get_pointer(id)) {
+		output(1).push(p); // -> Duplicate
 	} else {
-		history.set(key, key);
+		if (!ids) {
+			history.set(dst, HashTable<Key,Key>());
+			ids = history.get_pointer(dst);
+		}
+		ids->set(id, id);
 		output(0).push(p);
 	}
 

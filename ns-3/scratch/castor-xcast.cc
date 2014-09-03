@@ -287,9 +287,13 @@ void simulate(
 	RngSeedManager::SetSeed(12345);
 	RngSeedManager::SetRun(run);
 
+	bool isFlooding = clickConfig.Get() == "/home/milan/click/conf/castor/flooding.click";  // TODO quick'n'dirty
+
 	size_t nSenders = (size_t) ceil(netConfig.nNodes * trafficConfig.senderFraction);
 
-	uint32_t MaxPacketSize = trafficConfig.packetSize - 28; // IP+UDP header size = 28 byte
+	uint32_t packetSize = trafficConfig.packetSize - 28; // IP+UDP header size = 28 byte
+	if (isFlooding)
+		packetSize += 14; // Currently, we wrap Castor PKTs into IP packets before sending, so add sizeof IP header for better comparability
 
 	// Network
 	const Ipv4Address baseAddr("10.0.0.0");
@@ -347,7 +351,7 @@ void simulate(
 		UdpClientHelper client(groupIp, port);
 		client.SetAttribute("MaxPackets", UintegerValue(UINT32_MAX));
 		client.SetAttribute("Interval", TimeValue(trafficConfig.sendInterval));
-		client.SetAttribute("PacketSize", UintegerValue(MaxPacketSize));
+		client.SetAttribute("PacketSize", UintegerValue(packetSize));
 		apps = client.Install(NodeContainer(sender));
 		apps.Start(Seconds(2.0) + trafficConfig.sendInterval / nSenders * nodeIndex);
 		apps.Stop(duration + Seconds(2.0));
@@ -365,7 +369,6 @@ void simulate(
 
 	// We fill in the ARP tables at the beginning of the simulation
 	Simulator::Schedule(Seconds(0.5), &WriteArp, n);
-	bool isFlooding = clickConfig.Get() == "/home/milan/click/conf/castor/flooding.click";  // TODO quick'n'dirty
 	std::string mapLocation = isFlooding ? "map" : "handleIpPacket/map";
 	for (unsigned int i = 0; i < n.GetN(); i++) {
 		// Write Xcast destination mapping

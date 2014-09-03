@@ -20,7 +20,9 @@ public:
 	static inline Id getId(Packet* p) {
 		const uint8_t* pt = p->data();
 		pt += sizeof(click_ip);
-		return (unsigned long) *pt;
+		Id id;
+		memcpy(&id, pt, sizeof(Id));
+		return id;
 	}
 
 	static inline void setId(WritablePacket* p, Id id) {

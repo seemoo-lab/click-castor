@@ -22,7 +22,7 @@ class FloodingCheckDuplicate : public Element {
 
 	private:
 		typedef unsigned long Key;
-		HashTable<Key, Key> history;
+		HashTable<Key, HashTable<Key,Key> > history;
 		Crypto* crypto;
 };
 
