@@ -120,7 +120,7 @@ void WriteArp(NodeContainer n) {
 
 }
 
-void WriteXcastMap(Ptr<Ipv4ClickRouting> clickRouter, Ipv4Address group, const std::vector<Ipv4Address>& destinations) {
+void WriteXcastMap(Ptr<Ipv4ClickRouting> clickRouter, Ipv4Address group, const std::vector<Ipv4Address>& destinations, std::string mapLocation) {
 	// Create entry of form "<GroupAddr> <Dest1Addr> <Dest2Addr> ... <DestNAddr>"
 	std::stringstream stream;
 
@@ -132,7 +132,7 @@ void WriteXcastMap(Ptr<Ipv4ClickRouting> clickRouter, Ipv4Address group, const s
 		destinations[i].Print(stream);
 	}
 
-	clickRouter->WriteHandler("handleIpPacket/map", "insert", stream.str().c_str());
+	clickRouter->WriteHandler(mapLocation, "insert", stream.str().c_str());
 }
 
 void WriteSetBlackhole(Ptr<Ipv4ClickRouting> clickRouter, bool active) {
@@ -365,10 +365,12 @@ void simulate(
 
 	// We fill in the ARP tables at the beginning of the simulation
 	Simulator::Schedule(Seconds(0.5), &WriteArp, n);
+	bool isFlooding = clickConfig.Get() == "/home/milan/click/conf/castor/flooding.click";  // TODO quick'n'dirty
+	std::string mapLocation = isFlooding ? "map" : "handleIpPacket/map";
 	for (unsigned int i = 0; i < n.GetN(); i++) {
 		// Write Xcast destination mapping
 		for (std::map<Ipv4Address, std::vector<Ipv4Address> >::iterator it = groups.begin(); it != groups.end(); it++)
-			Simulator::Schedule(Seconds(0.5), &WriteXcastMap, n.Get(i)->GetObject<Ipv4ClickRouting>(), it->first, it->second);
+			Simulator::Schedule(Seconds(0.5), &WriteXcastMap, n.Get(i)->GetObject<Ipv4ClickRouting>(), it->first, it->second, mapLocation);
 	}
 
 	setBlackHoles(n, round(netConfig.nNodes * blackholeFraction));
@@ -399,7 +401,7 @@ void simulate(
 	// Schedule evaluation
 	//
 	uint32_t numPidsSent = 0;
-	uint32_t numPidsRecv = 0;
+	uint32_t numPktsRecv = 0;
 	uint32_t pktBandwidthUsage = 0;
 	uint32_t ackBandwidthUsage = 0;
 	uint32_t totalBandwidthUsage = 0;
@@ -421,13 +423,15 @@ void simulate(
 	std::string pktDrop = "handlepkt/blackhole/rec";
 	for(unsigned int i = 0; i < netConfig.nNodes; i++) {
 		numPidsSent += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktSend);
-		numPidsRecv += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDeliver);
+		numPktsRecv += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDeliver);
 		pktBandwidthUsage += readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
-		ackBandwidthUsage += readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackSend) +
+		if(!isFlooding)
+			ackBandwidthUsage += readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackSend) +
 							 readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackForward);
 		numPktsSent += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktSend);
 		numPktsForwarded += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
-		numAcksForwarded += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackSend) +
+		if(!isFlooding)
+			numAcksForwarded += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackSend) +
 							readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackForward);
 		broadcasts += readBroadcasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
 		unicasts += readUnicasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
@@ -453,15 +457,14 @@ void simulate(
 		}
 	}
 
-	NS_LOG_DEBUG("  " << avgDelay); // FIXME this is here so that delay will not output to '-nan', why does it?
-	double pdr = (double) numPidsRecv / numPidsSent;
-	double delay = avgDelay / numPidsRecv * 1000;
+	double pdr = (double) numPktsRecv / numPidsSent;
+	double delay = avgDelay / numPktsRecv * 1000;
 	double buPerPidNet = (double) totalBandwidthUsage / numPidsSent;
 	double buPerPidPhy = (double) phyTx / numPidsSent;
 	double buPerPidPkt = (double) pktBandwidthUsage / numPidsSent;
 	double buPerPidAck = (double) ackBandwidthUsage / numPidsSent;
 
-	NS_LOG_INFO("  STAT PDR          " << pdr << " (" << numPidsRecv << "/" << numPidsSent << ")");
+	NS_LOG_INFO("  STAT PDR          " << pdr << " (" << numPktsRecv << "/" << numPidsSent << ")");
 	NS_LOG_INFO("  STAT BU per PID   " << buPerPidPhy  << " (phy), " << buPerPidNet << " (net) bytes");
 	NS_LOG_INFO("        frac(PKT)   " << ((double) buPerPidPkt / buPerPidNet));
 	NS_LOG_INFO("        frac(ACK)   " << ((double) buPerPidAck / buPerPidNet));
@@ -510,6 +513,7 @@ int main(int argc, char *argv[]) {
 	clickConfigs.insert(std::make_pair("xcast",         "/home/milan/click/conf/castor/castor_xcast_routing.click"));
 	clickConfigs.insert(std::make_pair("xcast-promisc", "/home/milan/click/conf/castor/castor_xcast_routing_promisc.click"));
 	clickConfigs.insert(std::make_pair("regular",       "/home/milan/click/conf/castor/castor_multicast_via_unicast_routing.click"));
+	clickConfigs.insert(std::make_pair("flooding",      "/home/milan/click/conf/castor/flooding.click"));
 
 
 	std::map<std::string, NetworkConfiguration> networkConfigs;
