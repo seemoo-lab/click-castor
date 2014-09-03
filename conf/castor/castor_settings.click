@@ -16,6 +16,8 @@ define(
 
 	$broadcastJitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
 	$unicastJitter 0, // to add some artificial processing delay
+	
+	$numNodes 200,
 );
 
 AddressInfo(fake $EthDev);

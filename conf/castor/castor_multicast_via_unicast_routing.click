@@ -14,7 +14,7 @@ ethout :: OutputEth($EthDev, $broadcastJitter, $unicastJitter);
 fromhost :: FromHost($HostDev, fake);
 tohost :: ToHost($HostDev);
 
-sam::SAManagement(fake, netAddr, 100);
+sam::SAManagement(fake, netAddr, $numNodes);
 crypto::Crypto(sam);
 flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);
