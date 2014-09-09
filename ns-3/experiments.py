@@ -75,7 +75,7 @@ def generate_all_cmd(work_dir):
     
     # remove all occurences of the default config
     default_cmd = generate_cmd(work_dir)
-    all_cmds[:] = [x for x in all_cmds if not x == default_cmd]
+    all_cmds[:] = [x for x in all_cmds if not x in default_cmd]
     all_cmds.extend(default_cmd) # Add default config
 
     return all_cmds
