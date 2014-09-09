@@ -6,10 +6,11 @@ set bars large
 set style fill solid 0.7 border lt -1
 # Set fill colors
 set linetype 1 lc rgb 'black' lt -1
-set linetype 2 lc rgb 'grey' lt -1
-set linetype 3 lc rgb 'white' lt -1
+set linetype 2 lc rgb 'darkgrey' lt -1
+set linetype 3 lc rgb 'grey' lt -1
+set linetype 4 lc rgb 'white' lt -1
 
-set style histogram errorbars gap 3 lw 1 # gap must be odd for odd number of data
+set style histogram errorbars gap 2 lw 1 # gap must be odd for odd number of data
 
 # Only show x- and y-axis
 set border 3 front
