@@ -409,6 +409,7 @@ void simulate(
 	uint32_t ackBandwidthUsage = 0;
 	uint32_t totalBandwidthUsage = 0;
 	uint32_t numPktsSent = 0;
+	uint32_t numGroupMessagesSent = (uint32_t) (duration / trafficConfig.sendInterval) * (trafficConfig.senderFraction * netConfig.nNodes);
 	uint32_t broadcasts = 0;
 	uint32_t unicasts = 0;
 	uint32_t numPktsForwarded = 0;
@@ -466,15 +467,14 @@ void simulate(
 	double buPerPidPhy = (double) phyTx / numPidsSent;
 	double buPerPidPkt = (double) pktBandwidthUsage / numPidsSent;
 	double buPerPidAck = (double) ackBandwidthUsage / numPidsSent;
+	double hopsPerGroupMessage = (double) numPktsForwarded / numGroupMessagesSent;
 
 	NS_LOG_INFO("  STAT PDR          " << pdr << " (" << numPktsRecv << "/" << numPidsSent << ")");
 	NS_LOG_INFO("  STAT BU per PID   " << buPerPidPhy  << " (phy), " << buPerPidNet << " (net) bytes");
 	NS_LOG_INFO("        frac(PKT)   " << ((double) buPerPidPkt / buPerPidNet));
 	NS_LOG_INFO("        frac(ACK)   " << ((double) buPerPidAck / buPerPidNet));
 	NS_LOG_INFO("  STAT DELAY        " << delay << " ms");
-	NS_LOG_INFO("  STAT HOP COUNT    " << numPktsForwarded);
-	NS_LOG_INFO("         per PKT    " << ((double) numPktsForwarded / numPktsSent));
-	NS_LOG_INFO("         per PID    " << ((double) numPktsForwarded / numPidsSent));
+	NS_LOG_INFO("  STAT HOP COUNT    " << hopsPerGroupMessage);
 	NS_LOG_INFO("  STAT BROADCAST    " << ((double) broadcasts / (unicasts + broadcasts)) << " (" << broadcasts << "/" << (unicasts + broadcasts) << ")");
 	NS_LOG_INFO("  STAT ATTACK DROPS " << pktDroppedByBlackhole);
 
@@ -498,8 +498,9 @@ void simulate(
 		<< ((double) buPerPidPkt * (buPerPidPhy/buPerPidNet)) << " "
 		<< ((double) buPerPidAck * (buPerPidPhy/buPerPidNet)) << " "
 		<< delay << " "
-		<< broadcasts << " "
-		<< unicasts;
+		<< hopsPerGroupMessage << " "
+		<< ((double) broadcasts / (unicasts + broadcasts)) << " "
+		<< pktDroppedByBlackhole;
 
 	out.close();
 
@@ -524,7 +525,7 @@ int main(int argc, char *argv[]) {
 	networkConfigs.insert(std::make_pair("tiny",   NetworkConfiguration( 948.7,  948.7, 500.0,  10)));
 	networkConfigs.insert(std::make_pair("small",  NetworkConfiguration(2121.3, 2121.3, 500.0,  50)));
 	networkConfigs.insert(std::make_pair("medium", NetworkConfiguration(3000.0, 3000.0, 500.0, 100))); // as in Castor
-	networkConfigs.insert(std::make_pair("large",  NetworkConfiguration(6000.0, 6000.0, 500.0, 400))); // as in Castor
+	networkConfigs.insert(std::make_pair("large",  NetworkConfiguration(4242.6, 4242.6, 500.0, 200))); // as in Castor
 
 
 	std::map<std::string, TrafficConfiguration> trafficConfigs;

@@ -13,12 +13,21 @@ import scipy.stats
 runs       = range(1,21)
 duration   = 60.0 * 10.0
 clicks     = ["xcast-promisc", "xcast", "regular", "flooding"]
-networks   = ["small", "medium"]#, "large"]
+networks   = ["small", "medium", "large"]
 traffics   = ["20_1", "10_2", "4_5", "2_10", "8_5"]
+traffics_groupsize = ["20_1", "10_2", "4_5", "2_10"]
+traffics_numgroups = ["4_5", "8_5"]
 mobilities = ["0", "20"]
 blackholes = ["0.0", "0.2", "0.4"]
 
-
+dictionary = {"xcast-promisc" : "Xcastor(promisc.)", "xcast" : "Xcastor", "regular" : "Castor", "flooding" : "Flooding",
+              "small" : "small", "medium" : "medium", "large" : "large",
+              "20_1" : "20->1", "10_2" : "10->2", "4_5" : "4->5", "2_10" : "2->10", "8_5" : "8->5",
+              "0" : "static", "20" : "RandomWaypoint",
+              "0.0" : "0", "0.2" : "20", "0.4" : "40",
+              
+              "network" : "Network size", "traffic" : "Group size", "mobility" : "Mobility", "numgroups" : "Number of groups/senders", "blackhole" : "Fraction of malicious nodes in the network"
+              }
 
 def base_conf():
     network   = "medium"
@@ -140,13 +149,13 @@ def generate_plots(work_dir, setting, networks=[base_conf()[0]], traffics=[base_
     
     pdr = [['title']]
     for click in clicks:
-        pdr[0].extend([click, click])
+        pdr[0].extend([dictionary[click], dictionary[click]])
     bu = [['title']]
     for click in clicks:
-        bu[0].extend([click, click])
+        bu[0].extend([dictionary[click], dictionary[click]])
     delay = [['title']]
     for click in clicks:
-        delay[0].extend([click, click])
+        delay[0].extend([dictionary[click], dictionary[click]])
         
     num_settings = 0
     
@@ -158,9 +167,19 @@ def generate_plots(work_dir, setting, networks=[base_conf()[0]], traffics=[base_
                     if not os.path.exists(name):
                         continue
                     in_file = file(name, "r")
-                    pdr_entry = [os.path.basename(name)]
-                    bu_entry = [os.path.basename(name)]
-                    delay_entry = [os.path.basename(name)]
+                    entryname = os.path.basename(name)
+                    if len(networks) > 1:
+                        entryname = network
+                    elif len(traffics) > 1:
+                        entryname = traffic
+                    elif len(mobilities) > 1:
+                        entryname = mobility
+                    elif len(blackholes) > 1:
+                        entryname = blackhole
+                    entryname = dictionary[entryname] if not dictionary[entryname] == None else entryname
+                    pdr_entry = [entryname]
+                    bu_entry = [entryname]
+                    delay_entry = [entryname]
                     for line in in_file.readlines():
                         split_line = line.split()
                         pdr_entry.extend(split_line[1:3])
@@ -182,7 +201,7 @@ def generate_plots(work_dir, setting, networks=[base_conf()[0]], traffics=[base_
     write_list_to_file(bu_file, bu)
     write_list_to_file(delay_file, delay)
     
-    common_params = "setting='" + setting + "';" + "minx='" + `-0.5` + "';" + "maxx='" + `num_settings - 0.5` + "';" + "tikz='true'"
+    common_params = "setting='" + dictionary[setting] + "';" + "minx='" + `-0.5` + "';" + "maxx='" + `num_settings - 0.5` + "';" + "tikz='true'"
     gnu_script = "plot.gnu"
     
     subprocess.call(["gnuplot", "-e",
@@ -202,6 +221,7 @@ def generate_plots(work_dir, setting, networks=[base_conf()[0]], traffics=[base_
     subprocess.call(["gnuplot", "-e", 
                      "filename='" + delay_file + "';" + 
                      "metric='Delay [ms]';" + 
+                     "maxy='200';" +
                      "setting='" + setting + "';" + 
                      "outfile='out/" + setting + "-delay.tikz';" +
                      common_params,
@@ -255,8 +275,9 @@ def main(argv):
     print "Evaluate experiments"
     evaluate(work_dir)
     generate_plots(work_dir, "network", networks=networks)
-    generate_plots(work_dir, "traffic", traffics=traffics)
+    generate_plots(work_dir, "traffic", traffics=traffics_groupsize)
     generate_plots(work_dir, "mobility", mobilities=mobilities)
+    generate_plots(work_dir, "numgroups", traffics=traffics_numgroups)
     generate_plots(work_dir, "blackhole", blackholes=blackholes)
 
     return 0
