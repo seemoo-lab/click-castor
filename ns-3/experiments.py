@@ -136,6 +136,13 @@ def average_runs(fileprefix, clicks=clicks):
             out_file.write(" " + str(x))
         out_file.write("\n")
         out_file.close()
+        
+        accum_file = file(fileprefix + '-' + click, "w")
+        for line in accum:
+            for val in line:
+                accum_file.write(" " + str(val))
+            accum_file.write("\n")
+        accum_file.close()
 
 def write_list_to_file(file_name, mylist):
     out_file = file(file_name, "w")
