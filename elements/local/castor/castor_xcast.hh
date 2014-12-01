@@ -32,6 +32,7 @@ public:
 		// otherwise next call to setLength() will result in garbage
 		pkt._fixed->nDestinations = 0;
 		pkt._fixed->nNextHops = 0;
+		pkt._fixed->hopcount = 0;
 
 		pkt._fixed->length = sizeof(FixedSizeHeader);
 
@@ -55,6 +56,8 @@ public:
 	inline uint32_t getTotalLength() const { return _p->length(); }
 	/** Returns the length of the payload */
 	inline uint32_t getPayloadLength() const { return getTotalLength() - getHeaderLength(); }
+	inline uint8_t getHopcount() const { return _fixed->hopcount; }
+	inline void incHopcount() const { _fixed->hopcount++; }
 	/** Indicates k-th PKT of the flow, required for flow validation (right or left siblings in Merkle tree?) */
 	inline uint16_t getKPkt() const { return _fixed->kPkt; }
 	inline void setKPkt(uint16_t k) { _fixed->kPkt = k; }
@@ -279,6 +282,7 @@ private:
 		ACKAuth	ackAuth;
 		uint8_t nDestinations;
 		uint8_t nNextHops;
+		uint8_t hopcount; // Unprotected! For evaluation purposes only
 	};
 
 	Packet* _p;

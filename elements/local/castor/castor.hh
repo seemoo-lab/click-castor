@@ -57,6 +57,7 @@ typedef struct {
 	PacketId 	pid;
 	FlowAuth 	fauth;
 	EACKAuth 	eauth;
+	uint8_t		hopcount; // Unprotected! For evaluation purposes only
 } Castor_PKT;
 
 // The ACK Header Structure

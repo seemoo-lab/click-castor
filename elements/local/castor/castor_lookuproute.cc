@@ -23,6 +23,8 @@ void CastorLookupRoute::push(int, Packet *p){
 	// Lookup
 	IPAddress nextHop = _table->lookup(header->fid, header->dst);
 
+	header->hopcount++;
+
 	// Set annotation for destination and push Packet to Output
 	p->set_dst_ip_anno(nextHop);
 

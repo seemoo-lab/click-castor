@@ -12,6 +12,7 @@ CastorRecordPkt::CastorRecordPkt() {
 	pktAccumSize = 0;
 	broadcastDecisions = 0;
 	seq_index = 0;
+	hopcount_index = 0;
 }
 
 CastorRecordPkt::~CastorRecordPkt() {
@@ -33,6 +34,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 				if(pkt.getNextHop(i) == IPAddress::make_broadcast())
 					broadcastDecisions += pkt.getNextHopNAssign(i);
 			}
+			hopcounts.push_back(pkt.getHopcount());
 		} else {
 			// Regular Castor PKT
 			Castor_PKT& pkt = (Castor_PKT&) *p->data();
@@ -41,6 +43,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 			numPids++;
 			if(p->dst_ip_anno() == IPAddress::make_broadcast())
 				broadcastDecisions++;
+			hopcounts.push_back(pkt.hopcount);
 		}
 	} else { // CastorType::ACK
 		broadcastDecisions++;
@@ -76,6 +79,14 @@ String CastorRecordPkt::read_handler(Element *e, void *thunk) {
 			recorder->seq_index++;
 			return sa.take_string();
 		}
+	case Statistics::seq_hopcount:
+		if(recorder->hopcount_index >= recorder->hopcounts.size()) {
+			return String(-1); // no more entries
+		} else {
+			int hopcount = recorder->hopcounts[recorder->hopcount_index];
+			recorder->hopcount_index++;
+			return String(hopcount);
+		}
 	default:
 		click_chatter("enum error");
 		return String();
@@ -89,6 +100,7 @@ void CastorRecordPkt::add_handlers() {
 	add_read_handler("broadcasts", read_handler, Statistics::broadcasts);
 	add_read_handler("unicasts", read_handler, Statistics::unicasts);
 	add_read_handler("seq_entry", read_handler, Statistics::seq_entry);
+	add_read_handler("seq_hopcount", read_handler, Statistics::seq_hopcount);
 }
 
 CLICK_ENDDECLS

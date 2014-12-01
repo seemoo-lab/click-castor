@@ -34,6 +34,9 @@ private:
 	Vector<Entry> records;
 	int32_t seq_index;
 
+	Vector<uint8_t> hopcounts;
+	int32_t hopcount_index;
+
 	atomic_uint32_t numPids;
 	atomic_uint32_t numPkts;
 	atomic_uint32_t pktAccumSize;
@@ -45,12 +48,12 @@ private:
 	struct Statistics {
 		enum {
 			num, // number of pids recorded (same as 'numUnique' for unicast routing)
-			numUnique, // number of PKTs recorded ('numUnique' <= 'num' for Xcast routing)
+			numUnique, // number of PKTs recorded ('numUnique' <= 'num')
 			size, // accumulated size of all packets (only unique PKTs counted)
-			time, // Time @ which pids were received
-			broadcasts, // number of broadcasts
-			unicasts, // number of unicasts
+			broadcasts, // number of recorded broadcast pids
+			unicasts, // number of recorded unicast pids
 			seq_entry, // returns entries one after the other
+			seq_hopcount, // total hop count of received PKTs
 		};
 	};
 };
