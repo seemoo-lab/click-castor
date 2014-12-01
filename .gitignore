@@ -47,3 +47,6 @@ stamp-h
 compile
 ns/elements.csmk
 doc/testie.1
+
+# ns-3
+.pydevproject
