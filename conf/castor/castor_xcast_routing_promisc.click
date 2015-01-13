@@ -13,7 +13,7 @@ define(
  * Initialize the Blocks *
  *************************/
 
-ethin :: InputEth($EthDev, fake, $promisc);
+ethin :: InputEthNoHostFilter($EthDev, fake);
 ethout :: OutputEth($EthDev, $broadcastJitter, $unicastJitter);
 fromhost :: FromHost($HostDev, fake);
 tohost :: ToHost($HostDev);
