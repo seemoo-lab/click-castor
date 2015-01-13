@@ -2,6 +2,18 @@ define(
 	$fullSend false,
 );
 
+
+elementclass CastorEtherFilter {
+	input
+		-> beaconClassifier :: Classifier(12/88B5, -) // Castor beacon; other
+		-> removeEthernetHeader :: Strip(14)
+		-> [1]output; // Castor beacon
+		
+	beaconClassifier[1]
+		-> removeEthernetHeader2 :: Strip(14)
+		-> [0]output; // Castor PKT or ACK
+}
+
 /**
  * Appends Castor header to IP (unicast) packet
  */

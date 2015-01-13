@@ -38,7 +38,8 @@ elementclass OutputEth {
 elementclass InputEth {
 	$myEthDev, $myAddr |
 
-	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096)
+	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096, PROMISC true) // promiscuous mode, so beacons can be received 
+																   // no PROMISC mode seems to prevent non IP and ARP ethertypes to come through
 		-> HostEtherFilter($myEthDev)
 		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Reply / Default)
 
@@ -51,12 +52,15 @@ elementclass InputEth {
 
 	arpclassifier[2] // Handle default
 		-> [2]output;
-	
-|| // Overloaded with the option to set device in promiscious mode
+}
 
-	$myEthDev, $myAddr, $promisc |
+/**
+ * Handle incoming packets on Ethernet device, packets in output 2 are not filtered for dest address
+ */
+elementclass InputEthNoHostFilter {
+	$myEthDev, $myAddr |
 
-	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096, PROMISC $promisc)
+	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096, PROMISC true)
 		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Reply / Default)
 
 	arpclassifier[0] // Handle ARP request

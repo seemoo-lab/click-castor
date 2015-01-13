@@ -22,7 +22,8 @@ sam::SAManagement(fake, netAddr, $numNodes);
 crypto::Crypto(sam);
 flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);
-routingtable :: CastorRoutingTable($broadcastAdjust, $updateDelta);
+neighbors :: CastorNeighbors($neighborTimeout);
+routingtable :: CastorRoutingTable(neighbors, $broadcastAdjust, $updateDelta);
 history :: CastorHistory;
 castorclassifier :: CastorClassifier(fake);
 handlepkt :: CastorHandleXcastPkt(fake, routingtable, history, crypto, $promisc);
@@ -39,10 +40,16 @@ arpquerier :: ARPQuerier(fake, TIMEOUT 3600, POLL_TIMEOUT 0); // Set timeout suf
 ethin[1] -> ethout;			// Push new ARP Responses back to device
 ethin[0] -> [1]arpquerier;	// Push incoming arp responses to querer
 ethin[2]
-	-> removeEthernetHeader :: Strip(14)
+	-> cEtherFilter :: CastorEtherFilter
  	-> castorclassifier;	// Classify received packets			
- 
+
+cEtherFilter[1]
+	-> CastorAddNeighbor(neighbors)
+	-> Discard;
+
 arpquerier -> ethout;	// Send Ethernet packets to output
+
+CastorBeaconGenerator($beaconingInterval, fake, $EthDev) -> ethout;
 
 fromhost	
 	-> handleIpPacket 
@@ -55,4 +62,4 @@ castorclassifier[2] -> [1]tohost; // Deliver non-Castor packets directly to host
 handlepkt[0]		-> CastorXcastRemoveHeader -> [0]tohost;  // Deliver PKT to host
 handlepkt[1]		-> arpquerier; // Return ACK		
 handlepkt[2]		-> arpquerier; // Forward PKT
-handleack		-> arpquerier; // Forward ACK
+handleack			-> arpquerier; // Forward ACK

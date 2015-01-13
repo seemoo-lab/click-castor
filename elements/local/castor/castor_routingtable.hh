@@ -4,6 +4,7 @@
 #include <click/element.hh>
 #include <click/vector.hh>
 #include "castor.hh"
+#include "castor_neighbors.hh"
 
 CLICK_DECLS
 
@@ -51,11 +52,6 @@ private:
 		IPAddress subflow;
 		Vector<RoutingEntry> routes;
 	};
-//	typedef struct {
-//		FlowId flow;
-//		IPAddress subflow;
-//		Vector<RoutingEntry> routes;
-//	} FlowEntry;
 
 	Vector<RoutingEntry>& getRoutingTable(const FlowId& flow, IPAddress subflow);
 	RoutingEntry& getRoutingEntry(Vector<RoutingEntry>&, IPAddress);
@@ -63,6 +59,9 @@ private:
 	void printRoutingTable(const FlowId&, IPAddress);
 
 	Vector<FlowEntry> _flows;
+
+	CastorNeighbors* neighbors;
+
 	/**
 	 * Bandwidth investment for route discovery (larger values reduce the broadcast probability)
 	 */

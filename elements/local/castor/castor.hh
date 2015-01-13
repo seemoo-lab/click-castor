@@ -4,8 +4,7 @@
 #include <click/ipaddress.hh>
 #include <click/packet_anno.hh>
 
-#define ETHERTYPE_CASTOR		0x0CA0
-#define CASTOR_CONTENT_TYPE_IP	0x0800
+#define ETHERTYPE_CASTOR_BEACON 0x88B5 // 0x88B5 and 0x88B6 reserved for private experiments
 
 #define CASTOR_HASHLENGTH		20
 #define CASTOR_FLOWSIZE		   256	// Number of flow auth elements in the header
@@ -68,20 +67,25 @@ typedef struct {
 	ACKAuth 	auth;
 } Castor_ACK;
 
+// Castor Beacon
+typedef struct {
+	IPAddress src; // Advertise itself
+} CastorBeacon;
+
 /**
  * The Castor Class with utility functions to handle Packet Processing
  */
 class CastorPacket{
 public:
 
-	static inline uint8_t getType(Packet* p){
+	static inline uint8_t getType(const Packet* p) {
 		uint8_t type;
 		memcpy(&type, p->data(), sizeof(type));
 		type = type & 0xF0;
 		return type;
 	}
 
-	static inline bool getCastorPKTHeader(Packet* p, Castor_PKT* header){
+	static inline bool getCastorPKTHeader(const Packet* p, Castor_PKT* header) {
 		if(getType(p) == CastorType::PKT){
 			// Copy the header from packet
 			memcpy(header, p->data(), sizeof(Castor_PKT));
@@ -90,7 +94,7 @@ public:
 		return false;
 	}
 
-	static inline bool getCastorACKHeader(Packet* p, Castor_ACK* header){
+	static inline bool getCastorACKHeader(const Packet* p, Castor_ACK* header) {
 		if(getType(p) == CastorType::ACK){
 			// Copy the header from packet
 			memcpy(header, p->data(), sizeof(Castor_ACK));

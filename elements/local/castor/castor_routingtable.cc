@@ -18,6 +18,7 @@ int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 	updateDelta = 0.8;
 
 	return cp_va_kparse(conf, this, errh,
+			"CastorNeighbors", cpkP + cpkM, cpElementCast, "CastorNeighbors", &neighbors,
 			"BroadcastAdjust", cpkP, cpDouble, &broadcastAdjust,
 			"UpdateDelta", cpkP, cpDouble, &updateDelta,
 			cpEnd);
@@ -37,19 +38,28 @@ IPAddress CastorRoutingTable::lookup(const FlowId& flow, IPAddress subflow) {
 	// Case 2: Search for the highest estimate (break ties at random)
 	// XXX: Should only include neighbors, i.e., nodes that are within transmission range (-> beaconing?)
 	Vector<RoutingEntry*> bestEntries;
-	bestEntries.push_back(&table[0]);
-	double best = getEstimate(table[0]);
-	for (int i = 1; i < table.size(); i++) {
+	double best = 0;
+	for (Vector<RoutingEntry>::iterator it = table.begin(); it < table.end(); )
+	for (int i = 0; i < table.size(); i++) {
 		RoutingEntry& entry = table[i];
-		double entryEstimate = getEstimate(entry);
-		if (entryEstimate > best) {
-			bestEntries.clear();
-			bestEntries.push_back(&entry);
-			best = entryEstimate;
-		} else if (entryEstimate > best) {
-			bestEntries.push_back(&entry);
+		if(neighbors->hasNeighbor(entry.nextHop)) {
+			double entryEstimate = getEstimate(entry);
+			if (entryEstimate > best) {
+				bestEntries.clear();
+				bestEntries.push_back(&entry);
+				best = entryEstimate;
+			} else if (entryEstimate > best) {
+				bestEntries.push_back(&entry);
+			}
+			it++;
+		} else {
+			// Entry timed out, erease.
+			it = table.erase(it);
 		}
 	}
+	if(best == 0)
+		return IPAddress::make_broadcast();
+
 	int randIndex = click_random() % bestEntries.size();
 	RoutingEntry& bestEntry = *bestEntries.at(randIndex);
 
