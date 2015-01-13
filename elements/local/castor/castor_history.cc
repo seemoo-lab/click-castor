@@ -38,7 +38,7 @@ void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, IPAddress pre
 	}
 }
 
-bool CastorHistory::addAckFor(const PacketId& pid, IPAddress addr, const ACKAuth& ackAuth) {
+bool CastorHistory::addFirstAckForCastor(const PacketId& pid, IPAddress addr, const ACKAuth& ackAuth) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	if(!entry) {
 		// Received an ACK for an unknown Packet, do not care
@@ -50,7 +50,7 @@ bool CastorHistory::addAckFor(const PacketId& pid, IPAddress addr, const ACKAuth
 	return true;
 }
 
-bool CastorHistory::addAckFor(const PacketId& pid, IPAddress addr, const EACKAuth& ackAuth) {
+bool CastorHistory::addFirstAckForXcastor(const PacketId& pid, IPAddress addr, const EACKAuth& ackAuth) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	if(!entry) {
 		// Received an ACK for an unknown Packet, do not care

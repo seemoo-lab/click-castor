@@ -5,19 +5,19 @@
 #include "crypto.hh"
 
 #include <botan/hash.h>
-#include <botan/sha160.h>
 #include <botan/auto_rng.h>
-#include <botan/rsa.h>
-#include <botan/pubkey.h>
 #include <botan/symkey.h>
-#include <botan/aes.h>
+#include <botan/pipe.h>
 
 CLICK_DECLS
 
 Crypto::Crypto() {
+	sam = 0;
+	hashFunction = 0;
 }
 
 Crypto::~Crypto() {
+	delete hashFunction;
 }
 
 /*
@@ -26,18 +26,20 @@ Crypto::~Crypto() {
 int Crypto::configure(Vector<String> &conf, ErrorHandler *errh)
 {
 	int res = cp_va_kparse(conf, this, errh,
-		"SAM", cpkP+cpkM, cpElementCast, "SAManagement", &_sam,
+		"SAM", cpkP+cpkM, cpElementCast, "SAManagement", &sam,
 		cpEnd);
 	if(res < 0) return res;
 
-	blockCipher = new Botan::AES_128();
+	algo = "AES-128/CBC/CTS";
+	iv = Botan::InitializationVector("00000000000000000000000000000000");
+	hashFunction = Botan::get_hash("SHA-160");
 
 	return 0;
 }
 
 void Crypto::hash(Hash hash, const uint8_t* data, uint8_t length) const {
-	Botan::SHA_160 sha160;
-	Botan::SecureVector<Botan::byte> hashed = sha160.process(data, length);
+	hashFunction->clear();
+	Botan::SecureVector<Botan::byte> hashed = hashFunction->process(data, length);
 	memcpy(hash, hashed.begin(), sizeof(Hash));
 }
 
@@ -52,50 +54,35 @@ SValue Crypto::random(int bytes) const {
  * Return the symmetric shared key for a destination
  */
 const SymmetricKey* Crypto::getSharedKey(IPAddress address) const {
-	const SecurityAssociation* sharedKeySA = _sam->getSA(SAsharedsecret, address);
+	const SecurityAssociation* sharedKeySA = sam->getSA(SAsharedsecret, address);
 	if (!sharedKeySA) {
 		return 0;
 	}
+	// TODO Use Botan::OctetString directly in SecurityAssociation to avoid creating a new instance every time
 	SymmetricKey* sharedKey = new Botan::OctetString(sharedKeySA->myData, sharedKeySA->mySize);
 	return sharedKey;
 }
 
 /**
- * Encrypt plain using a block cipher. Add padding if length of plain is not multiple of block size.
+ * Encrypt plain using AES-128 in CTS mode.
  */
 SValue Crypto::encrypt(const SValue& plain, const SymmetricKey& key) const {
-	blockCipher->set_key(key);
-
-	size_t numBlocks = numberOfBlocks(blockCipher->block_size(), plain.size());
-	size_t cipherLength = numBlocks * blockCipher->block_size();
-
-	Botan::byte block[cipherLength];
-	memcpy(block, plain.begin(), plain.size());
-	blockCipher->encrypt_n(block, block, numBlocks);
-
-	return SValue(block, cipherLength);
+	Botan::Pipe encryptor(get_cipher(algo, key, iv, Botan::ENCRYPTION));
+	encryptor.process_msg(plain);
+	return encryptor.read_all();
 }
 
 /**
  * Decrypt cipher using the given key. Note that you might have to remove padding that was added during encryption.
  */
 SValue Crypto::decrypt(const SValue& cipher, const SymmetricKey& key) const {
-	blockCipher->set_key(key);
-
-	size_t numBlocks = numberOfBlocks(blockCipher->block_size(), cipher.size());
-	size_t cipherLength = numBlocks * blockCipher->block_size();
-
-	Botan::byte block[cipherLength];
-	memcpy(block, cipher.begin(), cipher.size());
-	blockCipher->decrypt_n(block, block, numBlocks);
-
-	return SValue(block, cipherLength);
+	Botan::Pipe decryptor(get_cipher(algo, key, iv, Botan::DECRYPTION));
+	decryptor.process_msg(cipher);
+	return decryptor.read_all();
 }
 
 SValue Crypto::hash(const SValue& data) const {
-	Botan::SHA_160 sha160;
-	SValue hashed = sha160.process(data.begin(), data.size());
-	return hashed;
+	return hashFunction->process(data);
 }
 
 void Crypto::testSymmetricCrypt(SValue plain, IPAddress dst) const {

@@ -34,7 +34,7 @@ void CastorAddAckToHistory::push(int, Packet *p) {
 		if (history->hasAck(pid)) {
 			history->addAckFor(pid, CastorPacket::src_ip_anno(p));
 		} else {
-			history->addAckFor(pid, CastorPacket::src_ip_anno(p), ack.auth);
+			history->addFirstAckForXcastor(pid, CastorPacket::src_ip_anno(p), ack.auth);
 		}
 	} else {
 		PacketId pid;
@@ -43,7 +43,7 @@ void CastorAddAckToHistory::push(int, Packet *p) {
 		if (history->hasAck(pid)) {
 			history->addAckFor(pid, CastorPacket::src_ip_anno(p));
 		} else {
-			history->addAckFor(pid, CastorPacket::src_ip_anno(p), ack.auth);
+			history->addFirstAckForCastor(pid, CastorPacket::src_ip_anno(p), ack.auth);
 		}
 	}
 

@@ -24,8 +24,8 @@ public:
 	const char *processing() const { return AGNOSTIC; }
 
 	void addPkt(const PacketId&, const FlowId&, IPAddress prevHop, IPAddress nextHop, IPAddress destination);
-	bool addAckFor(const PacketId&, IPAddress prevHop, const ACKAuth&);
-	bool addAckFor(const PacketId&, IPAddress prevHop, const EACKAuth&);
+	bool addFirstAckForCastor(const PacketId&, IPAddress prevHop, const ACKAuth&);
+	bool addFirstAckForXcastor(const PacketId&, IPAddress prevHop, const EACKAuth&);
 	bool addAckFor(const PacketId&, IPAddress prevHop);
 
 	bool hasPkt(const PacketId&) const;

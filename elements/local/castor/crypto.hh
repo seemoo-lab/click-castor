@@ -30,6 +30,7 @@ public:
 	SValue encrypt(const SValue&, const SymmetricKey&) const;
 	SValue decrypt(const SValue&, const SymmetricKey&) const;
 
+	// FIXME Crypto shouldn't have to know about Hash typedef
 	void hash(Hash hash, const uint8_t* data, uint8_t length) const;
 	SValue random(int bytes) const;
 	SValue hash(const SValue& data) const;
@@ -37,13 +38,10 @@ public:
 	void testSymmetricCrypt(SValue, IPAddress) const;
 
 private:
-	inline size_t numberOfBlocks(size_t blocksize, size_t ciphersize) const {
-		return (ciphersize + blocksize - 1) / blocksize; // Round up
-	}
-
-	SAManagement* _sam;
-	Botan::BlockCipher* blockCipher;
-
+	SAManagement* sam;
+	std::string algo;
+	Botan::InitializationVector iv;
+	Botan::HashFunction* hashFunction;
 };
 
 CLICK_ENDDECLS
