@@ -5,6 +5,8 @@ import subprocess
 import sys
 import argparse
 import os
+import time
+import signal
 from datetime import datetime
 import numpy
 import scipy.stats
@@ -21,11 +23,10 @@ mobilities = ["0", "20"]
 blackholes = ["0.0", "0.2", "0.4"]
 
 dictionary = {"xcast-promisc" : "Xcastor(promisc.)", "xcast" : "Xcastor", "regular" : "Castor", "flooding" : "Flooding",
-              "small" : "small", "medium" : "medium", "large" : "large",
+              "tiny" : "tiny", "small" : "small", "medium" : "medium", "large" : "large",
               "20_1" : "20->1", "10_2" : "10->2", "4_5" : "4->5", "2_10" : "2->10", "8_5" : "8->5",
               "0" : "static", "20" : "RandomWaypoint",
               "0.0" : "0", "0.2" : "20", "0.4" : "40",
-              
               "network" : "Network size", "traffic" : "Group size", "mobility" : "Mobility", "numgroups" : "Number of groups/senders", "blackhole" : "Fraction of malicious nodes in the network"
               }
 
@@ -122,25 +123,26 @@ def average_runs(fileprefix, clicks=clicks):
             # Append mean and confidence interval for every metric
             for i in range(accum.shape[1]):
                 m, h = mean_confidence_interval(accum[:,i])
-                result.append(`m` + " " + `h`)
+                result.append(m)
+                result.append(h)
         else:
-            result = accum
-        
-        if not result:
-            continue
+            for m in accum:
+                result.append(m)
+                result.append(0.0) # single run, do not have confidence interval
+            accum = [accum] # make accum 2-dimensional for accum_file
         
         # Write results for this Click configuration
         out_file = file(fileprefix, "a")
         out_file.write(click)
         for x in result:
-            out_file.write(" " + str(x))
+            out_file.write(" " + `x`)
         out_file.write("\n")
         out_file.close()
         
         accum_file = file(fileprefix + '-' + click, "w")
         for line in accum:
             for val in line:
-                accum_file.write(" " + str(val))
+                accum_file.write(" " + `val`)
             accum_file.write("\n")
         accum_file.close()
 
@@ -183,7 +185,7 @@ def generate_plots(work_dir, setting, networks=[base_conf()[0]], traffics=[base_
                         entryname = mobility
                     elif len(blackholes) > 1:
                         entryname = blackhole
-                    entryname = dictionary[entryname] if not dictionary[entryname] == None else entryname
+                    entryname = dictionary.get(entryname, entryname)
                     pdr_entry = [entryname]
                     bu_entry = [entryname]
                     delay_entry = [entryname]
@@ -248,6 +250,9 @@ def mean_confidence_interval(data, confidence=0.95):
     h = se * scipy.stats.t._ppf((1+confidence)/2., n-1) # The confidence interval
     return m, h
 
+def init_worker():
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--comment", help="Note to the experiment to be run")
@@ -264,17 +269,39 @@ def main(argv):
             os.makedirs(os.path.dirname(work_dir)) 
  
         print "Pre-Build experiment"
+        # Otherwise multiple build jobs might be started later
         result = subprocess.call(["./waf", "build"])
         
         if result:
             print >>sys.stderr, "Failed to build experiment, stop"
             return result
        
-        print "Start experiments on " + `multiprocessing.cpu_count()` + " core(s)"
-        pool = multiprocessing.Pool(None) # use 'multiprocessing.cpu_count()' cores
-        pool.map_async(subprocess.call, generate_all_cmd(work_dir))
-        pool.close()
-        pool.join()
+        all_jobs = generate_all_cmd(work_dir)
+        total = len(all_jobs)
+        print "Start " + `total` + " experiments on " + `multiprocessing.cpu_count()` + " core(s)"
+        pool = multiprocessing.Pool(initializer=init_worker) # use 'multiprocessing.cpu_count()' cores
+        
+        try:
+            results = []
+            for job in all_jobs:
+                results.append(pool.apply_async(subprocess.call, (job,)))
+            #results = pool.map_async(subprocess.call, all_jobs)
+            pool.close()
+            completed = 0
+            while True:
+                now_completed = sum(1 for r in results if r.ready())
+                if now_completed > completed:
+                    print "[" + `round(now_completed*100.0/total, 1)` + "%] " + `now_completed` + "/" + `total` + " experiments completed"
+                    completed = now_completed
+                if all(r.ready() for r in results):
+                    print "All experiments completed"
+                    break
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print "Caught KeyboardInterrupt, terminate jobs"
+            pool.terminate()
+            pool.join()
+            return # skip evaluation
         
     else:
         work_dir = args.onlyeval

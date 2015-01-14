@@ -36,7 +36,6 @@ IPAddress CastorRoutingTable::lookup(const FlowId& flow, IPAddress subflow) {
 	}
 
 	// Case 2: Search for the highest estimate (break ties at random)
-	// XXX: Should only include neighbors, i.e., nodes that are within transmission range (-> beaconing?)
 	Vector<RoutingEntry*> bestEntries;
 	double best = 0;
 	for (Vector<RoutingEntry>::iterator it = table.begin(); it < table.end(); )
