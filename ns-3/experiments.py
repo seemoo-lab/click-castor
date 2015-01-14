@@ -250,9 +250,6 @@ def mean_confidence_interval(data, confidence=0.95):
     h = se * scipy.stats.t._ppf((1+confidence)/2., n-1) # The confidence interval
     return m, h
 
-def init_worker():
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
-
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--comment", help="Note to the experiment to be run")
@@ -279,7 +276,7 @@ def main(argv):
         all_jobs = generate_all_cmd(work_dir)
         total = len(all_jobs)
         print "Start " + `total` + " experiments on " + `multiprocessing.cpu_count()` + " core(s)"
-        pool = multiprocessing.Pool(initializer=init_worker) # use 'multiprocessing.cpu_count()' cores
+        pool = multiprocessing.Pool(None) # use 'multiprocessing.cpu_count()' cores
         
         try:
             results = []
@@ -298,10 +295,12 @@ def main(argv):
                     break
                 time.sleep(1)
         except KeyboardInterrupt:
-            print "Caught KeyboardInterrupt, terminate jobs"
+            print "Caught KeyboardInterrupt, terminate experiments"
             pool.terminate()
             pool.join()
-            return # skip evaluation
+            return 0 # skip evaluation
+        else:
+            pool.join()
         
     else:
         work_dir = args.onlyeval
