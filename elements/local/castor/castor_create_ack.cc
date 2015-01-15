@@ -1,15 +1,10 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include <click/packet.hh>
+#include <clicknet/ether.h>
 #include "castor_create_ack.hh"
 
 CLICK_DECLS
-
-CastorCreateAck::CastorCreateAck() {
-}
-
-CastorCreateAck::~CastorCreateAck() {
-}
 
 void CastorCreateAck::push(int, Packet* p) {
 
@@ -20,7 +15,7 @@ void CastorCreateAck::push(int, Packet* p) {
 	ack.len = sizeof(Castor_ACK);
 	memcpy(ack.auth, CastorPacket::getCastorAnno(p), sizeof(ACKAuth));
 
-	WritablePacket* q = Packet::make(&ack, sizeof(Castor_ACK));
+	WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(Castor_ACK), 0);
 	CastorPacket::set_src_ip_anno(q, ((Castor_PKT*) p)->dst); // We are source of ACK
 	q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Set DST_ANNO to source of PKT
 

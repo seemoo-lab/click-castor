@@ -136,8 +136,8 @@ public:
 
 	static inline String hexToString(const unsigned char* hex, uint8_t length) {
 		char buffer[2*length];
-		for(int i=0; i<length; i++){
-			snprintf(buffer + 2*i, 3,"%02x ", hex[i]);
+		for(int i=0; i<length; i++) {
+			snprintf(buffer + 2*i, 3, "%02x ", hex[i]);
 		}
 		return String(buffer);
 	}

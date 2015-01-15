@@ -7,32 +7,32 @@
 CLICK_DECLS
 
 CastorXcastSetFixedHeader::CastorXcastSetFixedHeader() {
-}
-
-CastorXcastSetFixedHeader::~CastorXcastSetFixedHeader() {
+	cflow = 0;
+	additionalHeadroom = 0;
 }
 
 int CastorXcastSetFixedHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
      if(cp_va_kparse(conf, this, errh,
         "CastorXcastSetHeader", cpkP+cpkM, cpElementCast, "CastorFlowStub", &cflow,
+        "AdditionalHeadroom", cpkP, cpInteger, &additionalHeadroom,
         cpEnd) < 0)
     	 return -1;
      return 0;
 }
 
 void CastorXcastSetFixedHeader::push(int, Packet *p) {
+	// Make space for Xcastor header
+	CastorXcastPkt pkt = CastorXcastPkt::makeFrom(p, additionalHeadroom);
 
-	// Extract source and destination from packet
-	IPAddress src = p->ip_header()->ip_src.s_addr;
-	IPAddress dst = p->ip_header()->ip_dst.s_addr;
-
-	// Add Space for the new Header
-	CastorXcastPkt pkt = CastorXcastPkt::initialize(p);
 	pkt.setType(CastorType::XCAST_PKT);
 	pkt.setHashSize(sizeof(Hash));
 	pkt.setNFlowAuthElements(CASTOR_FLOWAUTH_ELEM);
 
-	pkt.setContentType(p->ip_header()->ip_p);
+	// Extract source and destination from wrapped IP packet
+	IPAddress src = pkt.getPacket()->ip_header()->ip_src.s_addr;
+	IPAddress dst = pkt.getPacket()->ip_header()->ip_dst.s_addr;
+
+	pkt.setContentType(pkt.getPacket()->ip_header()->ip_p);
 	pkt.setSource(src);
 	pkt.setMulticastGroup(dst);
 
@@ -44,7 +44,6 @@ void CastorXcastSetFixedHeader::push(int, Packet *p) {
 	pkt.setAckAuth(label.ack_auth);
 
 	output(0).push(pkt.getPacket());
-
 }
 
 CLICK_ENDDECLS

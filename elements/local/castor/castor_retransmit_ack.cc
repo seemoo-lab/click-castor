@@ -1,13 +1,12 @@
 #include <click/config.h>
 #include <click/confparse.hh>
+#include <clicknet/ether.h>
 #include "castor_retransmit_ack.hh"
 
 CLICK_DECLS
 
 CastorRetransmitAck::CastorRetransmitAck() {
-}
-
-CastorRetransmitAck::~CastorRetransmitAck() {
+	history = 0;
 }
 
 int CastorRetransmitAck::configure(Vector<String> &conf, ErrorHandler *errh) {
@@ -35,7 +34,7 @@ void CastorRetransmitAck::push(int, Packet *p) {
 			ack.len = sizeof(CastorXcastAck);
 			memcpy(&ack.auth, &ackAuth, sizeof(EACKAuth));
 
-			WritablePacket* q = Packet::make(&ack, sizeof(Castor_ACK));
+			WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(Castor_ACK), 0);
 			CastorPacket::set_src_ip_anno(q, myAddr);
 			q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Unicast ACK to PKT sender
 

@@ -29,7 +29,7 @@ castorclassifier :: CastorClassifier(fake);
 handlepkt :: CastorHandleXcastPkt(fake, routingtable, history, crypto, $promisc);
 handleack :: CastorHandleAck(fake, routingtable, history, crypto, $promisc);
 
-handleIpPacket :: CastorHandleMulticastIpPacket(fake, flowDB, crypto);
+handleIpPacket :: CastorHandleMulticastIpPacket(fake, flowDB, crypto, $additionalHeadroom);
 arpquerier :: ARPQuerier(fake, TIMEOUT 3600, POLL_TIMEOUT 0); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)
 
 

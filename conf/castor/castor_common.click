@@ -31,12 +31,12 @@ elementclass CastorHandleUnicastIpPacket {
  * Appends Castor Xcast header to IP (multicast) packet
  */
 elementclass CastorHandleMulticastIpPacket{
-	$myIP, $flowDB, $crypto |
+	$myIP, $flowDB, $crypto, $additionalHeadroom |
 
 	map :: CastorXcastDestinationMap
 
 	input
-	-> CastorXcastSetFixedHeader($flowDB)
+	-> CastorXcastSetFixedHeader($flowDB, $additionalHeadroom)
 	-> CastorXcastSetDestinations($crypto, map)
 	//-> CastorPrint('Send', $myIP, $fullSend)
 	-> rec :: CastorRecordPkt

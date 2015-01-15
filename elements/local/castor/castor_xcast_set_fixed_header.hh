@@ -14,16 +14,16 @@ CLICK_DECLS
 class CastorXcastSetFixedHeader: public Element {
 public:
 	CastorXcastSetFixedHeader();
-	~CastorXcastSetFixedHeader();
 		
 	const char *class_name() const { return "CastorXcastSetFixedHeader"; }
-	const char *port_count() const { return "1/1"; }
+	const char *port_count() const { return PORTS_1_1; }
 	const char *processing() const { return PUSH; }
 	int configure(Vector<String>&, ErrorHandler*);
 
 	void push(int, Packet*);
 private:
 	CastorFlowStub* cflow;
+	unsigned int additionalHeadroom;
 };
 
 CLICK_ENDDECLS

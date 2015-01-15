@@ -4,6 +4,7 @@
 #include <click/straccum.hh>
 #include <click/vector.hh>
 #include <click/hashtable.hh>
+#include <clicknet/ether.h>
 #include "castor.hh"
 
 CLICK_DECLS
@@ -23,9 +24,16 @@ public:
 
 	/**
 	 * Makes room for an Xcast header and then creates an Xcast PKT.
+	 * Do not use p after the call, use getPacket() of the returned CastorXcastPkt for further processing.
 	 */
-	static CastorXcastPkt initialize(Packet* p) {
-		WritablePacket* q = p->push(sizeof(FixedSizeHeader));
+	static CastorXcastPkt makeFrom(Packet* p, uint32_t additionalHeadroom = 0) {
+		// Due to the size of the Xcastor header, we always do an expensive push,
+		// so we copy the packet content in a new Packet and already make additional room.
+		// XXX This is a work-around, since FromSimDevice does not allow us to specify a headroom value.
+		WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip) + sizeof(FixedSizeHeader) + additionalHeadroom, p->data(), p->length(), 0);
+		p->kill();
+		q->set_ip_header((click_ip*)q->data(), sizeof(click_ip));
+		q = q->push(sizeof(FixedSizeHeader));
 		CastorXcastPkt pkt(q);
 
 		// Important to initialize those two to zero,
@@ -84,6 +92,7 @@ public:
 	// Variable length header fields
 	inline IPAddress getDestination(unsigned int i) const {	return IPAddress(&_var[getDestinationOff(i)]); }
 	inline void setDestination(IPAddress destination, unsigned int i) { memcpy(&_var[getDestinationOff(i)], &destination, sizeof(IPAddress)); }
+	/** After method returns, next hops have to be newly set **/
 	inline void setDestinations(const IPAddress destinations[], size_t n) {
 		setNDestinations(n);
 		for(unsigned int i = 0; i < n; i++)

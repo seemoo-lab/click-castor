@@ -19,7 +19,8 @@ define(
 	$broadcastJitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
 	$unicastJitter 0, // to add some artificial processing delay
 	
-	$numNodes 200,
+	$numNodes 200, // relevant for key generation
+	$additionalHeadroom 290, // 29 byte per destination
 );
 
 AddressInfo(fake $EthDev);
