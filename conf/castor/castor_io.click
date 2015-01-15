@@ -101,9 +101,9 @@ elementclass ToHost {
  * Handle incoming packets from local host
  */
 elementclass FromHost {
-	$myHostDev, $myIP |
+	$myHostDev, $myIP, $headroom |
 
-	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096)
+	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096, HEADROOM $headroom)
 		-> CheckIPHeader2 // Input packets have bad IP checksum, so we don't check it (CheckIPHeader2 instead of CheckIPHeader)
 		-> CastorTranslateLocalhost($myIP) // Packets coming from host have 127.0.0.1 set as source address, so replace with address of local host
 		-> output;

@@ -8,13 +8,11 @@ CLICK_DECLS
 
 CastorXcastSetFixedHeader::CastorXcastSetFixedHeader() {
 	cflow = 0;
-	additionalHeadroom = 0;
 }
 
 int CastorXcastSetFixedHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
      if(cp_va_kparse(conf, this, errh,
         "CastorXcastSetHeader", cpkP+cpkM, cpElementCast, "CastorFlowStub", &cflow,
-        "AdditionalHeadroom", cpkP, cpInteger, &additionalHeadroom,
         cpEnd) < 0)
     	 return -1;
      return 0;
@@ -22,7 +20,7 @@ int CastorXcastSetFixedHeader::configure(Vector<String> &conf, ErrorHandler *err
 
 void CastorXcastSetFixedHeader::push(int, Packet *p) {
 	// Make space for Xcastor header
-	CastorXcastPkt pkt = CastorXcastPkt::makeFrom(p, additionalHeadroom);
+	CastorXcastPkt pkt = CastorXcastPkt::initialize(p);
 
 	pkt.setType(CastorType::XCAST_PKT);
 	pkt.setHashSize(sizeof(Hash));

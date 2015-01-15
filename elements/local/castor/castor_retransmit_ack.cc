@@ -54,7 +54,7 @@ void CastorRetransmitAck::push(int, Packet *p) {
 		ack.len = sizeof(Castor_ACK);
 		memcpy(&ack.auth, &ackAuth, sizeof(ACKAuth));
 
-		WritablePacket* q = Packet::make(&ack, sizeof(Castor_ACK));
+		WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(Castor_ACK), 0);
 		CastorPacket::set_src_ip_anno(q, myAddr);
 		q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Unicast ACK to PKT sender
 		output(0).push(q);

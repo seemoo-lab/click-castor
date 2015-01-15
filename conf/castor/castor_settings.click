@@ -20,7 +20,7 @@ define(
 	$unicastJitter 0, // to add some artificial processing delay
 	
 	$numNodes 200, // relevant for key generation
-	$additionalHeadroom 290, // 29 byte per destination
+	$headroom 544, // Fixed Xcastor header + 10 * 29 bytes per destination + IP header + Ethernet header
 );
 
 AddressInfo(fake $EthDev);

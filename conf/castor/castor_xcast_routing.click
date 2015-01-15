@@ -11,7 +11,7 @@ require(
 
 ethin :: InputEth($EthDev, fake);
 ethout :: OutputEth($EthDev, $broadcastJitter, $unicastJitter);
-fromhost :: FromHost($HostDev, fake);
+fromhost :: FromHost($HostDev, fake, $headroom);
 tohost :: ToHost($HostDev);
 
 sam::SAManagement(fake, netAddr, $numNodes);
@@ -25,7 +25,7 @@ castorclassifier :: CastorClassifier;
 handlepkt :: CastorHandleXcastPkt(fake, routingtable, history, crypto, false);
 handleack :: CastorHandleAck(fake, routingtable, history, crypto, false);
 
-handleIpPacket :: CastorHandleMulticastIpPacket(fake, flowDB, crypto, $additionalHeadroom);
+handleIpPacket :: CastorHandleMulticastIpPacket(fake, flowDB, crypto);
 arpquerier :: ARPQuerier(fake, TIMEOUT 3600, POLL_TIMEOUT 0); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)
 
 

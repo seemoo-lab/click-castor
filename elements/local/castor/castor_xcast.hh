@@ -24,16 +24,9 @@ public:
 
 	/**
 	 * Makes room for an Xcast header and then creates an Xcast PKT.
-	 * Do not use p after the call, use getPacket() of the returned CastorXcastPkt for further processing.
 	 */
-	static CastorXcastPkt makeFrom(Packet* p, uint32_t additionalHeadroom = 0) {
-		// Due to the size of the Xcastor header, we always do an expensive push,
-		// so we copy the packet content in a new Packet and already make additional room.
-		// XXX This is a work-around, since FromSimDevice does not allow us to specify a headroom value.
-		WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip) + sizeof(FixedSizeHeader) + additionalHeadroom, p->data(), p->length(), 0);
-		p->kill();
-		q->set_ip_header((click_ip*)q->data(), sizeof(click_ip));
-		q = q->push(sizeof(FixedSizeHeader));
+	static CastorXcastPkt initialize(Packet* p) {
+		WritablePacket* q = p->push(sizeof(FixedSizeHeader));
 		CastorXcastPkt pkt(q);
 
 		// Important to initialize those two to zero,

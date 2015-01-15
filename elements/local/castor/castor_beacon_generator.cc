@@ -36,7 +36,7 @@ void CastorBeaconGenerator::run_timer(Timer* timer) {
 	CastorBeacon beacon;
 	beacon.src = myIP;
 
-	WritablePacket* p = Packet::make(&beacon, sizeof(CastorBeacon));
+	WritablePacket* p = Packet::make(sizeof(click_ether), &beacon, sizeof(CastorBeacon), 0);
 	p = p->push_mac_header(sizeof(click_ether));
 
 	memset(&p->ether_header()->ether_dhost, 0xff, 6);

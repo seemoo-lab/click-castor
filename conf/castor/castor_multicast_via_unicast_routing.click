@@ -11,7 +11,7 @@ require(
 
 ethin :: InputEth($EthDev, fake);
 ethout :: OutputEth($EthDev, $broadcastJitter, $unicastJitter);
-fromhost :: FromHost($HostDev, fake);
+fromhost :: FromHost($HostDev, fake, $headroom);
 tohost :: ToHost($HostDev);
 
 sam::SAManagement(fake, netAddr, $numNodes);

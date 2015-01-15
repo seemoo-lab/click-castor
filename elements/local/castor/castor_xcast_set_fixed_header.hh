@@ -23,7 +23,6 @@ public:
 	void push(int, Packet*);
 private:
 	CastorFlowStub* cflow;
-	unsigned int additionalHeadroom;
 };
 
 CLICK_ENDDECLS
