@@ -25,7 +25,7 @@ public:
 	void run_timer(Timer*);
 
 private:
-	typedef struct {
+	typedef struct Entry {
 		PacketId pid;
 	} Entry;
 	CastorRoutingTable* table;

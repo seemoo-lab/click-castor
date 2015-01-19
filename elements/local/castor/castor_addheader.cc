@@ -40,20 +40,15 @@ void CastorAddHeader::push(int, Packet *p) {
 	header->src = src;
 	header->dst = dst;
 
-	//Acces the flow settings
+	// Access the flow settings
 	PacketLabel label = cflow->getPacketLabel(src, dst);
 
-	memcpy(&header->fid, &label.flow_id, sizeof(FlowId));
-	memcpy(&header->pid, &label.packet_id, sizeof(PacketId));
+	header->fid = label.flow_id;
+	header->pid = label.packet_id;
 	header->packet_num = label.packet_number;
 	for (int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)
-		memcpy(&header->fauth[i], &label.flow_auth[i], sizeof(Hash));
-	if (sizeof(Hash) > sizeof(EACKAuth)) {
-		click_chatter("[Warning] Copying ACKAuth: Hash length is larger than ciphertext length, loosing entropy.");
-		memcpy(&header->eauth, &label.ack_auth, sizeof(EACKAuth));
-	} else {
-		memcpy(&header->eauth, &label.ack_auth, sizeof(Hash));
-	}
+		header->fauth[i] = label.flow_auth[i];
+	header->eauth = label.ack_auth; // Still not encrypted
 
 	CastorPacket::set_src_ip_anno(p, header->src);
 

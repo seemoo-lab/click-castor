@@ -3,7 +3,6 @@
 #include <click/element.hh>
 #include "../protswitch/samanagement.hh"
 #include <botan/botan.h>
-#include "castor.hh"
 
 CLICK_DECLS
 
@@ -30,12 +29,8 @@ public:
 	SValue encrypt(const SValue&, const SymmetricKey&) const;
 	SValue decrypt(const SValue&, const SymmetricKey&) const;
 
-	// FIXME Crypto shouldn't have to know about Hash typedef
-	void hash(Hash hash, const uint8_t* data, uint8_t length) const;
 	SValue random(int bytes) const;
 	SValue hash(const SValue& data) const;
-
-	void testSymmetricCrypt(SValue, IPAddress) const;
 
 private:
 	SAManagement* sam;

@@ -28,18 +28,18 @@ int CastorAddAckToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorAddAckToHistory::push(int, Packet *p) {
 
 	if(CastorPacket::isXcast(p)) {
-		PacketId pid;
 		CastorXcastAck& ack = (CastorXcastAck&) *p->data();
-		crypto->hash(pid, ack.auth, ack.esize);
+		SValue hash = crypto->hash(SValue(ack.auth.data(), ack.esize));
+		PacketId pid(hash.begin());
 		if (history->hasAck(pid)) {
 			history->addAckFor(pid, CastorPacket::src_ip_anno(p));
 		} else {
 			history->addFirstAckForXcastor(pid, CastorPacket::src_ip_anno(p), ack.auth);
 		}
 	} else {
-		PacketId pid;
 		Castor_ACK& ack = (Castor_ACK&) *p->data();
-		crypto->hash(pid, ack.auth, ack.hsize);
+		SValue hash = crypto->hash(SValue(ack.auth.data(), ack.hsize));
+		PacketId pid(hash.begin());
 		if (history->hasAck(pid)) {
 			history->addAckFor(pid, CastorPacket::src_ip_anno(p));
 		} else {

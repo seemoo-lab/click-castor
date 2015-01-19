@@ -33,7 +33,7 @@ void CastorTimeout::push(int, Packet* p) {
 			timer->schedule_after_msec(timeout);
 
 			Entry entry;
-			memcpy(entry.pid, header.getPid(i), sizeof(PacketId));
+			entry.pid = header.getPid(i);
 			timers.set(timer, entry);
 		}
 	} else {
@@ -44,7 +44,7 @@ void CastorTimeout::push(int, Packet* p) {
 		timer->schedule_after_msec(timeout);
 
 		Entry entry;
-		memcpy(entry.pid, header.pid, sizeof(PacketId));
+		entry.pid = header.pid;
 		timers.set(timer, entry);
 	}
 

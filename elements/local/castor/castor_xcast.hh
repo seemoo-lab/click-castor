@@ -169,7 +169,7 @@ public:
 	inline void setSingleDestination(unsigned int i) {
 		IPAddress destination = getDestination(i);
 		PacketId pid;
-		memcpy(&pid, getPid(i), sizeof(PacketId));
+		memcpy(&pid, &getPid(i), sizeof(PacketId));
 		setNDestinations(1);
 		setDestination(destination, 0);
 		setPid(pid, 0);

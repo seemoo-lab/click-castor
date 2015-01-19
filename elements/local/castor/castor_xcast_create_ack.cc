@@ -14,7 +14,7 @@ void CastorXcastCreateAck::push(int, Packet* p) {
 	ack.type = CastorType::XCAST_ACK;
 	ack.esize = sizeof(EACKAuth);
 	ack.len = sizeof(CastorXcastAck);
-	memcpy(ack.auth, CastorPacket::getCastorAnno(p), sizeof(EACKAuth)); // auth should be in Castor user annotation
+	ack.auth = CastorPacket::getCastorAnno(p); // auth should be in Castor user annotation
 
 	// Broadcast ACK
 	WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorXcastAck), 0);

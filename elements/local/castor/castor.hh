@@ -7,8 +7,9 @@
 #define ETHERTYPE_CASTOR_BEACON 0x88B5 // 0x88B5 and 0x88B6 reserved for private experiments
 
 #define CASTOR_HASHLENGTH		20
-#define CASTOR_FLOWSIZE		   256	// Number of flow auth elements in the header
-#define CASTOR_FLOWAUTH_ELEM	 8  // log2(CASTOR_FLOW_SIZE)#define CASTOR_MAX_GROUP_SIZE	10	// Maximal allowed group size
+#define CASTOR_FLOWAUTH_ELEM	 8  // log2(CASTOR_FLOW_SIZE)
+#define CASTOR_FLOWSIZE		   (1<<CASTOR_FLOWAUTH_ELEM)	// Number of flow auth elements in the header
+#define CASTOR_MAX_GROUP_SIZE	10	// Maximal allowed group size
 
 CLICK_DECLS
 
@@ -31,7 +32,33 @@ struct CastorType { // C++11's strongly typed 'enum class' does not work, so cre
 	};
 };
 
-typedef uint8_t Hash[CASTOR_HASHLENGTH];
+class Hash {
+public:
+	Hash(const uint8_t array[]) { memcpy(this->array, array, sizeof(this->array)); };
+	Hash() { memset(&array, 0, sizeof(array)); };
+	unsigned long hashcode() const {
+		unsigned long hash = 0;
+		for(unsigned int i = 0; i < sizeof(unsigned long); i++)
+			hash |= array[i] << (8*i);
+		return hash;
+	}
+	inline Hash& operator=(const Hash& x) {
+		memcpy(&this->array, &x.array, sizeof(this->array));
+		return *this;
+	}
+	inline uint8_t& operator[](unsigned int i) const {
+		assert((unsigned) i < (unsigned) sizeof(array));
+		return *(uint8_t*)&array[i];
+	}
+	inline uint8_t* data() const {
+	    return (uint8_t*)&array[0];
+	}
+	inline bool operator==(const Hash& x) const {
+		return memcmp(this->array, x.array, sizeof(array)) == 0;
+	}
+private:
+	uint8_t array[CASTOR_HASHLENGTH];
+};
 
 typedef Hash FlowId;
 typedef Hash PacketId;
@@ -75,7 +102,7 @@ typedef struct {
 /**
  * The Castor Class with utility functions to handle Packet Processing
  */
-class CastorPacket{
+class CastorPacket {
 public:
 
 	static inline uint8_t getType(const Packet* p) {
@@ -132,6 +159,14 @@ public:
 		memcpy(&type, p->data(), sizeof(type));
 		type = type & 0x0F;
 		return (type == CastorType::XCAST);
+	}
+
+	static inline String hexToString(const Hash& hex, uint8_t length) {
+		char buffer[2*length];
+		for(int i=0; i<length; i++) {
+			snprintf(buffer + 2*i, 3, "%02x ", hex[i]);
+		}
+		return String(buffer);
 	}
 
 	static inline String hexToString(const unsigned char* hex, uint8_t length) {

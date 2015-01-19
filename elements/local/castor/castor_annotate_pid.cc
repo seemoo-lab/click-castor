@@ -6,9 +6,7 @@
 CLICK_DECLS
 
 CastorAnnotatePid::CastorAnnotatePid() {
-}
-
-CastorAnnotatePid::~CastorAnnotatePid() {
+	crypto = 0;
 }
 
 int CastorAnnotatePid::configure(Vector<String>& conf, ErrorHandler* errh) {
@@ -20,19 +18,12 @@ int CastorAnnotatePid::configure(Vector<String>& conf, ErrorHandler* errh) {
 void CastorAnnotatePid::push(int, Packet* p) {
 
 	// Compute the corresponding packet id
-	PacketId pid;
-
-	if(CastorPacket::isXcast(p)) {
-		CastorXcastAck& ack = (CastorXcastAck&) *p->data();
-		crypto->hash(pid, ack.auth, ack.esize);
-	} else {
-		Castor_ACK& ack = (Castor_ACK&) *p->data();
-		crypto->hash(pid, ack.auth, ack.hsize);
-	}
+	Castor_ACK& ack = (Castor_ACK&) *p->data();
+	SValue pid = crypto->hash(SValue(ack.auth.data(), ack.hsize));
 
 	// Store it as packet annotation
 	PacketId& pidAnno = (PacketId&) *CastorPacket::getCastorAnno(p);
-	memcpy(pidAnno, pid, sizeof(PacketId));
+	pidAnno = PacketId(pid.begin());
 
 	output(0).push(p);
 

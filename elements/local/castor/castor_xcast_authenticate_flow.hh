@@ -13,7 +13,6 @@ CLICK_DECLS
 class CastorXcastAuthenticateFlow : public Element {
 	public:
 		CastorXcastAuthenticateFlow();
-		~CastorXcastAuthenticateFlow();
 		
 		const char *class_name() const	{ return "CastorXcastAuthenticateFlow"; }
 		const char *port_count() const	{ return "1/2"; }

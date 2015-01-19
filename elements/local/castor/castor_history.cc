@@ -6,10 +6,7 @@
 CLICK_DECLS
 
 CastorHistory::CastorHistory() {
-	history = HashTable<Key, CastorHistoryEntry>();
-}
-
-CastorHistory::~CastorHistory() {
+	history = HashTable<Hash, CastorHistoryEntry>();
 }
 
 void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, IPAddress prevHop, IPAddress nextHop, IPAddress destination) {
@@ -22,8 +19,8 @@ void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, IPAddress pre
 		entry.nextHop = nextHop;
 		entry.expired = false;
 		entry.recievedACKs = Vector<IPAddress>();
-		memcpy(&entry.fid, &fid, sizeof(FlowId));
-		history.set(pidToKey(pid), entry);
+		entry.fid = fid;
+		history.set(pid, entry);
 	} else {
 		// Entry already exists, just add prevHop to list if it does not already exist
 		bool alreadyContains = false;
@@ -46,7 +43,7 @@ bool CastorHistory::addFirstAckForCastor(const PacketId& pid, IPAddress addr, co
 		return false;
 	}
 	entry->recievedACKs.push_back(addr);
-	memcpy(&entry->ackAuth, &ackAuth, sizeof(ACKAuth));
+	memcpy(&entry->auth, &ackAuth, sizeof(ACKAuth));
 	return true;
 }
 
@@ -58,7 +55,7 @@ bool CastorHistory::addFirstAckForXcastor(const PacketId& pid, IPAddress addr, c
 		return false;
 	}
 	entry->recievedACKs.push_back(addr);
-	memcpy(&entry->eAckAuth, &ackAuth, sizeof(EACKAuth));
+	entry->auth = ackAuth;
 	return true;
 }
 
@@ -125,12 +122,12 @@ const FlowId& CastorHistory::getFlowId(const PacketId& pid) const {
 
 const EACKAuth& CastorHistory::getEAckAuth(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
-	return entry->eAckAuth;
+	return entry->auth;
 }
 
 const ACKAuth& CastorHistory::getAckAuth(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
-	return entry->ackAuth;
+	return entry->auth;
 }
 
 IPAddress CastorHistory::getDestination(const PacketId& pid) const {
@@ -153,18 +150,12 @@ bool CastorHistory::isExpired(const PacketId& pid) const {
 	return entry && entry->expired;
 }
 
-CastorHistory::Key CastorHistory::pidToKey(const PacketId& pid) const {
-	Key key;
-	memcpy(&key, pid, sizeof(Key));
-	return key;
-}
-
 const CastorHistory::CastorHistoryEntry* CastorHistory::getEntry(const PacketId& pid) const {
-	return history.get_pointer(pidToKey(pid));
+	return history.get_pointer(pid);
 }
 
 CastorHistory::CastorHistoryEntry* CastorHistory::getEntry(const PacketId& pid) {
-	return history.get_pointer(pidToKey(pid));
+	return history.get_pointer(pid);
 }
 
 CLICK_ENDDECLS

@@ -47,20 +47,21 @@ void CastorFlowMerkle::createFlow(Host source, Host destination) {
 
 		// Set flow id
 		SValue root = tree.getRoot();
-		memcpy(&lbl.flow_id, root.begin(), sizeof(FlowId));
+		Hash fid(root.begin());
+		lbl.flow_id = Hash(root.begin());
 
 		// Set packet id
-		memcpy(&lbl.packet_id, pids.at(i).begin(), sizeof(PacketId));
+		lbl.packet_id = Hash(pids.at(i).begin());
 
 		// Set flow authenticator
 		Vector<SValue> siblings;
 		tree.getSiblings(siblings, i);
 		assert(siblings.size() == CASTOR_FLOWAUTH_ELEM);
 		for (int j = 0; j < siblings.size(); j++)
-			memcpy(&lbl.flow_auth[j].data, siblings.at(j).begin(), sizeof(FlowAuthElement));
+			lbl.flow_auth[j].data = Hash(siblings.at(j).begin());
 
 		// Set unencrypted (!) ACK authenticator
-		memcpy(&lbl.ack_auth, ack_auths.at(i).begin(), sizeof(ACKAuth));
+		lbl.ack_auth = Hash(ack_auths.at(i).begin());
 		flow.labels[i] = lbl;
 	}
 

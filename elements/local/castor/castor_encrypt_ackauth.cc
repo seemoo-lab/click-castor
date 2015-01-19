@@ -6,9 +6,7 @@
 CLICK_DECLS
 
 CastorEncryptACKAuth::CastorEncryptACKAuth() {
-}
-
-CastorEncryptACKAuth::~CastorEncryptACKAuth() {
+	_crypto = 0;
 }
 
 int CastorEncryptACKAuth::configure(Vector<String> &conf, ErrorHandler *errh) {
@@ -21,7 +19,7 @@ void CastorEncryptACKAuth::push(int, Packet *p) {
 
 	WritablePacket* q = p->uniqueify();
 	Castor_PKT* pkt = (Castor_PKT*) q->data();
-	SValue auth(pkt->eauth, sizeof(ACKAuth));
+	SValue auth(pkt->eauth.data(), sizeof(ACKAuth));
 
 	const SymmetricKey* sk = _crypto->getSharedKey(pkt->dst);
 	if (!sk) {
@@ -37,7 +35,7 @@ void CastorEncryptACKAuth::push(int, Packet *p) {
 		return;
 	}
 
-	memcpy(pkt->eauth, cipher.begin(), sizeof(EACKAuth));
+	memcpy(pkt->eauth.data(), cipher.begin(), sizeof(EACKAuth));
 
 	output(0).push(q);
 

@@ -5,9 +5,9 @@
 
 CLICK_DECLS
 
-CastorAuthenticateFlow::CastorAuthenticateFlow(){}
-
-CastorAuthenticateFlow::~ CastorAuthenticateFlow(){}
+CastorAuthenticateFlow::CastorAuthenticateFlow() {
+	crypto = 0;
+}
 
 int CastorAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
@@ -15,15 +15,15 @@ int CastorAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) 
 			cpEnd);
 }
 
-void CastorAuthenticateFlow::push(int, Packet *p){
+void CastorAuthenticateFlow::push(int, Packet *p) {
 
 	Castor_PKT* pkt = (Castor_PKT*) p->data();
 
-	SValue fid(pkt->fid, sizeof(FlowId));
-	SValue pid(pkt->pid, sizeof(PacketId));
+	SValue fid(pkt->fid.data(), sizeof(FlowId));
+	SValue pid(pkt->pid.data(), sizeof(PacketId));
 	Vector<SValue> flow_auth;
 	for(int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)
-		flow_auth.push_back(SValue(pkt->fauth[i].data, sizeof(Hash)));
+		flow_auth.push_back(SValue(pkt->fauth[i].data.data(), sizeof(Hash)));
 
 	if(MerkleTree::isValidMerkleTree(pkt->packet_num, pid, flow_auth, fid, *crypto))
 		output(0).push(p);

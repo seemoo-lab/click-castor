@@ -11,7 +11,6 @@ CLICK_DECLS
 class CastorRoutingTable: public Element {
 public:
 	CastorRoutingTable();
-	~CastorRoutingTable();
 
 	enum Operation { increase, decrease };
 	enum Estimate { first, all };
@@ -45,7 +44,7 @@ private:
 	class FlowEntry {
 	public:
 		FlowEntry(const FlowId& flow, IPAddress subflow) : subflow(subflow) {
-			memcpy(this->flow, flow, sizeof(FlowId));
+			memcpy(&this->flow, &flow, sizeof(FlowId));
 			routes = Vector<RoutingEntry>();
 		}
 		FlowId flow;

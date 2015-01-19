@@ -6,9 +6,7 @@
 CLICK_DECLS
 
 CastorDecryptACKAuth::CastorDecryptACKAuth() {
-}
-
-CastorDecryptACKAuth::~CastorDecryptACKAuth() {
+	crypto = 0;
 }
 
 int CastorDecryptACKAuth::configure(Vector<String>& conf, ErrorHandler* errh) {
@@ -22,7 +20,7 @@ void CastorDecryptACKAuth::push(int, Packet *p) {
 	WritablePacket* q = p->uniqueify();
 	Castor_PKT* pkt = (Castor_PKT*) q->data();
 
-	SValue encAuth(pkt->eauth, sizeof(EACKAuth));
+	SValue encAuth(pkt->eauth.data(), sizeof(EACKAuth));
 
 	// Get appropriate key and decrypt encrypted ACK authenticator
 	const SymmetricKey* sk = crypto->getSharedKey(pkt->src);

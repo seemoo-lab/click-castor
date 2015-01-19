@@ -6,17 +6,14 @@
 CLICK_DECLS
 
 CastorRoutingTable::CastorRoutingTable() {
+	// Default values from experimental setup of Castor technical paper
+	updateDelta = 0.8;
+	broadcastAdjust = 8;
 	_flows = Vector<FlowEntry>();
-}
-
-CastorRoutingTable::~CastorRoutingTable() {
+	neighbors = 0;
 }
 
 int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
-	// Default values from experimental setup of Castor technical paper
-	broadcastAdjust = 8;
-	updateDelta = 0.8;
-
 	return cp_va_kparse(conf, this, errh,
 			"CastorNeighbors", cpkP + cpkM, cpElementCast, "CastorNeighbors", &neighbors,
 			"BroadcastAdjust", cpkP, cpDouble, &broadcastAdjust,
@@ -106,7 +103,7 @@ void CastorRoutingTable::updateEstimates(const FlowId& flow, IPAddress subflow, 
 Vector<CastorRoutingTable::RoutingEntry>& CastorRoutingTable::getRoutingTable(const FlowId& flow, IPAddress subflow) {
 	for (int i = 0; i < _flows.size(); i++) {
 		FlowEntry& entry = _flows.at(i);
-		if (!memcmp(entry.flow, flow, sizeof(FlowId)) && (entry.subflow == subflow)) {
+		if ((entry.flow == flow) && (entry.subflow == subflow)) {
 			// Found a matching entry
 			return entry.routes;
 		}

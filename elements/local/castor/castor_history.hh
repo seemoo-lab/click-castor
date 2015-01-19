@@ -9,15 +9,9 @@
 
 CLICK_DECLS
 
-union AckAuth {
-	ACKAuth a;
-	EACKAuth e;
-};
-
 class CastorHistory: public Element {
 public:
 	CastorHistory();
-	~CastorHistory();
 
 	const char *class_name() const { return "CastorHistory"; }
 	const char *port_count() const { return PORTS_0_0; }
@@ -46,8 +40,6 @@ public:
 	void setExpired(const PacketId&);
 
 private:
-	typedef long Key; // XXX currently using only part of pid as key
-
 	typedef struct CastorHistoryEntry {
 		// PIDs
 		FlowId fid;
@@ -57,18 +49,14 @@ private:
 
 		// ACKs
 		Vector<IPAddress> recievedACKs;
-		union {
-			ACKAuth ackAuth;
-			EACKAuth eAckAuth;
-		};
+		Hash auth;
 		bool expired;
 	} CastorHistoryEntry;
 
-	inline Key pidToKey(const PacketId& pid) const;
 	inline const CastorHistoryEntry* getEntry(const PacketId&) const;
 	inline CastorHistoryEntry* getEntry(const PacketId&);
 
-	HashTable<Key, CastorHistoryEntry> history;
+	HashTable<Hash, CastorHistoryEntry> history;
 };
 
 CLICK_ENDDECLS

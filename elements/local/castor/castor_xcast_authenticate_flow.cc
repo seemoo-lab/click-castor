@@ -6,9 +6,9 @@
 
 CLICK_DECLS
 
-CastorXcastAuthenticateFlow::CastorXcastAuthenticateFlow(){}
-
-CastorXcastAuthenticateFlow::~ CastorXcastAuthenticateFlow(){}
+CastorXcastAuthenticateFlow::CastorXcastAuthenticateFlow() {
+	crypto = 0;
+}
 
 int CastorXcastAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
@@ -20,15 +20,13 @@ void CastorXcastAuthenticateFlow::push(int, Packet *p){
 
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
-	SValue fid(pkt.getFlowId(), sizeof(FlowId));
+	SValue fid(&pkt.getFlowId()[0], sizeof(FlowId));
 
 	// Pid is implicitly given by the AckAuth
-	PacketId calcPid;
-	crypto->hash(calcPid, pkt.getAckAuth(), sizeof(ACKAuth));
-	SValue pid(calcPid, sizeof(PacketId));
+	SValue pid = crypto->hash(SValue(&pkt.getAckAuth()[0], sizeof(ACKAuth)));
 	Vector<SValue> flow_auth;
 	for(int i = 0; i < pkt.getNFlowAuthElements(); i++)
-		flow_auth.push_back(SValue(pkt.getFlowAuth()[i].data, sizeof(Hash)));
+		flow_auth.push_back(SValue(&pkt.getFlowAuth()[i].data[0], sizeof(Hash)));
 
 	if(MerkleTree::isValidMerkleTree(pkt.getKPkt(), pid, flow_auth, fid, *crypto))
 		output(0).push(pkt.getPacket());

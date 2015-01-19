@@ -13,7 +13,7 @@ void CastorCreateAck::push(int, Packet* p) {
 	ack.type = CastorType::MERKLE_ACK;
 	ack.hsize = sizeof(Hash);
 	ack.len = sizeof(Castor_ACK);
-	memcpy(ack.auth, CastorPacket::getCastorAnno(p), sizeof(ACKAuth));
+	memcpy(ack.auth.data(), CastorPacket::getCastorAnno(p), sizeof(ACKAuth));
 
 	WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(Castor_ACK), 0);
 	CastorPacket::set_src_ip_anno(q, ((Castor_PKT*) p)->dst); // We are source of ACK

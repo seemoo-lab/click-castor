@@ -24,17 +24,17 @@ void CastorAuthenticatePkt::push(int, Packet *p) {
 	if(CastorPacket::isXcast(p)) {
 		CastorXcastPkt pkt = CastorXcastPkt(p);
 
-		PacketId computedPid;
-		crypto->hash(computedPid, CastorPacket::getCastorAnno(p), sizeof(EACKAuth));
+		SValue hash = crypto->hash(SValue(CastorPacket::getCastorAnno(p), sizeof(EACKAuth)));
+		PacketId computedPid(hash.begin());
 
-		isPidValid = (memcmp(computedPid, pkt.getPid(0), sizeof(PacketId)) == 0); // Pkt should only include a single pid
+		isPidValid = computedPid == pkt.getPid(0); // Pkt should only include a single pid
 	} else {
 		Castor_PKT* pkt = (Castor_PKT*) p->data();
 
-		PacketId computedPid;
-		crypto->hash(computedPid, CastorPacket::getCastorAnno(p), sizeof(ACKAuth));
+		SValue hash = crypto->hash(SValue(CastorPacket::getCastorAnno(p), sizeof(ACKAuth)));
+		PacketId computedPid(hash.begin());
 
-		isPidValid = (memcmp(computedPid, pkt->pid, sizeof(PacketId)) == 0);
+		isPidValid = computedPid == pkt->pid;
 	}
 
 	if (isPidValid)

@@ -14,7 +14,6 @@ class CastorXcastAnnotateAckAuth: public Element {
 
 public:
 	CastorXcastAnnotateAckAuth();
-	~CastorXcastAnnotateAckAuth();
 
 	const char *class_name() const { return "CastorXcastAnnotateAckAuth"; }
 	const char *port_count() const { return PORTS_1_1; }

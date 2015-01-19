@@ -7,9 +7,8 @@
 CLICK_DECLS
 
 CastorXcastSetDestinations::CastorXcastSetDestinations() {
-}
-
-CastorXcastSetDestinations::~CastorXcastSetDestinations() {
+	_crypto = 0;
+	_map = 0;
 }
 
 int CastorXcastSetDestinations::configure(Vector<String> &conf, ErrorHandler *errh) {
@@ -26,14 +25,16 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 	IPAddress multicastDst = pkt.getMulticastGroup();
 	const Vector<IPAddress>& destinations = _map->getDestinations(multicastDst);
 
-	if(destinations.size() == 0)
-		click_chatter("!!! No Xcast destination mapping found for multicast address %s", multicastDst.unparse().c_str());
+	if(destinations.size() == 0) {
+		click_chatter("!!! No Xcast destination mapping found for multicast address %s, drop packet", multicastDst.unparse().c_str());
+		pkt.getPacket()->kill();
+	}
 
 	// Write destinations to PKT
 	pkt.setDestinations(destinations.data(), destinations.size());
 
 	Vector<PacketId> pids;
-	SValue ackAuth = SValue(pkt.getAckAuth(), pkt.getHashSize());
+	SValue ackAuth(&pkt.getAckAuth()[0], pkt.getHashSize());
 	for(int i = 0; i < destinations.size(); i++) {
 		// Generate individual PKT id
 		const SymmetricKey* key = _crypto->getSharedKey(destinations[i]);
