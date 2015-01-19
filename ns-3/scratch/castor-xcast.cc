@@ -141,7 +141,7 @@ void WriteArp(NodeContainer n) {
 
 }
 
-void WriteXcastMap(Ptr<Ipv4ClickRouting> clickRouter, Ipv4Address group, const std::vector<Ipv4Address>& destinations, std::string mapLocation) {
+void WriteXcastMap(Ptr<Ipv4ClickRouting> clickRouter, Ipv4Address group, const std::vector<Ptr<Node> >& destinations, std::string mapLocation) {
 	// Create entry of form "<GroupAddr> <Dest1Addr> <Dest2Addr> ... <DestNAddr>"
 	std::stringstream stream;
 
@@ -150,7 +150,8 @@ void WriteXcastMap(Ptr<Ipv4ClickRouting> clickRouter, Ipv4Address group, const s
 
 	for (unsigned int i = 0; i < destinations.size(); i++) {
 		stream << " ";
-		destinations[i].Print(stream);
+		int externalInterface = 1;
+		destinations.at(i)->GetObject<Ipv4>()->GetAddress(externalInterface, 0).GetLocal().Print(stream);
 	}
 
 	clickRouter->WriteHandler(mapLocation, "insert", stream.str().c_str());
@@ -344,18 +345,16 @@ void simulate(
 	// 'groups':
 	// 		192.168.201.1 -> 192.168.201.2, 192.168.201.3, 192.168.201.4;
 	// 		192.168.201.5 -> 192.168.201.6, 192.168.201.7, 192.168.201.8
-	std::map<Ipv4Address, std::vector<Ipv4Address>, LessIpv4Address> groups; // multicast group -> xcast receivers
+	std::map<Ipv4Address, std::vector<Ptr<Node> >, LessIpv4Address> groups; // multicast group -> xcast receivers
 
 	for (unsigned int i = 0, iAddr = 1; i < nSenders; i++) {
 		//Ipv4Address sender = Ipv4Address(baseAddr.Get() + iAddr);
 		Ptr<Node> sender = n.Get(iAddr - 1);
 		Ipv4Address group = Ipv4Address(groupAddr.Get() + iAddr);
-		std::vector<Ipv4Address> xcastDestinations;
+		std::vector<Ptr<Node> > xcastDestinations;
 		iAddr = iAddr % netConfig.nNodes + 1; // Circular count from 1..nNodes
-		for (unsigned int j = 0; j < trafficConfig.groupSize; j++, iAddr = iAddr % netConfig.nNodes + 1) {
-			Ipv4Address dest = Ipv4Address(baseAddr.Get() + iAddr);
-			xcastDestinations.push_back(dest);
-		}
+		for (unsigned int j = 0; j < trafficConfig.groupSize; j++, iAddr = iAddr % netConfig.nNodes + 1)
+			xcastDestinations.push_back(n.Get(iAddr - 1));
 		senderGroupAssign.insert(std::make_pair(sender, group));
 		groups.insert(std::make_pair(group, xcastDestinations));
 	}
@@ -364,10 +363,9 @@ void simulate(
 	ApplicationContainer apps;
 	uint16_t port = 4242;
 	unsigned int nodeIndex = 0;
-	for (std::map<Ptr<Node>, Ipv4Address>::iterator it = senderGroupAssign.begin(); it != senderGroupAssign.end(); it++) {
+	for (std::map<Ptr<Node>, Ipv4Address>::iterator it = senderGroupAssign.begin(); it != senderGroupAssign.end(); it++, nodeIndex++) {
 		Ptr<Node> sender = it->first;
 		Ipv4Address groupIp = it->second;
-
 		// Setup multicast source
 		UdpClientHelper client(groupIp, port);
 		client.SetAttribute("MaxPackets", UintegerValue(UINT32_MAX));
@@ -377,12 +375,10 @@ void simulate(
 		apps.Start(Seconds(2.0) + trafficConfig.sendInterval / nSenders * nodeIndex);
 		apps.Stop(duration + Seconds(2.0));
 
-		nodeIndex++;
-
-		std::vector<Ipv4Address> dsts = groups.at(groupIp);
-		for(std::vector<Ipv4Address>::iterator itDst = dsts.begin(); itDst != dsts.end(); itDst++) {
+		std::vector<Ptr<Node> > dsts = groups.at(groupIp);
+		for(std::vector<Ptr<Node> >::iterator itDst = dsts.begin(); itDst != dsts.end(); itDst++) {
 			UdpServerHelper server(port);
-			apps = server.Install(n.Get(nodeIndex));
+			apps = server.Install(*itDst);
 			apps.Start(Seconds(1.0));
 			apps.Stop(duration + Seconds(3.0));
 		}
@@ -393,8 +389,9 @@ void simulate(
 	std::string mapLocation = isFlooding ? "map" : "handleIpPacket/map";
 	for (unsigned int i = 0; i < n.GetN(); i++) {
 		// Write Xcast destination mapping
-		for (std::map<Ipv4Address, std::vector<Ipv4Address> >::iterator it = groups.begin(); it != groups.end(); it++)
+		for (std::map<Ipv4Address, std::vector<Ptr<Node> > >::iterator it = groups.begin(); it != groups.end(); it++) {
 			Simulator::Schedule(Seconds(0.5), &WriteXcastMap, n.Get(i)->GetObject<Ipv4ClickRouting>(), it->first, it->second, mapLocation);
+		}
 	}
 
 	setBlackHoles(n, round(netConfig.nNodes * blackholeFraction));
@@ -419,7 +416,6 @@ void simulate(
 	NS_LOG_INFO("  CONFIG " << nSenders << " senders -> " << trafficConfig.groupSize << " each, " << trafficConfig.packetSize << " bytes / " << trafficConfig.sendInterval.GetSeconds() << " s");
 	NS_LOG_INFO("  CONFIG " << "speed " << mobilityConfig.speed << ", pause " << mobilityConfig.pause);
 	NS_LOG_INFO("  CONFIG " << "blackholes " << blackholeFraction);
-
 	NS_LOG_INFO("  Done after " << difftime(end, start) << " seconds");
 
 	//
