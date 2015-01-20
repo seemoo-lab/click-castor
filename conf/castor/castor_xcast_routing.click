@@ -19,10 +19,11 @@ crypto::Crypto(sam);
 flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);
 neighbors :: CastorNeighbors($neighborTimeout);
-routingtable :: CastorRoutingTable(neighbors, $broadcastAdjust, $updateDelta);
+routingtable :: CastorRoutingTable($updateDelta);
+routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, $broadcastAdjust);
 history :: CastorHistory;
 castorclassifier :: CastorClassifier;
-handlepkt :: CastorHandleXcastPkt(fake, routingtable, history, crypto, false);
+handlepkt :: CastorHandleXcastPkt(fake, routeselector, routingtable, history, crypto, false);
 handleack :: CastorHandleAck(fake, routingtable, history, crypto, false);
 
 handleIpPacket :: CastorHandleMulticastIpPacket(fake, flowDB, crypto);

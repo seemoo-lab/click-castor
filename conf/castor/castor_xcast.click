@@ -24,10 +24,10 @@ elementclass CastorLocalXcastPkt {
 }
 
 elementclass CastorForwardXcastPkt {
-	$myIP, $routingtable, $history, $promisc |
+	$myIP, $routeselector, $routingtable, $history, $promisc |
 
 	input
-		-> CastorXcastLookupRoute($routingtable)		// Lookup the route for the packet
+		-> CastorXcastLookupRoute($routeselector)		// Lookup the route for the packet
 		-> CastorAddXcastPktToHistory($history)
 		-> CastorTimeout($routingtable, $history, $timeout, $myIP, false)
 		//-> CastorPrint('Forwarding', $myIP)
@@ -44,7 +44,7 @@ elementclass CastorForwardXcastPkt {
  * Output(2):	Forwarded PKT
  */
 elementclass CastorHandleXcastPkt {
-	$myIP, $routingtable, $history, $crypto, $promisc |
+	$myIP, $routeselector, $routingtable, $history, $crypto, $promisc |
 
 	input
 		-> forwarderClassifier :: CastorXcastForwarderClassifier($myIP)
@@ -70,7 +70,7 @@ elementclass CastorHandleXcastPkt {
 	// PKT needs to be forwarded
 	destinationClassifier[1]
 		-> blackhole :: CastorBlackhole($myIP) // By default inactive
-		-> forward :: CastorForwardXcastPkt($myIP, $routingtable, $history, $promisc)
+		-> forward :: CastorForwardXcastPkt($myIP, $routeselector, $routingtable, $history, $promisc)
 		-> [2]output;
 
 	// If invalid or duplicate -> discard

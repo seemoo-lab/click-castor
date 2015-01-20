@@ -6,22 +6,24 @@
 CLICK_DECLS
 
 CastorLookupRoute::CastorLookupRoute() {
-}
-
-CastorLookupRoute::~CastorLookupRoute() {
+	selector = 0;
 }
 
 int CastorLookupRoute::configure(Vector<String> &conf, ErrorHandler *errh) {
-    return cp_va_kparse(conf, this, errh,
-		"CastorRoutingTable", cpkP+cpkM, cpElementCast, "CastorRoutingTable", &_table,
+	Element* tmp = 0;
+    int result = cp_va_kparse(conf, this, errh,
+		"CastorRouteSelector", cpkP+cpkM, cpElement, &tmp,
         cpEnd);
+    // Have to cast manually; cpElementCast complains about type not matching
+    selector = dynamic_cast<CastorRouteSelector*>(tmp);
+    return result;
 }
 
 void CastorLookupRoute::push(int, Packet *p){
 	Castor_PKT* header = (Castor_PKT*) p->data();
 
 	// Lookup
-	IPAddress nextHop = _table->lookup(header->fid, header->dst);
+	IPAddress nextHop = selector->select(header->fid, header->dst);
 
 	header->hopcount++;
 

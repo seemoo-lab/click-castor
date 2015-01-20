@@ -3,23 +3,22 @@
 
 #include <click/element.hh>
 #include "castor.hh"
-#include "castor_routingtable.hh"
+#include "castor_route_selector.hh"
 
 CLICK_DECLS
 
 class CastorXcastLookupRoute : public Element {
 	public:
 		CastorXcastLookupRoute();
-		~CastorXcastLookupRoute();
 		
 		const char *class_name() const	{ return "CastorXcastLookupRoute"; }
-		const char *port_count() const	{ return "1/1"; }
+		const char *port_count() const	{ return PORTS_1_1; }
 		const char *processing() const	{ return PUSH; }
 		int configure(Vector<String>&, ErrorHandler*);
 		
 		void push(int, Packet *);
 	private:
-		CastorRoutingTable* _table;
+		CastorRouteSelector* selector;
 };
 
 CLICK_ENDDECLS

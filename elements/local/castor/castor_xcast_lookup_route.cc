@@ -1,6 +1,5 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-#include <click/straccum.hh>
 #include <click/vector.hh>
 #include <click/hashtable.hh>
 #include "castor_xcast_lookup_route.hh"
@@ -9,18 +8,20 @@
 CLICK_DECLS
 
 CastorXcastLookupRoute::CastorXcastLookupRoute() {
-}
-
-CastorXcastLookupRoute::~CastorXcastLookupRoute() {
+	selector = 0;
 }
 
 int CastorXcastLookupRoute::configure(Vector<String> &conf, ErrorHandler *errh) {
-    return cp_va_kparse(conf, this, errh,
-		"CastorRoutingTable", cpkP+cpkM, cpElementCast, "CastorRoutingTable", &_table,
+	Element* tmp = 0;
+    int result = cp_va_kparse(conf, this, errh,
+		"CastorRouteSelector", cpkP+cpkM, cpElement, &tmp,
         cpEnd);
+    // Have to cast manually; cpElementCast complains about type not matching
+    selector = dynamic_cast<CastorRouteSelector*>(tmp);
+    return result;
 }
 
-void CastorXcastLookupRoute::push(int, Packet *p){
+void CastorXcastLookupRoute::push(int, Packet *p) {
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	HashTable<IPAddress,Vector<unsigned int> > map;
@@ -29,7 +30,7 @@ void CastorXcastLookupRoute::push(int, Packet *p){
 
 	// Lookup routes
 	for(unsigned int i = 0; i < nDestinations; i++) {
-		IPAddress nextHop = _table->lookup(pkt.getFlowId(), pkt.getDestination(i));
+		IPAddress nextHop = selector->select(pkt.getFlowId(), pkt.getDestination(i));
 		if(!map.get_pointer(nextHop))
 			map.set(nextHop, Vector<unsigned int>());
 		Vector<unsigned int>* entry = map.get_pointer(nextHop);
@@ -57,6 +58,7 @@ void CastorXcastLookupRoute::push(int, Packet *p){
 	int randIndex = click_random() % nexthopMac.size();
 	CastorPacket::set_mac_ip_anno(pkt.getPacket(), nexthopMac[randIndex]);  // This is the address we want the MAC layer to transmit to
 
+	// If there is only a single recipient, we unicast to his address; otherwise broadcast
 	IPAddress nexthop = pkt.getNNextHops() == 1 ? pkt.getNextHop(0) : IPAddress::make_broadcast();
 	pkt.getPacket()->set_dst_ip_anno(nexthop);
 
