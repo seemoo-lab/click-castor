@@ -27,7 +27,8 @@ int CastorBeaconGenerator::initialize(ErrorHandler*) {
 
 	timer = new Timer(this);
 	timer->initialize(this);
-	timer->schedule_after_msec(interval);
+	int startTime = click_random() % interval;
+	timer->schedule_after_msec(startTime);
 
 	return 0;
 }
