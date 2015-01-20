@@ -30,6 +30,14 @@
 #include "ns3/flow-monitor-module.h"
 #include "ns3/config.h"
 
+#ifndef CLICK_PATH
+#define CLICK_PATH "/home/milan/click"
+#endif
+
+#ifndef UINT32_MAX
+#define UINT32_MAX std::numeric_limits<unsigned int>::max()
+#endif
+
 using namespace ns3;
 
 #ifndef NS3_CLICK
@@ -309,7 +317,7 @@ void simulate(
 	RngSeedManager::SetSeed(12345);
 	RngSeedManager::SetRun(run);
 
-	bool isFlooding = clickConfig.Get() == "/home/milan/click/conf/castor/flooding.click";  // TODO quick'n'dirty
+	bool isFlooding = clickConfig.Get() == CLICK_PATH"/conf/castor/flooding.click";  // TODO quick'n'dirty
 
 	size_t nSenders = (size_t) ceil(netConfig.nNodes * trafficConfig.senderFraction);
 
@@ -548,10 +556,10 @@ int main(int argc, char *argv[]) {
 	// Possible run configurations
 
 	std::map<std::string, StringValue> clickConfigs;
-	clickConfigs.insert(std::make_pair("xcast",         "/home/milan/click/conf/castor/castor_xcast_routing.click"));
-	clickConfigs.insert(std::make_pair("xcast-promisc", "/home/milan/click/conf/castor/castor_xcast_routing_promisc.click"));
-	clickConfigs.insert(std::make_pair("regular",       "/home/milan/click/conf/castor/castor_multicast_via_unicast_routing.click"));
-	clickConfigs.insert(std::make_pair("flooding",      "/home/milan/click/conf/castor/flooding.click"));
+	clickConfigs.insert(std::make_pair("xcast",         CLICK_PATH"/conf/castor/castor_xcast_routing.click"));
+	clickConfigs.insert(std::make_pair("xcast-promisc", CLICK_PATH"/conf/castor/castor_xcast_routing_promisc.click"));
+	clickConfigs.insert(std::make_pair("regular",       CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing.click"));
+	clickConfigs.insert(std::make_pair("flooding",      CLICK_PATH"/conf/castor/flooding.click"));
 
 
 	std::map<std::string, NetworkConfiguration> networkConfigs;
