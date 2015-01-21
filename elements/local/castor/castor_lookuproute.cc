@@ -23,7 +23,7 @@ void CastorLookupRoute::push(int, Packet *p){
 	Castor_PKT* header = (Castor_PKT*) p->data();
 
 	// Lookup
-	IPAddress nextHop = selector->select(header->fid, header->dst, header->pid);
+	IPAddress nextHop = selector->select(header->fid, header->dst, 0, header->pid);
 
 	if (nextHop.empty())
 		output(1).push(p);

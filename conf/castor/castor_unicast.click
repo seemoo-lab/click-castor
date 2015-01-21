@@ -72,6 +72,7 @@ elementclass CastorHandlePkt {
 	
 	// Need to retransmit ACK
 	checkDuplicate[1]
+		//-> CastorPrint("Duplicate pid, retransmit ACK", $myIP)
 		-> CastorRetransmitAck($history, $myIP)
 		-> sendAck
 		-> [1]output;

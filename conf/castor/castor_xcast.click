@@ -27,14 +27,18 @@ elementclass CastorForwardXcastPkt {
 	$myIP, $routeselector, $routingtable, $history, $promisc |
 
 	input
-		-> CastorXcastLookupRoute($routeselector)		// Lookup the route for the packet
+		-> route :: CastorXcastLookupRoute($routeselector)
 		-> CastorAddXcastPktToHistory($history)
 		-> CastorTimeout($routingtable, $history, $timeout, $myIP, false)
 		//-> CastorPrint('Forwarding', $myIP)
 		-> rec :: CastorRecordPkt
-		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
-		-> CastorXcastResetDstAnno($promisc) // We want to unicast if possible
+		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO) // Encapsulate in a new IP Packet
+		-> CastorXcastResetDstAnno($promisc) // We want to unicast on the MAC layer if possible
 		-> output;
+		
+	route[1]
+		-> CastorPrint("No suitable PKT forwarding contact", $myIP)
+		-> Discard;
 }
 
 /**

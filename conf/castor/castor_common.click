@@ -112,7 +112,7 @@ elementclass CastorSendAck {
 		-> output;
 }
 
-elementclass CastorHandleAck{
+elementclass CastorHandleAck {
 	$myIP, $routingtable, $history, $crypto, $promisc |
 
 	// Regular ACK flow
@@ -141,7 +141,6 @@ elementclass CastorHandleAck{
 		-> null;
 	authenticate[4]
 		-> CastorPrint("ACK from different neighbor than PKT was forwarded to", $myIP)
-//		-> addToHistory
 		-> null;
 	updateEstimates[1]
 		//-> CastorPrint("Duplicate", $myIP)

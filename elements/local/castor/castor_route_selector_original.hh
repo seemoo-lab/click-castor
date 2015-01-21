@@ -21,7 +21,7 @@ public:
 	/**
 	 * Select the best next hop for a given flow/subflow
 	 */
-	IPAddress select(const FlowId& flow, IPAddress subflow, const PacketId &pid);
+	IPAddress select(const FlowId& flow, IPAddress subflow, const Vector<IPAddress>* others, const PacketId &pid);
 
 protected:
 	virtual void selectNeighbor(const IPAddress &entry, double entryEstimate, Vector<IPAddress> &bestEntries, double &bestEstimate, const PacketId &pid);
@@ -33,6 +33,9 @@ protected:
 	 * Bandwidth investment for route discovery (larger values reduce the broadcast probability)
 	 */
 	double broadcastAdjust;
+
+	double findBest(HashTable<IPAddress, CastorEstimator>& entry, Vector<IPAddress>& bestNeighbors, const PacketId& pid);
+	IPAddress selectDefault() const;
 };
 
 CLICK_ENDDECLS

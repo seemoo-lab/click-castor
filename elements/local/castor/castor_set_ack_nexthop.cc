@@ -18,15 +18,15 @@ void CastorSetAckNexthop::push(int, Packet* p) {
 	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
 	bool use_broadcast = history->getPkts(pid) > 1;
 
-	if (use_broadcast) {
+	if (use_broadcast)
 		p->set_dst_ip_anno(IPAddress::make_broadcast());
-		if(promisc) {
-			int randIndex = click_random() % history->getPkts(pid);
-			CastorPacket::set_mac_ip_anno(p, history->getPktSenders(pid)[randIndex]);
-		}
-	}
 	else
 		p->set_dst_ip_anno(history->getPktSenders(pid)[0]);
+
+	if(promisc) {
+		int randIndex = click_random() % history->getPkts(pid);
+		CastorPacket::set_mac_ip_anno(p, history->getPktSenders(pid)[randIndex]);
+	}
 
 	output(use_broadcast).push(p);
 
