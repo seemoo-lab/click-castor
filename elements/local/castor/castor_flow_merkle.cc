@@ -47,9 +47,7 @@ void CastorFlowMerkle::createFlow(Host source, Host destination) {
 
 		// Set flow id
 		SValue root = tree.getRoot();
-		Hash fid(root.begin());
 		lbl.flow_id = Hash(root.begin());
-
 		// Set packet id
 		lbl.packet_id = Hash(pids.at(i).begin());
 
