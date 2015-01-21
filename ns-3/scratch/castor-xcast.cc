@@ -18,6 +18,8 @@
 // - The single ethernet interface that each node
 //   uses is named 'eth0' in the Click file.
 #include <fstream>
+#include <climits>
+#include <stdint.h>
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
@@ -35,7 +37,7 @@
 #endif
 
 #ifndef UINT32_MAX
-#define UINT32_MAX std::numeric_limits<unsigned int>::max()
+#define UINT32_MAX std::numeric_limits<uint32_t>::max()
 #endif
 
 using namespace ns3;
@@ -449,7 +451,7 @@ void simulate(
 	std::string pktForward = "handlepkt/forward/rec";
 	std::string pktSend    = "handleIpPacket/rec";
 	std::string pktDeliver = "handlepkt/handleLocal/rec";
-	std::string ackForward = "handleack/recAck";
+	std::string ackForward = "handleack/sendAck/recAck";
 	std::string ackSend    = "handlepkt/sendAck/recAck";
 	std::string pktDrop    = "handlepkt/blackhole/rec";
 	for(unsigned int i = 0; i < netConfig.nNodes; i++) {
@@ -559,6 +561,7 @@ int main(int argc, char *argv[]) {
 	clickConfigs.insert(std::make_pair("xcast",         CLICK_PATH"/conf/castor/castor_xcast_routing.click"));
 	clickConfigs.insert(std::make_pair("xcast-promisc", CLICK_PATH"/conf/castor/castor_xcast_routing_promisc.click"));
 	clickConfigs.insert(std::make_pair("regular",       CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing.click"));
+	clickConfigs.insert(std::make_pair("regular2",       CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing_v2.click"));
 	clickConfigs.insert(std::make_pair("flooding",      CLICK_PATH"/conf/castor/flooding.click"));
 
 

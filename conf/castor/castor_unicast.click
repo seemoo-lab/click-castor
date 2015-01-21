@@ -27,13 +27,17 @@ elementclass CastorForwardPkt {
 	$myIP, $routeselector, $routingtable, $history |
 
 	input
-		-> CastorLookupRoute($routeselector)
+		-> route :: CastorLookupRoute($routeselector)
 		-> CastorAddPKTToHistory($history)
 		-> CastorTimeout($routingtable, $history, $timeout, $myIP, false)
 		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> rec :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)
 		-> output;
+
+	route[1]
+		-> CastorPrint("No suitable PKT forwarding contact", $myIP)
+		-> Discard;
 
 }
 
@@ -55,6 +59,12 @@ elementclass CastorHandlePkt {
 	destinationClassifier[0]
 		-> handleLocal :: CastorLocalPkt($myIP, $history, $crypto)
 		-> [0]output;
+	
+	// PKT needs to be forwarded
+	destinationClassifier[1]
+		-> blackhole :: CastorBlackhole($myIP) // By default inactive
+		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $history)
+		-> [2]output;
 
 	handleLocal[1]
 		-> sendAck :: CastorSendAck($myIP)
@@ -65,19 +75,18 @@ elementclass CastorHandlePkt {
 		-> CastorRetransmitAck($history, $myIP)
 		-> sendAck
 		-> [1]output;
-	
-	// PKT needs to be forwarded
-	destinationClassifier[1]
-		-> blackhole :: CastorBlackhole($myIP) // By default inactive
-		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $history)
-		-> [2]output;
 
 	// If invalid or duplicate -> discard
 	null :: Discard;
 	checkDuplicate[2]
-		//-> CastorPrint("Duplicate", $myIP)
+		//-> CastorPrint("Duplicate PKT from different neighbor", $myIP)
 		//-> CastorAddPKTToHistory($history) // Add sender to history (FIXME: if disabled, protocol performs much better... why?!)
 		-> null;
+
+	checkDuplicate[3]
+		//-> CastorPrint("Duplicate PKT from same neighbor", $myIP)
+		-> null;
+
 	authenticate[1]
 		-> CastorPrint("Flow authentication failed", $myIP)
 		-> null;

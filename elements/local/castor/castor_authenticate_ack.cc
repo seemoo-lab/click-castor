@@ -10,17 +10,16 @@
 
 CLICK_DECLS
 
-CastorAuthenticateAck::CastorAuthenticateAck() {
-}
-
-CastorAuthenticateAck::~CastorAuthenticateAck() {
-}
-
 int CastorAuthenticateAck::configure(Vector<String>& conf, ErrorHandler* errh) {
-    return cp_va_kparse(conf, this, errh,
+	String arg;
+    int result = cp_va_kparse(conf, this, errh,
     	"Crypto", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
 		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
+		"Version", cpkP, cpArgument, &arg,
         cpEnd);
+	version = 1;
+	cp_integer(arg, 10, &version);
+	return result;
 }
 
 void CastorAuthenticateAck::push(int, Packet* p) {
@@ -33,9 +32,14 @@ void CastorAuthenticateAck::push(int, Packet* p) {
 	} else if(history->isExpired(pid)) {
 		output(2).push(p); // ACK arrived too late -> discard
 	} else if (history->hasAckFrom(pid, src)) {
-		output(3).push(p); // already received PKT from this neighbor -> discard
+		output(3).push(p); // already received ACK from this neighbor -> discard
 	} else {
-	    output(0).push(p);
+		const IPAddress firstPktSender = history->getPktSenders(pid)[0];
+		if (version > 1 && (src == firstPktSender || (src != history->routedTo(pid) && history->routedTo(pid) != IPAddress::make_broadcast()))) {
+			output(4).push(p); // received ACK from a neighbor to which PKT was not forwarded -> discard (Castor improvement)
+		} else {
+			output(0).push(p);
+		}
 	}
 
 }

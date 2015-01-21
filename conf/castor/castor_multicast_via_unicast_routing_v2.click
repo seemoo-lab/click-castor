@@ -1,3 +1,7 @@
+define (
+	$CASTOR_VERSION 2,
+);
+
 require(
 	library castor_io.click,
 	library castor_settings.click,
@@ -21,7 +25,7 @@ flow_merkle :: CastorFlowMerkle(flowDB, crypto);
 neighbors :: CastorNeighbors($neighborTimeout);
 routingtable :: CastorRoutingTable($updateDelta);
 history :: CastorHistory;
-routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, $broadcastAdjust);
+routeselector :: CastorRouteSelectorExperimental(routingtable, neighbors, history, $broadcastAdjust);
 castorclassifier :: CastorClassifier;
 handlepkt :: CastorHandlePkt(fake, routeselector, routingtable, history, crypto);
 handleack :: CastorHandleAck(fake, routingtable, history, crypto, false);

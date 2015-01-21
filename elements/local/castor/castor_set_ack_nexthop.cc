@@ -6,34 +6,29 @@
 
 CLICK_DECLS
 
-CastorSetAckNexthop::CastorSetAckNexthop() {
-}
-
-CastorSetAckNexthop::~CastorSetAckNexthop() {
-}
-
 int CastorSetAckNexthop::configure(Vector<String> &conf, ErrorHandler *errh) {
     return cp_va_kparse(conf, this, errh,
-		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &_history,
-		"PROMISC", cpkP+cpkM, cpBool, &_promisc,
+		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
+		"PROMISC", cpkP+cpkM, cpBool, &promisc,
         cpEnd);
 }
 
 void CastorSetAckNexthop::push(int, Packet* p) {
 
 	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
+	bool use_broadcast = history->getPkts(pid) > 1;
 
-	if (_history->getPkts(pid) == 1)
-		p->set_dst_ip_anno(_history->getPktSenders(pid)[0]);
-	else
+	if (use_broadcast) {
 		p->set_dst_ip_anno(IPAddress::make_broadcast());
-
-	if(_promisc) {
-		int randIndex = click_random() % _history->getPkts(pid);
-		CastorPacket::set_mac_ip_anno(p, _history->getPktSenders(pid)[randIndex]);
+		if(promisc) {
+			int randIndex = click_random() % history->getPkts(pid);
+			CastorPacket::set_mac_ip_anno(p, history->getPktSenders(pid)[randIndex]);
+		}
 	}
+	else
+		p->set_dst_ip_anno(history->getPktSenders(pid)[0]);
 
-	output(0).push(p);
+	output(use_broadcast).push(p);
 
 }
 

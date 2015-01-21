@@ -30,7 +30,7 @@ void CastorXcastLookupRoute::push(int, Packet *p) {
 
 	// Lookup routes
 	for(unsigned int i = 0; i < nDestinations; i++) {
-		IPAddress nextHop = selector->select(pkt.getFlowId(), pkt.getDestination(i));
+		IPAddress nextHop = selector->select(pkt.getFlowId(), pkt.getDestination(i), pkt.getPid(i));
 		if(!map.get_pointer(nextHop))
 			map.set(nextHop, Vector<unsigned int>());
 		Vector<unsigned int>* entry = map.get_pointer(nextHop);

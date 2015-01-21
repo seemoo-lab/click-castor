@@ -10,11 +10,8 @@ CLICK_DECLS
 
 class CastorAuthenticateAck: public Element {
 public:
-	CastorAuthenticateAck();
-	~CastorAuthenticateAck();
-
 	const char *class_name() const { return "CastorAuthenticateAck"; }
-	const char *port_count() const { return "1/4"; }
+	const char *port_count() const { return "1/4-5"; }
 	const char *processing() const { return PUSH; }
 	int configure(Vector<String>&, ErrorHandler*);
 
@@ -22,6 +19,7 @@ public:
 private:
 	Crypto* crypto;
 	CastorHistory* history;
+	int version;
 };
 
 CLICK_ENDDECLS

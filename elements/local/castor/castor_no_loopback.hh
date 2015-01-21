@@ -3,17 +3,15 @@
 
 #include <click/element.hh>
 #include "castor.hh"
+#include "castor_history.hh"
 
 CLICK_DECLS
 
 /**
- * Create an ACK for incoming packet, assuming that the ACK authenticator is already set as user annotation. The original packet is pushed to output 0, the ACK is pushed on output 1.
+ * Redirects an ACK that has arrived at the PKT source to output port 1, otherwise forwards it to port 0.
  */
 class CastorNoLoopback: public Element {
 public:
-	CastorNoLoopback();
-	~CastorNoLoopback();
-		
 	const char *class_name() const { return "CastorNoLoopback"; }
 	const char *port_count() const { return "1/2"; }
 	const char *processing() const { return PUSH; }
@@ -21,7 +19,9 @@ public:
 	int configure(Vector<String>&, ErrorHandler*);
 
 	void push(int, Packet *);
+
 private:
+	CastorHistory *history;
 	IPAddress myAddr;
 };
 

@@ -7,7 +7,7 @@
 #define ETHERTYPE_CASTOR_BEACON 0x88B5 // 0x88B5 and 0x88B6 reserved for private experiments
 
 #define CASTOR_HASHLENGTH		20
-#define CASTOR_FLOWAUTH_ELEM	 8  // log2(CASTOR_FLOW_SIZE)
+#define CASTOR_FLOWAUTH_ELEM	 8  // log2(CASTOR_FLOWSIZE)
 #define CASTOR_FLOWSIZE		   (1<<CASTOR_FLOWAUTH_ELEM)	// Number of flow auth elements in the header
 #define CASTOR_MAX_GROUP_SIZE	10	// Maximal allowed group size
 
@@ -34,30 +34,30 @@ struct CastorType { // C++11's strongly typed 'enum class' does not work, so cre
 
 class Hash {
 public:
-	Hash(const uint8_t array[]) { memcpy(this->array, array, sizeof(this->array)); };
-	Hash() { memset(&array, 0, sizeof(array)); };
-	unsigned long hashcode() const {
-		unsigned long hash = 0;
-		for(unsigned int i = 0; i < sizeof(unsigned long); i++)
-			hash |= array[i] << (8*i);
-		return hash;
+	inline Hash() { memset(&u.array, 0, sizeof(u.array)); }
+	inline Hash(const uint8_t array[]) { memcpy(this->u.array, array, sizeof(this->u.array)); }
+	inline unsigned long hashcode() const {
+		return u.hashcode;
 	}
 	inline Hash& operator=(const Hash& x) {
-		memcpy(&this->array, &x.array, sizeof(this->array));
+		memcpy(&this->u.array, &x.u.array, sizeof(this->u.array));
 		return *this;
 	}
-	inline uint8_t& operator[](unsigned int i) const {
-		assert((unsigned) i < (unsigned) sizeof(array));
-		return *(uint8_t*)&array[i];
+	inline uint8_t& operator[](size_t i) const {
+		assert(i < sizeof(u.array));
+		return *(uint8_t*)&u.array[i];
 	}
 	inline uint8_t* data() const {
-	    return (uint8_t*)&array[0];
+	    return (uint8_t*)&u.array[0];
 	}
 	inline bool operator==(const Hash& x) const {
-		return memcmp(this->array, x.array, sizeof(array)) == 0;
+		return memcmp(this->u.array, x.u.array, sizeof(u.array)) == 0;
 	}
 private:
-	uint8_t array[CASTOR_HASHLENGTH];
+	union {
+		uint8_t array[CASTOR_HASHLENGTH];
+		unsigned long hashcode;
+	} u;
 };
 
 typedef Hash FlowId;
@@ -106,25 +106,23 @@ class CastorPacket {
 public:
 
 	static inline uint8_t getType(const Packet* p) {
-		uint8_t type;
-		memcpy(&type, p->data(), sizeof(type));
-		type = type & 0xF0;
+		uint8_t type = *(uint8_t *)p->data() & 0xF0;
 		return type;
 	}
 
 	static inline bool getCastorPKTHeader(const Packet* p, Castor_PKT* header) {
-		if(getType(p) == CastorType::PKT){
+		if (getType(p) == CastorType::PKT) {
 			// Copy the header from packet
-			memcpy(header, p->data(), sizeof(Castor_PKT));
+			*header = *(Castor_PKT *)p->data();
 			return true;
 		}
 		return false;
 	}
 
 	static inline bool getCastorACKHeader(const Packet* p, Castor_ACK* header) {
-		if(getType(p) == CastorType::ACK){
+		if (getType(p) == CastorType::ACK) {
 			// Copy the header from packet
-			memcpy(header, p->data(), sizeof(Castor_ACK));
+			*header = *(Castor_ACK *)p->data();
 			return true;
 		}
 		return false;
@@ -155,23 +153,17 @@ public:
 	}
 
 	static inline bool isXcast(Packet* p) {
-		uint8_t type;
-		memcpy(&type, p->data(), sizeof(type));
-		type = type & 0x0F;
+		uint8_t type = *(uint8_t *)p->data() & 0x0F;
 		return (type == CastorType::XCAST);
 	}
 
 	static inline String hexToString(const Hash& hex, uint8_t length) {
-		char buffer[2*length];
-		for(int i=0; i<length; i++) {
-			snprintf(buffer + 2*i, 3, "%02x ", hex[i]);
-		}
-		return String(buffer);
+		return hexToString(hex.data(), length);
 	}
 
 	static inline String hexToString(const unsigned char* hex, uint8_t length) {
-		char buffer[2*length];
-		for(int i=0; i<length; i++) {
+		char buffer[2*length+2];
+		for (int i=0; i<length; i++) {
 			snprintf(buffer + 2*i, 3, "%02x ", hex[i]);
 		}
 		return String(buffer);

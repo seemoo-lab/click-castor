@@ -21,9 +21,11 @@ public:
 	/**
 	 * Select the best next hop for a given flow/subflow
 	 */
-	IPAddress select(const FlowId& flow, IPAddress subflow);
+	IPAddress select(const FlowId& flow, IPAddress subflow, const PacketId &pid);
 
-private:
+protected:
+	virtual void selectNeighbor(const IPAddress &entry, double entryEstimate, Vector<IPAddress> &bestEntries, double &bestEstimate, const PacketId &pid);
+
 	CastorRoutingTable* routingtable;
 	CastorNeighbors* neighbors;
 

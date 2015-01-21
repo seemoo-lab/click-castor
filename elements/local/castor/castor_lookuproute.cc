@@ -23,14 +23,19 @@ void CastorLookupRoute::push(int, Packet *p){
 	Castor_PKT* header = (Castor_PKT*) p->data();
 
 	// Lookup
-	IPAddress nextHop = selector->select(header->fid, header->dst);
+	IPAddress nextHop = selector->select(header->fid, header->dst, header->pid);
 
-	header->hopcount++;
+	if (nextHop.empty())
+		output(1).push(p);
 
-	// Set annotation for destination and push Packet to Output
-	p->set_dst_ip_anno(nextHop);
+	else {
+		header->hopcount++;
 
-    output(0).push(p);
+		// Set annotation for destination and push Packet to Output
+		p->set_dst_ip_anno(nextHop);
+
+		output(0).push(p);
+	}
 }
 
 CLICK_ENDDECLS

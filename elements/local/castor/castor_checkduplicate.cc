@@ -4,12 +4,6 @@
 
 CLICK_DECLS
 
-CastorCheckDuplicate::CastorCheckDuplicate() {
-}
-
-CastorCheckDuplicate::~CastorCheckDuplicate() {
-}
-
 int CastorCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *errh) {
      return cp_va_kparse(conf, this, errh,
         "CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
@@ -24,10 +18,12 @@ void CastorCheckDuplicate::push(int, Packet *p) {
 		 * XXX: According to Castor technical paper: If a packet with same pid, but different eauth or payload is received, it should not be considered a duplicate.
 		 * In that case, however, the timer should not be restarted.
 		 */
-		if (!history->hasPktFrom(pkt.pid, CastorPacket::src_ip_anno(p)) && history->hasAck(pkt.pid)) {
+		if (history->hasPktFrom(pkt.pid, CastorPacket::src_ip_anno(p))) {
+			output(3).push(p); // have received pid from same neighbor -> discard
+		} else if (history->hasAck(pkt.pid)) {
 			output(1).push(p); // have received pid from different neighbor AND already know corresponding ACK -> retransmit ACK
 		} else {
-			output(2).push(p); // have received pid from same neighbor -> discard
+			output(2).push(p); // have received pid from different neighbor AND do NOT already know corresponding ACK -> add PKT to history and discard
 		}
 	} else{
 		output(0).push(p); // never seen pid -> forward

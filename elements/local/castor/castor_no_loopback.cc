@@ -6,24 +6,21 @@
 
 CLICK_DECLS
 
-CastorNoLoopback::CastorNoLoopback() {
-}
-
-CastorNoLoopback::~CastorNoLoopback() {
-}
-
 int CastorNoLoopback::configure(Vector<String> &conf, ErrorHandler *errh) {
     return cp_va_kparse(conf, this, errh,
+		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
 		"ADDR", cpkP+cpkM, cpIPAddress, &myAddr,
         cpEnd);
 }
 
 void CastorNoLoopback::push(int, Packet* p) {
 
-	if (p->dst_ip_anno() == myAddr)
-		output(1).push(p);
+	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
+
+	if(history->hasPktFrom(pid, myAddr))
+		output(1).push(p);  // ACK arrived at source of corresponding PKT
 	else
-		output(0).push(p);
+		output(0).push(p);  // ACK arrived at intermediate network node
 
 }
 
