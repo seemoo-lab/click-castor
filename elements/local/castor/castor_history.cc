@@ -12,6 +12,7 @@ CastorHistory::CastorHistory() {
 void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, IPAddress prevHop, IPAddress nextHop, IPAddress destination) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	assert(prevHop.addr() != 0);
+	assert(nextHop.addr() != 0);
 	if(!entry) {
 		CastorHistoryEntry entry;
 		entry.destination = destination;

@@ -12,7 +12,6 @@ CLICK_DECLS
 class CastorUpdateEstimates: public Element {
 public:
 	CastorUpdateEstimates();
-	~CastorUpdateEstimates();
 
 	const char *class_name() const { return "CastorUpdateEstimates"; }
 	const char *port_count() const { return "1/3"; }
@@ -22,8 +21,8 @@ public:
 	void push(int, Packet *);
 private:
 	Crypto* crypto;
-	CastorRoutingTable* _table;
-	CastorHistory* _history;
+	CastorRoutingTable* table;
+	CastorHistory* history;
 };
 
 CLICK_ENDDECLS

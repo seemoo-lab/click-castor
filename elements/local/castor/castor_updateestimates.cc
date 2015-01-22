@@ -7,16 +7,16 @@
 CLICK_DECLS
 
 CastorUpdateEstimates::CastorUpdateEstimates() {
-}
-
-CastorUpdateEstimates::~CastorUpdateEstimates() {
+	crypto = 0;
+	table = 0;
+	history = 0;
 }
 
 int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
     return cp_va_kparse(conf, this, errh,
         "Crypto", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
-		"CastorRoutingTable", cpkP+cpkM, cpElementCast, "CastorRoutingTable", &_table,
-		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &_history,
+		"CastorRoutingTable", cpkP+cpkM, cpElementCast, "CastorRoutingTable", &table,
+		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
         cpEnd);
 }
 
@@ -25,21 +25,21 @@ void CastorUpdateEstimates::push(int, Packet *p){
 	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
 
 	// TODO do all that with a single call
-	const FlowId& fid = _history->getFlowId(pid);
-	IPAddress subfid = _history->getDestination(pid);
-	IPAddress routedTo = _history->routedTo(pid);
+	const FlowId& fid = history->getFlowId(pid);
+	IPAddress subfid = history->getDestination(pid);
+	IPAddress routedTo = history->routedTo(pid);
 	IPAddress from = CastorPacket::src_ip_anno(p);
-	bool isFirstAck = !_history->hasAck(pid);
+	bool isFirstAck = !history->hasAck(pid);
 
 	if (routedTo == IPAddress::make_broadcast()) {
 		// PKT was broadcast
 		if (isFirstAck)
-			_table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
-		_table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
+			table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
+		table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
 	} else if (routedTo == from) {
 		// PKT was unicast
-		_table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
-		_table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
+		table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
+		table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
 	} else {
 		output(2).push(p); // received from wrong neighbor -> discard
 		return;

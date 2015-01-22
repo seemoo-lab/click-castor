@@ -120,7 +120,7 @@ elementclass CastorHandleAck {
 		-> calcPid :: CastorAnnotatePid($crypto)
 		-> authenticate :: CastorAuthenticateAck($crypto, $history, $CASTOR_VERSION)
 		-> updateEstimates :: CastorUpdateEstimates($crypto, $routingtable, $history)
-		-> addToHistory :: CastorAddAckToHistory($crypto, $history)
+		-> CastorAddAckToHistory($crypto, $history)
 		//-> CastorPrint('Received valid', $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
 		-> CastorSetAckNexthop($history, $promisc)[0,1]
