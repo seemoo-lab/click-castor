@@ -33,15 +33,16 @@ void CastorRetransmitAck::push(int, Packet *p) {
 			ack.len = sizeof(CastorXcastAck);
 			ack.auth = history->getEAckAuth(pkt.getPid(i));
 
-			WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(Castor_ACK), 0);
+			WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorXcastAck), 0);
 			q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Unicast ACK to PKT sender
+
 			assert(history->hasPktFrom(pkt.getPid(i), q->dst_ip_anno()));
 
 			output(0).push(q);
 
-			// No longer need PKT
-			pkt.getPacket()->kill();
 		}
+		// No longer need PKT
+		pkt.getPacket()->kill();
 
 	} else {
 		Castor_PKT& pkt = (Castor_PKT&) *p->data();
@@ -57,6 +58,7 @@ void CastorRetransmitAck::push(int, Packet *p) {
 
 		WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(Castor_ACK), 0);
 		q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Unicast ACK to PKT sender
+
 		assert(history->hasPktFrom(pkt.pid, q->dst_ip_anno()));
 
 		output(0).push(q);

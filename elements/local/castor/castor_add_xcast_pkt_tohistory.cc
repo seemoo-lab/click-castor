@@ -6,9 +6,7 @@
 CLICK_DECLS
 
 CastorAddXcastPktToHistory::CastorAddXcastPktToHistory() {
-}
-
-CastorAddXcastPktToHistory::~CastorAddXcastPktToHistory() {
+	history = 0;
 }
 
 int CastorAddXcastPktToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {

@@ -33,8 +33,7 @@ void CastorXcastDestClassifier::push(int, Packet *p) {
 		if (myAddr == pkt.getDestination(i)) {
 			delivered = true;
 
-			Packet* q = p->clone()->uniqueify();
-			CastorXcastPkt localPkt = CastorXcastPkt(q);
+			CastorXcastPkt localPkt = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
 
 			// Cleanup PKT header
 			localPkt.setSingleDestination(i);
@@ -54,6 +53,9 @@ void CastorXcastDestClassifier::push(int, Packet *p) {
 		}
 
 		output(1).push(pkt.getPacket());
+	} else {
+		// We delivered a copy
+		pkt.getPacket()->kill();
 	}
 
 	assert(delivered || forwarded);

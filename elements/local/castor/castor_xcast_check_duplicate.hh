@@ -10,10 +10,9 @@ CLICK_DECLS
 class CastorXcastCheckDuplicate : public Element {
 	public:
 		CastorXcastCheckDuplicate();
-		~CastorXcastCheckDuplicate();
 
 		const char *class_name() const	{ return "CastorXcastCheckDuplicate"; }
-		const char *port_count() const	{ return "1/3"; }
+		const char *port_count() const	{ return "1/4"; }
 		const char *processing() const	{ return PUSH; }
 		int configure(Vector<String>&, ErrorHandler*);
 

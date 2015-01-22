@@ -9,9 +9,7 @@
 CLICK_DECLS
 
 CastorXcastCheckDuplicate::CastorXcastCheckDuplicate() {
-}
-
-CastorXcastCheckDuplicate::~CastorXcastCheckDuplicate() {
+	history = 0;
 }
 
 int CastorXcastCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *errh) {
@@ -24,14 +22,27 @@ int CastorXcastCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *err
 void CastorXcastCheckDuplicate::push(int, Packet *p) {
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
+	/**
+	 * XXX: According to Castor technical paper: If a packet with same pid, but different eauth or payload is received, it should not be considered a duplicate.
+	 * In that case, however, the timer should not be restarted.
+	 */
+
+	HashTable<uint8_t, uint8_t> unseen;
 	HashTable<uint8_t, uint8_t> alreadySeen;
 	HashTable<uint8_t, uint8_t> retransmitAckTo;
+	HashTable<uint8_t, uint8_t> addToHistory;
 
 	for(unsigned int i = 0; i < pkt.getNDestinations(); i++)
 		if(history->hasPkt(pkt.getPid(i))) {
-			alreadySeen.set(i, i);
-			if(!history->hasPktFrom(pkt.getPid(i), CastorPacket::src_ip_anno(p)) && history->hasAck(pkt.getPid(i)))
-				retransmitAckTo.set(i, i);
+			if (history->hasPktFrom(pkt.getPid(i), CastorPacket::src_ip_anno(p))) {
+				alreadySeen.set(i, i); // Already received Pid from this neighbor -> discard
+			} else if (history->hasAck(pkt.getPid(i))) {
+				retransmitAckTo.set(i, i); // Have not received Pid from this neighbor before AND already know corresponding ACK
+			} else {
+				addToHistory.set(i, i); // Have not received Pid from this neighbor before AND do NOT know corresponding ACK
+			}
+		} else {
+			unseen.set(i, i); // New Pid
 		}
 
 	bool retransmitAck = retransmitAckTo.size() > 0;
@@ -42,19 +53,31 @@ void CastorXcastCheckDuplicate::push(int, Packet *p) {
 		output(1).push(copy.getPacket());
 	}
 
-	bool isDuplicate = pkt.getNDestinations() == alreadySeen.size();
-	if(isDuplicate) {
-		/**
-		 * XXX: According to Castor technical paper: If a packet with same pid, but different eauth or payload is received, it should not be considered a duplicate.
-		 * In that case, however, the timer should not be restarted.
-		 */
-		output(2).push(pkt.getPacket()); // -> discard
-	} else {
-		// Remove destinations
-		pkt.removeDestinations(alreadySeen);
-		pkt.setSingleNextHop(myAddr);
-		output(0).push(pkt.getPacket());
+	bool toHistory = addToHistory.size() > 0;
+	if (toHistory) {
+		CastorXcastPkt copy = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
+		copy.keepDestinations(addToHistory);
+		copy.setSingleNextHop(myAddr);
+		output(2).push(copy.getPacket());
 	}
+
+	bool discard = alreadySeen.size() > 0;
+	if(discard) {
+		CastorXcastPkt copy = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
+		copy.keepDestinations(alreadySeen);
+		copy.setSingleNextHop(myAddr);
+		output(3).push(copy.getPacket());
+	}
+
+	bool isNew = unseen.size() > 0;
+	if (isNew) {
+		CastorXcastPkt copy = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
+		copy.keepDestinations(unseen);
+		copy.setSingleNextHop(myAddr);
+		output(0).push(copy.getPacket());
+	}
+
+	pkt.getPacket()->kill();
 }
 
 CLICK_ENDDECLS

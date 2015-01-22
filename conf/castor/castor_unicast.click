@@ -76,8 +76,7 @@ elementclass CastorHandlePkt {
 		-> CastorAddPKTToHistory($history)
 		-> CastorRetransmitAck($history, $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
-		-> sendAck
-		-> [1]output;
+		-> sendAck;
 
 	// If invalid or duplicate -> discard
 	null :: Discard;

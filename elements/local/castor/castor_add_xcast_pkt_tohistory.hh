@@ -10,7 +10,6 @@ CLICK_DECLS
 class CastorAddXcastPktToHistory: public Element {
 public:
 	CastorAddXcastPktToHistory();
-	~CastorAddXcastPktToHistory();
 
 	const char *class_name() const { return "CastorAddXcastPktToHistory"; }
 	const char *port_count() const { return PORTS_1_1; }
