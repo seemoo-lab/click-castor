@@ -9,7 +9,7 @@ require(
  * Initialize the Blocks *
  *************************/
 
-ethin :: InputEth($EthDev, fake);
+ethin :: InputEthNoHostFilter($EthDev, fake);
 ethout :: OutputEth($EthDev, $broadcastJitter, $unicastJitter);
 fromhost :: FromHost($HostDev, fake, $headroom);
 tohost :: ToHost($HostDev);
@@ -22,9 +22,9 @@ neighbors :: CastorNeighbors($neighborTimeout);
 routingtable :: CastorRoutingTable($updateDelta);
 history :: CastorHistory;
 routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, $broadcastAdjust);
-castorclassifier :: CastorClassifier;
+castorclassifier :: CastorClassifier(fake);
 handlepkt :: CastorHandlePkt(fake, routeselector, routingtable, history, crypto);
-handleack :: CastorHandleAck(fake, routingtable, history, crypto, false);
+handleack :: CastorHandleAck(fake, routingtable, history, crypto, true);
 
 handleIpPacket :: CastorHandleMulticastToUnicastIpPacket(fake, flowDB, crypto);
 arpquerier :: ARPQuerier(fake, TIMEOUT 3600, POLL_TIMEOUT 0); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)

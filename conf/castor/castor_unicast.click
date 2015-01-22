@@ -83,7 +83,7 @@ elementclass CastorHandlePkt {
 	null :: Discard;
 	checkDuplicate[2]
 		//-> CastorPrint("Duplicate PKT from different neighbor", $myIP)
-		//-> CastorAddPKTToHistory($history) // Add sender to history (FIXME: if disabled, protocol performs much better... why?!)
+		-> CastorAddPKTToHistory($history) // Add sender to history
 		-> null;
 
 	checkDuplicate[3]

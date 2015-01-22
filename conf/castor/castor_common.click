@@ -140,7 +140,7 @@ elementclass CastorHandleAck {
 		//-> CastorPrint("Duplicate from same neighbor", $myIP)
 		-> null;
 	authenticate[4]
-		-> CastorPrint("ACK from different neighbor than PKT was forwarded to", $myIP)
+		//-> CastorPrint("ACK from different neighbor than PKT was forwarded to", $myIP)
 		-> null;
 	updateEstimates[1]
 		//-> CastorPrint("Duplicate, add to history", $myIP)
