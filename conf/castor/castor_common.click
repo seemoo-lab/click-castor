@@ -143,7 +143,8 @@ elementclass CastorHandleAck {
 		-> CastorPrint("ACK from different neighbor than PKT was forwarded to", $myIP)
 		-> null;
 	updateEstimates[1]
-		//-> CastorPrint("Duplicate", $myIP)
+		//-> CastorPrint("Duplicate, add to history", $myIP)
+		-> CastorAddAckToHistory($crypto, $history)
 		-> null;
 	updateEstimates[2]
 		//-> CastorPrint("Received from wrong neighbor", $myIP)

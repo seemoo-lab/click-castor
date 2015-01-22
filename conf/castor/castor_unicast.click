@@ -73,7 +73,9 @@ elementclass CastorHandlePkt {
 	// Need to retransmit ACK
 	checkDuplicate[1]
 		//-> CastorPrint("Duplicate pid, retransmit ACK", $myIP)
+		-> CastorAddPKTToHistory($history)
 		-> CastorRetransmitAck($history, $myIP)
+		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
 		-> sendAck
 		-> [1]output;
 
@@ -90,6 +92,10 @@ elementclass CastorHandlePkt {
 
 	authenticate[1]
 		-> CastorPrint("Flow authentication failed", $myIP)
+		-> null;
+
+	noLoopback[1]
+		//-> CastorPrint("Trying to retransmit ACK to myself", $myIP)
 		-> null;
 
 }
