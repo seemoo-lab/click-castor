@@ -5,11 +5,10 @@
 
 CLICK_DECLS
 
-CastorTimeout::CastorTimeout() {
-	timers = HashTable<Timer*,Entry>();
-}
-
-CastorTimeout::~CastorTimeout() {
+CastorTimeout::PidTimer::PidTimer(CastorTimeout *element, const PacketId pid)
+: Timer(element), pid(pid) {
+	initialize(element);
+	schedule_after_msec(element->getTimeout());
 }
 
 int CastorTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
@@ -28,64 +27,35 @@ void CastorTimeout::push(int, Packet* p) {
 		CastorXcastPkt header = CastorXcastPkt(p);
 		// Set timer for each destination individually
 		for(unsigned int i = 0; i < header.getNDestinations(); i++) {
-			Timer* timer = new Timer(this);
-			timer->initialize(this);
-			timer->schedule_after_msec(timeout);
-
-			Entry entry;
-			entry.pid = header.getPid(i);
-			timers.set(timer, entry);
+			new PidTimer(this, header.getPid(i));
 		}
 	} else {
 		Castor_PKT& header = (Castor_PKT&) *p->data();
-
-		Timer* timer = new Timer(this);
-		timer->initialize(this);
-		timer->schedule_after_msec(timeout);
-
-		Entry entry;
-		entry.pid = header.pid;
-		timers.set(timer, entry);
+		new PidTimer(this, header.pid);
 	}
 
 	output(0).push(p);
 }
 
-void CastorTimeout::run_timer(Timer* timer) {
+void CastorTimeout::run_timer(Timer* _timer) {
+	PidTimer *timer = (CastorTimeout::PidTimer *)_timer;
 
-	Entry* entry = timers.get_pointer(timer);
-	if(!entry) {
-		// This should not happen!
-		StringAccum sa;
-		sa << "[" << Timestamp::now() << "@" << myIP << "] Error: Unknown timer fired";
-		click_chatter(sa.c_str());
-		// delete timer
-		timers.erase(timer);
-		delete timer;
-		return;
-	}
+	const PacketId& pid = timer->getPid();
 
-	PacketId& pid = entry->pid;
+	// delete timer, done with it
+	delete timer;
 
 	// Check whether ACK has been received in the meantime
-	if (history->hasAck(pid)) {
-		// delete timer
-		timers.erase(timer);
-		delete timer;
+	if (history->hasAck(pid))
 		return;
-	}
 
 	history->setExpired(pid);
 	IPAddress routedTo = history->routedTo(pid);
 
 	// Check whether PKT was broadcast, if yes, do nothing
 	// XXX: Why is that?
-	if (routedTo == IPAddress::make_broadcast()) {
-		// delete timer
-		timers.erase(timer);
-		delete timer;
+	if (routedTo == IPAddress::make_broadcast())
 		return;
-	}
 
 	const FlowId& fid = history->getFlowId(pid);
 	IPAddress destination = history->getDestination(pid);
@@ -98,11 +68,6 @@ void CastorTimeout::run_timer(Timer* timer) {
 	}
 	table->updateEstimates(fid, destination, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::first);
 	table->updateEstimates(fid, destination, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::all);
-
-	// delete timer
-	timers.erase(timer);
-	delete timer;
-
 }
 
 CLICK_ENDDECLS
