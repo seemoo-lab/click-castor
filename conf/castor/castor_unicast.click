@@ -72,15 +72,17 @@ elementclass CastorHandlePkt {
 	
 	// Need to retransmit ACK
 	checkDuplicate[1]
+		//-> CastorPrint("Duplicate pid, retransmit ACK", $myIP)
+		-> CastorAddPKTToHistory($history)
 		-> CastorRetransmitAck($history, $myIP)
-		-> sendAck
-		-> [1]output;
+		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
+		-> sendAck;
 
 	// If invalid or duplicate -> discard
 	null :: Discard;
 	checkDuplicate[2]
 		//-> CastorPrint("Duplicate PKT from different neighbor", $myIP)
-		//-> CastorAddPKTToHistory($history) // Add sender to history (FIXME: if disabled, protocol performs much better... why?!)
+		-> CastorAddPKTToHistory($history) // Add sender to history
 		-> null;
 
 	checkDuplicate[3]
@@ -89,6 +91,10 @@ elementclass CastorHandlePkt {
 
 	authenticate[1]
 		-> CastorPrint("Flow authentication failed", $myIP)
+		-> null;
+
+	noLoopback[1]
+		//-> CastorPrint("Trying to retransmit ACK to myself", $myIP)
 		-> null;
 
 }

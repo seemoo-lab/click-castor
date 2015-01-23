@@ -25,44 +25,47 @@ void CastorRetransmitAck::push(int, Packet *p) {
 
 		for (uint8_t i = 0; i < pkt.getNDestinations(); i++) {
 			assert(history->hasAck(pkt.getPid(i)));
-			const EACKAuth& ackAuth = history->getEAckAuth(pkt.getPid(i));
 
 			// Generate new ACK
 			CastorXcastAck ack;
 			ack.type = CastorType::XCAST_ACK;
 			ack.esize = sizeof(EACKAuth);
 			ack.len = sizeof(CastorXcastAck);
-			memcpy(&ack.auth, &ackAuth, sizeof(EACKAuth));
+			ack.auth = history->getEAckAuth(pkt.getPid(i));
 
-			WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(Castor_ACK), 0);
-			CastorPacket::set_src_ip_anno(q, myAddr);
+			WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorXcastAck), 0);
 			q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Unicast ACK to PKT sender
 
+			assert(history->hasPktFrom(pkt.getPid(i), q->dst_ip_anno()));
+
 			output(0).push(q);
+
 		}
+		// No longer need PKT
+		pkt.getPacket()->kill();
 
 	} else {
 		Castor_PKT& pkt = (Castor_PKT&) *p->data();
 
 		assert(history->hasAck(pkt.pid));
-		const ACKAuth& ackAuth = history->getAckAuth(pkt.pid);
 
 		// Generate new ACK
 		Castor_ACK ack;
 		ack.type = CastorType::MERKLE_ACK;
 		ack.hsize = sizeof(Hash);
 		ack.len = sizeof(Castor_ACK);
-		memcpy(&ack.auth, &ackAuth, sizeof(ACKAuth));
+		ack.auth = history->getAckAuth(pkt.pid);
 
 		WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(Castor_ACK), 0);
-		CastorPacket::set_src_ip_anno(q, myAddr);
 		q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Unicast ACK to PKT sender
+
+		assert(history->hasPktFrom(pkt.pid, q->dst_ip_anno()));
+
 		output(0).push(q);
+
+		// No longer need PKT
+		p->kill();
 	}
-
-	// No longer need PKT
-	p->kill();
-
 }
 
 CLICK_ENDDECLS

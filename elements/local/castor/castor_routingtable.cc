@@ -16,18 +16,13 @@ int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 			cpEnd);
 }
 
-CastorRoutingTable::FlowEntry& CastorRoutingTable::getFlowEntry(const FlowId& flow) {
-	FlowEntry* entry = 0;
-	if (!(entry = flows.get_pointer(flow))) {
-		flows.set(flow, FlowEntry());
-		entry = flows.get_pointer(flow);
-	}
-	assert(entry);
-	return *entry;
+HashTable<IPAddress, CastorEstimator>& CastorRoutingTable::getFlowEntry(const FlowId& flow, const SubflowId& subflow) {
+	return getEntryInsertDefault(getEntryInsertDefault(flows, flow), subflow);
 }
 
 void CastorRoutingTable::updateEstimates(const FlowId& flow, IPAddress subflow, IPAddress neighbor, Operation op, Estimate est) {
-	CastorEstimator& estimator = getFlowEntry(flow).getForwarderEntry(subflow).getEstimator(neighbor);
+	CastorEstimator& estimator = getEntryInsertDefault(getFlowEntry(flow, subflow), neighbor);
+
 	if (est == first && op == increase) {
 		estimator.increaseFirst(updateDelta);
 	} else if (est == all && op == increase) {
@@ -43,18 +38,27 @@ void CastorRoutingTable::printRoutingTable(const FlowId& flow, IPAddress subflow
 	StringAccum sa;
 	sa << "Routing table for flow " << CastorPacket::hexToString(flow,sizeof(FlowId)) << " (" << subflow<< "):\n";
 
-	ForwarderEntry& table = getFlowEntry(flow).getForwarderEntry(subflow);
+	ForwarderEntry& table = getFlowEntry(flow, subflow);
 	// Iterate over the Table
-	for (HashTable<IPAddress, CastorEstimator>::iterator it = table.estimators.begin(); it != table.estimators.end(); it++) {
+	for (HashTable<IPAddress, CastorEstimator>::iterator it = table.begin(); it != table.end(); it++) {
 		sa << " - " << it.key() << "\t" << it.value().getEstimate() << "\n";
 	}
-	if(table.estimators.size()==0)
+	if(table.size()==0)
 		sa << " -    --- empty --- \n";
 
 	click_chatter(sa.c_str());
 }
 
-
+template <typename K, typename V>
+V& CastorRoutingTable::getEntryInsertDefault(HashTable<K, V>& map, const K& key) {
+	V* value = map.get_pointer(key);
+	if(value == 0) {
+		map.set(key, V()); // Insert default value
+		value = map.get_pointer(key);
+		assert(value != 0);
+	}
+	return *value;
+}
 
 CLICK_ENDDECLS
 EXPORT_ELEMENT(CastorRoutingTable)

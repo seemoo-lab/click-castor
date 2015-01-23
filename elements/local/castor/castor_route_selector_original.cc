@@ -20,6 +20,54 @@ int CastorRouteSelectorOriginal::configure(Vector<String> &conf, ErrorHandler *e
 			cpEnd);
 }
 
+IPAddress CastorRouteSelectorOriginal::select(const FlowId& flow, IPAddress subflow, const Vector<IPAddress>*, const PacketId &pid) {
+
+	Vector<IPAddress> bestNeighbors;
+	double best = findBest(routingtable->getFlowEntry(flow, subflow), bestNeighbors, pid);
+	if (best == 0)
+		return selectDefault();
+
+	// Determine the probability of broadcasting anyway
+	double broadcastProb = exp(-1 * broadcastAdjust * best);
+	double rand = ((double) click_random()) / CLICK_RAND_MAX;
+
+	if(rand <= broadcastProb) {
+		// Case a: Broadcast
+		//click_chatter("Broadcasting probability %f -> deciding to broadcast", broadcastProb);
+		return selectDefault();
+	} else {
+		// Case b: Unicast (break ties at random)
+		//click_chatter("Broadcasting probability %f -> deciding to unicast to %s", broadcastProb, bestEntry.nextHop.unparse().c_str());
+		int randIndex = click_random() % bestNeighbors.size();
+		return bestNeighbors[randIndex];
+	}
+
+}
+
+double CastorRouteSelectorOriginal::findBest(HashTable<IPAddress, CastorEstimator>& entry, Vector<IPAddress>& bestNeighbors, const PacketId& pid) {
+	// Case 1: Routing Table is empty -> broadcast
+	if (entry.size() == 0)
+		return 0;
+
+	// Case 2: Search for the highest estimate (break ties at random)
+	double bestEstimate = 0;
+	for (HashTable<IPAddress, CastorEstimator>::iterator neighborIterator = entry.begin(); neighborIterator != entry.end();  /* increment in loop */) {
+		if(neighbors->hasNeighbor(neighborIterator.key())) {
+			double estimate = neighborIterator.value().getEstimate();
+			if (estimate > 0) {
+				selectNeighbor(neighborIterator.key(), estimate, bestNeighbors, bestEstimate, pid);
+			}
+			neighborIterator++;
+		} else {
+			// Entry timed out
+			HashTable<IPAddress, CastorEstimator>::iterator old = neighborIterator;
+			neighborIterator++; // save old position and increment, otherwise it might be invalid after erase
+			entry.erase(old.key());
+		}
+	}
+	return bestEstimate;
+}
+
 void CastorRouteSelectorOriginal::selectNeighbor(const IPAddress &entry, double entryEstimate, Vector<IPAddress> &bestEntries, double &bestEstimate, const PacketId &pid)
 {
 	(void)pid;  // we do not make use of the packet identifier in selecting neighbors, but other selector classes may
@@ -33,49 +81,9 @@ void CastorRouteSelectorOriginal::selectNeighbor(const IPAddress &entry, double 
 	}
 }
 
-IPAddress CastorRouteSelectorOriginal::select(const FlowId& flow, IPAddress subflow, const PacketId &pid) {
-
-	HashTable<IPAddress, CastorRoutingTable::CastorEstimator>& entry= routingtable->getFlowEntry(flow).getForwarderEntry(subflow).estimators;
-
-	// Search for the highest estimate
-	Vector<IPAddress> bestEntries;
-	double best = 0;
-	bool foundNeighbors = false;
-	for (HashTable<IPAddress, CastorRoutingTable::CastorEstimator>::iterator it = entry.begin(); it != entry.end(); ) {
-		if(neighbors->hasNeighbor(it.key())) {
-			selectNeighbor(it.key(), it.value().getEstimate(), bestEntries, best, pid);
-			foundNeighbors = true;
-			it++;
-		} else {
-			// Entry timed out
-			HashTable<IPAddress, CastorRoutingTable::CastorEstimator>::iterator old = it;
-			it++; // save old position and increment, otherwise it might be invalid after erase
-			entry.erase(old.key());
-		}
-	}
-
-	// Return empty address if we have found neighbors but still haven't selected any
-	// Return broadcast address if we could not find any neighbors
-	if (bestEntries.size() == 0)
-		return foundNeighbors ? IPAddress() : IPAddress::make_broadcast();
-
-	// Determine the probability of broadcasting anyway
-	double broadcastProb = exp(-1 * broadcastAdjust * best);
-	double rand = ((double) click_random()) / CLICK_RAND_MAX;
-
-	if(rand <= broadcastProb) {
-		// Case a: Broadcast
-		//click_chatter("Broadcasting probability %f -> deciding to broadcast", broadcastProb);
-		return IPAddress::make_broadcast();
-	} else {
-		// Case b: Unicast (break ties at random)
-		//click_chatter("Broadcasting probability %f -> deciding to unicast to %s", broadcastProb, bestEntry.nextHop.unparse().c_str());
-		int randIndex = click_random() % bestEntries.size();
-		return bestEntries[randIndex];
-	}
-
+IPAddress CastorRouteSelectorOriginal::selectDefault() const {
+	return IPAddress::make_broadcast();
 }
-
 
 CLICK_ENDDECLS
 EXPORT_ELEMENT(CastorRouteSelectorOriginal)

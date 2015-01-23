@@ -112,7 +112,7 @@ elementclass CastorSendAck {
 		-> output;
 }
 
-elementclass CastorHandleAck{
+elementclass CastorHandleAck {
 	$myIP, $routingtable, $history, $crypto, $promisc |
 
 	// Regular ACK flow
@@ -120,7 +120,7 @@ elementclass CastorHandleAck{
 		-> calcPid :: CastorAnnotatePid($crypto)
 		-> authenticate :: CastorAuthenticateAck($crypto, $history, $CASTOR_VERSION)
 		-> updateEstimates :: CastorUpdateEstimates($crypto, $routingtable, $history)
-		-> addToHistory :: CastorAddAckToHistory($crypto, $history)
+		-> CastorAddAckToHistory($crypto, $history)
 		//-> CastorPrint('Received valid', $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
 		-> CastorSetAckNexthop($history, $promisc)[0,1]
@@ -140,11 +140,11 @@ elementclass CastorHandleAck{
 		//-> CastorPrint("Duplicate from same neighbor", $myIP)
 		-> null;
 	authenticate[4]
-		-> CastorPrint("ACK from different neighbor than PKT was forwarded to", $myIP)
-//		-> addToHistory
+		//-> CastorPrint("ACK from different neighbor than PKT was forwarded to", $myIP)
 		-> null;
 	updateEstimates[1]
-		//-> CastorPrint("Duplicate", $myIP)
+		//-> CastorPrint("Duplicate, add to history", $myIP)
+		-> CastorAddAckToHistory($crypto, $history)
 		-> null;
 	updateEstimates[2]
 		//-> CastorPrint("Received from wrong neighbor", $myIP)

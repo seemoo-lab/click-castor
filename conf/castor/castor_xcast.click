@@ -27,14 +27,18 @@ elementclass CastorForwardXcastPkt {
 	$myIP, $routeselector, $routingtable, $history, $promisc |
 
 	input
-		-> CastorXcastLookupRoute($routeselector)		// Lookup the route for the packet
+		-> route :: CastorXcastLookupRoute($routeselector)
 		-> CastorAddXcastPktToHistory($history)
 		-> CastorTimeout($routingtable, $history, $timeout, $myIP, false)
 		//-> CastorPrint('Forwarding', $myIP)
 		-> rec :: CastorRecordPkt
-		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)	// Encapsulate in a new IP Packet
-		-> CastorXcastResetDstAnno($promisc) // We want to unicast if possible
+		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO) // Encapsulate in a new IP Packet
+		-> CastorXcastResetDstAnno($promisc) // We want to unicast on the MAC layer if possible
 		-> output;
+		
+	route[1]
+		-> CastorPrint("No suitable PKT forwarding contact", $myIP)
+		-> Discard;
 }
 
 /**
@@ -57,16 +61,19 @@ elementclass CastorHandleXcastPkt {
 		-> handleLocal :: CastorLocalXcastPkt($myIP, $history, $crypto)
 		-> [0]output;
 
-	handleLocal[1]
-		-> sendAck :: CastorSendAck($myIP)
+	sendAck :: CastorSendAck($myIP)
 		-> [1]output;
-	
+
+	handleLocal[1]
+		-> sendAck;
+
 	// Need to retransmit ACK
 	checkDuplicate[1]
+		-> CastorAddXcastPktToHistory($history)
 		-> CastorRetransmitAck($history, $myIP)
-		-> sendAck
-		-> [1]output;
-	
+		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
+		-> sendAck;
+
 	// PKT needs to be forwarded
 	destinationClassifier[1]
 		-> blackhole :: CastorBlackhole($myIP) // By default inactive
@@ -79,11 +86,17 @@ elementclass CastorHandleXcastPkt {
 		//-> CastorPrint("Node not in forwarder list", $myIP)
 		-> null;
 	checkDuplicate[2]
-		//-> CastorPrint("Duplicate", $myIP)
-		//-> CastorAddXcastPktToHistory($history) // Add sender to history (FIXME: if disabled, protocol performs much better... why?!)
+		//-> CastorPrint("Duplicate PKT from different neighbor", $myIP)
+		-> CastorAddXcastPktToHistory($history) // Add sender to history
+		-> null;
+	checkDuplicate[3]
+		//-> CastorPrint("Duplicate PKT from same neighbor", $myIP)
 		-> null;
 	validate[1]
 		-> CastorPrint("Flow authentication failed", $myIP)
+		-> null;
+	noLoopback[1]
+		//-> CastorPrint("Trying to retransmit ACK to myself", $myIP)
 		-> null;
 
 }

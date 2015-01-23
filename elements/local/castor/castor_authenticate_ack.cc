@@ -35,8 +35,8 @@ void CastorAuthenticateAck::push(int, Packet* p) {
 		output(3).push(p); // already received ACK from this neighbor -> discard
 	} else {
 		const IPAddress firstPktSender = history->getPktSenders(pid)[0];
-		if (version > 1 && (src == firstPktSender || (src != history->routedTo(pid) && history->routedTo(pid) != IPAddress::make_broadcast()))) {
-			output(4).push(p); // received ACK from a neighbor to which PKT was not forwarded -> discard (Castor improvement)
+		if (version > 1 && src == firstPktSender) {
+			output(4).push(p); // received ACK from a neighbor from which we also received the PKT -> discard (Castor improvement)
 		} else {
 			output(0).push(p);
 		}

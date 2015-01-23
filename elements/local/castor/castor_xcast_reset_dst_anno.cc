@@ -6,14 +6,12 @@
 CLICK_DECLS
 
 CastorXcastResetDstAnno::CastorXcastResetDstAnno() {
-}
-
-CastorXcastResetDstAnno::~CastorXcastResetDstAnno() {
+	promisc = false;
 }
 
 int CastorXcastResetDstAnno::configure(Vector<String>& conf, ErrorHandler* errh) {
 	if(Args(conf, errh)
-			.read_mp("PROMISC", _promisc)
+			.read_p("PROMISC", promisc)
 			.complete() < 0)
 		return -1;
 	return 0;
@@ -21,7 +19,7 @@ int CastorXcastResetDstAnno::configure(Vector<String>& conf, ErrorHandler* errh)
 
 void CastorXcastResetDstAnno::push(int, Packet *p){
 
-	if(_promisc) {
+	if (promisc) {
 		IPAddress addr = CastorPacket::mac_ip_anno(p);
 		p->set_dst_ip_anno(addr);
 	}

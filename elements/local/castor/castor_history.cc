@@ -12,13 +12,13 @@ CastorHistory::CastorHistory() {
 void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, IPAddress prevHop, IPAddress nextHop, IPAddress destination) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	assert(prevHop.addr() != 0);
+	assert(nextHop.addr() != 0);
 	if(!entry) {
 		CastorHistoryEntry entry;
 		entry.destination = destination;
 		entry.prevHops.push_back(prevHop);
 		entry.nextHop = nextHop;
 		entry.expired = false;
-		entry.recievedACKs = Vector<IPAddress>();
 		entry.fid = fid;
 		history.set(pid, entry);
 	} else {
@@ -74,8 +74,8 @@ bool CastorHistory::addAckFor(const PacketId& pid, IPAddress addr) {
 bool CastorHistory::hasPktFrom(const PacketId& pid, IPAddress addr) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	if (entry) {
-		for (int i = 0; i < entry->prevHops.size(); i++)
-			if (entry->prevHops[i] == addr)
+		for (Vector<IPAddress>::const_iterator it = entry->prevHops.begin(); it != entry->prevHops.end(); it++)
+			if (*it == addr)
 				return true;
 	}
 	return false;

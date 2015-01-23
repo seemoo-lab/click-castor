@@ -9,16 +9,14 @@
 CLICK_DECLS
 
 void CastorXcastCreateAck::push(int, Packet* p) {
-	// Generate new ACK
+
 	CastorXcastAck ack;
 	ack.type = CastorType::XCAST_ACK;
 	ack.esize = sizeof(EACKAuth);
 	ack.len = sizeof(CastorXcastAck);
-	ack.auth = CastorPacket::getCastorAnno(p); // auth should be in Castor user annotation
+	ack.auth = Hash(CastorPacket::getCastorAnno(p)); // auth should be in Castor user annotation
 
-	// Broadcast ACK
 	WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorXcastAck), 0);
-	CastorPacket::set_src_ip_anno(q, CastorXcastPkt(p).getDestination(0)); // We are source of ACK
 	q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Set DST_ANNO to source of PKT
 
 	output(0).push(p); // PKT -> output 0
