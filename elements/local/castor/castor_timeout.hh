@@ -18,11 +18,12 @@ public:
 	int configure(Vector<String>&, ErrorHandler*);
 
 	void push(int, Packet *);
-	void run_timer(Timer*);
 
 	inline int getTimeout() const { return timeout; }
 
 private:
+	void run_timer(Timer*);
+
 	class PidTimer : public Timer {
 	public:
 		PidTimer(CastorTimeout *element, const PacketId pid);

@@ -4,37 +4,66 @@
 
 CLICK_DECLS
 
-CastorNeighbors::CastorNeighbors() {
-	timeout = 1000;
-}
-
-CastorNeighbors::~CastorNeighbors() {
-}
-
 int CastorNeighbors::configure(Vector<String>& conf, ErrorHandler* errh) {
+	timer.initialize(this); 
 	return cp_va_kparse(conf, this, errh,
 			"TIMEOUT", cpkP + cpkM, cpUnsigned, &timeout,
 			cpEnd);
 }
 
-void CastorNeighbors::addNeighbor(Neighbor neighbor) {
-	neighbors.set(neighbor, Timestamp::now());
+void CastorNeighbors::run_timer(Timer*) {
+	ListNode *node;
+
+	// Fetch expired neighbors from the timer queue and remove them from the neighbors set
+	for (;;) {
+		node = timeout_queue.front();
+		if (node == NULL)
+			return;
+		if (Timestamp::recent_steady() - node->timeout < 0)
+			break;
+		timeout_queue.pop_front();
+		neighbors.erase(node->neighbor);
+		delete node;
+	}
+
+	// Restart the timer with the timeout of the first expiring neighbor
+	timer.schedule_at_steady(node->timeout);
 }
 
-bool CastorNeighbors::hasNeighbor(Neighbor neighbor) {
-	Timestamp* timestamp = neighbors.get_pointer(neighbor);
+void CastorNeighbors::addNeighbor(Neighbor neighbor) {
+	// Compute the neighbor's timeout based on the current "steady" time
+	// We use steady time because, in difference to the system time, it is unaffected by user clock changes
+	Timestamp node_timeout = Timestamp::recent_steady() + Timestamp::make_msec(timeout);
 
-	// Neighbor not found
-	if(timestamp == 0)
-		return false;
+	// Look for neighbor in neighbors set
+	ListNode **node_ptr = neighbors.get_pointer(neighbor);
 
-	// Entry for neighbor not yet outdated
-	if((Timestamp::now() - *timestamp).msecval() < timeout)
-		return true;
+	// If found, update the neighbor's timeout and put it back in the timeout queue
+	if (node_ptr != NULL) {
+		ListNode *node = *node_ptr;
+		bool isFront = node == timeout_queue.front();
+		timeout_queue.erase(node);
+		node->timeout = node_timeout;
+		timeout_queue.push_back(node);
+		if (isFront) {
+			node = timeout_queue.front();
+			timer.unschedule();
+			timer.schedule_at_steady(node->timeout);
+		}
+	}
 
-	// Entry for neighbor expired
-	neighbors.erase(neighbor); // Delete entry before returning false
-	return false;
+	// Otherwise, add the neighbor to the neighbors set and create a new entry in the timeout queue
+	else {
+		ListNode *node = new ListNode(neighbor, node_timeout);
+		if (node != NULL) {
+			neighbors.set(neighbor, node);
+			bool empty = timeout_queue.empty();
+			timeout_queue.push_back(node);
+			// Start the timer if it has been inactive
+			if (empty)
+				timer.schedule_at_steady(node_timeout);
+		}
+	}
 }
 
 CLICK_ENDDECLS
