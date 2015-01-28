@@ -22,6 +22,7 @@ int CastorRouteSelectorOriginal::configure(Vector<String> &conf, ErrorHandler *e
 
 IPAddress CastorRouteSelectorOriginal::select(const FlowId& flow, IPAddress subflow, const Vector<IPAddress>*, const PacketId &pid) {
 
+	// Search for the highest estimate
 	Vector<IPAddress> bestNeighbors;
 	double best = findBest(routingtable->getFlowEntry(flow, subflow), bestNeighbors, pid);
 	if (best == 0)
@@ -45,11 +46,6 @@ IPAddress CastorRouteSelectorOriginal::select(const FlowId& flow, IPAddress subf
 }
 
 double CastorRouteSelectorOriginal::findBest(HashTable<IPAddress, CastorEstimator>& entry, Vector<IPAddress>& bestNeighbors, const PacketId& pid) {
-	// Case 1: Routing Table is empty -> broadcast
-	if (entry.size() == 0)
-		return 0;
-
-	// Case 2: Search for the highest estimate (break ties at random)
 	double bestEstimate = 0;
 	for (HashTable<IPAddress, CastorEstimator>::iterator neighborIterator = entry.begin(); neighborIterator != entry.end();  /* increment in loop */) {
 		if(neighbors->hasNeighbor(neighborIterator.key())) {
@@ -79,10 +75,6 @@ void CastorRouteSelectorOriginal::selectNeighbor(const IPAddress &entry, double 
 	} else if (entryEstimate >= bestEstimate) {
 		bestEntries.push_back(entry);
 	}
-}
-
-IPAddress CastorRouteSelectorOriginal::selectDefault() const {
-	return IPAddress::make_broadcast();
 }
 
 CLICK_ENDDECLS

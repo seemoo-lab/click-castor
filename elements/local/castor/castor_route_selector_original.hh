@@ -35,7 +35,7 @@ protected:
 	double broadcastAdjust;
 
 	double findBest(HashTable<IPAddress, CastorEstimator>& entry, Vector<IPAddress>& bestNeighbors, const PacketId& pid);
-	IPAddress selectDefault() const;
+	inline IPAddress selectDefault() const { return IPAddress::make_broadcast(); }
 };
 
 CLICK_ENDDECLS
