@@ -18,7 +18,7 @@ sam::SAManagement(fake, netAddr, $numNodes);
 crypto::Crypto(sam);
 flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);
-neighbors :: CastorNeighbors($neighborTimeout);
+neighbors :: Neighbors($neighborTimeout);
 routingtable :: CastorRoutingTable($updateDelta);
 history :: CastorHistory;
 routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, $broadcastAdjust);
@@ -41,7 +41,7 @@ ethin[2]
  	-> castorclassifier;	// Classify received packets			
 
 cEtherFilter[1]
-	-> CastorAddNeighbor(neighbors)
+	-> AddNeighbor(neighbors)
 	-> Discard;
 
 fromhost
@@ -59,4 +59,4 @@ handleack			-> arpquerier; // Forward ACK
 
 arpquerier -> ethout;	// Send Ethernet packets to output
 
-CastorBeaconGenerator($beaconingInterval, fake, $EthDev) -> ethout;
+NeighborBeaconGenerator($beaconingInterval, fake, $EthDev) -> ethout;

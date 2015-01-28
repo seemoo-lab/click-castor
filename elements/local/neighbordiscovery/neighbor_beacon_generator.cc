@@ -2,16 +2,11 @@
 #include <click/confparse.hh>
 #include <clicknet/ether.h>
 #include <click/etheraddress.hh>
-#include "castor_beacon_generator.hh"
+#include "neighbor_beacon_generator.hh"
 
 CLICK_DECLS
 
-CastorBeaconGenerator::CastorBeaconGenerator() {
-	timer = 0;
-	interval = 0;
-}
-
-int CastorBeaconGenerator::configure(Vector<String>& conf, ErrorHandler* errh) {
+int NeighborBeaconGenerator::configure(Vector<String>& conf, ErrorHandler* errh) {
 	return cp_va_kparse(conf, this, errh,
 			"INTERVAL", cpkP + cpkM, cpInteger, &interval,
 			"IP", cpkP + cpkM, cpIPAddress, &myIP,
@@ -19,7 +14,7 @@ int CastorBeaconGenerator::configure(Vector<String>& conf, ErrorHandler* errh) {
 			cpEnd);
 }
 
-int CastorBeaconGenerator::initialize(ErrorHandler*) {
+int NeighborBeaconGenerator::initialize(ErrorHandler*) {
 	if (interval <= 0) {
 		click_chatter("Non-positive beaconing interval. Disable beacon generator.");
 		return 0;
@@ -33,23 +28,19 @@ int CastorBeaconGenerator::initialize(ErrorHandler*) {
 	return 0;
 }
 
-void CastorBeaconGenerator::run_timer(Timer* timer) {
-	CastorBeacon beacon;
-	beacon.src = myIP;
+void NeighborBeaconGenerator::run_timer(Timer* timer) {
+	NeighborBeacon beacon(myIP);
 
-	WritablePacket* p = Packet::make(sizeof(click_ether), &beacon, sizeof(CastorBeacon), 0);
+	WritablePacket* p = Packet::make(sizeof(click_ether), &beacon, sizeof(NeighborBeacon), 0);
 	p = p->push_mac_header(sizeof(click_ether));
-
-	memset(&p->ether_header()->ether_dhost, 0xff, 6);
-	memcpy(&p->ether_header()->ether_shost, myEth.data(), 6);
-
 	p->ether_header()->ether_type = htons(ETHERTYPE_CASTOR_BEACON);
+	memset(&p->ether_header()->ether_dhost, 0xff, 6); // Set broadcast address
+	memcpy(&p->ether_header()->ether_shost, myEth.data(), 6);
 
 	timer->reschedule_after_msec(interval);
 
 	output(0).push(p);
-
 }
 
 CLICK_ENDDECLS
-EXPORT_ELEMENT(CastorBeaconGenerator)
+EXPORT_ELEMENT(NeighborBeaconGenerator)
