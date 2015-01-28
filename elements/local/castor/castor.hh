@@ -6,8 +6,6 @@
 
 //#define DEBUG  // uncomment to add source and destination fields to ACK packets
 
-#define ETHERTYPE_CASTOR_BEACON 0x88B5 // 0x88B5 and 0x88B6 reserved for private experiments
-
 #define CASTOR_HASHLENGTH                           20
 #define CASTOR_FLOWAUTH_ELEM                         8  // log2(CASTOR_FLOWSIZE)
 #define CASTOR_FLOWSIZE		  (1<<CASTOR_FLOWAUTH_ELEM) // Number of flow auth elements in the header
@@ -107,11 +105,6 @@ typedef struct {
 	IPAddress	dst;
 #endif
 } Castor_ACK;
-
-// Castor Beacon
-typedef struct {
-	IPAddress src; // Advertise itself
-} CastorBeacon;
 
 /**
  * The Castor Class with utility functions to handle Packet Processing

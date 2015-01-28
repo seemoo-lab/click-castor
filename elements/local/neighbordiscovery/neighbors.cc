@@ -1,17 +1,17 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-#include "castor_neighbors.hh"
+#include "neighbors.hh"
 
 CLICK_DECLS
 
-int CastorNeighbors::configure(Vector<String>& conf, ErrorHandler* errh) {
+int Neighbors::configure(Vector<String>& conf, ErrorHandler* errh) {
 	timer.initialize(this); 
 	return cp_va_kparse(conf, this, errh,
 			"TIMEOUT", cpkP + cpkM, cpUnsigned, &timeout,
 			cpEnd);
 }
 
-void CastorNeighbors::run_timer(Timer*) {
+void Neighbors::run_timer(Timer*) {
 	ListNode *node;
 
 	// Fetch expired neighbors from the timer queue and remove them from the neighbors set
@@ -30,7 +30,7 @@ void CastorNeighbors::run_timer(Timer*) {
 	timer.schedule_at_steady(node->timeout);
 }
 
-void CastorNeighbors::addNeighbor(Neighbor neighbor) {
+void Neighbors::addNeighbor(NodeId neighbor) {
 	// Compute the neighbor's timeout based on the current "steady" time
 	// We use steady time because, in difference to the system time, it is unaffected by user clock changes
 	Timestamp node_timeout = Timestamp::recent_steady() + Timestamp::make_msec(timeout);
@@ -67,4 +67,4 @@ void CastorNeighbors::addNeighbor(Neighbor neighbor) {
 }
 
 CLICK_ENDDECLS
-EXPORT_ELEMENT(CastorNeighbors)
+EXPORT_ELEMENT(Neighbors)

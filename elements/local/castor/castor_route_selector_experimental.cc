@@ -7,7 +7,7 @@ CLICK_DECLS
 int CastorRouteSelectorExperimental::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
 			"CastorRoutingTable", cpkP+cpkM, cpElementCast, "CastorRoutingTable", &routingtable,
-			"CastorNeighbors", cpkP+cpkM, cpElementCast, "CastorNeighbors", &neighbors,
+			"Neighbors", cpkP+cpkM, cpElementCast, "Neighbors", &neighbors,
 			"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
 			"BroadcastAdjust", cpkP, cpDouble, &broadcastAdjust,
 			cpEnd);

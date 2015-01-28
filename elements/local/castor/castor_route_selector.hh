@@ -3,8 +3,6 @@
 
 #include <click/element.hh>
 #include "castor.hh"
-#include "castor_routingtable.hh"
-#include "castor_neighbors.hh"
 
 CLICK_DECLS
 

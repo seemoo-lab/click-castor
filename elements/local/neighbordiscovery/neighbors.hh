@@ -1,22 +1,20 @@
-#ifndef CLICK_CASTOR_NEIGHBORS_HH
-#define CLICK_CASTOR_NEIGHBORS_HH
+#ifndef CLICK_NEIGHBORS_HH
+#define CLICK_NEIGHBORS_HH
 
 #include <click/element.hh>
 #include <click/hashtable.hh>
 #include <click/list.hh>
 #include <click/timer.hh>
 #include <click/timestamp.hh>
-#include "castor.hh"
+#include "neighbor_beacon.hh"
 
 CLICK_DECLS
 
-typedef IPAddress Neighbor;
-
-class CastorNeighbors: public Element {
+class Neighbors: public Element {
 public:
-	inline CastorNeighbors() : timer(this), timeout(1000) {}
+	inline Neighbors() : timer(this), timeout(1000) {}
 
-	const char *class_name() const { return "CastorNeighbors"; }
+	const char *class_name() const { return "Neighbors"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
@@ -24,12 +22,12 @@ public:
 	/**
 	 * Inserts the neighbor. If an entry already exists, it is updated with the current timestamp.
 	 */
-	void addNeighbor(Neighbor neighbor);
+	void addNeighbor(NodeId neighbor);
 
 	/**
 	 * Whether such a neighbor exists and it has not yet timed out.
 	 */
-	inline bool hasNeighbor(Neighbor neighbor) { return neighbors.get_pointer(neighbor) != NULL; }
+	inline bool hasNeighbor(NodeId neighbor) { return neighbors.get_pointer(neighbor) != NULL; }
 
 	/**
 	 * Returns the number of neighbors that have not yet timed out.
@@ -38,9 +36,9 @@ public:
 
 private:
 	struct ListNode {
-		inline ListNode(Neighbor neighbor, Timestamp timeout) : neighbor(neighbor), timeout(timeout) {}
+		inline ListNode(NodeId neighbor, Timestamp timeout) : neighbor(neighbor), timeout(timeout) {}
 		List_member<ListNode> node;
-		Neighbor neighbor;
+		NodeId neighbor;
 		Timestamp timeout;
 	};
 
@@ -51,15 +49,15 @@ public:
 	 */
 	class const_iterator {
 	public:
-		inline const_iterator(HashTable<Neighbor, ListNode *>::const_iterator it) { this->it = it; }
+		inline const_iterator(HashTable<NodeId, ListNode *>::const_iterator it) { this->it = it; }
 		inline bool operator==(const_iterator it) { return this->it == it.it; }
 		inline bool operator!=(const_iterator it) { return this->it != it.it; }
 		inline void operator++(int) { it++; }
 
-		inline const Neighbor &entry() const { return it.key(); }
+		inline const NodeId &entry() const { return it.key(); }
 
 	private:
-		HashTable<Neighbor, ListNode *>::const_iterator it;
+		HashTable<NodeId, ListNode *>::const_iterator it;
 	};
 
 	inline const_iterator begin() const { const_iterator it(neighbors.begin()); return it; }
@@ -71,7 +69,7 @@ private:
 	List<ListNode, &ListNode::node> timeout_queue;
 	Timer timer;
 
-	HashTable<Neighbor, ListNode *> neighbors;
+	HashTable<NodeId, ListNode *> neighbors;
 
 	unsigned int timeout;
 };

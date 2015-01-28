@@ -4,7 +4,7 @@
 #include <click/element.hh>
 #include "castor_route_selector.hh"
 #include "castor_routingtable.hh"
-#include "castor_neighbors.hh"
+#include "../neighbordiscovery/neighbors.hh"
 
 CLICK_DECLS
 
@@ -27,7 +27,7 @@ protected:
 	virtual void selectNeighbor(const IPAddress &entry, double entryEstimate, Vector<IPAddress> &bestEntries, double &bestEstimate, const PacketId &pid);
 
 	CastorRoutingTable* routingtable;
-	CastorNeighbors* neighbors;
+	Neighbors* neighbors;
 
 	/**
 	 * Bandwidth investment for route discovery (larger values reduce the broadcast probability)
