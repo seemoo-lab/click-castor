@@ -9,35 +9,26 @@
 
 CLICK_DECLS
 
-JitterUnqueue::JitterUnqueue() :
-		_p(0),
-		_task(this),
-		_timer(&_task) {
-}
-
-JitterUnqueue::~JitterUnqueue() {
-}
-
 int JitterUnqueue::configure(Vector<String> &conf, ErrorHandler *errh) {
-	uint32_t jitter = 0;
+	uint32_t jitter_usec = 0;
 	int result = Args(conf, this, errh)
-			.read_mp("JITTER", jitter)
+			.read_mp("JITTER", jitter_usec)
 			.read_mp("SIMTIME", simulatorTime)
 			.complete();
-	_jitter = Timestamp::make_usec(jitter);
+	jitter = Timestamp::make_usec(jitter_usec);
 	return result < 0 ? -1 : 0;
 }
 
 int JitterUnqueue::initialize(ErrorHandler *errh) {
-	ScheduleInfo::initialize_task(this, &_task, errh);
-	_timer.initialize(this);
-	_signal = Notifier::upstream_empty_signal(this, 0, &_task);
+	ScheduleInfo::initialize_task(this, &task, errh);
+	timer.initialize(this);
+	signal = Notifier::upstream_empty_signal(this, 0, &task);
 	return 0;
 }
 
 void JitterUnqueue::cleanup(CleanupStage) {
-	if (_p)
-		_p->kill();
+	if (p)
+		p->kill();
 }
 
 bool JitterUnqueue::run_task(Task *) {
@@ -45,21 +36,21 @@ bool JitterUnqueue::run_task(Task *) {
 
 	retry:
 	// read a packet
-	if (!_p && (_p = input(0).pull())) {
-		if (!_p->timestamp_anno().sec()) // get timestamp if not set
-			_p->timestamp_anno().assign_now();
+	if (!p && (p = input(0).pull())) {
+		if (!p->timestamp_anno().sec()) // get timestamp if not set
+			p->timestamp_anno().assign_now_steady();
 
 		// generate random jitter
-		unsigned int randVal = (double) click_random() / CLICK_RAND_MAX * _jitter.usec();
-		_p->timestamp_anno() += Timestamp::make_usec(randVal);
+		unsigned int randVal = (double) click_random() / CLICK_RAND_MAX * jitter.usec();
+		p->timestamp_anno() += Timestamp::make_usec(randVal);
 	}
 
-	if (_p) {
-		Timestamp now = Timestamp::now();
-		if (_p->timestamp_anno() <= now) {
+	if (p) {
+		Timestamp now = Timestamp::now_steady();
+		if (p->timestamp_anno() <= now) {
 			// packet ready for output
-			output(0).push(_p);
-			_p = 0;
+			output(0).push(p);
+			p = 0;
 			worked = true;
 			goto retry;
 		}
@@ -67,31 +58,31 @@ bool JitterUnqueue::run_task(Task *) {
 		// If 'simulatorTime' is set, no need to busy wait; just reschedule at that time
 		Timestamp expiry;
 		if(simulatorTime)
-			expiry = _p->timestamp_anno();
+			expiry = p->timestamp_anno();
 		else
-			expiry = _p->timestamp_anno() - Timer::adjustment();
+			expiry = p->timestamp_anno() - Timer::adjustment();
 		if (!simulatorTime && expiry <= now) {
 			// small delta, reschedule Task
 			/* Task rescheduled below */
 		} else {
 			// large delta, schedule Timer
-			_timer.schedule_at(expiry);
+			timer.schedule_at_steady(expiry);
 			return false;		// without rescheduling
 		}
 
 	} else {
 		// no Packet available
-		if (!_signal)
+		if (!signal)
 			return false;		// without rescheduling
 	}
 
-	_task.fast_reschedule();
+	task.fast_reschedule();
 	return worked;
 }
 
 void JitterUnqueue::add_handlers() {
-	add_data_handlers("jitter", Handler::OP_READ | Handler::OP_WRITE, &_jitter,	true);
-	add_task_handlers(&_task);
+	add_data_handlers("jitter", Handler::OP_READ | Handler::OP_WRITE, &jitter, true);
+	add_task_handlers(&task);
 }
 
 CLICK_ENDDECLS
