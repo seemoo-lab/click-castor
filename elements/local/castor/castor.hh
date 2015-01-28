@@ -4,6 +4,8 @@
 #include <click/ipaddress.hh>
 #include <click/packet_anno.hh>
 
+//#define DEBUG  // uncomment to add source and destination fields to ACK packets
+
 #define ETHERTYPE_CASTOR_BEACON 0x88B5 // 0x88B5 and 0x88B6 reserved for private experiments
 
 #define CASTOR_HASHLENGTH                           20
@@ -100,6 +102,10 @@ typedef struct {
 	uint8_t 	hsize;
 	uint16_t 	len;
 	ACKAuth 	auth;
+#ifdef DEBUG
+	IPAddress	src;
+	IPAddress	dst;
+#endif
 } Castor_ACK;
 
 // Castor Beacon
