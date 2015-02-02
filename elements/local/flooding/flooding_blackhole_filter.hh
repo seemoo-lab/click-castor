@@ -7,8 +7,7 @@ CLICK_DECLS
 
 class FloodingBlackholeFilter : public Element {
 	public:
-		FloodingBlackholeFilter();
-		~FloodingBlackholeFilter();
+		FloodingBlackholeFilter() : active(false) {}
 
 		const char *class_name() const	{ return "FloodingBlackholeFilter"; }
 		const char *port_count() const	{ return "1/2"; }

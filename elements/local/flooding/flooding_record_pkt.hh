@@ -11,8 +11,9 @@ CLICK_DECLS
 
 class FloodingRecordPkt: public Element {
 public:
-	FloodingRecordPkt();
-	~FloodingRecordPkt();
+	FloodingRecordPkt() : map(0) {
+		seq_index = 0, numPids = 0, numPkts = 0, pktAccumSize = 0, broadcastDecisions = 0;
+	}
 		
 	const char *class_name() const { return "FloodingRecordPkt"; }
 	const char *port_count() const { return PORTS_1_1; }
@@ -53,6 +54,7 @@ private:
 			broadcasts, // number of broadcasts
 			unicasts, // number of unicasts
 			seq_entry, // returns entries one after the other
+			seq_hopcount, // hopcount of the packet, TODO currently returns constant -1 (no entries)
 		};
 	};
 

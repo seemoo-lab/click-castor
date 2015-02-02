@@ -5,18 +5,6 @@
 
 CLICK_DECLS
 
-FloodingCheckDuplicate::FloodingCheckDuplicate() {
-}
-
-FloodingCheckDuplicate::~FloodingCheckDuplicate() {
-}
-
-int FloodingCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return cp_va_kparse(conf, this, errh,
-		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
-		cpEnd);
-}
-
 void FloodingCheckDuplicate::push(int, Packet *p) {
 
 	Key id = Flooding::getId(p);

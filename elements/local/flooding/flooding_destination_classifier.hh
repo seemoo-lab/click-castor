@@ -9,9 +9,6 @@ CLICK_DECLS
 
 class FloodingDestinationClassifier : public Element {
 	public:
-		FloodingDestinationClassifier();
-		~FloodingDestinationClassifier();
-
 		const char *class_name() const	{ return "FloodingDestinationClassifier"; }
 		const char *port_count() const	{ return "1/2"; }
 		const char *processing() const	{ return PUSH; }
@@ -21,7 +18,7 @@ class FloodingDestinationClassifier : public Element {
 
 	private:
 		CastorXcastDestinationMap* map;
-		IPAddress myAddr;
+		IPAddress myIP;
 };
 
 CLICK_ENDDECLS

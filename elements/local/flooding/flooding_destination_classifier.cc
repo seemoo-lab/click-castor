@@ -6,15 +6,9 @@
 
 CLICK_DECLS
 
-FloodingDestinationClassifier::FloodingDestinationClassifier() {
-}
-
-FloodingDestinationClassifier::~FloodingDestinationClassifier() {
-}
-
 int FloodingDestinationClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
-		"ADDR", cpkP+cpkM, cpIPAddress, &myAddr,
+		"ADDR", cpkP+cpkM, cpIPAddress, &myIP,
 		"MAP", cpkP+cpkM, cpElementCast, "CastorXcastDestinationMap", &map,
 		cpEnd);
 }
@@ -26,7 +20,7 @@ void FloodingDestinationClassifier::push(int, Packet *p) {
 	bool isDestination = false;
 	const Vector<IPAddress>& dsts = map->getDestinations(dst);
 	for (Vector<IPAddress>::const_iterator it = dsts.begin(); it != dsts.end(); it++) {
-		if (*it == myAddr) {
+		if (*it == myIP) {
 			isDestination = true;
 			break;
 		}

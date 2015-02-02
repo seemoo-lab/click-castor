@@ -6,17 +6,6 @@
 
 CLICK_DECLS
 
-FloodingRecordPkt::FloodingRecordPkt() {
-	numPkts = 0;
-	numPids = 0;
-	pktAccumSize = 0;
-	broadcastDecisions = 0;
-	seq_index = 0;
-}
-
-FloodingRecordPkt::~FloodingRecordPkt() {
-}
-
 int FloodingRecordPkt::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
 		"MAP", cpkP+cpkM, cpElementCast, "CastorXcastDestinationMap", &map,
@@ -24,7 +13,6 @@ int FloodingRecordPkt::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void FloodingRecordPkt::push(int, Packet *p) {
-
 	IPAddress dst(p->ip_header()->ip_dst);
 	unsigned int size = map->getDestinations(dst).size();
 
@@ -63,6 +51,8 @@ String FloodingRecordPkt::read_handler(Element *e, void *thunk) {
 			recorder->seq_index++;
 			return sa.take_string();
 		}
+	case Statistics::seq_hopcount:
+		return String(-1);
 	default:
 		click_chatter("enum error");
 		return String();
@@ -76,6 +66,7 @@ void FloodingRecordPkt::add_handlers() {
 	add_read_handler("broadcasts", read_handler, Statistics::broadcasts);
 	add_read_handler("unicasts", read_handler, Statistics::unicasts);
 	add_read_handler("seq_entry", read_handler, Statistics::seq_entry);
+	add_read_handler("seq_hopcount", read_handler, Statistics::seq_hopcount);
 }
 
 CLICK_ENDDECLS

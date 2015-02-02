@@ -65,12 +65,12 @@ elementclass HandleIPPacket {
 }
 
 elementclass FloodingHandlePkt {
-	$myIP, $crypto, $map |
+	$myIP, $map |
 
 	input
 		-> CheckIPHeader2
 		-> blackhole :: FloodingBlackhole($map)
-		-> duplicateClassifier :: FloodingCheckDuplicate($crypto)
+		-> duplicateClassifier :: FloodingCheckDuplicate
 		-> destinationClassifier :: FloodingDestinationClassifier($myIP, $map)
 		-> handleLocal :: RecordPkt($map)
 		-> [0]output;
@@ -95,13 +95,10 @@ ethout :: OutputEth($EthDev, $broadcastJitter, $unicastJitter);
 fromhost :: FromHost($HostDev, fake);
 tohost :: ToHost($HostDev);
 
-sam :: SAManagement(fake, netAddr, $numNodes);
-crypto :: Crypto(sam);
-
 map :: CastorXcastDestinationMap;
 
 handleIpPacket :: HandleIPPacket(map);
-handlepkt :: FloodingHandlePkt(fake, crypto, map);
+handlepkt :: FloodingHandlePkt(fake, map);
 
 arpquerier :: ARPQuerier(fake, TIMEOUT 3600, POLL_TIMEOUT 0); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)
 

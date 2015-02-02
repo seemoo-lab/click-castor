@@ -4,18 +4,9 @@
 
 #include "flooding_blackhole_filter.hh"
 
-
 CLICK_DECLS
 
-FloodingBlackholeFilter::FloodingBlackholeFilter() {
-}
-
-FloodingBlackholeFilter::~FloodingBlackholeFilter() {
-}
-
 int FloodingBlackholeFilter::configure(Vector<String> &conf, ErrorHandler *errh) {
-	active = false;
-
 	if(Args(conf, this, errh)
 			.read_p("ACTIVE", active)
 			.complete() < 0)

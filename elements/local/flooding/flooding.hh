@@ -1,10 +1,3 @@
-/*
- * flooding.hh
- *
- *  Created on: Sep 3, 2014
- *      Author: milan
- */
-
 #ifndef CLICK_FLOODING_HH
 #define CLICK_FLOODING_HH
 
@@ -36,7 +29,6 @@ public:
 		anno += DST_IP_ANNO_OFFSET + DST_IP_ANNO_SIZE;
 		return anno;
 	}
-
 };
 
 CLICK_ENDDECLS
