@@ -8,15 +8,15 @@ CLICK_DECLS
 
 int NeighborBeaconGenerator::configure(Vector<String>& conf, ErrorHandler* errh) {
 	return cp_va_kparse(conf, this, errh,
-			"INTERVAL", cpkP + cpkM, cpInteger, &interval,
-			"IP", cpkP + cpkM, cpIPAddress, &myIP,
+			"INTERVAL", cpkP + cpkM, cpUnsigned, &interval,
+			"NodeId", cpkP + cpkM, cpIPAddress, &myId,
 			"ETH", cpkP + cpkM, cpEtherAddress, &myEth,
 			cpEnd);
 }
 
 int NeighborBeaconGenerator::initialize(ErrorHandler*) {
-	if (interval <= 0) {
-		click_chatter("Non-positive beaconing interval. Disable beacon generator.");
+	if (interval == 0) {
+		click_chatter("Beaconing interval is zero. Disable beacon generator.");
 		return 0;
 	}
 
@@ -29,11 +29,11 @@ int NeighborBeaconGenerator::initialize(ErrorHandler*) {
 }
 
 void NeighborBeaconGenerator::run_timer(Timer* timer) {
-	NeighborBeacon beacon(myIP);
+	NeighborBeacon beacon(myId);
 
 	WritablePacket* p = Packet::make(sizeof(click_ether), &beacon, sizeof(NeighborBeacon), 0);
 	p = p->push_mac_header(sizeof(click_ether));
-	p->ether_header()->ether_type = htons(ETHERTYPE_CASTOR_BEACON);
+	p->ether_header()->ether_type = htons(ETHERTYPE_BEACON);
 	memset(&p->ether_header()->ether_dhost, 0xff, 6); // Set broadcast address
 	memcpy(&p->ether_header()->ether_shost, myEth.data(), 6);
 

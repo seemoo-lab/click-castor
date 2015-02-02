@@ -22,8 +22,8 @@ public:
 
 private:
 	Timer* timer;
-	int interval;
-	IPAddress myIP;
+	unsigned int interval;
+	NodeId myId;
 	EtherAddress myEth;
 };
 

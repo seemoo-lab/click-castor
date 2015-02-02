@@ -1,9 +1,11 @@
 #ifndef CLICK_NEIGHBOR_BEACON_H
 #define CLICK_NEIGHBOR_BEACON_H
 
+#include <click/ipaddress.hh>
+
 CLICK_DECLS
 
-#define ETHERTYPE_CASTOR_BEACON 0x88B5 // 0x88B5 and 0x88B6 reserved for private experiments, so we use them
+#define ETHERTYPE_BEACON 0x88B5 // 0x88B5 and 0x88B6 reserved for private experiments, so we use them
 
 typedef IPAddress NodeId;
 
