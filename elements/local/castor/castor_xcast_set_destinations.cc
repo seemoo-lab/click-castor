@@ -6,15 +6,10 @@
 
 CLICK_DECLS
 
-CastorXcastSetDestinations::CastorXcastSetDestinations() {
-	_crypto = 0;
-	_map = 0;
-}
-
 int CastorXcastSetDestinations::configure(Vector<String> &conf, ErrorHandler *errh) {
      return cp_va_kparse(conf, this, errh,
-    	"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &_crypto,
-        "CastorXcastDestinationMap", cpkP+cpkM, cpElementCast, "CastorXcastDestinationMap", &_map,
+    	"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
+        "CastorXcastDestinationMap", cpkP+cpkM, cpElementCast, "CastorXcastDestinationMap", &map,
         cpEnd);
 }
 
@@ -22,8 +17,8 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
-	IPAddress multicastDst = pkt.getMulticastGroup();
-	const Vector<IPAddress>& destinations = _map->getDestinations(multicastDst);
+	GroupId multicastDst = pkt.getMulticastGroup();
+	const Vector<NodeId>& destinations = map->getDestinations(multicastDst);
 
 	if(destinations.size() == 0) {
 		click_chatter("!!! No Xcast destination mapping found for multicast address %s, drop packet", multicastDst.unparse().c_str());
@@ -37,17 +32,17 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 	SValue ackAuth(&pkt.getAckAuth()[0], pkt.getHashSize());
 	for(int i = 0; i < destinations.size(); i++) {
 		// Generate individual PKT id
-		const SymmetricKey* key = _crypto->getSharedKey(destinations[i]);
+		const SymmetricKey* key = crypto->getSharedKey(destinations[i]);
 		if(!key) {
 			click_chatter("!!! No key found for multicast destination %s in multicast group %s", destinations[i].unparse().c_str(), multicastDst.unparse().c_str());
 			break;
 		}
-		SValue encAckAuth = _crypto->encrypt(ackAuth, *key);
+		SValue encAckAuth = crypto->encrypt(ackAuth, *key);
 		if (encAckAuth.size() != sizeof(EACKAuth)) {
 			click_chatter("!!! Cannot create ciphertext: Crypto subsystem returned wrong ciphertext length.");
 			break;
 		}
-		SValue pid = _crypto->hash(encAckAuth);
+		SValue pid = crypto->hash(encAckAuth);
 		pkt.setPid((PacketId&) *pid.begin(), i);
 	}
 

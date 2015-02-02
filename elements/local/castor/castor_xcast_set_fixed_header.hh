@@ -13,7 +13,7 @@ CLICK_DECLS
  */
 class CastorXcastSetFixedHeader: public Element {
 public:
-	CastorXcastSetFixedHeader();
+	CastorXcastSetFixedHeader() : cflow(0) {}
 		
 	const char *class_name() const { return "CastorXcastSetFixedHeader"; }
 	const char *port_count() const { return PORTS_1_1; }

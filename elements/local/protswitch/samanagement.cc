@@ -13,13 +13,6 @@
 
 CLICK_DECLS
 
-SAManagement::SAManagement(size_t symmetricKeyLength) :
-		symmetricKeyLength(symmetricKeyLength) {
-}
-
-SAManagement::~SAManagement() {
-}
-
 int SAManagement::configure(Vector<String> &conf, ErrorHandler *errh) {
 	// Set default values
 	symmetricKeyLength = 16;
@@ -143,7 +136,7 @@ int SAManagement::initializePublicPrivateKeys(ErrorHandler*) {
 	return 0;
 }
 
-int SAManagement::addSA(SecurityAssociation sa, IPAddress node) {
+int SAManagement::addSA(SecurityAssociation sa, NodeId node) {
 	SAMap::iterator it = mySAs.find(node);
 	if (it != mySAs.end()) {
 		it.value().push_back(sa);
@@ -164,7 +157,7 @@ void SAManagement::printSAs() {
 	}
 }
 
-bool SAManagement::checkSApresence(SAType t, IPAddress node) {
+bool SAManagement::checkSApresence(SAType t, NodeId node) {
 	click_chatter("searching for SA of type %i for node %s", t,
 			node.s().c_str());
 	SAMap::iterator it = mySAs.find(node);
@@ -181,8 +174,7 @@ bool SAManagement::checkSApresence(SAType t, IPAddress node) {
 	}
 }
 
-const SecurityAssociation* SAManagement::getSA(SAType t,
-		const IPAddress& node) {
+const SecurityAssociation* SAManagement::getSA(SAType t, const NodeId& node) {
 	SAMap::iterator it = mySAs.find(node);
 	if (it != mySAs.end()) {
 		for (int k = 0; k < it.value().size(); k++) {

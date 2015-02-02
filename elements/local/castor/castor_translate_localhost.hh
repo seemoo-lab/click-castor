@@ -2,6 +2,7 @@
 #define CLICK_CASTOR_TRANSLATE_LOCALHOST_HH
 
 #include <click/element.hh>
+#include <click/ipaddress.hh>
 #include "castor.hh"
 
 CLICK_DECLS
@@ -11,11 +12,8 @@ CLICK_DECLS
  */
 class CastorTranslateLocalhost: public Element {
 public:
-	CastorTranslateLocalhost();
-	~CastorTranslateLocalhost();
-
 	const char *class_name() const { return "CastorTranslateLocalhost"; }
-	const char *port_count() const { return "1/1"; }
+	const char *port_count() const { return PORTS_1_1; }
 	const char *processing() const { return PUSH; }
 	int configure(Vector<String>&, ErrorHandler*);
 

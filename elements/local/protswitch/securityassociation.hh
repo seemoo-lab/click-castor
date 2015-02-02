@@ -1,5 +1,6 @@
 #ifndef SECURITYASSOCIATION_HH
 #define SECURITYASSOCIATION_HH
+
 #include <click/element.hh>
 
 CLICK_DECLS
@@ -14,10 +15,8 @@ public:
 	const int mySize;
 	unsigned char* myData;
 
-public:
 	SecurityAssociation(SAType, String);
 	SecurityAssociation(SAType, unsigned char*, size_t);
-	~SecurityAssociation();
 	String toString();
 };
 

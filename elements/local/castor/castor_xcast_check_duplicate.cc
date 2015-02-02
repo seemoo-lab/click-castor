@@ -8,14 +8,10 @@
 
 CLICK_DECLS
 
-CastorXcastCheckDuplicate::CastorXcastCheckDuplicate() {
-	history = 0;
-}
-
 int CastorXcastCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *errh) {
      return cp_va_kparse(conf, this, errh,
         "CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
-        "ADDR", cpkP+cpkM, cpIPAddress, &myAddr,
+        "NodeId", cpkP+cpkM, cpIPAddress, &myId,
         cpEnd);
 }
 
@@ -49,7 +45,7 @@ void CastorXcastCheckDuplicate::push(int, Packet *p) {
 	if(retransmitAck) {
 		CastorXcastPkt copy = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
 		copy.keepDestinations(retransmitAckTo);
-		copy.setSingleNextHop(myAddr);
+		copy.setSingleNextHop(myId);
 		output(1).push(copy.getPacket());
 	}
 
@@ -57,7 +53,7 @@ void CastorXcastCheckDuplicate::push(int, Packet *p) {
 	if (toHistory) {
 		CastorXcastPkt copy = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
 		copy.keepDestinations(addToHistory);
-		copy.setSingleNextHop(myAddr);
+		copy.setSingleNextHop(myId);
 		output(2).push(copy.getPacket());
 	}
 
@@ -65,7 +61,7 @@ void CastorXcastCheckDuplicate::push(int, Packet *p) {
 	if(discard) {
 		CastorXcastPkt copy = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
 		copy.keepDestinations(alreadySeen);
-		copy.setSingleNextHop(myAddr);
+		copy.setSingleNextHop(myId);
 		output(3).push(copy.getPacket());
 	}
 
@@ -73,7 +69,7 @@ void CastorXcastCheckDuplicate::push(int, Packet *p) {
 	if (isNew) {
 		CastorXcastPkt copy = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
 		copy.keepDestinations(unseen);
-		copy.setSingleNextHop(myAddr);
+		copy.setSingleNextHop(myId);
 		output(0).push(copy.getPacket());
 	}
 

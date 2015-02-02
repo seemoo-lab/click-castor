@@ -10,8 +10,9 @@ CLICK_DECLS
 
 class CastorRecordPkt: public Element {
 public:
-	CastorRecordPkt();
-	~CastorRecordPkt();
+	CastorRecordPkt() {
+		numPkts = 0, numPids = 0, pktAccumSize = 0, broadcastDecisions = 0, seq_index = 0, hopcount_index = 0;
+	}
 		
 	const char *class_name() const { return "CastorRecordPkt"; }
 	const char *port_count() const { return PORTS_1_1; }

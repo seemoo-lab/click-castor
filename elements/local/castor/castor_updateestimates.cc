@@ -1,7 +1,5 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-#include <click/straccum.hh>
-#include <click/etheraddress.hh>
 #include "castor_updateestimates.hh"
 
 CLICK_DECLS
@@ -15,14 +13,13 @@ int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorUpdateEstimates::push(int, Packet *p){
-
 	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
 
 	// TODO do all that with a single call
 	const FlowId& fid = history->getFlowId(pid);
-	IPAddress subfid = history->getDestination(pid);
-	IPAddress routedTo = history->routedTo(pid);
-	IPAddress from = CastorPacket::src_ip_anno(p);
+	NodeId subfid = history->getDestination(pid);
+	NodeId routedTo = history->routedTo(pid);
+	NodeId from = CastorPacket::src_ip_anno(p);
 	bool isFirstAck = !history->hasAck(pid);
 
 	if (routedTo == from || isFirstAck)

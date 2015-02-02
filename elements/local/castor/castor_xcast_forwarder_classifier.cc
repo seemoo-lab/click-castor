@@ -6,15 +6,9 @@
 
 CLICK_DECLS
 
-CastorXcastForwarderClassifier::CastorXcastForwarderClassifier() {
-}
-
-CastorXcastForwarderClassifier::~CastorXcastForwarderClassifier() {
-}
-
 int CastorXcastForwarderClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
 	if(Args(conf, this, errh)
-			.read_mp("ADDR", myAddr)
+			.read_mp("NodeId", myId)
 			.complete() < 0)
 		return -1;
 	return 0;
@@ -27,26 +21,11 @@ void CastorXcastForwarderClassifier::push(int, Packet *p) {
 	// Get responsible destinations
 	Vector<unsigned int> destinations;
 	for (unsigned int i = 0, dstPos = 0; i < pkt.getNNextHops(); dstPos += pkt.getNextHopNAssign(i), i++) {
-		if (pkt.getNextHop(i) == IPAddress::make_broadcast()
-				|| pkt.getNextHop(i) == myAddr) {
+		if (pkt.getNextHop(i) == NodeId::make_broadcast()
+				|| pkt.getNextHop(i) == myId) {
 			pkt.getNextHopDestinations(i, destinations);
 		}
 	}
-
-//	// Check if we are destination but not yet added
-//  // Not sure if this is a good idea, since the returned ACK will not be accepted
-//	bool foundSelfAsDestination = false;
-//	for (int i = 0; i < destinations.size(); i++)
-//		if (pkt.getDestination(destinations[i]) == myAddr) {
-//			foundSelfAsDestination = true;
-//			break;
-//		}
-//	if (!foundSelfAsDestination)
-//		for (unsigned int i = 0; i < pkt.getNDestinations(); i++)
-//			if (pkt.getDestination(i) == myAddr) {
-//				destinations.push_back(i);
-//				break;
-//			}
 
 	if(destinations.empty()) {
 
@@ -60,7 +39,7 @@ void CastorXcastForwarderClassifier::push(int, Packet *p) {
 		}
 
 		pkt.keepDestinations(toRemain);
-		pkt.setSingleNextHop(myAddr);
+		pkt.setSingleNextHop(myId);
 
 		output(0).push(pkt.getPacket());
 	}

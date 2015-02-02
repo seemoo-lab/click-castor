@@ -9,7 +9,7 @@ CLICK_DECLS
 
 class CastorXcastCheckDuplicate : public Element {
 	public:
-		CastorXcastCheckDuplicate();
+		CastorXcastCheckDuplicate() : history(0) {}
 
 		const char *class_name() const	{ return "CastorXcastCheckDuplicate"; }
 		const char *port_count() const	{ return "1/4"; }
@@ -19,7 +19,7 @@ class CastorXcastCheckDuplicate : public Element {
 	private:
 		void push(int, Packet *);
 		CastorHistory* history;
-		IPAddress myAddr;
+		NodeId myId;
 };
 
 CLICK_ENDDECLS

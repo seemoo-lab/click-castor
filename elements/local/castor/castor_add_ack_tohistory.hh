@@ -4,7 +4,6 @@
 #include "castor.hh"
 #include "crypto.hh"
 #include "castor_history.hh"
-#include <click/ipaddress.hh>
 
 CLICK_DECLS
 
@@ -15,8 +14,7 @@ CLICK_DECLS
  */
 class CastorAddAckToHistory: public Element {
 public:
-	CastorAddAckToHistory();
-	~CastorAddAckToHistory();
+	CastorAddAckToHistory() : crypto(0), history(0) {}
 
 	const char *class_name() const	{ return "CastorAddAckToHistory"; }
 	const char *port_count() const	{ return PORTS_1_1; }

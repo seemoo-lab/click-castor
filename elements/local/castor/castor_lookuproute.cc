@@ -5,10 +5,6 @@
 
 CLICK_DECLS
 
-CastorLookupRoute::CastorLookupRoute() {
-	selector = 0;
-}
-
 int CastorLookupRoute::configure(Vector<String> &conf, ErrorHandler *errh) {
 	Element* tmp = 0;
     int result = cp_va_kparse(conf, this, errh,
@@ -23,7 +19,7 @@ void CastorLookupRoute::push(int, Packet *p){
 	Castor_PKT* header = (Castor_PKT*) p->data();
 
 	// Lookup
-	IPAddress nextHop = selector->select(header->fid, header->dst, 0, header->pid);
+	NodeId nextHop = selector->select(header->fid, header->dst, 0, header->pid);
 
 	if (nextHop.empty())
 		output(1).push(p);

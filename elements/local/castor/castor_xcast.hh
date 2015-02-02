@@ -9,6 +9,8 @@
 
 CLICK_DECLS
 
+typedef NodeId GroupId;
+
 /**
  * Castor wrapper class for a Packet. Provides accessor methods to Castor specific fields.
  */
@@ -20,7 +22,6 @@ public:
 	CastorXcastPkt(Packet* p) {
 		setPointers(p);
 	}
-	~CastorXcastPkt() {}
 
 	/**
 	 * Makes room for an Xcast header and then creates an Xcast PKT.
@@ -62,10 +63,10 @@ public:
 	/** Indicates k-th PKT of the flow, required for flow validation (right or left siblings in Merkle tree?) */
 	inline uint16_t getKPkt() const { return _fixed->kPkt; }
 	inline void setKPkt(uint16_t k) { _fixed->kPkt = k; }
-	inline IPAddress getSource() const { return _fixed->source; }
-	inline void setSource(IPAddress source) { _fixed->source = source; }
-	inline IPAddress getMulticastGroup() const { return _fixed->multicastGroup; }
-	inline void setMulticastGroup(IPAddress multicastAddress) { _fixed->multicastGroup = multicastAddress; }
+	inline NodeId getSource() const { return _fixed->source; }
+	inline void setSource(NodeId source) { _fixed->source = source; }
+	inline GroupId getMulticastGroup() const { return _fixed->multicastGroup; }
+	inline void setMulticastGroup(GroupId multicastAddress) { _fixed->multicastGroup = multicastAddress; }
 	inline const FlowId& getFlowId() const { return _fixed->flowId; }
 	inline void setFlowId(const FlowId& fid) { memcpy(&_fixed->flowId, &fid, sizeof(FlowId)); }
 	inline const FlowAuth& getFlowAuth() const { return _fixed->flowAuth; }
@@ -83,15 +84,15 @@ public:
 	inline void setNNextHops(uint8_t n) { _fixed->nNextHops = n; setLength(); }
 
 	// Variable length header fields
-	inline IPAddress getDestination(unsigned int i) const {	return IPAddress(&_var[getDestinationOff(i)]); }
-	inline void setDestination(IPAddress destination, unsigned int i) { memcpy(&_var[getDestinationOff(i)], &destination, sizeof(IPAddress)); }
+	inline NodeId getDestination(unsigned int i) const {	return NodeId(&_var[getDestinationOff(i)]); }
+	inline void setDestination(NodeId destination, unsigned int i) { memcpy(&_var[getDestinationOff(i)], &destination, sizeof(NodeId)); }
 	/** After method returns, next hops have to be newly set **/
-	inline void setDestinations(const IPAddress destinations[], size_t n) {
+	inline void setDestinations(const NodeId destinations[], size_t n) {
 		setNDestinations(n);
 		for(unsigned int i = 0; i < n; i++)
 			setDestination(destinations[i], i);
 	}
-	inline void setDestinations(const Vector<IPAddress>& destinations) { setDestinations(destinations.data(), destinations.size()); }
+	inline void setDestinations(const Vector<NodeId>& destinations) { setDestinations(destinations.data(), destinations.size()); }
 
 	inline const PacketId& getPid(unsigned int i) const { return (PacketId&) _var[getPidOff(i)]; }
 	inline void setPid(const PacketId& pid, unsigned int i) { memcpy(&_var[getPidOff(i)], &pid, sizeof(PacketId)); }
@@ -100,13 +101,13 @@ public:
 	 * Removes an IP address and corresponding Pid from the destination list. Does not affect the next hop mapping, i.e., the mapping might be outdated after this call.
 	 * Returns true if the address was removed from the destination list.
 	 */
-	bool removeDestination(IPAddress destination) {
+	bool removeDestination(NodeId destination) {
 		bool found = false;
 		for(unsigned int i = 0; i < getNDestinations(); i++) {
 			found = destination == getDestination(i);
 			if(found) {
 				// Cache old destinations & pids
-				Vector<IPAddress> dests;
+				Vector<NodeId> dests;
 				Vector<PacketId> pids;
 				for(unsigned int j = 0; j < getNDestinations(); j++)
 					if(j != i) {
@@ -129,7 +130,7 @@ public:
 	}
 
 	void removeDestinations(HashTable<uint8_t, uint8_t>& toBeRemoved) {
-		Vector<IPAddress> dests;
+		Vector<NodeId> dests;
 		Vector<PacketId> pids;
 		for(uint8_t i = 0; i < getNDestinations(); i++) {
 			if(toBeRemoved.find(i) == toBeRemoved.end()) {
@@ -148,7 +149,7 @@ public:
 	}
 
 	void keepDestinations(HashTable<uint8_t, uint8_t>& toRemain) {
-		Vector<IPAddress> dests;
+		Vector<NodeId> dests;
 		Vector<PacketId> pids;
 		for(uint8_t i = 0; i < getNDestinations(); i++) {
 			if(toRemain.find(i) != toRemain.end()) {
@@ -167,7 +168,7 @@ public:
 	}
 
 	inline void setSingleDestination(unsigned int i) {
-		IPAddress destination = getDestination(i);
+		NodeId destination = getDestination(i);
 		PacketId pid;
 		memcpy(&pid, &getPid(i), sizeof(PacketId));
 		setNDestinations(1);
@@ -176,8 +177,8 @@ public:
 	}
 
 
-	inline IPAddress getNextHop(unsigned int j) const { return IPAddress(&_var[getNextHopOff(j)]); }
-	inline void setNextHop(IPAddress nextHop, unsigned int j) { memcpy(&_var[getNextHopOff(j)], &nextHop, sizeof(IPAddress));}
+	inline NodeId getNextHop(unsigned int j) const { return NodeId(&_var[getNextHopOff(j)]); }
+	inline void setNextHop(NodeId nextHop, unsigned int j) { memcpy(&_var[getNextHopOff(j)], &nextHop, sizeof(NodeId));}
 
 	inline void getNextHopDestinations(unsigned int j, Vector<unsigned int>& destinations) const {
 		unsigned int off = 0;
@@ -191,7 +192,7 @@ public:
 	inline uint8_t getNextHopNAssign(unsigned int j) const { return _var[getNextHopNAssignOff(j)]; }
 	inline void setNextHopAssign(uint8_t assign, unsigned int j) { _var[getNextHopNAssignOff(j)] = assign; }
 
-	inline void setSingleNextHop(IPAddress nextHop) {
+	inline void setSingleNextHop(NodeId nextHop) {
 		setNNextHops(1);
 		setNextHopAssign(getNDestinations(), 0);
 		setNextHop(nextHop, 0);
@@ -201,11 +202,11 @@ public:
 	 * Sets new next hops.
 	 * Parameter includes a mapping of next hops to destination indices.
 	 */
-	void setNextHopMapping(const HashTable<IPAddress,Vector<unsigned int> >& map) {
+	void setNextHopMapping(const HashTable<NodeId,Vector<unsigned int> >& map) {
 		setNNextHops(map.size());
 
 		// Cache old destinations and pids
-		Vector<IPAddress> oldDestinations;
+		Vector<NodeId> oldDestinations;
 		Vector<PacketId> oldPids;
 		for(int unsigned i = 0; i < getNDestinations(); i++) {
 			oldDestinations.push_back(getDestination(i));
@@ -213,7 +214,7 @@ public:
 		}
 
 		unsigned int hopPos = 0, dstOff = 0;
-		for(HashTable<IPAddress,Vector<unsigned int> >::const_iterator it = map.begin(); it.live(); hopPos++, it++) {
+		for(HashTable<NodeId,Vector<unsigned int> >::const_iterator it = map.begin(); it.live(); hopPos++, it++) {
 			const Vector<unsigned int>& destinations = it.value();
 			setNextHop(it.key(), hopPos);
 			setNextHopAssign(destinations.size(), hopPos);
@@ -277,8 +278,8 @@ private:
 		uint8_t contentType;
 		uint16_t length;
 		uint16_t kPkt;
-		IPAddress source;
-		IPAddress multicastGroup;
+		NodeId source;
+		GroupId multicastGroup;
 		FlowId flowId;
 		FlowAuth flowAuth;
 		ACKAuth	ackAuth;
@@ -291,9 +292,9 @@ private:
 	FixedSizeHeader* _fixed; // Accessor to fixed fields
 	uint8_t* _var; // Pointer to beginning of var fields
 
-	inline unsigned int getDestinationOff(unsigned int i) const { return sizeof(IPAddress) * i; }
+	inline unsigned int getDestinationOff(unsigned int i) const { return sizeof(NodeId) * i; }
 	inline unsigned int getPidOff(unsigned int i) const { return getDestinationOff(getNDestinations()) + sizeof(PacketId) * i; }
-	inline unsigned int getNextHopOff(unsigned int i) const { return getPidOff(getNDestinations()) + sizeof(IPAddress) * i; }
+	inline unsigned int getNextHopOff(unsigned int i) const { return getPidOff(getNDestinations()) + sizeof(NodeId) * i; }
 	inline unsigned int getNextHopNAssignOff(unsigned int i) const { return getNextHopOff(getNNextHops()) + sizeof(uint8_t) * i; }
 
 	void setPointers(Packet* p) {
@@ -310,8 +311,8 @@ private:
 		size_t oldLength = _fixed->length;
 
 		size_t newLength = sizeof(FixedSizeHeader)
-			+ getNDestinations() * (sizeof(IPAddress) + sizeof(PacketId))
-			+ getNNextHops() * (sizeof(IPAddress) + sizeof(uint8_t));
+			+ getNDestinations() * (sizeof(NodeId) + sizeof(PacketId))
+			+ getNNextHops() * (sizeof(NodeId) + sizeof(uint8_t));
 
 		if(oldLength == newLength)
 			return; // No need to resize -> cheap
@@ -344,12 +345,13 @@ private:
 };
 
 // The ACK Header Structure for Explicit Multicast (Xcast)
-typedef struct {
+class CastorXcastAck {
+public:
 	uint8_t  	type;
 	uint8_t 	esize;
 	uint16_t 	len;
 	EACKAuth 	auth;
-} CastorXcastAck;
+};
 
 CLICK_ENDDECLS
 

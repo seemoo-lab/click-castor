@@ -22,7 +22,7 @@ public:
 
 private:
 	CastorHistory *history;
-	IPAddress myAddr;
+	NodeId myId;
 };
 
 CLICK_ENDDECLS

@@ -5,12 +5,6 @@
 
 CLICK_DECLS
 
-CastorFlow::CastorFlow(){
-}
-
-CastorFlow::~ CastorFlow()
-{}
-
 int CastorFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 	int r =  cp_va_kparse(conf, this, errh,
 			"CastorFlowStub", cpkP+cpkM, cpElementCast, "CastorFlowStub", &_stub,
@@ -27,7 +21,7 @@ void CastorFlow::registeratstub(){
 	_stub->registerFlowType(class_name(), (CastorFlow*) this);
 }
 
-PacketLabel CastorFlow::getPacketLabel(Host source, Host destination){
+PacketLabel CastorFlow::getPacketLabel(NodeId source, NodeId destination){
 
 	//Check if we already have a flow
 	if(!hasFlow(source,destination)){
@@ -45,21 +39,21 @@ PacketLabel CastorFlow::getPacketLabel(Host source, Host destination){
 	return lbl;
 }
 
-bool CastorFlow::hasFlow(Host, Host) {
+bool CastorFlow::hasFlow(NodeId, NodeId) {
 	click_chatter("This message should not appear");
 	return false;
 }
 
-void CastorFlow::createFlow(Host, Host) {
+void CastorFlow::createFlow(NodeId, NodeId) {
 	click_chatter("This message should not appear");
 }
 
-PacketLabel CastorFlow::useFlow(Host, Host) {
+PacketLabel CastorFlow::useFlow(NodeId, NodeId) {
 	click_chatter("This message should not appear");
 	return PacketLabel();
 }
 
-void CastorFlow::updateFlow(Host, Host) {
+void CastorFlow::updateFlow(NodeId, NodeId) {
 	click_chatter("This message should not appear");
 }
 

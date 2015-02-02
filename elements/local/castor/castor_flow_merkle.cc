@@ -7,8 +7,8 @@
 
 CLICK_DECLS
 
-bool CastorFlowMerkle::hasFlow(Host source, Host destination) {
-	HashTable<Host, Flow> * t = _flows.get_pointer(source);
+bool CastorFlowMerkle::hasFlow(NodeId source, NodeId destination) {
+	HashTable<NodeId, Flow> * t = _flows.get_pointer(source);
 	if (!t)
 		return false;
 
@@ -19,7 +19,7 @@ bool CastorFlowMerkle::hasFlow(Host source, Host destination) {
 	return true;
 }
 
-void CastorFlowMerkle::createFlow(Host source, Host destination) {
+void CastorFlowMerkle::createFlow(NodeId source, NodeId destination) {
 	// Create a new Flow Object
 //	click_chatter("Creating a new Flow object (%s -> %s) with %d elements",
 //			source.unparse().c_str(), destination.unparse().c_str(),
@@ -65,18 +65,18 @@ void CastorFlowMerkle::createFlow(Host source, Host destination) {
 
 	//Check if a hashtable for the source exists
 	if (!_flows.get_pointer(source))
-		_flows.set(source, HashTable<Host, Flow>());
+		_flows.set(source, HashTable<NodeId, Flow>());
 
-	HashTable<Host, Flow>* fdest = _flows.get_pointer(source);
+	HashTable<NodeId, Flow>* fdest = _flows.get_pointer(source);
 	fdest->set(destination, flow);
 }
 
-PacketLabel CastorFlowMerkle::useFlow(Host source, Host destination) {
+PacketLabel CastorFlowMerkle::useFlow(NodeId source, NodeId destination) {
 	Flow* f = (_flows.get_pointer(source))->get_pointer(destination);
 	return f->labels[f->position];
 }
 
-void CastorFlowMerkle::updateFlow(Host source, Host destination) {
+void CastorFlowMerkle::updateFlow(NodeId source, NodeId destination) {
 	Flow* f = (_flows.get_pointer(source))->get_pointer(destination);
 
 	f->position++;

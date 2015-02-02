@@ -41,7 +41,7 @@ private:
 
 class CastorRoutingTable : public Element {
 public:
-	typedef IPAddress SubflowId;
+	typedef NodeId SubflowId;
 
 	CastorRoutingTable();
 
@@ -53,12 +53,12 @@ public:
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	HashTable<IPAddress, CastorEstimator>& getFlowEntry(const FlowId& flow, const SubflowId& subflow);
+	HashTable<NodeId, CastorEstimator>& getFlowEntry(const FlowId& flow, const SubflowId& subflow);
 
-	void updateEstimates(const FlowId& flow, SubflowId subflow, IPAddress forwarder, Operation, Estimate);
+	void updateEstimates(const FlowId& flow, SubflowId subflow, NodeId forwarder, Operation, Estimate);
 
 private:
-	typedef HashTable<IPAddress, CastorEstimator> ForwarderEntry;
+	typedef HashTable<NodeId, CastorEstimator> ForwarderEntry;
 	typedef HashTable<SubflowId, ForwarderEntry> SubflowEntry;
 	typedef HashTable<FlowId, SubflowEntry> FlowEntry;
 	FlowEntry flows;

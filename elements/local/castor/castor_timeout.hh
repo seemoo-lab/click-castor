@@ -3,7 +3,6 @@
 
 #include <click/element.hh>
 #include <click/timer.hh>
-#include <click/straccum.hh>
 #include "castor.hh"
 #include "castor_routingtable.hh"
 #include "castor_history.hh"
@@ -12,6 +11,8 @@ CLICK_DECLS
 
 class CastorTimeout : public Element {
 public:
+	CastorTimeout() : table(0), history(0), timeout(500), verbose(false) {};
+
 	const char *class_name() const { return "CastorTimeout"; }
 	const char *port_count() const { return PORTS_1_1; }
 	const char *processing() const { return PUSH; }
@@ -35,7 +36,7 @@ private:
 	CastorRoutingTable* table;
 	CastorHistory* history;
 	int timeout;
-	IPAddress myIP;
+	NodeId myId;
 
 	bool verbose;
 };

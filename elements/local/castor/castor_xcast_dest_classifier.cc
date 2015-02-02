@@ -6,15 +6,9 @@
 
 CLICK_DECLS
 
-CastorXcastDestClassifier::CastorXcastDestClassifier() {
-}
-
-CastorXcastDestClassifier::~CastorXcastDestClassifier() {
-}
-
 int CastorXcastDestClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
 	if(Args(conf, this, errh)
-			.read_mp("ADDR", myAddr)
+			.read_mp("ADDR", myId)
 			.complete() < 0)
 		return -1;
 	return 0;
@@ -30,14 +24,14 @@ void CastorXcastDestClassifier::push(int, Packet *p) {
 	unsigned int nDests = pkt.getNDestinations();
 
 	for (unsigned int i = 0; i < nDests; i++)
-		if (myAddr == pkt.getDestination(i)) {
+		if (myId == pkt.getDestination(i)) {
 			delivered = true;
 
 			CastorXcastPkt localPkt = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
 
 			// Cleanup PKT header
 			localPkt.setSingleDestination(i);
-			localPkt.setSingleNextHop(myAddr);
+			localPkt.setSingleNextHop(myId);
 
 			output(0).push(localPkt.getPacket()); // local node is destination
 			break;
@@ -48,8 +42,8 @@ void CastorXcastDestClassifier::push(int, Packet *p) {
 
 		// If packet was delivered, remove own address from destination list
 		if(delivered) {
-			pkt.removeDestination(myAddr);
-			pkt.setSingleNextHop(myAddr);
+			pkt.removeDestination(myId);
+			pkt.setSingleNextHop(myId);
 		}
 
 		output(1).push(pkt.getPacket());

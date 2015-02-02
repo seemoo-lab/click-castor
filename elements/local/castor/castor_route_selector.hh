@@ -15,7 +15,7 @@ public:
 	/**
 	 * Select the best next hop for a given flow/subflow
 	 */
-	virtual IPAddress select(const FlowId& flow, IPAddress subflow, const Vector<IPAddress>* others, const PacketId& pid) = 0;
+	virtual NodeId select(const FlowId& flow, NodeId subflow, const Vector<NodeId>* others, const PacketId& pid) = 0;
 };
 
 CLICK_ENDDECLS

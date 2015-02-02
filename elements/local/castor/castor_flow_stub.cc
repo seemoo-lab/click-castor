@@ -5,14 +5,7 @@
 
 CLICK_DECLS
 
-CastorFlowStub::CastorFlowStub() {
-	_defaultType = 0;
-}
-
-CastorFlowStub::~CastorFlowStub() {
-}
-
-PacketLabel CastorFlowStub::getPacketLabel(Host source, Host destination){
+PacketLabel CastorFlowStub::getPacketLabel(NodeId source, NodeId destination){
 
 	//Validate Inputs
 	if(!source || ! destination)
@@ -42,10 +35,10 @@ void CastorFlowStub::setDefaultType(uint8_t type){
 	_defaultType = type;
 }
 
-FlowType * CastorFlowStub::FlowTypeLookup(Host source, Host destination){
+FlowType * CastorFlowStub::FlowTypeLookup(NodeId source, NodeId destination){
 	//Check if flow exist in database
 	FlowType* ft;
-	HashTable<Host, FlowType> * st = _flows.get_pointer(source);
+	HashTable<NodeId, FlowType> * st = _flows.get_pointer(source);
 	if(st){
 		ft = st->get_pointer(destination);
 		if(ft)

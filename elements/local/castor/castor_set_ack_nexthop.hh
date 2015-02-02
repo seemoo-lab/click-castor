@@ -13,6 +13,8 @@ CLICK_DECLS
  */
 class CastorSetAckNexthop: public Element {
 public:
+	CastorSetAckNexthop() : history(0), neighbors(0), promisc(false) {}
+
 	const char *class_name() const { return "CastorSetAckNexthop"; }
 	const char *port_count() const { return "1/2"; }
 	const char *processing() const { return PUSH; }
@@ -25,7 +27,6 @@ private:
 	CastorHistory* history;
 	Neighbors *neighbors;
 	bool promisc;
-
 };
 
 CLICK_ENDDECLS

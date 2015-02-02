@@ -11,30 +11,28 @@ CLICK_DECLS
 
 class CastorHistory: public Element {
 public:
-	CastorHistory();
-
 	const char *class_name() const { return "CastorHistory"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 
-	void addPkt(const PacketId&, const FlowId&, IPAddress prevHop, IPAddress nextHop, IPAddress destination);
-	bool addFirstAckForCastor(const PacketId&, IPAddress prevHop, const ACKAuth&);
-	bool addFirstAckForXcastor(const PacketId&, IPAddress prevHop, const EACKAuth&);
-	bool addAckFor(const PacketId&, IPAddress prevHop);
+	void addPkt(const PacketId&, const FlowId&, NodeId prevHop, NodeId nextHop, NodeId destination);
+	bool addFirstAckForCastor(const PacketId&, NodeId prevHop, const ACKAuth&);
+	bool addFirstAckForXcastor(const PacketId&, NodeId prevHop, const EACKAuth&);
+	bool addAckFor(const PacketId&, NodeId prevHop);
 
 	bool hasPkt(const PacketId&) const;
-	bool hasPktFrom (const PacketId&, IPAddress) const;
+	bool hasPktFrom (const PacketId&, NodeId) const;
 	bool hasAck(const PacketId&) const;
-	bool hasAckFrom(const PacketId&, IPAddress) const;
+	bool hasAckFrom(const PacketId&, NodeId) const;
 	size_t getPkts(const PacketId&) const;
-	const Vector<IPAddress>& getPktSenders(const PacketId&) const;
+	const Vector<NodeId>& getPktSenders(const PacketId&) const;
 	size_t getAcks(const PacketId&) const;
 
 	const FlowId& getFlowId(const PacketId&) const;
-	IPAddress getDestination(const PacketId&) const;
+	NodeId getDestination(const PacketId&) const;
 	const EACKAuth& getEAckAuth(const PacketId&) const;
 	const ACKAuth& getAckAuth(const PacketId&) const;
-	IPAddress routedTo(const PacketId&) const;
+	NodeId routedTo(const PacketId&) const;
 
 	bool isExpired(const PacketId&) const;
 	void setExpired(const PacketId&);
@@ -43,12 +41,12 @@ private:
 	typedef struct CastorHistoryEntry {
 		// PIDs
 		FlowId fid;
-		IPAddress destination; // Indicates Xcast subflow
-		Vector<IPAddress> prevHops;
-		IPAddress nextHop;
+		NodeId destination; // Indicates Xcast subflow
+		Vector<NodeId> prevHops;
+		NodeId nextHop;
 
 		// ACKs
-		Vector<IPAddress> recievedACKs;
+		Vector<NodeId> recievedACKs;
 		Hash auth;
 		bool expired;
 	} CastorHistoryEntry;

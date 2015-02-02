@@ -1,6 +1,7 @@
 #ifndef CLICK_CRYPTO_HH
 #define CLICK_CRYPTO_HH
 #include <click/element.hh>
+#include "node_id.hh"
 #include "../protswitch/samanagement.hh"
 #include <botan/botan.h>
 
@@ -14,7 +15,7 @@ typedef Botan::SymmetricKey SymmetricKey;
 class Crypto: public Element {
 
 public:
-	Crypto();
+	Crypto() : sam(0), hashFunction(0) {}
 	~Crypto();
 
 	const char *class_name() const { return "Crypto"; }
@@ -25,7 +26,7 @@ public:
 	/**
 	 * Returns a new SymmetricKey instance or NULL if no corresponding key exists
 	 */
-	const SymmetricKey* getSharedKey(IPAddress) const;
+	const SymmetricKey* getSharedKey(NodeId) const;
 	SValue encrypt(const SValue&, const SymmetricKey&) const;
 	SValue decrypt(const SValue&, const SymmetricKey&) const;
 

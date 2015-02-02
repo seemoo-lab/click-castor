@@ -3,6 +3,7 @@
 
 #include <click/ipaddress.hh>
 #include <click/packet_anno.hh>
+#include "node_id.hh"
 
 //#define DEBUG  // uncomment to add source and destination fields to ACK packets
 
@@ -85,8 +86,8 @@ typedef struct {
 	uint8_t 	ctype;
 	uint16_t 	len;
 	uint16_t	packet_num; // the k-th packet of the current flow, necessary for flow validation (determines whether fauth[i] is left or right sibling in the Merkle tree)
-	IPAddress	src;
-	IPAddress	dst;
+	NodeId	src;
+	NodeId	dst;
 	FlowId	 	fid;
 	PacketId 	pid;
 	FlowAuth 	fauth;
@@ -101,8 +102,8 @@ typedef struct {
 	uint16_t 	len;
 	ACKAuth 	auth;
 #ifdef DEBUG
-	IPAddress	src;
-	IPAddress	dst;
+	NodeId	src;
+	NodeId	dst;
 #endif
 } Castor_ACK;
 

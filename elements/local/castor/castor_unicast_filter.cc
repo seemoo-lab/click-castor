@@ -7,17 +7,9 @@
 
 CLICK_DECLS
 
-CastorUnicastFilter::CastorUnicastFilter() {
-}
-
-CastorUnicastFilter::~CastorUnicastFilter() {
-}
-
 int CastorUnicastFilter::configure(Vector<String> &conf, ErrorHandler *errh) {
-	active = false;
-
 	if(Args(conf, this, errh)
-			.read_mp("ADDR", myAddr)
+			.read_mp("NodeId", myId)
 			.read_p("ACTIVE", active)
 			.complete() < 0)
 		return -1;
@@ -25,7 +17,6 @@ int CastorUnicastFilter::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorUnicastFilter::push(int, Packet *p) {
-
 	if (!active) {
 		output(0).push(p);
 		return;
@@ -38,7 +29,7 @@ void CastorUnicastFilter::push(int, Packet *p) {
 
 		CastorXcastPkt pkt(p);
 		for (uint8_t i = 0; i < pkt.getNNextHops(); i++) {
-			if (pkt.getNextHop(i) == IPAddress::make_broadcast()) {
+			if (pkt.getNextHop(i) == NodeId::make_broadcast()) {
 				isBroadcast = true;
 				index = i;
 				break;
@@ -60,24 +51,23 @@ void CastorUnicastFilter::push(int, Packet *p) {
 			// Push PKT with broadcast destinations
 			CastorXcastPkt local(pkt.getPacket()->clone()->uniqueify());
 			local.keepDestinations(toRemain);
-			local.setSingleNextHop(myAddr);
+			local.setSingleNextHop(myId);
 			output(0).push(local.getPacket());
 
 			// Push PKT with unicast destinations
 			pkt.removeDestinations(toRemain);
-			pkt.setSingleNextHop(IPAddress());
+			pkt.setSingleNextHop(NodeId());
 			output(1).push(pkt.getPacket());
 		}
 
 	} else {
 
-		if (p->dst_ip_anno() == IPAddress::make_broadcast())
+		if (p->dst_ip_anno() == NodeId::make_broadcast())
 			output(0).push(p); // Was forwarded to me as broadcast PKT
 		else
 			output(1).push(p); // Was unicast to me as broadcast PKT
 
 	}
-
 }
 
 int CastorUnicastFilter::write_handler(const String &str, Element *e, void *, ErrorHandler *errh) {

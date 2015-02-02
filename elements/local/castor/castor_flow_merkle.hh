@@ -7,24 +7,23 @@
 
 CLICK_DECLS
 
-typedef struct{
-	unsigned int position;
-	PacketLabel labels[CASTOR_FLOWSIZE];
-} Flow;
-
-typedef HashTable<Host, HashTable<Host, Flow> > Flows;
-
 class CastorFlowMerkle : public CastorFlow {
 	public:
 		const char *class_name() const	{ return "CastorFlowMerkle"; }
 
 	private:
-		bool hasFlow(Host, Host);
-		void createFlow(Host, Host);
-		PacketLabel useFlow(Host,Host);
-		void updateFlow(Host, Host);
+		typedef struct{
+			unsigned int position;
+			PacketLabel labels[CASTOR_FLOWSIZE];
+		} Flow;
 
+		typedef HashTable<NodeId, HashTable<NodeId, Flow> > Flows;
 		Flows _flows;
+
+		bool hasFlow(NodeId, NodeId);
+		void createFlow(NodeId, NodeId);
+		PacketLabel useFlow(NodeId,NodeId);
+		void updateFlow(NodeId, NodeId);
 };
 
 CLICK_ENDDECLS

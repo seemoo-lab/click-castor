@@ -6,14 +6,6 @@
 
 CLICK_DECLS
 
-CastorTranslateLocalhost::CastorTranslateLocalhost() {
-}
-
-
-CastorTranslateLocalhost::~CastorTranslateLocalhost() {
-}
-
-
 int CastorTranslateLocalhost::configure(Vector<String>& conf, ErrorHandler* errh) {
 	if (Args(conf, this, errh)
 		.read_mp("ADDR", myAddr)

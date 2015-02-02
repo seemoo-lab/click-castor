@@ -29,7 +29,7 @@ elementclass CastorForwardXcastPkt {
 	input
 		-> route :: CastorXcastLookupRoute($routeselector)
 		-> CastorAddXcastPktToHistory($history)
-		-> CastorTimeout($routingtable, $history, $timeout, $myIP, false)
+		-> CastorTimeout($routingtable, $history, $timeout, NodeId $myIP, VERBOSE false)
 		//-> CastorPrint('Forwarding', $myIP)
 		-> rec :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO) // Encapsulate in a new IP Packet

@@ -1,5 +1,6 @@
 #include <click/config.h>
 #include <click/confparse.hh>
+#include <click/straccum.hh>
 #include "castor_timeout.hh"
 #include "castor_xcast.hh"
 
@@ -12,13 +13,18 @@ CastorTimeout::PidTimer::PidTimer(CastorTimeout *element, const PacketId pid)
 }
 
 int CastorTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
-	return cp_va_kparse(conf, this, errh,
+	int result = cp_va_kparse(conf, this, errh,
 			"CastorRoutingTable", cpkP + cpkM, cpElementCast, "CastorRoutingTable", &table,
 			"CastorHistory", cpkP + cpkM, cpElementCast, "CastorHistory", &history,
 			"TIMEOUT", cpkP + cpkM, cpInteger, &timeout,
-			"IP", cpkP + cpkM, cpIPAddress, &myIP,
-			"VERBOSE", cpkP + cpkM, cpBool, &verbose,
+			"NodeId", cpkN, cpIPAddress, &myId,
+			"VERBOSE", cpkN, cpBool, &verbose,
 			cpEnd);
+	if(verbose && myId.empty()) {
+		click_chatter("Need to provide node's id for verbosity");
+		return -1;
+	}
+	return result;
 }
 
 void CastorTimeout::push(int, Packet* p) {
@@ -50,20 +56,19 @@ void CastorTimeout::run_timer(Timer* _timer) {
 		return;
 
 	history->setExpired(pid);
-	IPAddress routedTo = history->routedTo(pid);
+	NodeId routedTo = history->routedTo(pid);
 
-	// Check whether PKT was broadcast, if yes, do nothing
-	// XXX: Why is that?
-	if (routedTo == IPAddress::make_broadcast())
+	// Check whether PKT was broadcast, if yes, do nothing as we don't know who might have received it
+	if (routedTo == NodeId::make_broadcast())
 		return;
 
 	const FlowId& fid = history->getFlowId(pid);
-	IPAddress destination = history->getDestination(pid);
+	NodeId destination = history->getDestination(pid);
 
 	// decrease ratings
 	if(verbose) {
 		StringAccum sa;
-		sa << "[" << Timestamp::now() << "@" << myIP << "] Timeout: no ACK received from " << routedTo.unparse();
+		sa << "[" << Timestamp::now() << "@" << myId << "] Timeout: no ACK received from " << routedTo.unparse();
 		click_chatter(sa.c_str());
 	}
 	table->updateEstimates(fid, destination, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::first);

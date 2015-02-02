@@ -10,11 +10,6 @@
 
 CLICK_DECLS
 
-Crypto::Crypto() {
-	sam = 0;
-	hashFunction = 0;
-}
-
 Crypto::~Crypto() {
 	delete hashFunction;
 }
@@ -46,8 +41,8 @@ SValue Crypto::random(int bytes) const {
 /**
  * Return the symmetric shared key for a destination
  */
-const SymmetricKey* Crypto::getSharedKey(IPAddress address) const {
-	const SecurityAssociation* sharedKeySA = sam->getSA(SAsharedsecret, address);
+const SymmetricKey* Crypto::getSharedKey(NodeId id) const {
+	const SecurityAssociation* sharedKeySA = sam->getSA(SAsharedsecret, id);
 	if (!sharedKeySA) {
 		return 0;
 	}

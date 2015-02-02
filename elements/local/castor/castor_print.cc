@@ -8,19 +8,11 @@
 
 CLICK_DECLS
 
-CastorPrint::CastorPrint() {
-}
-
-CastorPrint::~CastorPrint() {
-}
-
 int CastorPrint::configure(Vector<String> &conf, ErrorHandler *errh) {
-	_fullpkt = false;
-
 	if (Args(conf, this, errh)
-		.read_mp("LABEL", _label)
-		.read_mp("ADDR", _address)
-		.read_p("FULL", _fullpkt)
+		.read_mp("LABEL", label)
+		.read_mp("NodeId", myId)
+		.read_p("VERBOSE", verbose)
 		.complete() < 0)
 			return -1;
 	return 0;
@@ -29,18 +21,18 @@ int CastorPrint::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorPrint::push(int, Packet *p){
 
 	StringAccum sa;
-	sa << "[" << Timestamp::now() << "@" << _address << "] " << _label << " ";
+	sa << "[" << Timestamp::now() << "@" << myId << "] " << label << " ";
 
 	uint8_t type = CastorPacket::getType(p);
 
 	if( type == CastorType::PKT ){
 
 		if(CastorPacket::isXcast(p)) {
-			sa << (_fullpkt ? "\n" : "") << CastorXcastPkt(p).toString(_fullpkt).c_str();
+			sa << (verbose ? "\n" : "") << CastorXcastPkt(p).toString(verbose).c_str();
 		} else {
 			Castor_PKT& pkt = (Castor_PKT&) *p->data();
 			String spid = CastorPacket::hexToString(pkt.pid, sizeof(PacketId));
-			if(_fullpkt) {
+			if(verbose) {
 				String sfid = CastorPacket::hexToString(pkt.fid, sizeof(FlowId));
 				String seauth = CastorPacket::hexToString(pkt.eauth, sizeof(EACKAuth));
 				sa << "\n";
@@ -62,7 +54,7 @@ void CastorPrint::push(int, Packet *p){
 
 		Castor_ACK& ack = (Castor_ACK&) *p->data();
 		String sauth = CastorPacket::hexToString(ack.auth, sizeof(ACKAuth));
-		if(_fullpkt) {
+		if(verbose) {
 			sa << "\n";
 			sa << "   | From: \t" << CastorPacket::src_ip_anno(p) << "\n";
 			sa << "   | To: \t" << p->dst_ip_anno() << "\n";

@@ -6,23 +6,15 @@
 
 CLICK_DECLS
 
-CastorXcastDestinationMap::CastorXcastDestinationMap() {
-	_map = HashTable<IPAddress, Vector<IPAddress> >();
-	_empty = Vector<IPAddress>();
-}
-
-CastorXcastDestinationMap::~CastorXcastDestinationMap() {
-}
-
-const Vector<IPAddress>& CastorXcastDestinationMap::getDestinations(IPAddress multicastAddr) const {
-	const Vector<IPAddress>* result = _map.get_pointer(multicastAddr);
+const Vector<NodeId>& CastorXcastDestinationMap::getDestinations(GroupId multicastAddr) const {
+	const Vector<NodeId>* result = _map.get_pointer(multicastAddr);
 	if(result)
 		return *result;
 	else
 		return _empty;
 }
 
-int CastorXcastDestinationMap::insertDestinations(IPAddress group, const Vector<IPAddress>& dests) {
+int CastorXcastDestinationMap::insertDestinations(GroupId group, const Vector<NodeId>& dests) {
 	_map.set(group, dests);
 	return 0;
 }
@@ -30,12 +22,12 @@ int CastorXcastDestinationMap::insertDestinations(IPAddress group, const Vector<
 int CastorXcastDestinationMap::write_handler(const String &str, Element *e, void *, ErrorHandler *errh) {
 	CastorXcastDestinationMap* map = (CastorXcastDestinationMap*) e;
 
-	IPAddress group;
-	Vector<IPAddress> dsts;
+	NodeId group;
+	Vector<NodeId> dsts;
 
 	if(Args(map, errh).push_back_words(str)
 			.read_p("GroupAddr", group)
-			.read_all("IP", Args::positional, DefaultArg<IPAddress>(), dsts)
+			.read_all("IP", Args::positional, DefaultArg<NodeId>(), dsts)
 			.complete() < 0)
 		return -1;
 

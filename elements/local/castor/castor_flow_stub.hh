@@ -2,15 +2,12 @@
 #define CLICK_CASTOR_FLOW_STUB_HH
 
 #include <click/element.hh>
-#include <click/ipaddress.hh>
 #include <click/hashtable.hh>
 #include "castor.hh"
 
 CLICK_DECLS
 
 class CastorFlow;
-
-typedef IPAddress Host;
 
 typedef struct {
 	String name;
@@ -25,18 +22,17 @@ typedef struct {
 	ACKAuth ack_auth;
 } PacketLabel;
 
-typedef HashTable<Host, HashTable<Host, FlowType> > FlowMap;
+typedef HashTable<NodeId, HashTable<NodeId, FlowType> > FlowMap;
 
 class CastorFlowStub: public Element {
 public:
-	CastorFlowStub();
-	~CastorFlowStub();
+	CastorFlowStub() : _defaultType(0) {}
 		
 	const char *class_name() const	{ return "CastorFlowStub"; }
 	const char *port_count() const	{ return PORTS_0_0; }
 	const char *processing() const	{ return AGNOSTIC; }
 
-	PacketLabel getPacketLabel(Host, Host);
+	PacketLabel getPacketLabel(NodeId, NodeId);
 	void registerFlowType(String name, CastorFlow* handle);
 
 	void setDefaultType(uint8_t type);
@@ -46,7 +42,7 @@ private:
 	Vector<FlowType> _flowtypes;
 	uint8_t _defaultType;
 
-	FlowType* FlowTypeLookup(Host, Host);
+	FlowType* FlowTypeLookup(NodeId, NodeId);
 };
 
 CLICK_ENDDECLS

@@ -14,8 +14,7 @@ CLICK_DECLS
  */
 class CastorUnicastFilter: public Element {
 public:
-	CastorUnicastFilter();
-	~CastorUnicastFilter();
+	CastorUnicastFilter() : active(false) {}
 
 	const char *class_name() const	{ return "CastorUnicastFilter"; }
 	const char *port_count() const	{ return "1/2"; }
@@ -27,7 +26,7 @@ public:
 	void push(int, Packet *);
 private:
 	bool active;
-	IPAddress myAddr;
+	NodeId myId;
 
     static int write_handler(const String &, Element *, void *, ErrorHandler *);
 };

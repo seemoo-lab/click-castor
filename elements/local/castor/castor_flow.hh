@@ -10,8 +10,7 @@ CLICK_DECLS
 
 class CastorFlow : public Element { 
 	public:
-		CastorFlow();
-		~CastorFlow();
+		CastorFlow() : _stub(0), _crypto(0) {}
 		
 		const char *class_name() const { return "CastorFlow"; }
 		const char *port_count() const { return PORTS_0_0; }
@@ -19,13 +18,13 @@ class CastorFlow : public Element {
 
 		int configure(Vector<String>&, ErrorHandler*);
 		
-		PacketLabel getPacketLabel(Host,Host);		
+		PacketLabel getPacketLabel(NodeId,NodeId);
 
 	private:
-		virtual bool hasFlow(Host, Host);
-		virtual void createFlow(Host, Host);
-		virtual PacketLabel useFlow(Host,Host);
-		virtual void updateFlow(Host, Host);
+		virtual bool hasFlow(NodeId, NodeId);
+		virtual void createFlow(NodeId, NodeId);
+		virtual PacketLabel useFlow(NodeId,NodeId);
+		virtual void updateFlow(NodeId, NodeId);
 
 		void registeratstub();
 		CastorFlowStub * _stub;

@@ -7,10 +7,6 @@
 
 CLICK_DECLS
 
-/**
- * Add Castor header to IP packet
- * TODO: Should replace IP header instead of add
- */
 class CastorXcastToUnicast: public Element {
 public:
 	const char *class_name() const { return "CastorXcastToUnicast"; }

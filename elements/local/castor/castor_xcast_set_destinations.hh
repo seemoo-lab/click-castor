@@ -13,7 +13,7 @@ CLICK_DECLS
  */
 class CastorXcastSetDestinations: public Element {
 public:
-	CastorXcastSetDestinations();
+	CastorXcastSetDestinations() : crypto(0), map(0) {}
 
 	const char *class_name() const { return "CastorXcastSetDestinations"; }
 	const char *port_count() const { return PORTS_1_1; }
@@ -22,8 +22,8 @@ public:
 
 	void push(int, Packet*);
 private:
-	Crypto* _crypto;
-	CastorXcastDestinationMap* _map;
+	Crypto* crypto;
+	CastorXcastDestinationMap* map;
 };
 
 CLICK_ENDDECLS

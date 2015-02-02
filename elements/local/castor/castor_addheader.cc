@@ -5,12 +5,6 @@
 
 CLICK_DECLS
 
-CastorAddHeader::CastorAddHeader() {
-}
-
-CastorAddHeader::~CastorAddHeader() {
-}
-
 int CastorAddHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
      return cp_va_kparse(conf, this, errh,
         "CastorAddHeader", cpkP+cpkM, cpElementCast, "CastorFlowStub", &cflow,
@@ -20,8 +14,8 @@ int CastorAddHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorAddHeader::push(int, Packet *p) {
 
 	// Extract source and destination from packet
-	IPAddress src = p->ip_header()->ip_src.s_addr;
-	IPAddress dst = p->ip_header()->ip_dst.s_addr;
+	NodeId src = p->ip_header()->ip_src.s_addr;
+	NodeId dst = p->ip_header()->ip_dst.s_addr;
 
 	// Add Space for the new Header
 	uint32_t length = sizeof(Castor_PKT);

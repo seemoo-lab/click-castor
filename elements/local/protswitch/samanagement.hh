@@ -12,11 +12,12 @@
 
 #include <click/element.hh>
 #include <click/hashtable.hh>
-#include "../protswitch/securityassociation.hh"
+#include "securityassociation.hh"
+#include "../castor/node_id.hh"
 
 CLICK_DECLS
 
-typedef HashTable<IPAddress, Vector<SecurityAssociation> > SAMap;
+typedef HashTable<NodeId, Vector<SecurityAssociation> > SAMap;
 
 class SAManagement: public Element {
 public:
@@ -24,8 +25,7 @@ public:
 	/**
 	 * @param symmetricKeyLength length of generated symmetric keys
 	 */
-	SAManagement(size_t symmetricKeyLength = 16);
-	~SAManagement();
+	SAManagement(size_t symmetricKeyLength = 16) : symmetricKeyLength(symmetricKeyLength), numKeys(0) {}
 
 	const char *class_name() const	{ return "SAManagement"; }
 	const char *port_count() const	{ return PORTS_0_0; }
@@ -35,20 +35,22 @@ public:
 
 	int initialize(ErrorHandler *);
 
-	Vector<IPAddress> checkSApresence(SAType t, Vector<IPAddress> nodes);
-	bool checkSApresence(SAType t, IPAddress node);
-	int addSA(SecurityAssociation, IPAddress);
+	Vector<NodeId> checkSApresence(SAType t, Vector<NodeId> nodes);
+	bool checkSApresence(SAType t, NodeId node);
+	int addSA(SecurityAssociation, NodeId);
 	void printSAs();
-	const SecurityAssociation* getSA(SAType t, const IPAddress& node);
+	const SecurityAssociation* getSA(SAType t, const NodeId& node);
 
 private:
 	int initializeSymmetricKeys(ErrorHandler*);
 	int initializePublicPrivateKeys(ErrorHandler*);
 	SAMap mySAs;
-	IPAddress myAddr; // Local nodes' IP address
+	NodeId myAddr; // Local nodes' IP address
+	size_t symmetricKeyLength;
+
+	// Needed for key generation
 	IPAddress netAddr; // Address of the network
 	size_t numKeys;
-	size_t symmetricKeyLength;
 };
 
 CLICK_ENDDECLS

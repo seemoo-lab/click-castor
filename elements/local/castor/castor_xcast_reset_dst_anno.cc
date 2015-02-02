@@ -5,10 +5,6 @@
 
 CLICK_DECLS
 
-CastorXcastResetDstAnno::CastorXcastResetDstAnno() {
-	promisc = false;
-}
-
 int CastorXcastResetDstAnno::configure(Vector<String>& conf, ErrorHandler* errh) {
 	if(Args(conf, errh)
 			.read_p("PROMISC", promisc)

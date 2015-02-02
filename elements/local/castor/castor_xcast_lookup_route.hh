@@ -9,7 +9,7 @@ CLICK_DECLS
 
 class CastorXcastLookupRoute : public Element {
 	public:
-		CastorXcastLookupRoute();
+		CastorXcastLookupRoute() : selector(0) {}
 		
 		const char *class_name() const	{ return "CastorXcastLookupRoute"; }
 		const char *port_count() const	{ return "1/2"; }

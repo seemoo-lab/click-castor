@@ -16,11 +16,11 @@ int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 			cpEnd);
 }
 
-HashTable<IPAddress, CastorEstimator>& CastorRoutingTable::getFlowEntry(const FlowId& flow, const SubflowId& subflow) {
+HashTable<NodeId, CastorEstimator>& CastorRoutingTable::getFlowEntry(const FlowId& flow, const SubflowId& subflow) {
 	return getEntryInsertDefault(getEntryInsertDefault(flows, flow), subflow);
 }
 
-void CastorRoutingTable::updateEstimates(const FlowId& flow, IPAddress subflow, IPAddress neighbor, Operation op, Estimate est) {
+void CastorRoutingTable::updateEstimates(const FlowId& flow, NodeId subflow, NodeId neighbor, Operation op, Estimate est) {
 	CastorEstimator& estimator = getEntryInsertDefault(getFlowEntry(flow, subflow), neighbor);
 
 	if (est == first && op == increase) {
@@ -34,13 +34,13 @@ void CastorRoutingTable::updateEstimates(const FlowId& flow, IPAddress subflow, 
 	}
 }
 
-void CastorRoutingTable::printRoutingTable(const FlowId& flow, IPAddress subflow) {
+void CastorRoutingTable::printRoutingTable(const FlowId& flow, NodeId subflow) {
 	StringAccum sa;
 	sa << "Routing table for flow " << CastorPacket::hexToString(flow,sizeof(FlowId)) << " (" << subflow<< "):\n";
 
 	ForwarderEntry& table = getFlowEntry(flow, subflow);
 	// Iterate over the Table
-	for (HashTable<IPAddress, CastorEstimator>::iterator it = table.begin(); it != table.end(); it++) {
+	for (HashTable<NodeId, CastorEstimator>::iterator it = table.begin(); it != table.end(); it++) {
 		sa << " - " << it.key() << "\t" << it.value().getEstimate() << "\n";
 	}
 	if(table.size()==0)

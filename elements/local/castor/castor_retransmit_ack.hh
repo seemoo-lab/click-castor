@@ -9,7 +9,7 @@ CLICK_DECLS
 
 class CastorRetransmitAck : public Element {
 	public:
-		CastorRetransmitAck();
+		CastorRetransmitAck() : history(0) {};
 
 		const char *class_name() const	{ return "CastorRetransmitAck"; }
 		const char *port_count() const	{ return PORTS_1_1; }
@@ -20,7 +20,7 @@ class CastorRetransmitAck : public Element {
 
 	private:
 		CastorHistory* history;
-		IPAddress myAddr;
+		NodeId myId;
 };
 
 CLICK_ENDDECLS

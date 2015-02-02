@@ -6,16 +6,10 @@
 
 CLICK_DECLS
 
-CastorXcastSetFixedHeader::CastorXcastSetFixedHeader() {
-	cflow = 0;
-}
-
 int CastorXcastSetFixedHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
-     if(cp_va_kparse(conf, this, errh,
+     return cp_va_kparse(conf, this, errh,
         "CastorXcastSetHeader", cpkP+cpkM, cpElementCast, "CastorFlowStub", &cflow,
-        cpEnd) < 0)
-    	 return -1;
-     return 0;
+        cpEnd);
 }
 
 void CastorXcastSetFixedHeader::push(int, Packet *p) {
@@ -27,8 +21,8 @@ void CastorXcastSetFixedHeader::push(int, Packet *p) {
 	pkt.setNFlowAuthElements(CASTOR_FLOWAUTH_ELEM);
 
 	// Extract source and destination from wrapped IP packet
-	IPAddress src = pkt.getPacket()->ip_header()->ip_src.s_addr;
-	IPAddress dst = pkt.getPacket()->ip_header()->ip_dst.s_addr;
+	NodeId src = pkt.getPacket()->ip_header()->ip_src.s_addr;
+	NodeId dst = pkt.getPacket()->ip_header()->ip_dst.s_addr;
 
 	pkt.setContentType(pkt.getPacket()->ip_header()->ip_p);
 	pkt.setSource(src);

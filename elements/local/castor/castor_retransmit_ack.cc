@@ -5,21 +5,16 @@
 
 CLICK_DECLS
 
-CastorRetransmitAck::CastorRetransmitAck() {
-	history = 0;
-}
-
 int CastorRetransmitAck::configure(Vector<String> &conf, ErrorHandler *errh) {
      return cp_va_kparse(conf, this, errh,
         "CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
-        "ADDR", cpkP+cpkM, cpIPAddress, &myAddr,
+        "ADDR", cpkP+cpkM, cpIPAddress, &myId,
         cpEnd);
 }
 
 void CastorRetransmitAck::push(int, Packet *p) {
 
 	// We already forwarded a valid ACK for this PKT, so retransmit
-
 	if (CastorPacket::isXcast(p)) {
 		CastorXcastPkt pkt = CastorXcastPkt(p);
 

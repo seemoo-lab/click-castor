@@ -21,11 +21,11 @@ public:
 	/**
 	 * Select the best next hop for a given flow/subflow
 	 */
-	IPAddress select(const FlowId& flow, IPAddress subflow, const Vector<IPAddress>* others, const PacketId &pid);
+	NodeId select(const FlowId& flow, NodeId subflow, const Vector<NodeId>* others, const PacketId &pid);
 
 protected:
-	virtual bool selectNeighbor(const IPAddress &entry, double entryEstimate, Vector<IPAddress> &bestEntries, double &bestEstimate, const PacketId &pid);
-	virtual IPAddress chooseNeighbor(Vector<IPAddress> &bestNeighbors, double best, const PacketId &pid);
+	virtual bool selectNeighbor(const NodeId &entry, double entryEstimate, Vector<NodeId> &bestEntries, double &bestEstimate, const PacketId &pid);
+	virtual NodeId chooseNeighbor(Vector<NodeId> &bestNeighbors, double best, const PacketId &pid);
 
 	CastorRoutingTable* routingtable;
 	Neighbors* neighbors;
@@ -35,8 +35,8 @@ protected:
 	 */
 	double broadcastAdjust;
 
-	double findBest(HashTable<IPAddress, CastorEstimator>& entry, Vector<IPAddress>& bestNeighbors, const PacketId& pid);
-	inline IPAddress selectDefault() const { return IPAddress::make_broadcast(); }
+	double findBest(HashTable<NodeId, CastorEstimator>& entry, Vector<NodeId>& bestNeighbors, const PacketId& pid);
+	inline NodeId selectDefault() const { return NodeId::make_broadcast(); }
 };
 
 CLICK_ENDDECLS

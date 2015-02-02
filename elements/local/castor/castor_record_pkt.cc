@@ -6,18 +6,6 @@
 
 CLICK_DECLS
 
-CastorRecordPkt::CastorRecordPkt() {
-	numPkts = 0;
-	numPids = 0;
-	pktAccumSize = 0;
-	broadcastDecisions = 0;
-	seq_index = 0;
-	hopcount_index = 0;
-}
-
-CastorRecordPkt::~CastorRecordPkt() {
-}
-
 void CastorRecordPkt::push(int, Packet *p) {
 
 	if(CastorPacket::getType(p) == CastorType::PKT) {
@@ -31,7 +19,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 			}
 			// Add next hop decision for each destination
 			for(unsigned int i = 0; i < pkt.getNNextHops(); i++) {
-				if(pkt.getNextHop(i) == IPAddress::make_broadcast())
+				if(pkt.getNextHop(i) == NodeId::make_broadcast())
 					broadcastDecisions += pkt.getNextHopNAssign(i);
 			}
 			hopcounts.push_back(pkt.getHopcount());
@@ -41,7 +29,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 			Entry newEntry(pkt.pid);
 			records.push_back(newEntry);
 			numPids++;
-			if(p->dst_ip_anno() == IPAddress::make_broadcast())
+			if(p->dst_ip_anno() == NodeId::make_broadcast())
 				broadcastDecisions++;
 			hopcounts.push_back(pkt.hopcount);
 		}

@@ -1,15 +1,9 @@
 #include <click/config.h>
-#include <click/confparse.hh>
-#include <click/straccum.hh>
 #include "castor_history.hh"
 
 CLICK_DECLS
 
-CastorHistory::CastorHistory() {
-	history = HashTable<Hash, CastorHistoryEntry>();
-}
-
-void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, IPAddress prevHop, IPAddress nextHop, IPAddress destination) {
+void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, NodeId prevHop, NodeId nextHop, NodeId destination) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	assert(prevHop.addr() != 0);
 	assert(nextHop.addr() != 0);
@@ -35,7 +29,7 @@ void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, IPAddress pre
 	}
 }
 
-bool CastorHistory::addFirstAckForCastor(const PacketId& pid, IPAddress addr, const ACKAuth& ackAuth) {
+bool CastorHistory::addFirstAckForCastor(const PacketId& pid, NodeId addr, const ACKAuth& ackAuth) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	if(!entry) {
 		// Received an ACK for an unknown Packet, do not care
@@ -47,7 +41,7 @@ bool CastorHistory::addFirstAckForCastor(const PacketId& pid, IPAddress addr, co
 	return true;
 }
 
-bool CastorHistory::addFirstAckForXcastor(const PacketId& pid, IPAddress addr, const EACKAuth& ackAuth) {
+bool CastorHistory::addFirstAckForXcastor(const PacketId& pid, NodeId addr, const EACKAuth& ackAuth) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	if(!entry) {
 		// Received an ACK for an unknown Packet, do not care
@@ -59,7 +53,7 @@ bool CastorHistory::addFirstAckForXcastor(const PacketId& pid, IPAddress addr, c
 	return true;
 }
 
-bool CastorHistory::addAckFor(const PacketId& pid, IPAddress addr) {
+bool CastorHistory::addAckFor(const PacketId& pid, NodeId addr) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	if(!entry) {
 		// Received an ACK for an unknown Packet, do not care
@@ -71,10 +65,10 @@ bool CastorHistory::addAckFor(const PacketId& pid, IPAddress addr) {
 	return true;
 }
 
-bool CastorHistory::hasPktFrom(const PacketId& pid, IPAddress addr) const {
+bool CastorHistory::hasPktFrom(const PacketId& pid, NodeId addr) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	if (entry) {
-		for (Vector<IPAddress>::const_iterator it = entry->prevHops.begin(); it != entry->prevHops.end(); it++)
+		for (Vector<NodeId>::const_iterator it = entry->prevHops.begin(); it != entry->prevHops.end(); it++)
 			if (*it == addr)
 				return true;
 	}
@@ -91,7 +85,7 @@ bool CastorHistory::hasAck(const PacketId& pid) const {
 	return entry && !entry->recievedACKs.empty();
 }
 
-bool CastorHistory::hasAckFrom(const PacketId& pid, IPAddress addr) const {
+bool CastorHistory::hasAckFrom(const PacketId& pid, NodeId addr) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	if (entry) {
 		for (int i = 0; i < entry->recievedACKs.size(); i++)
@@ -105,7 +99,7 @@ size_t CastorHistory::getPkts(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->prevHops.size();
 }
-const Vector<IPAddress>& CastorHistory::getPktSenders(const PacketId& pid) const {
+const Vector<NodeId>& CastorHistory::getPktSenders(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->prevHops;
 }
@@ -130,12 +124,12 @@ const ACKAuth& CastorHistory::getAckAuth(const PacketId& pid) const {
 	return entry->auth;
 }
 
-IPAddress CastorHistory::getDestination(const PacketId& pid) const {
+NodeId CastorHistory::getDestination(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->destination;
 }
 
-IPAddress CastorHistory::routedTo(const PacketId& pid) const {
+NodeId CastorHistory::routedTo(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->nextHop;
 }

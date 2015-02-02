@@ -10,6 +10,8 @@ CLICK_DECLS
 
 class CastorAuthenticateAck: public Element {
 public:
+	CastorAuthenticateAck() : crypto(0), history(0), version(1) {}
+
 	const char *class_name() const { return "CastorAuthenticateAck"; }
 	const char *port_count() const { return "1/5-6"; }
 	const char *processing() const { return PUSH; }
