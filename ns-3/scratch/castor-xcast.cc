@@ -320,6 +320,9 @@ void simulate(
 	RngSeedManager::SetRun(run);
 
 	bool isFlooding = clickConfig.Get() == CLICK_PATH"/conf/castor/flooding.click";  // TODO quick'n'dirty
+	bool isXcastPromisc = clickConfig.Get() == CLICK_PATH"/conf/castor/castor_xcast_routing_promisc.click";
+	bool isUnicastPromisc = clickConfig.Get() == CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing.click" ||
+							clickConfig.Get() == CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing_v2.click";
 
 	size_t nSenders = (size_t) ceil(netConfig.nNodes * trafficConfig.senderFraction);
 
@@ -448,12 +451,17 @@ void simulate(
 	uint32_t pktDroppedByBlackhole = 0;
 	std::vector<uint32_t> hopcounts;
 
-	std::string pktForward = "handlepkt/forward/rec";
+	std::string handlepktPrefix = "handlepkt/";
+	if (isXcastPromisc) handlepktPrefix.append("handleXcastPkt/");
+	std::string handleackPrefix = "handleack/";
+	if (isXcastPromisc) handleackPrefix.append("handleXcastAck/");
+	else if (isUnicastPromisc) handleackPrefix.append("handleCastorAck/");
+	std::string pktForward = handlepktPrefix + "forward/rec";
 	std::string pktSend    = "handleIpPacket/rec";
-	std::string pktDeliver = "handlepkt/handleLocal/rec";
-	std::string ackForward = "handleack/sendAck/recAck";
-	std::string ackSend    = "handlepkt/sendAck/recAck";
-	std::string pktDrop    = "handlepkt/blackhole/rec";
+	std::string pktDeliver = handlepktPrefix + "handleLocal/rec";
+	std::string ackForward = handleackPrefix + "sendAck/recAck";
+	std::string ackSend    = handlepktPrefix + "sendAck/recAck";
+	std::string pktDrop    = handlepktPrefix + "blackhole/rec";
 	for(unsigned int i = 0; i < netConfig.nNodes; i++) {
 		numPidsSent += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktSend);
 		numPktsRecv += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDeliver);

@@ -30,7 +30,7 @@ elementclass CastorHandleUnicastIpPacket {
 /**
  * Appends Castor Xcast header to IP (multicast) packet
  */
-elementclass CastorHandleMulticastIpPacket{
+elementclass CastorHandleMulticastIpPacket {
 	$myIP, $flowDB, $crypto |
 
 	map :: CastorXcastDestinationMap
@@ -58,25 +58,6 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 }
 
 elementclass CastorClassifier {
-	
-	input
-		-> CheckIPHeader
-		-> annotateSourceAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
-		-> annotateDestAddress :: GetIPAddress(IP dst, ANNO 0)
-		-> ipclassifier :: IPClassifier(ip proto $CASTORTYPE, -)
-		-> StripIPHeader
-		-> cclassifier :: Classifier(0/c?, 0/a?);
-
-	cclassifier[0] // Castor PKTs -> output 0
-		-> [0]output;
-
-	cclassifier[1] // Castor ACKs -> output 1
-		-> [1]output;
-
-	ipclassifier[1] // Other packets -> output 2
-		-> [2]output;
-		
-|| // overloaded version for Xcast with promiscious mode (add addressfilter)
 
 	$myIP |
 	
@@ -84,7 +65,7 @@ elementclass CastorClassifier {
 		-> CheckIPHeader
 		-> annotateSourceAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
 		-> annotateDestAddress :: GetIPAddress(IP dst, ANNO 0)
-		-> addressfilter :: IPClassifier(dst host $myIP or 255.255.255.255, -)
+		-> addressfilter :: IPClassifier(dst host $myIP or 255.255.255.255, -) // We filter by IP address
 		-> ipclassifier :: IPClassifier(ip proto $CASTORTYPE, -)
 		-> StripIPHeader
 		-> cclassifier :: Classifier(0/c?, 0/a?);
@@ -125,7 +106,6 @@ elementclass CastorHandleAck {
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
 		-> CastorSetAckNexthop($history, $neighbors, $promisc)[0,1]
 		-> sendAck :: CastorSendAck($myIP)
-		-> CastorXcastResetDstAnno($promisc)
 		-> output;
 
 	// Discarding...

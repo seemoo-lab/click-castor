@@ -24,7 +24,7 @@ elementclass CastorLocalXcastPkt {
 }
 
 elementclass CastorForwardXcastPkt {
-	$myIP, $routeselector, $routingtable, $history, $promisc |
+	$myIP, $routeselector, $routingtable, $history |
 
 	input
 		-> route :: CastorXcastLookupRoute($routeselector)
@@ -33,7 +33,6 @@ elementclass CastorForwardXcastPkt {
 		//-> CastorPrint('Forwarding', $myIP)
 		-> rec :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO) // Encapsulate in a new IP Packet
-		-> CastorXcastResetDstAnno($promisc) // We want to unicast on the MAC layer if possible
 		-> output;
 		
 	route[1]
@@ -48,7 +47,7 @@ elementclass CastorForwardXcastPkt {
  * Output(2):	Forwarded PKT
  */
 elementclass CastorHandleXcastPkt {
-	$myIP, $routeselector, $routingtable, $history, $crypto, $promisc |
+	$myIP, $routeselector, $routingtable, $history, $crypto |
 
 	input
 		-> forwarderClassifier :: CastorXcastForwarderClassifier($myIP)
@@ -77,7 +76,7 @@ elementclass CastorHandleXcastPkt {
 	// PKT needs to be forwarded
 	destinationClassifier[1]
 		-> blackhole :: CastorBlackhole($myIP) // By default inactive
-		-> forward :: CastorForwardXcastPkt($myIP, $routeselector, $routingtable, $history, $promisc)
+		-> forward :: CastorForwardXcastPkt($myIP, $routeselector, $routingtable, $history)
 		-> [2]output;
 
 	// If invalid or duplicate -> discard

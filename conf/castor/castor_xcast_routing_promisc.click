@@ -1,66 +1,31 @@
 require(
-	library castor_io.click,
 	library castor_settings.click,
+	library castor_io.click,
 	library castor_common.click,
 	library castor_xcast.click,
+	library castor_init_common_blocks.click
 );
 
-define(
-	$promisc true
-);
-
-/*************************
- * Initialize the Blocks *
- *************************/
-
-ethin :: InputEthNoHostFilter($EthDev, fake);
-ethout :: OutputEth($EthDev, $broadcastJitter, $unicastJitter);
-fromhost :: FromHost($HostDev, fake, $headroom);
-tohost :: ToHost($HostDev);
-
-sam::SAManagement(fake, netAddr, $numNodes);
-crypto::Crypto(sam);
+// The flow to use
 flowDB :: CastorFlowStub;
 flow_merkle :: CastorFlowMerkle(flowDB, crypto);
-neighbors :: Neighbors($neighborTimeout);
-routingtable :: CastorRoutingTable($updateDelta);
+
+// How to choose next hop
 routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, $broadcastAdjust);
-history :: CastorHistory;
-castorclassifier :: CastorClassifier(fake);
-handlepkt :: CastorHandleXcastPkt(fake, routeselector, routingtable, history, crypto, $promisc);
-handleack :: CastorHandleAck(fake, routingtable, history, crypto, $promisc);
+
+// How to handle PKTs and ACKs
+handlepkt :: {
+	input
+		-> handleXcastPkt :: CastorHandleXcastPkt(fake, routeselector, routingtable, history, crypto)[0,1]
+		=> [0,1]output;
+	handleXcastPkt[2] -> CastorXcastResetDstAnno(true) -> [2]output;
+};
+handleack :: { input -> handleXcastAck :: CastorHandleAck(fake, routingtable, history, neighbors, crypto, true) -> CastorXcastResetDstAnno(true) -> output; };
 
 handleIpPacket :: CastorHandleMulticastIpPacket(fake, flowDB, crypto);
-arpquerier :: ARPQuerier(fake, TIMEOUT 3600, POLL_TIMEOUT 0); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)
+removeHeader :: CastorXcastRemoveHeader;
 
-
-/*******************
- * Wire the Blocks *
- *******************/
-
-ethin[1] -> ethout;			// Push new ARP Responses back to device
-ethin[0] -> [1]arpquerier;	// Push incoming arp responses to querer
-ethin[2]
-	-> cEtherFilter :: CastorEtherFilter
- 	-> castorclassifier;	// Classify received packets			
-
-cEtherFilter[1]
-	-> AddNeighbor(neighbors)
-	-> Discard;
-
-arpquerier -> ethout;	// Send Ethernet packets to output
-
-NeighborBeaconGenerator($beaconingInterval, fake, $EthDev) -> ethout;
-
-fromhost	
-	-> handleIpPacket 
-	-> handlepkt;		// Process new generated packets
- 
-castorclassifier[0] -> handlepkt; // Process PKTs
-castorclassifier[1] -> handleack; // Process ACKs
-castorclassifier[2] -> [1]tohost; // Deliver non-Castor packets directly to host
-
-handlepkt[0]		-> CastorXcastRemoveHeader -> [0]tohost;  // Deliver PKT to host
-handlepkt[1]		-> arpquerier; // Return ACK		
-handlepkt[2]		-> arpquerier; // Forward PKT
-handleack			-> arpquerier; // Forward ACK
+// Finally wire all blocks
+require(
+	library castor_wiring.click,
+);
