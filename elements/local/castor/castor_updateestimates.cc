@@ -6,12 +6,6 @@
 
 CLICK_DECLS
 
-CastorUpdateEstimates::CastorUpdateEstimates() {
-	crypto = 0;
-	table = 0;
-	history = 0;
-}
-
 int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
     return cp_va_kparse(conf, this, errh,
         "Crypto", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
@@ -31,25 +25,11 @@ void CastorUpdateEstimates::push(int, Packet *p){
 	IPAddress from = CastorPacket::src_ip_anno(p);
 	bool isFirstAck = !history->hasAck(pid);
 
-	if (routedTo == IPAddress::make_broadcast()) {
-		// PKT was broadcast
-		if (isFirstAck)
-			table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
-		table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
-	} else if (routedTo == from) {
-		// PKT was unicast
+	if (routedTo == from || isFirstAck)
 		table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
-		table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
-	} else {
-		output(2).push(p); // received from wrong neighbor -> discard
-		return;
-	}
+	table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
 
-	if(isFirstAck) {
-	    output(0).push(p); // only forward 1st ACK
-	} else {
-		output(1).push(p); // don't forward ACK again
-	}
+    output(!isFirstAck).push(p); // only forward 1st ACK on default output port 0
 }
 
 CLICK_ENDDECLS

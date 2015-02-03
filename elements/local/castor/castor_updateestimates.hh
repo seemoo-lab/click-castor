@@ -11,10 +11,10 @@ CLICK_DECLS
 
 class CastorUpdateEstimates: public Element {
 public:
-	CastorUpdateEstimates();
+	inline CastorUpdateEstimates() : crypto(NULL), table(NULL), history(NULL) {}
 
 	const char *class_name() const { return "CastorUpdateEstimates"; }
-	const char *port_count() const { return "1/3"; }
+	const char *port_count() const { return "1/2"; }
 	const char *processing() const { return PUSH; }
 	int configure(Vector<String>&, ErrorHandler*);
 

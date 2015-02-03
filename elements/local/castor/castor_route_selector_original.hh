@@ -24,7 +24,8 @@ public:
 	IPAddress select(const FlowId& flow, IPAddress subflow, const Vector<IPAddress>* others, const PacketId &pid);
 
 protected:
-	virtual void selectNeighbor(const IPAddress &entry, double entryEstimate, Vector<IPAddress> &bestEntries, double &bestEstimate, const PacketId &pid);
+	virtual bool selectNeighbor(const IPAddress &entry, double entryEstimate, Vector<IPAddress> &bestEntries, double &bestEstimate, const PacketId &pid);
+	virtual IPAddress chooseNeighbor(Vector<IPAddress> &bestNeighbors, double best, const PacketId &pid);
 
 	CastorRoutingTable* routingtable;
 	Neighbors* neighbors;

@@ -13,19 +13,40 @@ int CastorRouteSelectorExperimental::configure(Vector<String> &conf, ErrorHandle
 			cpEnd);
 }
 
-void CastorRouteSelectorExperimental::selectNeighbor(const IPAddress &entry, double entryEstimate, Vector<IPAddress> &bestEntries, double &bestEstimate, const PacketId &pid)
+bool CastorRouteSelectorExperimental::selectNeighbor(const IPAddress &entry, double entryEstimate, Vector<IPAddress> &bestEntries, double &bestEstimate, const PacketId &pid)
 {
-	(void)pid;  // we do not make use of the packet identifier in selecting neighbors, but other selector classes may
-
-	if (!history->hasPktFrom(pid, entry)) {
+#if 1
+	if (!history->hasPkt(pid) || entry != history->getPktSenders(pid)[0])
+#elif 0
+	if (!history->hasPktFrom(pid, entry))
+#else
+	(void)pid;
+#endif
+	{
 		if (entryEstimate > bestEstimate) {
 			bestEntries.clear();
 			bestEntries.push_back(entry);
 			bestEstimate = entryEstimate;
-		} else if (entryEstimate >= bestEstimate) {
+		} else if (entryEstimate >= bestEstimate && entryEstimate > 0) {
 			bestEntries.push_back(entry);
 		}
+		return true;
 	}
+	return false;
+}
+
+IPAddress CastorRouteSelectorExperimental::chooseNeighbor(Vector<IPAddress> &bestNeighbors, double best, const PacketId &pid)
+{
+#if 0
+	if (history->hasPkt(pid)) {
+		const IPAddress firstPktSender = history->getPktSenders(pid)[0];
+		for (int i = 0; i < bestNeighbors.size(); i++) {
+			if (bestNeighbors[i] == firstPktSender)
+				return selectDefault();
+		}
+	}
+#endif
+	return CastorRouteSelectorOriginal::chooseNeighbor(bestNeighbors, best, pid);
 }
 
 CLICK_ENDDECLS

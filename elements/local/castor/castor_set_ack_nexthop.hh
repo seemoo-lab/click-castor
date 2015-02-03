@@ -4,6 +4,7 @@
 #include <click/element.hh>
 #include "castor.hh"
 #include "castor_history.hh"
+#include "../neighbordiscovery/neighbors.hh"
 
 CLICK_DECLS
 
@@ -22,6 +23,7 @@ public:
 
 private:
 	CastorHistory* history;
+	Neighbors *neighbors;
 	bool promisc;
 
 };

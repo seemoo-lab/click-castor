@@ -9,6 +9,7 @@ CLICK_DECLS
 int CastorSetAckNexthop::configure(Vector<String> &conf, ErrorHandler *errh) {
     return cp_va_kparse(conf, this, errh,
 		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
+		"Neighbors", cpkP+cpkM, cpElementCast, "Neighbors", &neighbors,
 		"PROMISC", cpkP+cpkM, cpBool, &promisc,
         cpEnd);
 }
@@ -16,20 +17,27 @@ int CastorSetAckNexthop::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorSetAckNexthop::push(int, Packet* p) {
 
 	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
-	bool use_broadcast = history->getPkts(pid) > 1;
+	IPAddress dst = history->getPktSenders(pid)[0];  // set default ACK destination to initial PKT sender
 
-	if (use_broadcast)
-		p->set_dst_ip_anno(IPAddress::make_broadcast());
-	else
-		p->set_dst_ip_anno(history->getPktSenders(pid)[0]);
+	// Use broadcast if there are at least two other neighbors than the ACK sender
+	// We also use broadcast (opportunistically) if the ACK sender is our only current neighbor
+	bool use_broadcast = neighbors->neighborCount() != 2;
 
-	if(promisc) {
-		int randIndex = click_random() % history->getPkts(pid);
-		CastorPacket::set_mac_ip_anno(p, history->getPktSenders(pid)[randIndex]);
+	// Walk through the list of PKT senders and select the first one that is still a neighbor
+	for (size_t i = 0; i < history->getPkts(pid); i++) {
+		IPAddress pktSender = history->getPktSenders(pid)[i];
+		if (neighbors->hasNeighbor(pktSender)) {
+			dst = pktSender;
+			break;
+		}
 	}
 
-	output(use_broadcast).push(p);
+	// Set packet destination
+	p->set_dst_ip_anno(use_broadcast ? IPAddress::make_broadcast() : dst);
+	if (promisc)
+		CastorPacket::set_mac_ip_anno(p, dst);
 
+	output(use_broadcast).push(p);
 }
 
 CLICK_ENDDECLS

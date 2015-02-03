@@ -16,7 +16,8 @@ public:
 	int configure(Vector<String>&, ErrorHandler*);
 
 private:
-	void selectNeighbor(const IPAddress &entry, double entryEstimate, Vector<IPAddress> &bestEntries, double &bestEstimate, const PacketId &pid);
+	bool selectNeighbor(const IPAddress &entry, double entryEstimate, Vector<IPAddress> &bestEntries, double &bestEstimate, const PacketId &pid);
+	IPAddress chooseNeighbor(Vector<IPAddress> &bestNeighbors, double best, const PacketId &pid);
 
 	CastorHistory* history;
 };
