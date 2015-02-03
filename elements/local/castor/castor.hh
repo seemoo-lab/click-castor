@@ -10,7 +10,6 @@
 #define CASTOR_HASHLENGTH                           20
 #define CASTOR_FLOWAUTH_ELEM                         8  // log2(CASTOR_FLOWSIZE)
 #define CASTOR_FLOWSIZE		  (1<<CASTOR_FLOWAUTH_ELEM) // Number of flow auth elements in the header
-#define CASTOR_MAX_GROUP_SIZE                       10  // Maximal allowed group size
 
 CLICK_DECLS
 
@@ -86,8 +85,8 @@ typedef struct {
 	uint8_t 	ctype;
 	uint16_t 	len;
 	uint16_t	packet_num; // the k-th packet of the current flow, necessary for flow validation (determines whether fauth[i] is left or right sibling in the Merkle tree)
-	NodeId	src;
-	NodeId	dst;
+	NodeId		src;
+	NodeId		dst;
 	FlowId	 	fid;
 	PacketId 	pid;
 	FlowAuth 	fauth;
@@ -102,8 +101,8 @@ typedef struct {
 	uint16_t 	len;
 	ACKAuth 	auth;
 #ifdef DEBUG
-	NodeId	src;
-	NodeId	dst;
+	NodeId		src;
+	NodeId		dst;
 #endif
 } Castor_ACK;
 
