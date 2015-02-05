@@ -7,15 +7,15 @@ CLICK_DECLS
 
 void FloodingCheckDuplicate::push(int, Packet *p) {
 
-	Key id = Flooding::getId(p);
-	Key dst = p->ip_header()->ip_dst.s_addr;
-	HashTable<Key, Key>* ids = history.get_pointer(dst);
+	Flooding::Id id = Flooding::getId(p);
+	IPAddress dst = p->ip_header()->ip_dst.s_addr;
+	HashTable<Flooding::Id, Flooding::Id>* ids = history.get_pointer(dst);
 
 	if (ids && ids->get_pointer(id)) {
 		output(1).push(p); // -> Duplicate
 	} else {
 		if (!ids) {
-			history.set(dst, HashTable<Key,Key>());
+			history.set(dst, HashTable<Flooding::Id,Flooding::Id>());
 			ids = history.get_pointer(dst);
 		}
 		ids->set(id, id);

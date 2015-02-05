@@ -5,20 +5,15 @@ require(
 
 /**
  * Handle packets destined for local host
- *
- * Input(0): IP packet
- * Input(1): Other packet
  */
 elementclass ToHost {
 	$myHostDev |
 	
 	hostdevice :: ToSimDevice($myHostDev, IP);
 
-	input[0]
+	input
 		-> CheckIPHeader2
 		-> hostdevice;
-		
-	// Redefined without second input
 
 }
 
@@ -116,5 +111,5 @@ arpquerier -> ethout;	// Send Ethernet packets to output
 
 fromhost -> handleIpPacket -> handlepkt;	// Process new generated packets
  
-handlepkt[0]		-> [0]tohost;  // Deliver PKT to host
-handlepkt[1]		-> arpquerier; // Forward PKT		
+handlepkt[0]		-> tohost;		// Deliver PKT to host
+handlepkt[1]		-> arpquerier;	// Forward PKT

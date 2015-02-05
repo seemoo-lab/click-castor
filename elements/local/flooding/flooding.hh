@@ -8,26 +8,22 @@ CLICK_DECLS
 class Flooding {
 
 public:
-	typedef unsigned long Id;
+	typedef unsigned long long Id;
 
-	static inline Id getId(Packet* p) {
-		const uint8_t* pt = p->data();
-		pt += sizeof(click_ip);
-		Id id;
-		memcpy(&id, pt, sizeof(Id));
-		return id;
+	static inline Id getId(const Packet* p) {
+		return *((Id*) getPayload(p));
 	}
 
 	static inline void setId(WritablePacket* p, Id id) {
-		uint8_t* pt = p->data();
-		pt += sizeof(click_ip);
-		memcpy(pt, &id, sizeof(Id));
+		*((Id*) getPayload(p)) = id;
 	}
 
-	static inline uint8_t* getHashAnno(Packet* p) {
-		uint8_t* anno = p->anno_u8();
-		anno += DST_IP_ANNO_OFFSET + DST_IP_ANNO_SIZE;
-		return anno;
+private:
+	static inline const uint8_t* getPayload(const Packet* p) {
+		return (p->data() + sizeof(click_ip));
+	}
+	static inline uint8_t* getPayload(WritablePacket* p) {
+		return (p->data() + sizeof(click_ip));
 	}
 };
 

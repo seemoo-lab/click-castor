@@ -17,7 +17,7 @@ class FloodingSetPktId : public Element {
 		void push(int, Packet *);
 
 	private:
-		unsigned long seq;
+		Flooding::Id seq;
 };
 
 CLICK_ENDDECLS

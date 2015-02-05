@@ -16,8 +16,7 @@ class FloodingCheckDuplicate : public Element {
 		void push(int, Packet *);
 
 	private:
-		typedef unsigned long Key;
-		HashTable<Key, HashTable<Key,Key> > history;
+		HashTable<IPAddress, HashTable<Flooding::Id,Flooding::Id> > history;
 };
 
 CLICK_ENDDECLS
