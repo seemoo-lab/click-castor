@@ -246,15 +246,12 @@ void setRandomWaypointMobility(NodeContainer& nodes, double xSize, double ySize,
 	MobilityHelper mobility;
 	Ptr <PositionAllocator> taPositionAlloc = getRandomRectanglePositionAllocator(xSize, ySize);
 
-	std::ostringstream speedVariable;
-	speedVariable << "ns3::UniformRandomVariable[Min=0.0|Max="<< speed << "]";
-	std::ostringstream pauseVariable;
-	pauseVariable << "ns3::UniformRandomVariable[Min=0.0|Max=" << pause << "]";
-
-	mobility.SetMobilityModel("ns3::RandomWaypointMobilityModel",
-			"Speed", StringValue(speedVariable.str()),
-			"Pause", StringValue(pauseVariable.str()),
-			"PositionAllocator", PointerValue(taPositionAlloc));
+	mobility.SetMobilityModel("ns3::SteadyStateRandomWaypointMobilityModel",
+			"MaxSpeed", DoubleValue(speed),
+			"MinX", DoubleValue(0),
+			"MaxX", DoubleValue(xSize),
+			"MinY", DoubleValue(0),
+			"MaxY", DoubleValue(ySize));
 	mobility.SetPositionAllocator(taPositionAlloc);
 	mobility.Install (nodes);
 }
