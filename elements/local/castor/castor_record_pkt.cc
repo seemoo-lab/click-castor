@@ -1,12 +1,25 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-#include <click/straccum.hh>
 #include "castor_record_pkt.hh"
 #include "castor_xcast.hh"
 
 CLICK_DECLS
 
+int CastorRecordPkt::configure(Vector<String> &conf, ErrorHandler *errh) {
+     int result = cp_va_kparse(conf, this, errh,
+        "Interval", cpkP, cpTimestamp, &interval,
+        cpEnd);
+     currentIntervalEnd = interval;
+     return result;
+}
+
 void CastorRecordPkt::push(int, Packet *p) {
+
+	// Fast forward to current interval entry
+	for (; currentIntervalEnd < Timestamp::now_steady(); currentIntervalEnd += interval) {
+		ListNode* node = new ListNode();
+		sizeInterval.push_back(node);
+	}
 
 	if(CastorPacket::getType(p) == CastorType::PKT) {
 		if(CastorPacket::isXcast(p)) {
@@ -39,6 +52,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 
 	numPkts++;
 	pktAccumSize += p->length();
+	sizeInterval.back()->value += p->length();
 
     output(0).push(p);
 }
@@ -75,6 +89,16 @@ String CastorRecordPkt::read_handler(Element *e, void *thunk) {
 			recorder->hopcount_index++;
 			return String(hopcount);
 		}
+	case Statistics::size_interval:
+		if (recorder->sizeInterval.empty())
+			return String(-1); // no more entries
+		else {
+			ListNode* front = recorder->sizeInterval.front();
+			uint32_t val = front->value.value();
+			recorder->sizeInterval.pop_front();
+			delete front;
+			return String(val);
+		}
 	default:
 		click_chatter("enum error");
 		return String();
@@ -89,6 +113,7 @@ void CastorRecordPkt::add_handlers() {
 	add_read_handler("unicasts", read_handler, Statistics::unicasts);
 	add_read_handler("seq_entry", read_handler, Statistics::seq_entry);
 	add_read_handler("seq_hopcount", read_handler, Statistics::seq_hopcount);
+	add_read_handler("size_interval", read_handler, Statistics::size_interval);
 }
 
 CLICK_ENDDECLS

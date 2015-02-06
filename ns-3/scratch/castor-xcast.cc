@@ -107,6 +107,10 @@ int readNextHopcount(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
 	return readIntStat(clickRouter, "seq_hopcount", where);
 }
 
+int readNextSizeInterval(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
+	return readIntStat(clickRouter, "size_interval", where);
+}
+
 std::vector<std::string> split(const std::string &s, char delim) {
     std::vector<std::string> elems;
     std::stringstream ss(s);
@@ -457,9 +461,11 @@ void simulate(
 	uint32_t numAcksForwarded = 0;
 	std::map<std::string, double> pidsSent;
 	std::vector<double> delays;
-	double avgDelay;
+	double avgDelay = 0;
 	uint32_t pktDroppedByBlackhole = 0;
+	double avgHopcount = 0;
 	std::list<uint32_t> hopcounts;
+	std::list<uint32_t> buDistribution;
 
 	std::string handlepktPrefix = "handlepkt/";
 	if (isXcastPromisc) handlepktPrefix.append("handleXcastPkt/");
@@ -495,6 +501,19 @@ void simulate(
 		double timestamp;
 		while(readPidTimestamp(router, pktSend, pid, timestamp))
 			pidsSent.insert(std::make_pair(pid, timestamp));
+		if (!isFlooding) { // Flooding currently does not support this
+			// Bandwidth utilization over time
+			int pktSize;
+			std::list<unsigned int>::iterator it = buDistribution.begin();
+			while ((pktSize = readNextSizeInterval(router, pktForward)) != -1) {
+				if (it == buDistribution.end()) {
+					buDistribution.push_back(pktSize);
+				} else {
+					*it += pktSize;
+					it++;
+				}
+			}
+		}
 	}
 	totalBandwidthUsage = pktBandwidthUsage + ackBandwidthUsage;
 	for(unsigned int i = 0; i < netConfig.nNodes; i++) {
@@ -508,6 +527,8 @@ void simulate(
 			avgDelay += delay;
 		}
 	}
+	for (std::list<uint32_t>::iterator it = hopcounts.begin(); it != hopcounts.end(); it++)
+		avgHopcount += (double) *it / (double) hopcounts.size();
 
 	double pdr = (double) numPktsRecv / numPidsSent;
 	double delay = avgDelay / numPktsRecv * 1000;
@@ -522,6 +543,7 @@ void simulate(
 	NS_LOG_INFO("        frac(PKT)        " << ((double) buPerPidPkt / buPerPidNet));
 	NS_LOG_INFO("        frac(ACK)        " << ((double) buPerPidAck / buPerPidNet));
 	NS_LOG_INFO("  STAT DELAY             " << delay << " ms");
+	NS_LOG_INFO("  STAT HOP COUNT TO DEST " << avgHopcount);
 	NS_LOG_INFO("  STAT GRP MSG HOP COUNT " << hopsPerGroupMessage);
 	NS_LOG_INFO("  STAT BROADCAST         " << ((double) broadcasts / (unicasts + broadcasts)) << " (" << broadcasts << "/" << (unicasts + broadcasts) << ")");
 	NS_LOG_INFO("  STAT PHY RX DROPS      " << phyRxDrop);
@@ -554,6 +576,7 @@ void simulate(
 	out.close();
 
 	writeToFile(outFile + "-hopcount", hopcounts);
+	writeToFile(outFile + "-bu_distribution", buDistribution);
 
 }
 
@@ -593,7 +616,11 @@ int main(int argc, char *argv[]) {
 	trafficConfigs.insert(std::make_pair( "4_5", TrafficConfiguration(0.04,  5)));
 	trafficConfigs.insert(std::make_pair("10_2", TrafficConfiguration(0.10,  2)));
 	trafficConfigs.insert(std::make_pair("20_1", TrafficConfiguration(0.20,  1)));
-
+	// 10% receivers
+	trafficConfigs.insert(std::make_pair("1_10", TrafficConfiguration(0.01, 10)));
+	trafficConfigs.insert(std::make_pair( "2_5", TrafficConfiguration(0.02,  5)));
+	trafficConfigs.insert(std::make_pair( "5_2", TrafficConfiguration(0.05,  2)));
+	trafficConfigs.insert(std::make_pair("10_1", TrafficConfiguration(0.10,  1)));
 
 	std::map<std::string, MobilityConfiguration> mobilityConfigs;
 	mobilityConfigs.insert(std::make_pair( "0", MobilityConfiguration( 0.0, 0.0)));
