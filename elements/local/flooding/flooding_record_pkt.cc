@@ -20,6 +20,8 @@ void FloodingRecordPkt::push(int, Packet *p) {
 		broadcastDecisions += size;
 	records.push_back(Entry(Flooding::getId(p)));
 
+	hopcounts.push_back(new ListNode(Flooding::getHopcount(p)));
+
 	numPids += size;
 	numPkts++;
 	pktAccumSize += p->length();
@@ -52,7 +54,15 @@ String FloodingRecordPkt::read_handler(Element *e, void *thunk) {
 			return sa.take_string();
 		}
 	case Statistics::seq_hopcount:
-		return String(-1);
+		if (recorder->hopcounts.empty())
+			return String(-1); // no more entries
+		else {
+			ListNode* front = recorder->hopcounts.front();
+			uint32_t val = front->value.value();
+			recorder->hopcounts.pop_front();
+			delete front;
+			return String(val);
+		}
 	default:
 		click_chatter("enum error");
 		return String();

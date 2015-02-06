@@ -28,11 +28,12 @@ void FloodingDestinationClassifier::push(int, Packet *p) {
 
 	if (isDestination) {
 		output(0).push(p->clone()); // Deliver to host
+	} else {
+		p->set_dst_ip_anno(IPAddress::make_broadcast());
+		WritablePacket* q = p->uniqueify();
+		Flooding::setHopcount(q, Flooding::getHopcount(q) + 1); // hopcount++
+		output(1).push(q); // Forward packet
 	}
-
-	p->set_dst_ip_anno(IPAddress::make_broadcast());
-	output(1).push(p); // Forward packet
-
 }
 
 CLICK_ENDDECLS

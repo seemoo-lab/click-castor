@@ -4,6 +4,7 @@
 #include <click/element.hh>
 #include <click/timestamp.hh>
 #include <click/vector.hh>
+#include <click/list.hh>
 #include "../castor/castor.hh"
 #include "../castor/castor_xcast_destination_map.hh"
 
@@ -34,6 +35,15 @@ private:
 		const Timestamp time;
 	};
 
+	struct ListNode {
+		inline ListNode() { value = 0; }
+		inline ListNode(uint32_t value) { this->value = value; }
+		List_member<ListNode> node;
+		atomic_uint32_t value;
+	};
+
+	List<ListNode, &ListNode::node> hopcounts;
+
 	Vector<Entry> records;
 	int32_t seq_index;
 
@@ -54,7 +64,7 @@ private:
 			broadcasts, // number of broadcasts
 			unicasts, // number of unicasts
 			seq_entry, // returns entries one after the other
-			seq_hopcount, // hopcount of the packet, TODO currently returns constant -1 (no entries)
+			seq_hopcount, // hopcount of the packet
 		};
 	};
 

@@ -10,6 +10,7 @@ void FloodingSetPktId::push(int, Packet *p) {
 	WritablePacket* q = p->uniqueify();
 	Flooding::setId(q, seq);
 	seq++;
+	Flooding::setHopcount(q, 0);
 
 	output(0).push(q);
 }

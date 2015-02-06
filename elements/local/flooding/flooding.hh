@@ -9,21 +9,29 @@ class Flooding {
 
 public:
 	typedef unsigned long long Id;
+	typedef unsigned int hopcount_t;
 
 	static inline Id getId(const Packet* p) {
-		return *((Id*) getPayload(p));
+		return *getField<Id>(p, 0);
 	}
-
 	static inline void setId(WritablePacket* p, Id id) {
-		*((Id*) getPayload(p)) = id;
+		*getField<Id>(p, 0) = id;
+	}
+	static inline hopcount_t getHopcount(const Packet* p) {
+		return *getField<hopcount_t>(p, sizeof(Id));
+	}
+	static inline void setHopcount(WritablePacket* p, hopcount_t hc) {
+		*getField<hopcount_t>(p, sizeof(Id)) = hc;
 	}
 
 private:
-	static inline const uint8_t* getPayload(const Packet* p) {
-		return (p->data() + sizeof(click_ip));
+	template<typename T>
+	static inline const T* getField(const Packet* p, unsigned int off) {
+		return (T*) (p->data() + sizeof(click_ip) + off);
 	}
-	static inline uint8_t* getPayload(WritablePacket* p) {
-		return (p->data() + sizeof(click_ip));
+	template<typename T>
+	static inline T* getField(WritablePacket* p, unsigned int off) {
+		return (T*) (p->data() + sizeof(click_ip) + off);
 	}
 };
 
