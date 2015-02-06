@@ -104,10 +104,7 @@ unsigned int readUnicasts(Ptr<Ipv4ClickRouting> clickRouter, std::string where) 
 }
 
 int readNextHopcount(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
-	std::string result = readStringStat(clickRouter, "seq_hopcount", where);
-	int i;
-	sscanf(result.c_str(), "%d", &i);
-	return i;
+	return readIntStat(clickRouter, "seq_hopcount", where);
 }
 
 std::vector<std::string> split(const std::string &s, char delim) {
@@ -279,6 +276,19 @@ void setBlackHoles(NodeContainer& nodes, unsigned int nBlackholes) {
 		Simulator::Schedule(Seconds(0.5), &WriteSetBlackhole, nodes.Get(i)->GetObject<Ipv4ClickRouting>(), true);
 }
 
+template<typename T>
+void writeToFile(std::string filename, std::list<T> values) {
+	std::ofstream outfile;
+	outfile.open(filename.c_str());
+	if(outfile.fail()) {
+		NS_LOG_ERROR("Could not write to file '" << outfile << "'");
+		return;
+	}
+	for (std::list<unsigned int>::iterator it = values.begin(); it != values.end(); it++)
+		outfile << *it << "\n";
+	outfile.close();
+}
+
 typedef struct NetworkConfiguration {
 	double x, y;
 	double range;
@@ -440,7 +450,7 @@ void simulate(
 	uint32_t ackBandwidthUsage = 0;
 	uint32_t totalBandwidthUsage = 0;
 	uint32_t numPktsSent = 0;
-	uint32_t numGroupMessagesSent = (uint32_t) (duration / trafficConfig.sendInterval) * (trafficConfig.senderFraction * netConfig.nNodes);
+	uint32_t numGroupMessagesSent = (uint32_t) (duration.ToDouble(Time::S) * nSenders / trafficConfig.sendInterval.ToDouble(Time::S));
 	uint32_t broadcasts = 0;
 	uint32_t unicasts = 0;
 	uint32_t numPktsForwarded = 0;
@@ -449,7 +459,7 @@ void simulate(
 	std::vector<double> delays;
 	double avgDelay;
 	uint32_t pktDroppedByBlackhole = 0;
-	std::vector<uint32_t> hopcounts;
+	std::list<uint32_t> hopcounts;
 
 	std::string handlepktPrefix = "handlepkt/";
 	if (isXcastPromisc) handlepktPrefix.append("handleXcastPkt/");
@@ -463,26 +473,27 @@ void simulate(
 	std::string ackSend    = handlepktPrefix + "sendAck/recAck";
 	std::string pktDrop    = handlepktPrefix + "blackhole/rec";
 	for(unsigned int i = 0; i < netConfig.nNodes; i++) {
-		numPidsSent += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktSend);
-		numPktsRecv += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDeliver);
-		pktBandwidthUsage += readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
+		Ptr<Ipv4ClickRouting> router = n.Get(i)->GetObject<Ipv4ClickRouting>();
+		numPidsSent += readPidCount(router, pktSend);
+		numPktsRecv += readPktCount(router, pktDeliver);
+		pktBandwidthUsage += readAccumPktSize(router, pktForward);
 		if(!isFlooding)
-			ackBandwidthUsage += readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackSend) +
-							 readAccumPktSize(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackForward);
-		numPktsSent += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktSend);
-		numPktsForwarded += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
+			ackBandwidthUsage += readAccumPktSize(router, ackSend) +
+							 	 readAccumPktSize(router, ackForward);
+		numPktsSent += readPktCount(router, pktSend);
+		numPktsForwarded += readPktCount(router, pktForward);
 		if(!isFlooding)
-			numAcksForwarded += readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackSend) +
-							readPktCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), ackForward);
-		broadcasts += readBroadcasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
-		unicasts += readUnicasts(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktForward);
-		pktDroppedByBlackhole += readPidCount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDrop);
-		for (int hc = readNextHopcount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDeliver); hc != -1; hc = readNextHopcount(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDeliver)) {
+			numAcksForwarded += readPktCount(router, ackSend) +
+								readPktCount(router, ackForward);
+		broadcasts += readBroadcasts(router, pktForward);
+		unicasts += readUnicasts(router, pktForward);
+		pktDroppedByBlackhole += readPidCount(router, pktDrop);
+		for (int hc = readNextHopcount(router, pktDeliver); hc != -1; hc = readNextHopcount(router, pktDeliver)) {
 			hopcounts.push_back(hc);
 		}
 		std::string pid;
 		double timestamp;
-		while(readPidTimestamp(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktSend, pid, timestamp))
+		while(readPidTimestamp(router, pktSend, pid, timestamp))
 			pidsSent.insert(std::make_pair(pid, timestamp));
 	}
 	totalBandwidthUsage = pktBandwidthUsage + ackBandwidthUsage;
@@ -490,10 +501,7 @@ void simulate(
 		std::string pid;
 		double recTimestamp;
 		while(readPidTimestamp(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDeliver, pid, recTimestamp)) {
-			if(pidsSent[pid] == 0.0) {
-				NS_LOG_INFO("" << pid << " was received but never sent");
-				break;
-			}
+			NS_ASSERT_MSG(pidsSent[pid] != 0.0, "" << pid << " was received but never sent");
 			double sentTimestamp = pidsSent[pid];
 			double delay = recTimestamp - sentTimestamp;
 			delays.push_back(recTimestamp - sentTimestamp);
@@ -545,16 +553,7 @@ void simulate(
 
 	out.close();
 
-	std::ofstream outHopcount;
-	outHopcount.open((outFile + "-hopcount_distribution").c_str());
-	if(outHopcount.fail()) {
-		NS_LOG_ERROR("Could not write to file '" << outHopcount << "'");
-		return;
-	}
-	for (size_t i = 0; i < hopcounts.size(); i++) {
-		outHopcount << hopcounts[i] << "\n";
-	}
-	outHopcount.close();
+	writeToFile(outFile + "-hopcount", hopcounts);
 
 }
 
@@ -569,7 +568,7 @@ int main(int argc, char *argv[]) {
 	clickConfigs.insert(std::make_pair("xcast",         CLICK_PATH"/conf/castor/castor_xcast_routing.click"));
 	clickConfigs.insert(std::make_pair("xcast-promisc", CLICK_PATH"/conf/castor/castor_xcast_routing_promisc.click"));
 	clickConfigs.insert(std::make_pair("regular",       CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing.click"));
-	clickConfigs.insert(std::make_pair("regular2",       CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing_v2.click"));
+	clickConfigs.insert(std::make_pair("regular2",		CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing_v2.click"));
 	clickConfigs.insert(std::make_pair("flooding",      CLICK_PATH"/conf/castor/flooding.click"));
 
 
