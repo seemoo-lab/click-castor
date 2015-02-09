@@ -52,6 +52,7 @@ NS_LOG_COMPONENT_DEFINE("NsclickCastor");
 
 uint32_t phyTx = 0;
 uint32_t phyRxDrop = 0;
+std::list<uint16_t> neighborCount;
 
 void
 PhyTx(Ptr<const Packet> p)
@@ -129,6 +130,13 @@ bool readPidTimestamp(Ptr<Ipv4ClickRouting> clickRouter, std::string where, std:
 	pid = entry[0];
 	sscanf(entry[1].c_str(), "%lf", &timestamp);
 	return true;
+}
+
+void addNeighborCount(const NodeContainer& n) {
+	for_each(n.Begin(), n.End(), [&] (Ptr<Node> node) {
+				auto count = readIntStat(node->GetObject<Ipv4ClickRouting>(), "num", "neighbors");
+				neighborCount.push_back(count);
+			});
 }
 
 void WriteArp(NodeContainer n) {
@@ -418,6 +426,12 @@ void simulate(
 		}
 	}
 
+	if (!isFlooding) {
+		for (Time t = Seconds(0.0); t <= duration; t += Seconds(1.0))
+			Simulator::Schedule(t, &addNeighborCount, n);
+	}
+
+
 	setBlackHoles(n, round(netConfig.nNodes * blackholeFraction));
 
 	// Install FlowMonitor on all nodes
@@ -463,6 +477,7 @@ void simulate(
 	double avgHopcount = 0;
 	std::list<uint32_t> hopcounts;
 	std::list<uint32_t> buDistribution;
+	double avgNeighborCount = 0;
 
 	std::string handlepktPrefix = "handlepkt/";
 	if (isXcastPromisc) handlepktPrefix.append("handleXcastPkt/");
@@ -527,6 +542,10 @@ void simulate(
 	for (std::list<uint32_t>::iterator it = hopcounts.begin(); it != hopcounts.end(); it++)
 		avgHopcount += (double) *it / (double) hopcounts.size();
 
+	for_each (neighborCount.begin(), neighborCount.end(), [&] (uint16_t count) {
+		avgNeighborCount += (double) count / neighborCount.size();
+	});
+
 	double pdr = (double) numPktsRecv / numPidsSent;
 	double delay = avgDelay / numPktsRecv * 1000;
 	double buPerPidNet = (double) totalBandwidthUsage / numPidsSent;
@@ -542,6 +561,7 @@ void simulate(
 	NS_LOG_INFO("  STAT DELAY             " << delay << " ms");
 	NS_LOG_INFO("  STAT HOP COUNT TO DEST " << avgHopcount);
 	NS_LOG_INFO("  STAT GRP MSG HOP COUNT " << hopsPerGroupMessage);
+	NS_LOG_INFO("  STAT NEIGHBOR COUNT    " << avgNeighborCount);
 	NS_LOG_INFO("  STAT BROADCAST         " << ((double) broadcasts / (unicasts + broadcasts)) << " (" << broadcasts << "/" << (unicasts + broadcasts) << ")");
 	NS_LOG_INFO("  STAT PHY RX DROPS      " << phyRxDrop);
 	NS_LOG_INFO("  STAT ATTACK DROPS      " << pktDroppedByBlackhole);

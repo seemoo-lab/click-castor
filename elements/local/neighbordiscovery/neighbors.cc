@@ -66,5 +66,21 @@ void Neighbors::addNeighbor(NodeId neighbor) {
 	}
 }
 
+String Neighbors::read_handler(Element *e, void *thunk) {
+	Neighbors* neighbors = static_cast<Neighbors*>(e);
+
+	switch(reinterpret_cast<uintptr_t>(thunk)) {
+	case Statistics::num:
+		return String(neighbors->neighborCount());
+	default:
+		click_chatter("enum error");
+		return String();
+	}
+}
+
+void Neighbors::add_handlers() {
+	add_read_handler("num", read_handler, Statistics::num);
+}
+
 CLICK_ENDDECLS
 EXPORT_ELEMENT(Neighbors)

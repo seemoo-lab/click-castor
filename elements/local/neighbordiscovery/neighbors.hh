@@ -34,6 +34,8 @@ public:
 	 */
 	inline unsigned int neighborCount() const { return neighbors.size(); }
 
+    void add_handlers();
+
 private:
 	struct ListNode {
 		inline ListNode(NodeId neighbor, Timestamp timeout) : neighbor(neighbor), timeout(timeout) {}
@@ -72,6 +74,14 @@ private:
 	HashTable<NodeId, ListNode *> neighbors;
 
 	unsigned int timeout;
+
+	static String read_handler(Element*, void*);
+
+	struct Statistics {
+		enum {
+			num, // current number of neighbors
+		};
+	};
 };
 
 CLICK_ENDDECLS
