@@ -338,6 +338,12 @@ void simulate(
 	RngSeedManager::SetSeed(12345);
 	RngSeedManager::SetRun(run);
 
+	Time gratiousDelta = Seconds(1.0);
+	Time startSimulation = Seconds(0.0);
+	Time startTraffic = startSimulation + gratiousDelta;
+	Time endTraffic = startTraffic + duration;
+	Time endSimulation = endTraffic + gratiousDelta;
+
 	bool isFlooding = clickConfig.Get() == CLICK_PATH"/conf/castor/flooding.click";  // TODO quick'n'dirty
 	bool isXcastPromisc = clickConfig.Get() == CLICK_PATH"/conf/castor/castor_xcast_routing_promisc.click";
 	bool isUnicastPromisc = clickConfig.Get() == CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing.click" ||
@@ -404,30 +410,30 @@ void simulate(
 		client.SetAttribute("Interval", TimeValue(trafficConfig.sendInterval));
 		client.SetAttribute("PacketSize", UintegerValue(packetSize));
 		apps = client.Install(NodeContainer(sender));
-		apps.Start(Seconds(2.0) + trafficConfig.sendInterval / nSenders * nodeIndex);
-		apps.Stop(duration + Seconds(2.0));
+		apps.Start(startTraffic + trafficConfig.sendInterval / nSenders * nodeIndex);
+		apps.Stop(endTraffic);
 
 		std::vector<Ptr<Node> > dsts = groups.at(groupIp);
 		for(std::vector<Ptr<Node> >::iterator itDst = dsts.begin(); itDst != dsts.end(); itDst++) {
 			UdpServerHelper server(port);
 			apps = server.Install(*itDst);
-			apps.Start(Seconds(1.0));
-			apps.Stop(duration + Seconds(3.0));
+			apps.Start(startTraffic);
+			apps.Stop(endSimulation);
 		}
 	}
 
 	// We fill in the ARP tables at the beginning of the simulation
-	Simulator::Schedule(Seconds(0.5), &WriteArp, n);
+	Simulator::Schedule(startSimulation, &WriteArp, n);
 	std::string mapLocation = isFlooding ? "map" : "handleIpPacket/map";
 	for (unsigned int i = 0; i < n.GetN(); i++) {
 		// Write Xcast destination mapping
 		for (std::map<Ipv4Address, std::vector<Ptr<Node> > >::iterator it = groups.begin(); it != groups.end(); it++) {
-			Simulator::Schedule(Seconds(0.5), &WriteXcastMap, n.Get(i)->GetObject<Ipv4ClickRouting>(), it->first, it->second, mapLocation);
+			Simulator::Schedule(startSimulation, &WriteXcastMap, n.Get(i)->GetObject<Ipv4ClickRouting>(), it->first, it->second, mapLocation);
 		}
 	}
 
 	if (!isFlooding) {
-		for (Time t = Seconds(0.0); t <= duration; t += Seconds(1.0))
+		for (Time t = startTraffic; t <= endTraffic; t += Seconds(1.0))
 			Simulator::Schedule(t, &addNeighborCount, n);
 	}
 
@@ -445,7 +451,7 @@ void simulate(
 	// Now, do the actual simulation.
 	//
 	time_t start; time(&start);
-	Simulator::Stop(duration + Seconds(6.0));
+	Simulator::Stop(endSimulation);
 	Simulator::Run();
 	time_t end; time(&end);
 
