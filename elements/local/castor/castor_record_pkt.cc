@@ -16,7 +16,7 @@ int CastorRecordPkt::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorRecordPkt::push(int, Packet *p) {
 
 	// Fast forward to current interval entry
-	for (; currentIntervalEnd < Timestamp::now_steady(); currentIntervalEnd += interval) {
+	for (; currentIntervalEnd < Timestamp::now_steady() || sizeInterval.back() == 0; currentIntervalEnd += interval) {
 		ListNode* node = new ListNode();
 		sizeInterval.push_back(node);
 	}
