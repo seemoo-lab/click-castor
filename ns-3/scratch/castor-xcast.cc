@@ -604,7 +604,7 @@ int main(int argc, char *argv[]) {
 
 	// Possible run configurations
 
-	std::map<std::string, StringValue> clickConfigs;
+	std::map<std::string, std::string> clickConfigs;
 	clickConfigs.insert(std::make_pair("xcast",         CLICK_PATH"/conf/castor/castor_xcast_routing.click"));
 	clickConfigs.insert(std::make_pair("xcast-promisc", CLICK_PATH"/conf/castor/castor_xcast_routing_promisc.click"));
 	clickConfigs.insert(std::make_pair("regular",       CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing.click"));
