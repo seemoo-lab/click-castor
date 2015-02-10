@@ -475,7 +475,7 @@ void simulate(
 	uint32_t ackBandwidthUsage = 0;
 	uint32_t totalBandwidthUsage = 0;
 	uint32_t numPktsSent = 0;
-	uint32_t numGroupMessagesSent = (uint32_t) (duration.ToDouble(Time::S) * nSenders / trafficConfig.sendInterval.ToDouble(Time::S));
+	uint32_t numGroupMessagesSent = (uint32_t) ceil (duration.ToDouble(Time::S)  / trafficConfig.sendInterval.ToDouble(Time::S) * nSenders);
 	uint32_t broadcasts = 0;
 	uint32_t unicasts = 0;
 	uint32_t numPktsForwarded = 0;
@@ -633,6 +633,7 @@ int main(int argc, char *argv[]) {
 	std::map<std::string, TrafficConfiguration> trafficConfigs;
 	// as in Castor (5 unicast flows @ 100 nodes)
 	trafficConfigs.insert(std::make_pair( "5_1", TrafficConfiguration(0.05,  1)));
+	trafficConfigs.insert(std::make_pair( "1_1", TrafficConfiguration(0.01,  1)));
 	// 40% receivers
 	trafficConfigs.insert(std::make_pair("4_10", TrafficConfiguration(0.04, 10)));
 	trafficConfigs.insert(std::make_pair( "8_5", TrafficConfiguration(0.08,  5)));
