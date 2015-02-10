@@ -31,6 +31,7 @@
 #include "ns3/random-variable-stream.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/config.h"
+#include "ns3/netanim-module.h"
 
 #ifndef CLICK_PATH
 #define CLICK_PATH "/home/milan/click"
@@ -440,12 +441,15 @@ void simulate(
 
 	setBlackHoles(n, round(netConfig.nNodes * blackholeFraction));
 
-	// Install FlowMonitor on all nodes
-	FlowMonitorHelper flowmon;
-	Ptr<FlowMonitor> monitor = flowmon.InstallAll();
-
 	Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback(&PhyTx));
 	Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyRxDrop", MakeCallback(&PhyRxDrop));
+
+	// Create NetAnim traces
+	AnimationInterface anim (outFile + "-animation.xml");
+	anim.SetMobilityPollInterval (Seconds (1));
+	anim.SetStartTime (startTraffic);
+	anim.SetStopTime (endTraffic);
+	anim.EnablePacketMetadata(true);
 
 	//
 	// Now, do the actual simulation.
