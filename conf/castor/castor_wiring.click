@@ -9,7 +9,7 @@ ethin[2]
 	-> castorclassifier;	// Classify received packets
 
 cEtherFilter[1] // Received beacon from neighbor
-	-> AddNeighbor(neighbors)
+	-> AddNeighbor(neighbors, $neighborsEnable)
 	-> Discard;
 
 arpquerier -> ethout;	// Send Ethernet packets to output
@@ -27,4 +27,4 @@ handlepkt[1]		-> arpquerier; // Return ACK
 handlepkt[2]		-> arpquerier; // Forward PKT
 handleack			-> arpquerier; // Forward ACK
 
-NeighborBeaconGenerator($beaconingInterval, fake, $EthDev) -> ethout;
+NeighborBeaconGenerator($beaconingInterval, fake, $EthDev, $neighborsEnable) -> ethout;

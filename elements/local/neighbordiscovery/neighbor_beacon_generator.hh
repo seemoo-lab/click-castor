@@ -10,7 +10,7 @@ CLICK_DECLS
 
 class NeighborBeaconGenerator : public Element {
 public:
-	NeighborBeaconGenerator() : timer(0), interval(0) {}
+	NeighborBeaconGenerator() : timer(0), interval(0), enabled(true) {}
 
 	const char *class_name() const { return "NeighborBeaconGenerator"; }
 	const char *port_count() const { return PORTS_0_1; }
@@ -25,6 +25,7 @@ private:
 	unsigned int interval;
 	NodeId myId;
 	EtherAddress myEth;
+	bool enabled;
 };
 
 CLICK_ENDDECLS

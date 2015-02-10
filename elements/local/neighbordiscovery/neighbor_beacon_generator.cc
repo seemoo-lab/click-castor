@@ -7,11 +7,14 @@
 CLICK_DECLS
 
 int NeighborBeaconGenerator::configure(Vector<String>& conf, ErrorHandler* errh) {
-	return cp_va_kparse(conf, this, errh,
+	int result = cp_va_kparse(conf, this, errh,
 			"INTERVAL", cpkP + cpkM, cpUnsigned, &interval,
 			"NodeId", cpkP + cpkM, cpIPAddress, &myId,
 			"ETH", cpkP + cpkM, cpEtherAddress, &myEth,
+			"ENABLE", cpkP, cpBool, &enabled,
 			cpEnd);
+	if (!enabled) interval = 0;
+	return result;
 }
 
 int NeighborBeaconGenerator::initialize(ErrorHandler*) {

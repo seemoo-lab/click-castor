@@ -9,7 +9,7 @@ CLICK_DECLS
 
 class AddNeighbor : public Element {
 public:
-	AddNeighbor() : neighbors(0) {}
+	AddNeighbor() : neighbors(0), enabled(true) {}
 
 	const char *class_name() const { return "AddNeighbor"; }
 	const char *port_count() const { return PORTS_1_1; }
@@ -20,6 +20,7 @@ public:
 
 private:
 	Neighbors* neighbors;
+	bool enabled;
 };
 
 CLICK_ENDDECLS

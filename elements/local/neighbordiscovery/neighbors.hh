@@ -12,7 +12,7 @@ CLICK_DECLS
 
 class Neighbors: public Element {
 public:
-	inline Neighbors() : timer(this), timeout(1000) {}
+	inline Neighbors() : timer(this), timeout(1000), enabled(true) {}
 
 	const char *class_name() const { return "Neighbors"; }
 	const char *port_count() const { return PORTS_0_0; }
@@ -27,7 +27,7 @@ public:
 	/**
 	 * Whether such a neighbor exists and it has not yet timed out.
 	 */
-	inline bool hasNeighbor(NodeId neighbor) { return neighbors.get_pointer(neighbor) != NULL; }
+	inline bool hasNeighbor(NodeId neighbor) { return !enabled || neighbors.get_pointer(neighbor) != NULL; }
 
 	/**
 	 * Returns the number of neighbors that have not yet timed out.
@@ -82,6 +82,8 @@ private:
 			num, // current number of neighbors
 		};
 	};
+
+	bool enabled;
 };
 
 CLICK_ENDDECLS

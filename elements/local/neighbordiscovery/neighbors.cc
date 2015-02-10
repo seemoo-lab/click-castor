@@ -5,10 +5,12 @@
 CLICK_DECLS
 
 int Neighbors::configure(Vector<String>& conf, ErrorHandler* errh) {
-	timer.initialize(this); 
-	return cp_va_kparse(conf, this, errh,
+	int result = cp_va_kparse(conf, this, errh,
 			"TIMEOUT", cpkP + cpkM, cpUnsigned, &timeout,
+			"ENABLE", cpkP, cpBool, &enabled,
 			cpEnd);
+	if (enabled) timer.initialize(this);
+	return result;
 }
 
 void Neighbors::run_timer(Timer*) {

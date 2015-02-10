@@ -5,7 +5,7 @@
 sam::SAManagement(fake, netAddr, $numNodes);
 crypto::Crypto(sam);
 
-neighbors :: Neighbors($neighborTimeout);
+neighbors :: Neighbors($neighborTimeout, $neighborsEnable);
 history :: CastorHistory;
 routingtable :: CastorRoutingTable($updateDelta);
 
