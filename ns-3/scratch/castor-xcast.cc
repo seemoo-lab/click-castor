@@ -20,6 +20,8 @@
 #include <fstream>
 #include <climits>
 #include <stdint.h>
+#include <numeric>
+#include <functional>
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
@@ -41,6 +43,12 @@
 #define UINT32_MAX std::numeric_limits<uint32_t>::max()
 #endif
 
+#ifndef SIZE_MAX
+#define SIZE_MAX std::numeric_limits<size_t>::max()
+#endif
+
+#define INVALID_NUMBER SIZE_MAX
+
 using namespace ns3;
 
 #ifndef NS3_CLICK
@@ -51,94 +59,326 @@ NS_LOG_COMPONENT_DEFINE("NsclickCastor");
 
 #ifdef NS3_CLICK
 
-uint32_t phyTx = 0;
-uint32_t phyRxDrop = 0;
-std::list<uint16_t> neighborCount;
+/**
+ * Depending on which click configuration we use, we might have different locations of the
+ * Recorder elements.
+ */
+class ClickRecorderLookup {
+public:
+	static std::string pktForward() { return handlepktPrefix() + "forward/rec"; }
+	static std::string pktSend()    { return "handleIpPacket/rec"; }
+	static std::string pktDeliver() { return handlepktPrefix() + "handleLocal/rec"; }
+	static std::string ackForward() { return handleackPrefix() + "sendAck/recAck"; }
+	static std::string ackSend()    { return handlepktPrefix() + "sendAck/recAck"; }
+	static std::string pktDrop()    { return handlepktPrefix() + "blackhole/rec"; }
+	static void setXcastPromisc(bool b) { isXcastPromisc = b; }
+	static void setUnicastPromisc(bool b) { isUnicastPromisc = b; }
+private:
+	static bool isXcastPromisc;
+	static bool isUnicastPromisc;
+	static std::string handlepktPrefix() {
+		std::string handlepktPrefix = "handlepkt/";
+		if (isXcastPromisc) handlepktPrefix.append("handleXcastPkt/");
+		return handlepktPrefix;
+	}
+	static std::string handleackPrefix() {
+		std::string handleackPrefix = "handleack/";
+		if (isXcastPromisc) handleackPrefix.append("handleXcastAck/");
+		else if (isUnicastPromisc) handleackPrefix.append("handleCastorAck/");
+		return handleackPrefix;
+	}
+};
+bool ClickRecorderLookup::isXcastPromisc = false;
+bool ClickRecorderLookup::isUnicastPromisc = false;
 
-void
-PhyTx(Ptr<const Packet> p)
-{
-	phyTx += p->GetSize();
-}
-
-void
-PhyRxDrop(Ptr<const Packet> p)
-{
-	phyRxDrop++;
-}
 
 std::string readStringStat(Ptr<Ipv4ClickRouting> clickRouter, std::string what, std::string where) {
 	return clickRouter->ReadHandler(where, what);
 }
 
-int readIntStat(Ptr<Ipv4ClickRouting> clickRouter, std::string what, std::string where) {
-	std::string result = readStringStat(clickRouter, what, where);
-	int i;
-	sscanf(result.c_str(), "%d", &i);
+size_t readSizeStat(Ptr<Ipv4ClickRouting> clickRouter, std::string where, std::string what) {
+	std::string result = readStringStat(clickRouter, where, what);
+	size_t i = INVALID_NUMBER;
+	sscanf(result.c_str(), "%zu", &i);
 	return i;
 }
 
-double readDoubleStat(Ptr<Ipv4ClickRouting> clickRouter, std::string what, std::string where) {
-	std::string result = readStringStat(clickRouter, what, where);
-	double i;
-	sscanf(result.c_str(), "%lf", &i);
-	return i;
-}
+class Metric {
+public:
+	virtual ~Metric() {};
+	virtual void read() = 0;
 
-unsigned int readPidCount(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
-	return readIntStat(clickRouter, "num", where);
-}
+	void write(std::string basefilename) {
+		std::ofstream outfile;
+		for (auto writer : writers) {
+			outfile.open((basefilename + "-" + name() + "-" + writer.first).c_str());
+			if(outfile.fail()) {
+				NS_LOG_ERROR("Could not write to file '" << outfile << "'");
+				return;
+			}
+			writer.second(outfile);
+			outfile.close();
+		}
+	}
+protected:
+	void addWriter(std::string suffix, std::function<void (std::ofstream& out)> writer) {
+		writers.push_back(std::make_pair(suffix, writer));
+	}
+	virtual std::string name() const = 0;
+private:
+	std::list<std::pair<std::string, std::function<void (std::ofstream& out)>> > writers;
+};
 
-unsigned int readPktCount(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
-	return readIntStat(clickRouter, "numUnique", where);
-}
+template<typename Val>
+class IntervalMetric : public Metric {
+public:
+	IntervalMetric() {
+		this->addWriter("interval", [&] (std::ofstream& out) {
+			for(auto val : intervalValues)
+				out << val << "\n";
+		});
+	}
+	const std::list<Val> intervals() const {
+		return intervalValues;
+	}
+protected:
+	std::list<Val> intervalValues;
+};
 
-unsigned int readAccumPktSize(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
-	return readIntStat(clickRouter, "size", where);
-}
+template<typename Val>
+class SimpleIntervalMetric : public IntervalMetric<Val> {
+public:
+	SimpleIntervalMetric() {
+		this->addWriter("total", [&] (std::ofstream& out) {
+			out << this->total() << "\n";
+		});
+	}
+	Val total() const {
+		return std::accumulate(this->intervalValues.begin(), this->intervalValues.end(), 0);
+	}
+};
 
-unsigned int readBroadcasts(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
-	return readIntStat(clickRouter, "broadcasts", where);
-}
+template<typename Val>
+class DiscreteIntervalMetric : public IntervalMetric<Val> {
+public:
+	DiscreteIntervalMetric() {
+		this->addWriter("dist", [&] (std::ofstream& out) {
+			for (auto val : distribution())
+				out << val << "\n";
+		});
+		this->addWriter("avg", [&] (std::ofstream& out) {
+			out << average() << "\n";
+		});
+	}
+	double average() const {
+		return std::accumulate(values.begin(), values.end(), 0.0, [&] (const double& a, const Val& b) {
+			return a + (double) b / values.size(); // Divide before adding to avoid overflow
+		});
+	}
+	const std::list<Val> distribution() const {
+		return values;
+	}
+protected:
+	std::list<Val> values;
+};
 
-unsigned int readUnicasts(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
-	return readIntStat(clickRouter, "unicasts", where);
-}
+class NeighborCount : public DiscreteIntervalMetric<uint16_t> {
+public:
+	NeighborCount(const NodeContainer& nodes) : nodes(nodes) {};
+	void read() {
+		double avg = 0;
+		for (auto n = nodes.Begin(); n != nodes.End(); n++) {
+			auto count = readSizeStat((*n)->GetObject<Ipv4ClickRouting>(), "num", "neighbors");
+			values.push_back(count);
+			avg += (double) count / nodes.GetN();
+		}
+		intervalValues.push_back(avg);
+	}
+private:
+	const NodeContainer& nodes;
+	std::string name() const { return "neighbors"; }
+};
 
-int readNextHopcount(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
-	return readIntStat(clickRouter, "seq_hopcount", where);
-}
+class HopCount : public DiscreteIntervalMetric<uint16_t> {
+public:
+	HopCount(const NodeContainer& nodes) : nodes(nodes) {};
+	void read() {
+		size_t accum = 0;
+		size_t size = values.size();
+		for (auto n = nodes.Begin(); n != nodes.End(); n++) {
+			size_t hc;
+			while((hc = readSizeStat((*n)->GetObject<Ipv4ClickRouting>(), "seq_hopcount", ClickRecorderLookup::pktDeliver())) != INVALID_NUMBER) {
+				values.push_back(hc);
+				accum += hc;
+			}
+		}
+		size_t diff = values.size() - size;
+		intervalValues.push_back((double) accum / diff);
+	}
+private:
+	const NodeContainer& nodes;
+	std::string name() const { return "hopcount"; }
+};
 
-int readNextSizeInterval(Ptr<Ipv4ClickRouting> clickRouter, std::string where) {
-	return readIntStat(clickRouter, "size_interval", where);
-}
+/**
+ * Delay in seconds
+ */
+class Delay : public DiscreteIntervalMetric<double> {
+public:
+	Delay(const NodeContainer& nodes) : nodes(nodes) {};
+	void read() {
+		std::list<std::pair<std::string, double> > pidsReceived; // We only need this temporarily
+		for (auto n = nodes.Begin(); n != nodes.End(); n++) {
+			std::string pid;
+			double timestamp;
+			while (readPidTimestamp((*n)->GetObject<Ipv4ClickRouting>(), ClickRecorderLookup::pktSend(), pid, timestamp))
+				pidsSent.insert(std::make_pair(pid, timestamp));
+			while (readPidTimestamp((*n)->GetObject<Ipv4ClickRouting>(), ClickRecorderLookup::pktDeliver(), pid, timestamp))
+				pidsReceived.push_back(std::make_pair(pid, timestamp));
+		}
+		double avg = 0;
+		for (auto entry : pidsReceived) {
+			std::string pid = entry.first;
+			NS_ASSERT_MSG(pidsSent.count(pid) == 1, "" << entry.first << " was received but never sent");
+			double sentTimestamp = pidsSent[pid];
+			double receivedTimestamp = entry.second;
+			NS_ASSERT_MSG(sentTimestamp < receivedTimestamp, "" << entry.first << " was received before it was sent");
+			double delay = receivedTimestamp - sentTimestamp;
+			values.push_back(delay);
+			avg += delay / pidsReceived.size();
+		}
+		intervalValues.push_back(avg);
+	}
+private:
+	const NodeContainer& nodes;
+	std::string name() const { return "delay"; }
+	std::map<std::string, double> pidsSent;
+	std::vector<std::string> split(const std::string &s, char delim) {
+	    std::vector<std::string> elems;
+	    std::stringstream ss(s);
+	    std::string item;
+	    while (std::getline(ss, item, delim)) {
+	        elems.push_back(item);
+	    }
+	    return elems;
+	}
+	bool readPidTimestamp(Ptr<Ipv4ClickRouting> clickRouter, std::string where, std::string& pid, double& timestamp) {
+		std::string result = readStringStat(clickRouter, "seq_entry", where);
+		if(result.empty())
+			return false;
+		std::vector<std::string> entry = split(result, ' '); // result is in form of '<pid> <timestamp>'
+		pid = entry[0];
+		sscanf(entry[1].c_str(), "%lf", &timestamp);
+		return true;
+	}
+};
 
-std::vector<std::string> split(const std::string &s, char delim) {
-    std::vector<std::string> elems;
-    std::stringstream ss(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        elems.push_back(item);
-    }
-    return elems;
-}
+class PhyTx : public SimpleIntervalMetric<size_t> {
+public:
+	PhyTx() {
+		current = 0;
+		Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback(&PhyTx::addPacket, this));
+	}
+	void read() {
+		intervalValues.push_back(current);
+		current = 0;
+	}
+	void addPacket(Ptr<const Packet> p) {
+		current += p->GetSize();
+	}
+private:
+	std::string name() const { return "phytx"; }
+	size_t current;
+};
 
-bool readPidTimestamp(Ptr<Ipv4ClickRouting> clickRouter, std::string where, std::string& pid, double& timestamp) {
-	std::string result = readStringStat(clickRouter, "seq_entry", where);
-	if(result.empty())
-		return false;
-	std::vector<std::string> entry = split(result, ' '); // result is in form of '<pid> <timestamp>'
-	pid = entry[0];
-	sscanf(entry[1].c_str(), "%lf", &timestamp);
-	return true;
-}
+class PhyRxDrops : public SimpleIntervalMetric<size_t> {
+public:
+	PhyRxDrops() {
+		current = 0;
+		Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyRxDrop", MakeCallback(&PhyRxDrops::addPacket, this));
+	}
+	void read() {
+		intervalValues.push_back(current);
+		current = 0;
+	}
+	void addPacket(Ptr<const Packet> p) {
+		current ++;
+	}
+private:
+	std::string name() const { return "phyrxdrops"; }
+	size_t current;
+};
 
-void addNeighborCount(const NodeContainer& n) {
-	for_each(n.Begin(), n.End(), [&] (Ptr<Node> node) {
-				auto count = readIntStat(node->GetObject<Ipv4ClickRouting>(), "num", "neighbors");
-				neighborCount.push_back(count);
-			});
-}
+class AccumIntervalMetric : public SimpleIntervalMetric<size_t> {
+public:
+	AccumIntervalMetric(const NodeContainer& nodes, std::string where, std::string what) : nodes(nodes) {
+		this->where.push_back(where);
+		this->what.push_back(what);
+	}
+	inline void add(std::string where) {
+		this->where.push_back(where);
+	}
+	void read() {
+		size_t accum = 0;
+		for (auto n = nodes.Begin(); n != nodes.End(); n++)
+			for (auto where : this->where)
+				for (auto what : this->what)
+					accum += readSizeStat((*n)->GetObject<Ipv4ClickRouting>(), what, where);
+		intervalValues.push_back(accum);
+	}
+private:
+	const NodeContainer& nodes;
+	std::list<std::string> where;
+	std::list<std::string> what;
+};
+
+class BlackholeDrops : public AccumIntervalMetric {
+public:
+	BlackholeDrops(const NodeContainer& nodes) :
+		AccumIntervalMetric(nodes, ClickRecorderLookup::pktDrop(), "npids") {}
+private:
+	std::string name() const { return "blackholedrops"; }
+};
+
+class UnicastCount : public AccumIntervalMetric {
+public:
+	UnicastCount(const NodeContainer& nodes) :
+		AccumIntervalMetric(nodes, ClickRecorderLookup::pktForward(), "nunicasts") {}
+private:
+	std::string name() const { return "nunicasts"; }
+};
+
+class BroadcastCount : public AccumIntervalMetric {
+public:
+	BroadcastCount(const NodeContainer& nodes) :
+		AccumIntervalMetric(nodes, ClickRecorderLookup::pktForward(), "nbroadcasts") {}
+private:
+	std::string name() const { return "nbroadcasts"; }
+};
+
+class PidCount : public AccumIntervalMetric {
+public:
+	PidCount(const NodeContainer& nodes, std::string where) :
+		AccumIntervalMetric(nodes, where, "npids") {}
+private:
+	std::string name() const { return "npids"; }
+};
+
+class PacketCount : public AccumIntervalMetric {
+public:
+	PacketCount(const NodeContainer& nodes, std::string where) :
+		AccumIntervalMetric(nodes, where, "npackets") {}
+private:
+	std::string name() const { return "npackets"; }
+};
+
+class BandwidthUsage : public AccumIntervalMetric {
+public:
+	BandwidthUsage(const NodeContainer& nodes, std::string where, std::string what) :
+		AccumIntervalMetric(nodes, where, what) {}
+private:
+	std::string name() const { return "bu"; }
+};
 
 void WriteArp(NodeContainer n) {
 
@@ -168,7 +408,7 @@ void WriteXcastMap(Ptr<Ipv4ClickRouting> clickRouter, Ipv4Address group, const s
 	// Multicast address is first in list
 	group.Print(stream);
 
-	for (unsigned int i = 0; i < destinations.size(); i++) {
+	for (size_t i = 0; i < destinations.size(); i++) {
 		stream << " ";
 		int externalInterface = 1;
 		destinations.at(i)->GetObject<Ipv4>()->GetAddress(externalInterface, 0).GetLocal().Print(stream);
@@ -275,28 +515,15 @@ void setConstantPositionMobility(NodeContainer& nodes, double xSize, double ySiz
 
 void setClickRouter(NodeContainer& nodes, StringValue clickConfig) {
 	ClickInternetStackHelper clickinternet;
-	for (unsigned int i = 0; i < nodes.GetN(); i++)
+	for (uint32_t i = 0; i < nodes.GetN(); i++)
 		clickinternet.SetClickFile(nodes.Get(i), clickConfig.Get());
 	clickinternet.SetRoutingTableElement(nodes, "rt");
 	clickinternet.Install(nodes);
 }
 
-void setBlackHoles(NodeContainer& nodes, unsigned int nBlackholes) {
-	for (unsigned int i = nodes.GetN() - 1; i >= nodes.GetN() - nBlackholes; i--)
+void setBlackHoles(NodeContainer& nodes, size_t nBlackholes) {
+	for (uint32_t i = nodes.GetN() - 1; i >= nodes.GetN() - nBlackholes; i--)
 		Simulator::Schedule(Seconds(0.5), &WriteSetBlackhole, nodes.Get(i)->GetObject<Ipv4ClickRouting>(), true);
-}
-
-template<typename T>
-void writeToFile(std::string filename, std::list<T> values) {
-	std::ofstream outfile;
-	outfile.open(filename.c_str());
-	if(outfile.fail()) {
-		NS_LOG_ERROR("Could not write to file '" << outfile << "'");
-		return;
-	}
-	for (std::list<unsigned int>::iterator it = values.begin(); it != values.end(); it++)
-		outfile << *it << "\n";
-	outfile.close();
 }
 
 typedef struct NetworkConfiguration {
@@ -346,9 +573,9 @@ void simulate(
 	Time endSimulation = endTraffic + gratiousDelta;
 
 	bool isFlooding = clickConfig.Get() == CLICK_PATH"/conf/castor/flooding.click";  // TODO quick'n'dirty
-	bool isXcastPromisc = clickConfig.Get() == CLICK_PATH"/conf/castor/castor_xcast_routing_promisc.click";
-	bool isUnicastPromisc = clickConfig.Get() == CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing.click" ||
-							clickConfig.Get() == CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing_v2.click";
+	ClickRecorderLookup::setXcastPromisc(clickConfig.Get() == CLICK_PATH"/conf/castor/castor_xcast_routing_promisc.click");
+	ClickRecorderLookup::setUnicastPromisc(clickConfig.Get() == CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing.click" ||
+										   clickConfig.Get() == CLICK_PATH"/conf/castor/castor_multicast_via_unicast_routing_v2.click");
 
 	size_t nSenders = (size_t) ceil(netConfig.nNodes * trafficConfig.senderFraction);
 
@@ -386,13 +613,13 @@ void simulate(
 	// 		192.168.201.5 -> 192.168.201.6, 192.168.201.7, 192.168.201.8
 	std::map<Ipv4Address, std::vector<Ptr<Node> >, LessIpv4Address> groups; // multicast group -> xcast receivers
 
-	for (unsigned int i = 0, iAddr = 1; i < nSenders; i++) {
+	for (size_t i = 0, iAddr = 1; i < nSenders; i++) {
 		//Ipv4Address sender = Ipv4Address(baseAddr.Get() + iAddr);
 		Ptr<Node> sender = n.Get(iAddr - 1);
 		Ipv4Address group = Ipv4Address(groupAddr.Get() + iAddr);
 		std::vector<Ptr<Node> > xcastDestinations;
 		iAddr = iAddr % netConfig.nNodes + 1; // Circular count from 1..nNodes
-		for (unsigned int j = 0; j < trafficConfig.groupSize; j++, iAddr = iAddr % netConfig.nNodes + 1)
+		for (size_t j = 0; j < trafficConfig.groupSize; j++, iAddr = iAddr % netConfig.nNodes + 1)
 			xcastDestinations.push_back(n.Get(iAddr - 1));
 		senderGroupAssign.insert(std::make_pair(sender, group));
 		groups.insert(std::make_pair(group, xcastDestinations));
@@ -401,7 +628,7 @@ void simulate(
 	// Set up traffic generation
 	ApplicationContainer apps;
 	uint16_t port = 4242;
-	unsigned int nodeIndex = 0;
+	size_t nodeIndex = 0;
 	for (std::map<Ptr<Node>, Ipv4Address>::iterator it = senderGroupAssign.begin(); it != senderGroupAssign.end(); it++, nodeIndex++) {
 		Ptr<Node> sender = it->first;
 		Ipv4Address groupIp = it->second;
@@ -426,30 +653,59 @@ void simulate(
 	// We fill in the ARP tables at the beginning of the simulation
 	Simulator::Schedule(startSimulation, &WriteArp, n);
 	std::string mapLocation = isFlooding ? "map" : "handleIpPacket/map";
-	for (unsigned int i = 0; i < n.GetN(); i++) {
+	for (uint32_t i = 0; i < n.GetN(); i++) {
 		// Write Xcast destination mapping
 		for (std::map<Ipv4Address, std::vector<Ptr<Node> > >::iterator it = groups.begin(); it != groups.end(); it++) {
 			Simulator::Schedule(startSimulation, &WriteXcastMap, n.Get(i)->GetObject<Ipv4ClickRouting>(), it->first, it->second, mapLocation);
 		}
 	}
 
-	if (!isFlooding) {
-		for (Time t = startTraffic; t <= endTraffic; t += Seconds(1.0))
-			Simulator::Schedule(t, &addNeighborCount, n);
+	//
+	// Schedule evaluation
+	//
+	const Time interval = Seconds(1.0);
+	PhyTx buPhy;
+	PhyRxDrops phyrxdrops;
+	BlackholeDrops blackholedrops(n);
+	NeighborCount neighbors(n);
+	HopCount hopcount(n);
+	Delay delay(n);
+	UnicastCount unicasts(n);
+	BroadcastCount broadcasts(n);
+	PidCount pidSent(n, ClickRecorderLookup::pktSend());
+	BandwidthUsage buPkt(n, ClickRecorderLookup::pktForward(), "size");
+	BandwidthUsage buAck(n, ClickRecorderLookup::ackForward(), "size");
+	buAck.add(ClickRecorderLookup::ackSend());
+	PacketCount pktDelivered(n, ClickRecorderLookup::pktDeliver());
+	PacketCount pktForward(n, ClickRecorderLookup::pktForward());
+	for (Time t = startTraffic; t <= endTraffic; t += interval) {
+		if (!isFlooding) {
+			Simulator::Schedule(t, &NeighborCount::read, &neighbors);
+			Simulator::Schedule(t, &BandwidthUsage::read, &buAck);
+		}
+		Simulator::Schedule(t, &HopCount::read, &hopcount);
+		Simulator::Schedule(t, &Delay::read, &delay);
+		Simulator::Schedule(t, &PhyTx::read, &buPhy);
+		Simulator::Schedule(t, &PhyRxDrops::read, &phyrxdrops);
+		Simulator::Schedule(t, &BlackholeDrops::read, &blackholedrops);
+		Simulator::Schedule(t, &UnicastCount::read, &unicasts);
+		Simulator::Schedule(t, &BroadcastCount::read, &broadcasts);
+		Simulator::Schedule(t, &PidCount::read, &pidSent);
+		Simulator::Schedule(t, &PacketCount::read, &pktDelivered);
+		Simulator::Schedule(t, &PacketCount::read, &pktForward);
+		Simulator::Schedule(t, &BandwidthUsage::read, &buPkt);
 	}
-
 
 	setBlackHoles(n, round(netConfig.nNodes * blackholeFraction));
 
-	Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback(&PhyTx));
-	Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyRxDrop", MakeCallback(&PhyRxDrop));
-
 	// Create NetAnim traces
-	AnimationInterface anim (outFile + "-animation.xml");
-	anim.SetMobilityPollInterval (Seconds (1));
-	anim.SetStartTime (startTraffic);
-	anim.SetStopTime (endTraffic);
-	anim.EnablePacketMetadata(true);
+	if (outFile != "") {
+		AnimationInterface anim (outFile + "-animation.xml");
+		anim.SetMobilityPollInterval (Seconds (1));
+		anim.SetStartTime (startTraffic);
+		anim.SetStopTime (endTraffic);
+		anim.EnablePacketMetadata(true);
+	}
 
 	//
 	// Now, do the actual simulation.
@@ -467,114 +723,34 @@ void simulate(
 	NS_LOG_INFO("  Done after " << difftime(end, start) << " seconds");
 
 	//
-	// Schedule evaluation
+	// Post-process evaluation
 	//
-	uint32_t numPidsSent = 0;
-	uint32_t numPktsRecv = 0;
-	uint32_t pktBandwidthUsage = 0;
-	uint32_t ackBandwidthUsage = 0;
-	uint32_t totalBandwidthUsage = 0;
-	uint32_t numPktsSent = 0;
-	uint32_t numGroupMessagesSent = (uint32_t) ceil (duration.ToDouble(Time::S)  / trafficConfig.sendInterval.ToDouble(Time::S) * nSenders);
-	uint32_t broadcasts = 0;
-	uint32_t unicasts = 0;
-	uint32_t numPktsForwarded = 0;
-	uint32_t numAcksForwarded = 0;
-	std::map<std::string, double> pidsSent;
-	std::vector<double> delays;
-	double avgDelay = 0;
-	uint32_t pktDroppedByBlackhole = 0;
-	double avgHopcount = 0;
-	std::list<uint32_t> hopcounts;
-	std::list<uint32_t> buDistribution;
-	double avgNeighborCount = 0;
+	size_t numGroupMessagesSent = (size_t) ceil (duration.ToDouble(Time::S)  / trafficConfig.sendInterval.ToDouble(Time::S) * nSenders);
+	size_t buTotal = buPkt.total() + buAck.total();
 
-	std::string handlepktPrefix = "handlepkt/";
-	if (isXcastPromisc) handlepktPrefix.append("handleXcastPkt/");
-	std::string handleackPrefix = "handleack/";
-	if (isXcastPromisc) handleackPrefix.append("handleXcastAck/");
-	else if (isUnicastPromisc) handleackPrefix.append("handleCastorAck/");
-	std::string pktForward = handlepktPrefix + "forward/rec";
-	std::string pktSend    = "handleIpPacket/rec";
-	std::string pktDeliver = handlepktPrefix + "handleLocal/rec";
-	std::string ackForward = handleackPrefix + "sendAck/recAck";
-	std::string ackSend    = handlepktPrefix + "sendAck/recAck";
-	std::string pktDrop    = handlepktPrefix + "blackhole/rec";
-	for(unsigned int i = 0; i < netConfig.nNodes; i++) {
-		Ptr<Ipv4ClickRouting> router = n.Get(i)->GetObject<Ipv4ClickRouting>();
-		numPidsSent += readPidCount(router, pktSend);
-		numPktsRecv += readPktCount(router, pktDeliver);
-		pktBandwidthUsage += readAccumPktSize(router, pktForward);
-		if(!isFlooding)
-			ackBandwidthUsage += readAccumPktSize(router, ackSend) +
-							 	 readAccumPktSize(router, ackForward);
-		numPktsSent += readPktCount(router, pktSend);
-		numPktsForwarded += readPktCount(router, pktForward);
-		if(!isFlooding)
-			numAcksForwarded += readPktCount(router, ackSend) +
-								readPktCount(router, ackForward);
-		broadcasts += readBroadcasts(router, pktForward);
-		unicasts += readUnicasts(router, pktForward);
-		pktDroppedByBlackhole += readPidCount(router, pktDrop);
-		for (int hc = readNextHopcount(router, pktDeliver); hc != -1; hc = readNextHopcount(router, pktDeliver)) {
-			hopcounts.push_back(hc);
-		}
-		std::string pid;
-		double timestamp;
-		while(readPidTimestamp(router, pktSend, pid, timestamp))
-			pidsSent.insert(std::make_pair(pid, timestamp));
-		if (!isFlooding) { // Flooding currently does not support this
-			// Bandwidth utilization over time
-			int pktSize;
-			std::list<unsigned int>::iterator it = buDistribution.begin();
-			while ((pktSize = readNextSizeInterval(router, pktForward)) != -1) {
-				if (it == buDistribution.end()) {
-					buDistribution.push_back(pktSize);
-				} else {
-					*it += pktSize;
-					it++;
-				}
-			}
-		}
-	}
-	totalBandwidthUsage = pktBandwidthUsage + ackBandwidthUsage;
-	for(unsigned int i = 0; i < netConfig.nNodes; i++) {
-		std::string pid;
-		double recTimestamp;
-		while(readPidTimestamp(n.Get(i)->GetObject<Ipv4ClickRouting>(), pktDeliver, pid, recTimestamp)) {
-			NS_ASSERT_MSG(pidsSent[pid] != 0.0, "" << pid << " was received but never sent");
-			double sentTimestamp = pidsSent[pid];
-			double delay = recTimestamp - sentTimestamp;
-			delays.push_back(recTimestamp - sentTimestamp);
-			avgDelay += delay;
-		}
-	}
-	for (std::list<uint32_t>::iterator it = hopcounts.begin(); it != hopcounts.end(); it++)
-		avgHopcount += (double) *it / (double) hopcounts.size();
+	double pdr = (double) pktDelivered.total() / pidSent.total();
+	double buPerPidPhy = (double) buPhy.total() / pidSent.total();
+	double buPerPidNet = (double) buTotal / pidSent.total();
+	double buPerPidPkt = (double) buPkt.total() / pidSent.total();
+	double buPerPidAck = (double) buAck.total() / pidSent.total();
+	double hopsPerGroupMessage = (double) pktForward.total() / numGroupMessagesSent;
 
-	for_each (neighborCount.begin(), neighborCount.end(), [&] (uint16_t count) {
-		avgNeighborCount += (double) count / neighborCount.size();
-	});
+	size_t decisions = unicasts.total() + broadcasts.total();
+	double broadcastFrac = (double) broadcasts.total() / decisions;
 
-	double pdr = (double) numPktsRecv / numPidsSent;
-	double delay = avgDelay / numPktsRecv * 1000;
-	double buPerPidNet = (double) totalBandwidthUsage / numPidsSent;
-	double buPerPidPhy = (double) phyTx / numPidsSent;
-	double buPerPidPkt = (double) pktBandwidthUsage / numPidsSent;
-	double buPerPidAck = (double) ackBandwidthUsage / numPidsSent;
-	double hopsPerGroupMessage = (double) numPktsForwarded / numGroupMessagesSent;
+	NS_ASSERT(delay.distribution().size() == pktDelivered.total());
 
-	NS_LOG_INFO("  STAT PDR               " << pdr << " (" << numPktsRecv << "/" << numPidsSent << ")");
-	NS_LOG_INFO("  STAT BU per PID        " << buPerPidPhy  << " (phy), " << buPerPidNet << " (net) bytes");
+	NS_LOG_INFO("  STAT PDR               " << pdr << " (" << pktDelivered.total() << "/" << pidSent.total() << ")");
+	NS_LOG_INFO("  STAT BU per PID        " << buPerPidPhy  << " (PHY), " << buPerPidNet << " (NET) bytes");
 	NS_LOG_INFO("        frac(PKT)        " << ((double) buPerPidPkt / buPerPidNet));
 	NS_LOG_INFO("        frac(ACK)        " << ((double) buPerPidAck / buPerPidNet));
-	NS_LOG_INFO("  STAT DELAY             " << delay << " ms");
-	NS_LOG_INFO("  STAT HOP COUNT TO DEST " << avgHopcount);
+	NS_LOG_INFO("  STAT DELAY             " << (delay.average() * 1000) << " ms");
+	NS_LOG_INFO("  STAT HOP COUNT TO DEST " << hopcount.average());
 	NS_LOG_INFO("  STAT GRP MSG HOP COUNT " << hopsPerGroupMessage);
-	NS_LOG_INFO("  STAT NEIGHBOR COUNT    " << avgNeighborCount);
-	NS_LOG_INFO("  STAT BROADCAST         " << ((double) broadcasts / (unicasts + broadcasts)) << " (" << broadcasts << "/" << (unicasts + broadcasts) << ")");
-	NS_LOG_INFO("  STAT PHY RX DROPS      " << phyRxDrop);
-	NS_LOG_INFO("  STAT ATTACK DROPS      " << pktDroppedByBlackhole);
+	NS_LOG_INFO("  STAT NEIGHBOR COUNT    " << neighbors.average());
+	NS_LOG_INFO("  STAT BROADCAST         " << broadcastFrac << " (" << broadcasts.total() << "/" << decisions << ")");
+	NS_LOG_INFO("  STAT PHY RX DROPS      " << phyrxdrops.total());
+	NS_LOG_INFO("  STAT ATTACK DROPS      " << blackholedrops.total());
 
 	//
 	// Cleanup
@@ -594,17 +770,17 @@ void simulate(
 		<< buPerPidNet << " "
 		<< ((double) buPerPidPkt * (buPerPidPhy/buPerPidNet)) << " "
 		<< ((double) buPerPidAck * (buPerPidPhy/buPerPidNet)) << " "
-		<< delay << " "
+		<< (delay.average() * 1000) << " "
 		<< hopsPerGroupMessage << " "
-		<< ((double) broadcasts / (unicasts + broadcasts)) << " "
-		<< phyRxDrop << " "
-		<< pktDroppedByBlackhole;
+		<< broadcastFrac << " "
+		<< phyrxdrops.total() << " "
+		<< blackholedrops.total();
 
 	out.close();
 
-	writeToFile(outFile + "-hopcount", hopcounts);
-	writeToFile(outFile + "-bu_distribution", buDistribution);
-
+	neighbors.write(outFile);
+	hopcount.write(outFile);
+	delay.write(outFile);
 }
 
 #endif
@@ -649,6 +825,7 @@ int main(int argc, char *argv[]) {
 	trafficConfigs.insert(std::make_pair( "2_5", TrafficConfiguration(0.02,  5)));
 	trafficConfigs.insert(std::make_pair( "5_2", TrafficConfiguration(0.05,  2)));
 	trafficConfigs.insert(std::make_pair("10_1", TrafficConfiguration(0.10,  1)));
+
 
 	std::map<std::string, MobilityConfiguration> mobilityConfigs;
 	mobilityConfigs.insert(std::make_pair( "0", MobilityConfiguration( 0.0, 0.0)));
