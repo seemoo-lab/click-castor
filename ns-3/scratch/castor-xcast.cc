@@ -18,7 +18,6 @@
 // - The single ethernet interface that each node
 //   uses is named 'eth0' in the Click file.
 #include <fstream>
-#include <climits>
 #include <stdint.h>
 #include <numeric>
 #include <functional>
@@ -31,7 +30,6 @@
 #include "ns3/ipv4-click-routing.h"
 #include "ns3/click-internet-stack-helper.h"
 #include "ns3/random-variable-stream.h"
-#include "ns3/flow-monitor-module.h"
 #include "ns3/config.h"
 #include "ns3/netanim-module.h"
 
@@ -39,21 +37,9 @@
 #define CLICK_PATH "/home/milan/click"
 #endif
 
-#ifndef UINT32_MAX
-#define UINT32_MAX std::numeric_limits<uint32_t>::max()
-#endif
-
-#ifndef SIZE_MAX
-#define SIZE_MAX std::numeric_limits<size_t>::max()
-#endif
-
 #define INVALID_NUMBER SIZE_MAX
 
 using namespace ns3;
-
-#ifndef NS3_CLICK
-#define NS3_CLICK
-#endif
 
 NS_LOG_COMPONENT_DEFINE("NsclickCastor");
 
@@ -433,13 +419,6 @@ inline double getRand(double max) {
 	return randVar->GetValue();
 }
 
-// has to be defined here, cannot be used as local template argument
-struct LessIpv4Address {
-	bool operator()(const Ipv4Address& x, const Ipv4Address& y) const {
-		return x.Get() < y.Get();
-	}
-};
-
 NetDeviceContainer setPhysicalChannel(NodeContainer& nodes, double transmissionRange) {
 	std::string phyMode("DsssRate11Mbps");
 
@@ -611,7 +590,7 @@ void simulate(
 	// 'groups':
 	// 		192.168.201.1 -> 192.168.201.2, 192.168.201.3, 192.168.201.4;
 	// 		192.168.201.5 -> 192.168.201.6, 192.168.201.7, 192.168.201.8
-	std::map<Ipv4Address, std::vector<Ptr<Node> >, LessIpv4Address> groups; // multicast group -> xcast receivers
+	std::map<Ipv4Address, std::vector<Ptr<Node> > > groups; // multicast group -> xcast receivers
 
 	for (size_t i = 0, iAddr = 1; i < nSenders; i++) {
 		//Ipv4Address sender = Ipv4Address(baseAddr.Get() + iAddr);
