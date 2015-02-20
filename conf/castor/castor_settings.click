@@ -12,7 +12,7 @@ define(
 	/** Castor parameters (settings from experimental setup of Castor technical report) **/
 	$broadcastAdjust 8.0, // bandwidth investment for route discovery (larger values reduce the broadcast probability)
 	$updateDelta 0.8, // adaptivity of the reliability estimators
-	$timeout 500, // in milliseconds
+	$timeout 200, // in milliseconds
 
 	$neighborsEnable true, // whether or not to use neighbor beacons; if set to false, settings for neighborTimeout and beaconingInterval are irrelevant
 	$neighborTimeout 1000, // in milliseconds
