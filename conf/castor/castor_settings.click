@@ -15,8 +15,8 @@ define(
 	$timeout 200, // in milliseconds
 
 	$neighborsEnable true, // whether or not to use neighbor beacons; if set to false, settings for neighborTimeout and beaconingInterval are irrelevant
-	$neighborTimeout 1000, // in milliseconds
-	$beaconingInterval 250, // in milliseconds
+	$neighborTimeout 4500, // in milliseconds (4 * beaconingInterval + delta)
+	$beaconingInterval 1000, // in milliseconds
 
 	$broadcastJitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
 	$unicastJitter 0, // to add some artificial processing delay
