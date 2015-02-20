@@ -714,12 +714,13 @@ void simulate(
 	setBlackHoles(n, round(netConfig.nNodes * blackholeFraction));
 
 	// Create NetAnim traces
+	AnimationInterface* anim;
 	if (outFile != "") {
-		AnimationInterface anim (outFile + "-animation.xml");
-		anim.SetMobilityPollInterval (Seconds (1));
-		anim.SetStartTime (startTraffic);
-		anim.SetStopTime (endTraffic);
-		anim.EnablePacketMetadata(true);
+		anim = new AnimationInterface(outFile + "-animation.xml");
+		anim->SetMobilityPollInterval (Seconds (0.25));
+		anim->SetStartTime (startSimulation);
+		anim->SetStopTime (endTraffic);
+		anim->EnablePacketMetadata(true);
 	}
 
 	//
