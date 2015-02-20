@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <numeric>
 #include <functional>
+#include <math.h>
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
@@ -444,53 +445,50 @@ void WriteSetBlackhole(Ptr<Ipv4ClickRouting> clickRouter, bool active) {
 	clickRouter->WriteHandler("handlepkt/blackhole/filter", "active", active ? "true" : "false");
 }
 
-/**
- * Returns random value between 0 and max (both inclusive)
- */
-inline double getRand(double max) {
-	double min = 0.0;
-	Ptr<UniformRandomVariable> randVar = CreateObject<UniformRandomVariable>();
-	randVar->SetAttribute("Min", DoubleValue(min));
-	randVar->SetAttribute("Max", DoubleValue(max));
-
-	return randVar->GetValue();
-}
-
 NetDeviceContainer setPhysicalChannel(NodeContainer& nodes, double transmissionRange) {
-	std::string phyMode("DsssRate11Mbps");
+	std::string phyMode("OfdmRate6Mbps");
 
 	// disable fragmentation for frames below 2200 bytes
 	Config::SetDefault("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue("2200"));
 	// turn off RTS/CTS for frames below 2200 bytes
 	Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue("2200"));
 	// Fix non-unicast data rate to be the same as that of unicast
-	Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode",	StringValue(phyMode));
+	Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode", StringValue(phyMode));
 
 	WifiHelper wifi;
-	wifi.SetStandard(WIFI_PHY_STANDARD_80211b);
+	wifi.SetStandard(WIFI_PHY_STANDARD_80211a);
 
 	YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default();
-	// ns-3 supports RadioTap and Prism tracing extensions for 802.11b
-	wifiPhy.SetPcapDataLinkType(YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
+	constexpr double freq = 5e9; // 5GHz (for 802.11a)
+	double powerTx = 16.0206; // dBm
+	auto friis = [] (double powerTx, double freq, double r) {
+		constexpr double speedOfLight = 299792458;
+		constexpr double pi = 3.14159265358979323846;
+		double lambda = speedOfLight / freq;
+		return powerTx + 20 * log10(lambda / (4 * pi * r));
+	};
+	double powerRx = friis(powerTx, freq, transmissionRange);
+	wifiPhy.Set ("TxPowerStart", DoubleValue(powerTx));
+	wifiPhy.Set ("TxPowerEnd", DoubleValue(powerTx));
+	wifiPhy.Set ("TxGain", DoubleValue (0) );
+	wifiPhy.Set ("RxGain", DoubleValue (0) );
+	wifiPhy.Set ("EnergyDetectionThreshold", DoubleValue(powerRx));
+	wifiPhy.Set ("CcaMode1Threshold", DoubleValue(powerRx + 20)); // recommended by IEEE Std-802.11-2012 Section 18.3.10.6
 
 	YansWifiChannelHelper wifiChannel;
-	//wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel", "Speed", DoubleValue(299792458.0));
 	wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
-
-	wifiChannel.AddPropagationLoss("ns3::RangePropagationLossModel", "MaxRange", DoubleValue(transmissionRange));
-	//wifiChannel.AddPropagationLoss("ns3::FriisPropagationLossModel");
+	wifiChannel.AddPropagationLoss("ns3::FriisPropagationLossModel", "Frequency", DoubleValue(freq));
 	wifiPhy.SetChannel(wifiChannel.Create());
 
 	// Add a non-QoS upper mac, and disable rate control
 	NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default();
-	wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager", "DataMode",
-			StringValue(phyMode), "ControlMode", StringValue(phyMode));
+	wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager",
+			"DataMode", StringValue(phyMode),
+			"ControlMode", StringValue(phyMode));
 	// Set it to adhoc mode
 	wifiMac.SetType("ns3::AdhocWifiMac");
 
 	NetDeviceContainer d = wifi.Install(wifiPhy, wifiMac, nodes);
-
-//	wifiPhy.EnablePcap("castor-xcast", d);
 
 	return d;
 }
@@ -853,10 +851,11 @@ int main(int argc, char *argv[]) {
 
 	std::map<std::string, NetworkConfiguration> networkConfigs;
 	// Configurations with the same node density
-	networkConfigs.insert(std::make_pair("tiny",   NetworkConfiguration( 948.7,  948.7, 500.0,  10)));
-	networkConfigs.insert(std::make_pair("small",  NetworkConfiguration(2121.3, 2121.3, 500.0,  50)));
-	networkConfigs.insert(std::make_pair("medium", NetworkConfiguration(3000.0, 3000.0, 500.0, 100))); // as in Castor
-	networkConfigs.insert(std::make_pair("large",  NetworkConfiguration(4242.6, 4242.6, 500.0, 200)));
+	constexpr double range = 560.3; // neighbor count of 10 for given node density
+	networkConfigs.insert(std::make_pair("tiny",   NetworkConfiguration( 948.7,  948.7, range,  10)));
+	networkConfigs.insert(std::make_pair("small",  NetworkConfiguration(2121.3, 2121.3, range,  50)));
+	networkConfigs.insert(std::make_pair("medium", NetworkConfiguration(3000.0, 3000.0, range, 100))); // as in Castor
+	networkConfigs.insert(std::make_pair("large",  NetworkConfiguration(4242.6, 4242.6, range, 200)));
 
 
 	std::map<std::string, TrafficConfiguration> trafficConfigs;
