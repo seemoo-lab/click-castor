@@ -91,13 +91,14 @@ size_t readSizeStat(Ptr<Ipv4ClickRouting> clickRouter, std::string where, std::s
 
 class Metric {
 public:
+	Metric(std::string name) : name(name) {};
 	virtual ~Metric() {};
 	virtual void read() = 0;
 
 	void write(std::string basefilename) {
 		std::ofstream outfile;
 		for (auto writer : writers) {
-			outfile.open((basefilename + "-" + name() + "-" + writer.first).c_str());
+			outfile.open((basefilename + "-" + name + "-" + writer.first).c_str());
 			if(outfile.fail()) {
 				NS_LOG_ERROR("Could not write to file '" << outfile << "'");
 				return;
@@ -110,36 +111,38 @@ protected:
 	void addWriter(std::string suffix, std::function<void (std::ofstream& out)> writer) {
 		writers.push_back(std::make_pair(suffix, writer));
 	}
-	virtual std::string name() const = 0;
 private:
 	std::list<std::pair<std::string, std::function<void (std::ofstream& out)>> > writers;
+	const std::string name;
 };
 
 template<typename Val>
 class IntervalMetric : public Metric {
 public:
-	IntervalMetric() {
+	IntervalMetric(std::string name) : Metric(name) {
 		this->addWriter("interval", [&] (std::ofstream& out) {
-			for(auto val : intervalValues)
+			auto intervalList = this->intervals();
+			for(auto val : intervalList)
 				out << val << "\n";
 		});
 	}
-	const std::list<Val> intervals() const {
+	virtual const std::list<Val> intervals() const {
 		return intervalValues;
 	}
 protected:
-	std::list<Val> intervalValues;
+	mutable std::list<Val> intervalValues;
 };
 
 template<typename Val>
 class SimpleIntervalMetric : public IntervalMetric<Val> {
 public:
-	SimpleIntervalMetric() {
+	virtual ~SimpleIntervalMetric() {}
+	SimpleIntervalMetric(std::string name) : IntervalMetric<Val>(name) {
 		this->addWriter("total", [&] (std::ofstream& out) {
 			out << this->total() << "\n";
 		});
 	}
-	Val total() const {
+	virtual Val total() const {
 		return std::accumulate(this->intervalValues.begin(), this->intervalValues.end(), 0);
 	}
 };
@@ -147,7 +150,8 @@ public:
 template<typename Val>
 class DiscreteIntervalMetric : public IntervalMetric<Val> {
 public:
-	DiscreteIntervalMetric() {
+	virtual ~DiscreteIntervalMetric() {}
+	DiscreteIntervalMetric(std::string name) : IntervalMetric<Val>(name) {
 		this->addWriter("dist", [&] (std::ofstream& out) {
 			for (auto val : distribution())
 				out << val << "\n";
@@ -156,12 +160,12 @@ public:
 			out << average() << "\n";
 		});
 	}
-	double average() const {
+	virtual double average() const {
 		return std::accumulate(values.begin(), values.end(), 0.0, [&] (const double& a, const Val& b) {
 			return a + (double) b / values.size(); // Divide before adding to avoid overflow
 		});
 	}
-	const std::list<Val> distribution() const {
+	virtual const std::list<Val> distribution() const {
 		return values;
 	}
 protected:
@@ -170,7 +174,7 @@ protected:
 
 class NeighborCount : public DiscreteIntervalMetric<uint16_t> {
 public:
-	NeighborCount(const NodeContainer& nodes) : nodes(nodes) {};
+	NeighborCount(std::string name, const NodeContainer& nodes) : DiscreteIntervalMetric<uint16_t>(name), nodes(nodes) {};
 	void read() {
 		double avg = 0;
 		for (auto n = nodes.Begin(); n != nodes.End(); n++) {
@@ -182,12 +186,11 @@ public:
 	}
 private:
 	const NodeContainer& nodes;
-	std::string name() const { return "neighbors"; }
 };
 
 class HopCount : public DiscreteIntervalMetric<uint16_t> {
 public:
-	HopCount(const NodeContainer& nodes) : nodes(nodes) {};
+	HopCount(std::string name, const NodeContainer& nodes) : DiscreteIntervalMetric<uint16_t>(name), nodes(nodes) {};
 	void read() {
 		size_t accum = 0;
 		size_t size = values.size();
@@ -203,7 +206,6 @@ public:
 	}
 private:
 	const NodeContainer& nodes;
-	std::string name() const { return "hopcount"; }
 };
 
 /**
@@ -211,7 +213,7 @@ private:
  */
 class Delay : public DiscreteIntervalMetric<double> {
 public:
-	Delay(const NodeContainer& nodes) : nodes(nodes) {};
+	Delay(std::string name, const NodeContainer& nodes) : DiscreteIntervalMetric<double>(name), nodes(nodes) {};
 	void read() {
 		std::list<std::pair<std::string, double> > pidsReceived; // We only need this temporarily
 		for (auto n = nodes.Begin(); n != nodes.End(); n++) {
@@ -237,7 +239,6 @@ public:
 	}
 private:
 	const NodeContainer& nodes;
-	std::string name() const { return "delay"; }
 	std::map<std::string, double> pidsSent;
 	std::vector<std::string> split(const std::string &s, char delim) {
 	    std::vector<std::string> elems;
@@ -261,7 +262,7 @@ private:
 
 class PhyTx : public SimpleIntervalMetric<size_t> {
 public:
-	PhyTx() {
+	PhyTx(std::string name) : SimpleIntervalMetric<size_t>(name) {
 		current = 0;
 		Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback(&PhyTx::addPacket, this));
 	}
@@ -273,13 +274,12 @@ public:
 		current += p->GetSize();
 	}
 private:
-	std::string name() const { return "phytx"; }
 	size_t current;
 };
 
 class PhyRxDrops : public SimpleIntervalMetric<size_t> {
 public:
-	PhyRxDrops() {
+	PhyRxDrops(std::string name) : SimpleIntervalMetric<size_t>(name) {
 		current = 0;
 		Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyRxDrop", MakeCallback(&PhyRxDrops::addPacket, this));
 	}
@@ -291,18 +291,15 @@ public:
 		current ++;
 	}
 private:
-	std::string name() const { return "phyrxdrops"; }
 	size_t current;
 };
 
 class AccumIntervalMetric : public SimpleIntervalMetric<size_t> {
 public:
-	AccumIntervalMetric(const NodeContainer& nodes, std::string where, std::string what) : nodes(nodes) {
+	AccumIntervalMetric(std::string name, const NodeContainer& nodes, std::string where, std::string what) :
+		SimpleIntervalMetric<size_t>(name), nodes(nodes) {
 		this->where.push_back(where);
 		this->what.push_back(what);
-	}
-	inline void add(std::string where) {
-		this->where.push_back(where);
 	}
 	void read() {
 		size_t accum = 0;
@@ -312,58 +309,98 @@ public:
 					accum += readSizeStat((*n)->GetObject<Ipv4ClickRouting>(), what, where);
 		intervalValues.push_back(accum);
 	}
+protected:
+	inline void add(std::string where) {
+		this->where.push_back(where);
+	}
 private:
 	const NodeContainer& nodes;
 	std::list<std::string> where;
 	std::list<std::string> what;
 };
 
+template<typename Val, typename T1, typename T2>
+class CombinedAccumIntervalMetric : public SimpleIntervalMetric<Val> {
+public:
+	CombinedAccumIntervalMetric(std::string name, const SimpleIntervalMetric<T1>* m1, const SimpleIntervalMetric<T2>* m2, std::function<Val (T1, T2)> op) :
+		SimpleIntervalMetric<Val>(name), m1(m1), m2(m2), op(op) {};
+	void read() { /* does nothing */ }
+	const std::list<Val> intervals() const {
+		auto list1 = m1->intervals();
+		auto list2 = m2->intervals();
+		NS_ASSERT(m1->intervals().size() == m2->intervals().size());
+		this->intervalValues.clear();
+		auto it1 = list1.begin();
+		auto it2 = list2.begin();
+		for (; it1 != list1.end() && it2 != list2.end(); ++it1, ++it2) {
+			this->intervalValues.push_back(op(*it1, *it2));
+		}
+		return this->intervalValues;
+	}
+	Val total() const {
+		return op(m1->total(), m2->total());
+	}
+private:
+	const SimpleIntervalMetric<T1>* m1;
+	const SimpleIntervalMetric<T2>* m2;
+	std::function<Val (T1, T2)> op;
+};
+
+template<typename T1, typename T2>
+class NormalizedAccumIntervalMetric : public CombinedAccumIntervalMetric<double, T1, T2> {
+public:
+	NormalizedAccumIntervalMetric(std::string name, const SimpleIntervalMetric<T1>* metric, const SimpleIntervalMetric<T2>* ref) :
+		CombinedAccumIntervalMetric<double, T1, T2>(name, metric, ref, [] (T1 v1, T2 v2) { return (double) v1 / (double) v2; }) {};
+};
+
+template<typename T1, typename T2>
+class AdditiveAccumIntervalMetric : public CombinedAccumIntervalMetric<T1, T1, T2> {
+public:
+	AdditiveAccumIntervalMetric(std::string name, const SimpleIntervalMetric<T1>* metric, const SimpleIntervalMetric<T2>* ref) :
+		CombinedAccumIntervalMetric<T1, T1, T2>(name, metric, ref, [] (T1 v1, T2 v2) { return v1 + v2; }) {};
+};
+
 class BlackholeDrops : public AccumIntervalMetric {
 public:
-	BlackholeDrops(const NodeContainer& nodes) :
-		AccumIntervalMetric(nodes, ClickRecorderLookup::pktDrop(), "npids") {}
-private:
-	std::string name() const { return "blackholedrops"; }
+	BlackholeDrops(std::string name, const NodeContainer& nodes) :
+		AccumIntervalMetric(name, nodes, ClickRecorderLookup::pktDrop(), "npids") {}
 };
 
 class UnicastCount : public AccumIntervalMetric {
 public:
-	UnicastCount(const NodeContainer& nodes) :
-		AccumIntervalMetric(nodes, ClickRecorderLookup::pktForward(), "nunicasts") {}
-private:
-	std::string name() const { return "nunicasts"; }
+	UnicastCount(std::string name, const NodeContainer& nodes) :
+		AccumIntervalMetric(name, nodes, ClickRecorderLookup::pktForward(), "nunicasts") {}
 };
 
 class BroadcastCount : public AccumIntervalMetric {
 public:
-	BroadcastCount(const NodeContainer& nodes) :
-		AccumIntervalMetric(nodes, ClickRecorderLookup::pktForward(), "nbroadcasts") {}
-private:
-	std::string name() const { return "nbroadcasts"; }
+	BroadcastCount(std::string name, const NodeContainer& nodes) :
+		AccumIntervalMetric(name, nodes, ClickRecorderLookup::pktForward(), "nbroadcasts") {}
 };
 
 class PidCount : public AccumIntervalMetric {
 public:
-	PidCount(const NodeContainer& nodes, std::string where) :
-		AccumIntervalMetric(nodes, where, "npids") {}
-private:
-	std::string name() const { return "npids"; }
+	PidCount(std::string name, const NodeContainer& nodes, std::string where) :
+		AccumIntervalMetric(name, nodes, where, "npids") {}
 };
 
 class PacketCount : public AccumIntervalMetric {
 public:
-	PacketCount(const NodeContainer& nodes, std::string where) :
-		AccumIntervalMetric(nodes, where, "npackets") {}
-private:
-	std::string name() const { return "npackets"; }
+	PacketCount(std::string name, const NodeContainer& nodes, std::string where) :
+		AccumIntervalMetric(name, nodes, where, "npackets") {}
 };
 
 class BandwidthUsage : public AccumIntervalMetric {
 public:
-	BandwidthUsage(const NodeContainer& nodes, std::string where, std::string what) :
-		AccumIntervalMetric(nodes, where, what) {}
-private:
-	std::string name() const { return "bu"; }
+	BandwidthUsage(std::string name, const NodeContainer& nodes, std::string where, std::string what) :
+		AccumIntervalMetric(name, nodes, where, what) {}
+	BandwidthUsage(std::string name, const NodeContainer& nodes, std::list<std::string> where, std::string what) :
+		AccumIntervalMetric(name, nodes, where.front(), what) {
+		NS_ASSERT(where.size() > 0);
+		auto it = where.begin();
+		for (it++; it != where.end(); it++)
+			add(*it);
+	}
 };
 
 void WriteArp(NodeContainer n) {
@@ -643,21 +680,20 @@ void simulate(
 	// Schedule evaluation
 	//
 	const Time interval = Seconds(1.0);
-	PhyTx buPhy;
-	PhyRxDrops phyrxdrops;
-	BlackholeDrops blackholedrops(n);
-	NeighborCount neighbors(n);
-	HopCount hopcount(n);
-	Delay delay(n);
-	UnicastCount unicasts(n);
-	BroadcastCount broadcasts(n);
-	PidCount pidSent(n, ClickRecorderLookup::pktSend());
-	BandwidthUsage buPkt(n, ClickRecorderLookup::pktForward(), "size");
-	BandwidthUsage buAck(n, ClickRecorderLookup::ackForward(), "size");
-	buAck.add(ClickRecorderLookup::ackSend());
-	PacketCount pktDelivered(n, ClickRecorderLookup::pktDeliver());
-	PacketCount pktForward(n, ClickRecorderLookup::pktForward());
-	for (Time t = startTraffic; t <= endTraffic; t += interval) {
+	PhyTx buPhy("phytx");
+	PhyRxDrops phyrxdrops("phydrops");
+	BlackholeDrops blackholedrops("bh_drops", n);
+	NeighborCount neighbors("neighbors", n);
+	HopCount hopcount("hopcount", n);
+	Delay delay("delay", n);
+	UnicastCount unicasts("", n);
+	BroadcastCount broadcasts("", n);
+	PidCount pidSent("", n, ClickRecorderLookup::pktSend());
+	BandwidthUsage buPkt("", n, ClickRecorderLookup::pktForward(), "size");
+	BandwidthUsage buAck("", n, std::list<std::string>{ ClickRecorderLookup::ackForward(), ClickRecorderLookup::ackSend()}, "size");
+	PacketCount pktDelivered("", n, ClickRecorderLookup::pktDeliver());
+	PacketCount pktForward("", n, ClickRecorderLookup::pktForward());
+	for (Time t = startTraffic + interval; t <= endTraffic; t += interval) {
 		if (!isFlooding) {
 			Simulator::Schedule(t, &NeighborCount::read, &neighbors);
 			Simulator::Schedule(t, &BandwidthUsage::read, &buAck);
@@ -704,30 +740,31 @@ void simulate(
 	//
 	// Post-process evaluation
 	//
+	NormalizedAccumIntervalMetric<size_t, size_t> pdr("pdr", &pktDelivered, &pidSent);
+
+	AdditiveAccumIntervalMetric<size_t, size_t> buTotal("", &buPkt, &buAck);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidPhy("bu_phy", &buPhy, &pidSent);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidNet("bu", &buTotal, &pidSent);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidPkt("bu_pkt", &buPkt, &buTotal);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidAck("bu_ack", &buAck, &buTotal);
+
+	AdditiveAccumIntervalMetric<size_t, size_t> decisions("", &unicasts, &broadcasts);
+	NormalizedAccumIntervalMetric<size_t, size_t> broadcastFrac("broadcast", &broadcasts, &decisions);
+
 	size_t numGroupMessagesSent = (size_t) ceil (duration.ToDouble(Time::S)  / trafficConfig.sendInterval.ToDouble(Time::S) * nSenders);
-	size_t buTotal = buPkt.total() + buAck.total();
-
-	double pdr = (double) pktDelivered.total() / pidSent.total();
-	double buPerPidPhy = (double) buPhy.total() / pidSent.total();
-	double buPerPidNet = (double) buTotal / pidSent.total();
-	double buPerPidPkt = (double) buPkt.total() / pidSent.total();
-	double buPerPidAck = (double) buAck.total() / pidSent.total();
 	double hopsPerGroupMessage = (double) pktForward.total() / numGroupMessagesSent;
-
-	size_t decisions = unicasts.total() + broadcasts.total();
-	double broadcastFrac = (double) broadcasts.total() / decisions;
 
 	NS_ASSERT(delay.distribution().size() == pktDelivered.total());
 
-	NS_LOG_INFO("  STAT PDR               " << pdr << " (" << pktDelivered.total() << "/" << pidSent.total() << ")");
-	NS_LOG_INFO("  STAT BU per PID        " << buPerPidPhy  << " (PHY), " << buPerPidNet << " (NET) bytes");
-	NS_LOG_INFO("        frac(PKT)        " << ((double) buPerPidPkt / buPerPidNet));
-	NS_LOG_INFO("        frac(ACK)        " << ((double) buPerPidAck / buPerPidNet));
+	NS_LOG_INFO("  STAT PDR               " << pdr.total() << " (" << pktDelivered.total() << "/" << pidSent.total() << ")");
+	NS_LOG_INFO("  STAT BU per PID        " << buPerPidPhy.total()  << " (PHY), " << buPerPidNet.total() << " (NET) bytes");
+	NS_LOG_INFO("        frac(PKT)        " << buPerPidPkt.total());
+	NS_LOG_INFO("        frac(ACK)        " << buPerPidAck.total());
 	NS_LOG_INFO("  STAT DELAY             " << (delay.average() * 1000) << " ms");
 	NS_LOG_INFO("  STAT HOP COUNT TO DEST " << hopcount.average());
 	NS_LOG_INFO("  STAT GRP MSG HOP COUNT " << hopsPerGroupMessage);
 	NS_LOG_INFO("  STAT NEIGHBOR COUNT    " << neighbors.average());
-	NS_LOG_INFO("  STAT BROADCAST         " << broadcastFrac << " (" << broadcasts.total() << "/" << decisions << ")");
+	NS_LOG_INFO("  STAT BROADCAST         " << broadcastFrac.total() << " (" << broadcasts.total() << "/" << decisions.total() << ")");
 	NS_LOG_INFO("  STAT PHY RX DROPS      " << phyrxdrops.total());
 	NS_LOG_INFO("  STAT ATTACK DROPS      " << blackholedrops.total());
 
@@ -744,19 +781,25 @@ void simulate(
 		return;
 	}
 
-	out << pdr << " "
-		<< buPerPidPhy << " "
-		<< buPerPidNet << " "
-		<< ((double) buPerPidPkt * (buPerPidPhy/buPerPidNet)) << " "
-		<< ((double) buPerPidAck * (buPerPidPhy/buPerPidNet)) << " "
+	out << pdr.total() << " "
+		<< buPerPidPhy.total() << " "
+		<< buPerPidNet.total() << " "
+		<< buPerPidPkt.total() << " "
+		<< buPerPidAck.total() << " "
 		<< (delay.average() * 1000) << " "
 		<< hopsPerGroupMessage << " "
-		<< broadcastFrac << " "
+		<< broadcastFrac.total() << " "
 		<< phyrxdrops.total() << " "
 		<< blackholedrops.total();
 
 	out.close();
 
+	pdr.write(outFile);
+	buPerPidPhy.write(outFile);
+	buPerPidNet.write(outFile);
+	buPerPidPkt.write(outFile);
+	buPerPidAck.write(outFile);
+	broadcastFrac.write(outFile);
 	neighbors.write(outFile);
 	hopcount.write(outFile);
 	delay.write(outFile);
