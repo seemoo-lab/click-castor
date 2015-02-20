@@ -18,7 +18,7 @@ define(
 	$neighborTimeout 1000, // in milliseconds
 	$beaconingInterval 250, // in milliseconds
 
-	$broadcastJitter 10, // jitter in microseconds to avoid collisions for broadcast traffic
+	$broadcastJitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
 	$unicastJitter 0, // to add some artificial processing delay
 	
 	$numNodes 200, // relevant for key generation
