@@ -148,10 +148,10 @@ public:
 };
 
 template<typename Val>
-class DiscreteIntervalMetric : public IntervalMetric<Val> {
+class DiscreteIntervalMetric : public IntervalMetric<double> {
 public:
 	virtual ~DiscreteIntervalMetric() {}
-	DiscreteIntervalMetric(std::string name) : IntervalMetric<Val>(name) {
+	DiscreteIntervalMetric(std::string name) : IntervalMetric<double>(name) {
 		this->addWriter("dist", [&] (std::ofstream& out) {
 			for (auto val : distribution())
 				out << val << "\n";
@@ -716,7 +716,7 @@ void simulate(
 
 	// Create NetAnim traces
 	AnimationInterface* anim = 0;
-	if (enableAnim || outFile != "") {
+	if (enableAnim && outFile != "") {
 		anim = new AnimationInterface(outFile + "-animation.xml");
 		anim->SetMobilityPollInterval (Seconds (0.25));
 		anim->SetStartTime (startSimulation);
