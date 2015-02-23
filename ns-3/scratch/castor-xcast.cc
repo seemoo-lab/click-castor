@@ -568,6 +568,13 @@ typedef struct MobilityConfiguration {
 	MobilityConfiguration() : speed(0), pause(0) {}
 } MobilityConfiguration;
 
+std::string printTime(const time_t* time) {
+	struct tm* t = localtime(time);
+	char buf[20];
+	strftime(buf, 20, "%F %T", t); // YYYY-MM-DD HH:MM:SS
+	return std::string(buf);
+}
+
 void simulate(
 		int run,
 		StringValue clickConfig,
@@ -728,18 +735,21 @@ void simulate(
 	// Now, do the actual simulation.
 	//
 	time_t start; time(&start);
+	NS_LOG_INFO("START '" << outFile << "' @ " << printTime(&start));
 	Simulator::Stop(endSimulation);
 	Simulator::Run();
 	time_t end; time(&end);
 
 	delete anim;
 
-	NS_LOG_INFO("Run #" << run << " (" << duration.GetSeconds() << " seconds, " << clickConfig.Get() << ")");
+	NS_LOG_INFO("FINISH '" << outFile << "'");
+	NS_LOG_INFO("  @ " << printTime(&end) << " (in " << difftime(end, start) << " seconds)");
+	NS_LOG_INFO("  CONFIG " << "Run #" << run << ", simtime " << duration.GetSeconds() << " seconds");
+	NS_LOG_INFO("  CONFIG " << "output " << clickConfig.Get());
 	NS_LOG_INFO("  CONFIG " << netConfig.x << "x" << netConfig.y << ", " << netConfig.nNodes << " nodes @ " << netConfig.range << " range");
 	NS_LOG_INFO("  CONFIG " << nSenders << " senders -> " << trafficConfig.groupSize << " each, " << trafficConfig.packetSize << " bytes / " << trafficConfig.sendInterval.GetSeconds() << " s");
 	NS_LOG_INFO("  CONFIG " << "speed " << mobilityConfig.speed << ", pause " << mobilityConfig.pause);
 	NS_LOG_INFO("  CONFIG " << "blackholes " << blackholeFraction);
-	NS_LOG_INFO("  Done after " << difftime(end, start) << " seconds");
 
 	//
 	// Post-process evaluation
@@ -749,8 +759,10 @@ void simulate(
 	AdditiveAccumIntervalMetric<size_t, size_t> buTotal("", &buPkt, &buAck);
 	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidPhy("bu_phy", &buPhy, &pidSent);
 	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidNet("bu", &buTotal, &pidSent);
-	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidPkt("bu_pkt", &buPkt, &buTotal);
-	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidAck("bu_ack", &buAck, &buTotal);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidPkt("bu_pkt", &buPkt, &pidSent);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidAck("bu_ack", &buAck, &pidSent);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidPktFrac("", &buPkt, &buTotal);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidAckFrac("", &buAck, &buTotal);
 
 	AdditiveAccumIntervalMetric<size_t, size_t> decisions("", &unicasts, &broadcasts);
 	NormalizedAccumIntervalMetric<size_t, size_t> broadcastFrac("broadcast", &broadcasts, &decisions);
@@ -762,8 +774,8 @@ void simulate(
 
 	NS_LOG_INFO("  STAT PDR               " << pdr.total() << " (" << pktDelivered.total() << "/" << pidSent.total() << ")");
 	NS_LOG_INFO("  STAT BU per PID        " << buPerPidPhy.total()  << " (PHY), " << buPerPidNet.total() << " (NET) bytes");
-	NS_LOG_INFO("        frac(PKT)        " << buPerPidPkt.total());
-	NS_LOG_INFO("        frac(ACK)        " << buPerPidAck.total());
+	NS_LOG_INFO("        frac(PKT)        " << buPerPidPktFrac.total());
+	NS_LOG_INFO("        frac(ACK)        " << buPerPidAckFrac.total());
 	NS_LOG_INFO("  STAT DELAY             " << (delay.average() * 1000) << " ms");
 	NS_LOG_INFO("  STAT HOP COUNT TO DEST " << hopcount.average());
 	NS_LOG_INFO("  STAT GRP MSG HOP COUNT " << hopsPerGroupMessage);
