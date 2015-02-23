@@ -576,7 +576,8 @@ void simulate(
 		const TrafficConfiguration& trafficConfig,
 		const MobilityConfiguration& mobilityConfig,
 		double blackholeFraction,
-		std::string outFile
+		std::string outFile,
+		bool enableAnim
 		) {
 
 	RngSeedManager::SetSeed(12345);
@@ -714,8 +715,8 @@ void simulate(
 	setBlackHoles(n, round(netConfig.nNodes * blackholeFraction));
 
 	// Create NetAnim traces
-	AnimationInterface* anim;
-	if (outFile != "") {
+	AnimationInterface* anim = 0;
+	if (enableAnim || outFile != "") {
 		anim = new AnimationInterface(outFile + "-animation.xml");
 		anim->SetMobilityPollInterval (Seconds (0.25));
 		anim->SetStartTime (startSimulation);
@@ -730,6 +731,8 @@ void simulate(
 	Simulator::Stop(endSimulation);
 	Simulator::Run();
 	time_t end; time(&end);
+
+	delete anim;
 
 	NS_LOG_INFO("Run #" << run << " (" << duration.GetSeconds() << " seconds, " << clickConfig.Get() << ")");
 	NS_LOG_INFO("  CONFIG " << netConfig.x << "x" << netConfig.y << ", " << netConfig.nNodes << " nodes @ " << netConfig.range << " range");
@@ -870,6 +873,7 @@ int main(int argc, char *argv[]) {
 	std::string mobilityConfig = "20";
 	double blackholeFraction   = 0.0;
 	std::string outFile		   = "";
+	bool enableAnim			   = false;
 
 	cmd.AddValue("run",        "The instance of this experiment.",                       run);
 	cmd.AddValue("duration",   "The simulated time in seconds.",                         duration);
@@ -879,10 +883,11 @@ int main(int argc, char *argv[]) {
 	cmd.AddValue("mobility",   "The mobility model and configuration to use.",           mobilityConfig);
 	cmd.AddValue("blackholes", "Percentage of nodes the will be acting as a blackhole.", blackholeFraction);
 	cmd.AddValue("outfile",    "File for statistics output.",							 outFile);
+	cmd.AddValue("anim",	   "Whether to record a NetAnim tracefile.", 				 enableAnim);
 
 	cmd.Parse (argc, argv);
 
-	simulate(run, clickConfigs[click], Seconds(duration), networkConfigs[networkConfig], trafficConfigs[trafficConfig], mobilityConfigs[mobilityConfig], blackholeFraction, outFile);
+	simulate(run, clickConfigs[click], Seconds(duration), networkConfigs[networkConfig], trafficConfigs[trafficConfig], mobilityConfigs[mobilityConfig], blackholeFraction, outFile, enableAnim);
 
 #else
 	NS_FATAL_ERROR ("Can't use ns-3-click without NSCLICK compiled in");
