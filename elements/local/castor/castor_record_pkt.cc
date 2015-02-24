@@ -14,26 +14,43 @@ void CastorRecordPkt::push(int, Packet *p) {
 				records.push_back(new PidTime(pkt.getPid(i)));
 				npids++;
 			}
+			uint8_t nbroadcasts_old = nbroadcasts;
 			// Add next hop decision for each destination
 			for(unsigned int i = 0; i < pkt.getNNextHops(); i++) {
-				if(pkt.getNextHop(i) == NodeId::make_broadcast())
+				if(pkt.getNextHop(i) == NodeId::make_broadcast()) {
 					nbroadcasts += pkt.getNextHopNAssign(i);
-				else
+				} else {
 					nunicasts += pkt.getNextHopNAssign(i);
+				}
 			}
+			// We partially add packet size to size_broadcast and size_unicast
+			uint8_t nbroadcasts_delta = nbroadcasts - nbroadcasts_old;
+			size_t size_broadcast_delta = p->length() * nbroadcasts_delta / pkt.getNDestinations();
+			size_broadcast += size_broadcast_delta;
+			size_unicast += p->length() - size_broadcast_delta;
+
 			hopcounts.push_back(new UintListNode(pkt.getHopcount()));
 		} else {
 			// Regular Castor PKT
 			Castor_PKT& pkt = (Castor_PKT&) *p->data();
 			records.push_back(new PidTime(pkt.pid));
 			npids++;
-			if(p->dst_ip_anno() == NodeId::make_broadcast())
+			if(p->dst_ip_anno() == NodeId::make_broadcast()) {
+				size_broadcast += p->length();
 				nbroadcasts++;
-			else
+			} else {
+				size_unicast += p->length();
 				nunicasts++;
+			}
 			hopcounts.push_back(new UintListNode(pkt.hopcount));
 		}
+	} else { // CastorPacket::getType(p) == CastorType::ACK
+		if(p->dst_ip_anno() == NodeId::make_broadcast())
+			size_broadcast += p->length();
+		else
+			size_unicast += p->length();
 	}
+
 	npackets++;
 	size += p->length();
 
@@ -50,6 +67,10 @@ String CastorRecordPkt::read_handler(Element *e, void *thunk) {
 		return String(readAndReset(recorder->npackets));
 	case Statistics::size:
 		return String(readAndReset(recorder->size));
+	case Statistics::size_broadcast:
+		return String(readAndReset(recorder->size_broadcast));
+	case Statistics::size_unicast:
+			return String(readAndReset(recorder->size_unicast));
 	case Statistics::nbroadcasts:
 		return String(readAndReset(recorder->nbroadcasts));
 	case Statistics::nunicasts:
@@ -85,6 +106,8 @@ void CastorRecordPkt::add_handlers() {
 	add_read_handler("npids", read_handler, Statistics::npids);
 	add_read_handler("npackets", read_handler, Statistics::npackets);
 	add_read_handler("size", read_handler, Statistics::size);
+	add_read_handler("size_broadcast", read_handler, Statistics::size_broadcast);
+	add_read_handler("size_unicast", read_handler, Statistics::size_unicast);
 	add_read_handler("nbroadcasts", read_handler, Statistics::nbroadcasts);
 	add_read_handler("nunicasts", read_handler, Statistics::nunicasts);
 	add_read_handler("seq_entry", read_handler, Statistics::seq_entry);

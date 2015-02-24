@@ -31,6 +31,7 @@ void FloodingRecordPkt::push(int, Packet *p) {
 
 	npackets++;
 	size += p->length();
+	size_broadcast += p->length();
 
     output(0).push(p);
 }
