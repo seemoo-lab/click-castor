@@ -758,22 +758,22 @@ void simulate(
 	//
 	NormalizedAccumIntervalMetric<size_t, size_t> pdr("pdr", &pktDelivered, &pidSent);
 
-	AdditiveAccumIntervalMetric<size_t, size_t> buBroadcast("", &buBroadcastPkt, &buBroadcastAck);
-	AdditiveAccumIntervalMetric<size_t, size_t> buUnicast("", &buUnicastPkt, &buUnicastAck);
 	AdditiveAccumIntervalMetric<size_t, size_t> buPkt("", &buBroadcastPkt, &buUnicastPkt);
 	AdditiveAccumIntervalMetric<size_t, size_t> buAck("", &buBroadcastAck, &buUnicastAck);
 	AdditiveAccumIntervalMetric<size_t, size_t> buTotal("", &buPkt, &buAck);
 
 	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidPhy("bu_phy", &buPhy, &pidSent);
 	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidNet("bu", &buTotal, &pidSent);
-	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidPkt("bu_pkt", &buPkt, &pidSent);
-	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidAck("bu_ack", &buAck, &pidSent);
-	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidBroadcast("bu_bc", &buBroadcast, &pidSent);
-	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidUnicast("bu_uni", &buUnicast, &pidSent);
-	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidPktFrac("", &buPkt, &buTotal);
-	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidAckFrac("", &buAck, &buTotal);
-	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidBroadcastaFrac("", &buBroadcast, &buTotal);
-	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidUnicastFrac("", &buUnicast, &buTotal);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidBroadcastPkt("bu_broadcast_pkt", &buBroadcastPkt, &pidSent);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidBroadcastAck("bu_broadcast_ack", &buBroadcastAck, &pidSent);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidUnicastPkt("bu_unicast_pkt", &buUnicastPkt, &pidSent);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidUnicastAck("bu_unicast_ack", &buUnicastAck, &pidSent);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidBroadcastPktFrac("", &buBroadcastPkt, &buTotal);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidBroadcastAckFrac("", &buBroadcastAck, &buTotal);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidUnicastPktFrac("", &buUnicastPkt, &buTotal);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidUnicastAckFrac("", &buUnicastAck, &buTotal);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidPkt("", &buPkt, &pidSent);
+	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidAck("", &buAck, &pidSent);
 
 	AdditiveAccumIntervalMetric<size_t, size_t> decisions("", &unicasts, &broadcasts);
 	NormalizedAccumIntervalMetric<size_t, size_t> broadcastFrac("broadcast", &broadcasts, &decisions);
@@ -784,11 +784,11 @@ void simulate(
 	NS_ASSERT(delay.distribution().size() == pktDelivered.total());
 
 	NS_LOG_INFO("  STAT PDR               " << pdr.total() << " (" << pktDelivered.total() << "/" << pidSent.total() << ")");
-	NS_LOG_INFO("  STAT BU per PID        " << buPerPidPhy.total()  << " (PHY), " << buPerPidNet.total() << " (NET) bytes");
-	NS_LOG_INFO("        frac(PKT)        " << buPerPidPktFrac.total());
-	NS_LOG_INFO("        frac(ACK)        " << buPerPidAckFrac.total());
-	NS_LOG_INFO("        frac(Broadcast)  " << buPerPidBroadcastaFrac.total());
-	NS_LOG_INFO("        frac(Unicast)    " << buPerPidUnicastFrac.total());
+	NS_LOG_INFO("  STAT BU PER PID        " << buPerPidPhy.total()  << " (PHY), " << buPerPidNet.total() << " (NET) bytes");
+	NS_LOG_INFO("      % BROADCAST PKT    " << buPerPidBroadcastPktFrac.total());
+	NS_LOG_INFO("      % BROADCAST ACK    " << buPerPidBroadcastAckFrac.total());
+	NS_LOG_INFO("      % UNICAST   PKT    " << buPerPidUnicastPktFrac.total());
+	NS_LOG_INFO("      % UNICAST   ACK    " << buPerPidUnicastAckFrac.total());
 	NS_LOG_INFO("  STAT DELAY             " << (delay.average() * 1000) << " ms");
 	NS_LOG_INFO("  STAT HOP COUNT TO DEST " << hopcount.average());
 	NS_LOG_INFO("  STAT GRP MSG HOP COUNT " << hopsPerGroupMessage);
@@ -826,10 +826,10 @@ void simulate(
 	pdr.write(outFile);
 	buPerPidPhy.write(outFile);
 	buPerPidNet.write(outFile);
-	buPerPidPkt.write(outFile);
-	buPerPidAck.write(outFile);
-	buPerPidUnicast.write(outFile);
-	buPerPidBroadcast.write(outFile);
+	buPerPidBroadcastPkt.write(outFile);
+	buPerPidBroadcastAck.write(outFile);
+	buPerPidUnicastPkt.write(outFile);
+	buPerPidUnicastAck.write(outFile);
 	broadcastFrac.write(outFile);
 	neighbors.write(outFile);
 	hopcount.write(outFile);
