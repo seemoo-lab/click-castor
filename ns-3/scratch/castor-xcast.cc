@@ -353,11 +353,11 @@ public:
 		CombinedAccumIntervalMetric<double, T1, T2>(name, metric, ref, [] (T1 v1, T2 v2) { return (double) v1 / (double) v2; }) {};
 };
 
-template<typename T1, typename T2>
-class AdditiveAccumIntervalMetric : public CombinedAccumIntervalMetric<T1, T1, T2> {
+template<typename T>
+class AdditiveAccumIntervalMetric : public CombinedAccumIntervalMetric<T, T, T> {
 public:
-	AdditiveAccumIntervalMetric(std::string name, const SimpleIntervalMetric<T1>* metric, const SimpleIntervalMetric<T2>* ref) :
-		CombinedAccumIntervalMetric<T1, T1, T2>(name, metric, ref, [] (T1 v1, T2 v2) { return v1 + v2; }) {};
+	AdditiveAccumIntervalMetric(std::string name, const SimpleIntervalMetric<T>* metric, const SimpleIntervalMetric<T>* ref) :
+		CombinedAccumIntervalMetric<T, T, T>(name, metric, ref, [] (T v1, T v2) { return v1 + v2; }) {};
 };
 
 class BlackholeDrops : public AccumIntervalMetric {
@@ -758,9 +758,9 @@ void simulate(
 	//
 	NormalizedAccumIntervalMetric<size_t, size_t> pdr("pdr", &pktDelivered, &pidSent);
 
-	AdditiveAccumIntervalMetric<size_t, size_t> buPkt("", &buBroadcastPkt, &buUnicastPkt);
-	AdditiveAccumIntervalMetric<size_t, size_t> buAck("", &buBroadcastAck, &buUnicastAck);
-	AdditiveAccumIntervalMetric<size_t, size_t> buTotal("", &buPkt, &buAck);
+	AdditiveAccumIntervalMetric<size_t> buPkt("", &buBroadcastPkt, &buUnicastPkt);
+	AdditiveAccumIntervalMetric<size_t> buAck("", &buBroadcastAck, &buUnicastAck);
+	AdditiveAccumIntervalMetric<size_t> buTotal("", &buPkt, &buAck);
 
 	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidPhy("bu_phy", &buPhy, &pidSent);
 	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidNet("bu", &buTotal, &pidSent);
@@ -775,7 +775,7 @@ void simulate(
 	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidPkt("", &buPkt, &pidSent);
 	NormalizedAccumIntervalMetric<size_t, size_t> buPerPidAck("", &buAck, &pidSent);
 
-	AdditiveAccumIntervalMetric<size_t, size_t> decisions("", &unicasts, &broadcasts);
+	AdditiveAccumIntervalMetric<size_t> decisions("", &unicasts, &broadcasts);
 	NormalizedAccumIntervalMetric<size_t, size_t> broadcastFrac("broadcast", &broadcasts, &decisions);
 
 	size_t numGroupMessagesSent = (size_t) ceil (duration.ToDouble(Time::S)  / trafficConfig.sendInterval.ToDouble(Time::S) * nSenders);
