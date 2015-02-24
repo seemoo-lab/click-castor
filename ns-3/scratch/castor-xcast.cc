@@ -702,10 +702,7 @@ void simulate(
 	PacketCount pktDelivered("", n, ClickRecorderLookup::pktDeliver());
 	PacketCount pktForward("", n, ClickRecorderLookup::pktForward());
 	for (Time t = startTraffic + interval; t <= endTraffic; t += interval) {
-		if (!isFlooding) {
-			Simulator::Schedule(t, &NeighborCount::read, &neighbors);
-			Simulator::Schedule(t, &BandwidthUsage::read, &buAck);
-		}
+		Simulator::Schedule(t, &NeighborCount::read, &neighbors);
 		Simulator::Schedule(t, &HopCount::read, &hopcount);
 		Simulator::Schedule(t, &Delay::read, &delay);
 		Simulator::Schedule(t, &PhyTx::read, &buPhy);
@@ -717,6 +714,7 @@ void simulate(
 		Simulator::Schedule(t, &PacketCount::read, &pktDelivered);
 		Simulator::Schedule(t, &PacketCount::read, &pktForward);
 		Simulator::Schedule(t, &BandwidthUsage::read, &buPkt);
+		Simulator::Schedule(t, &BandwidthUsage::read, &buAck);
 	}
 
 	setBlackHoles(n, round(netConfig.nNodes * blackholeFraction));

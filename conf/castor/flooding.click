@@ -77,6 +77,8 @@ elementclass FloodingHandlePkt {
 	duplicateClassifier[1]
 		-> Discard;
 
+	// Dummy element for evaluation in ns-3
+	Idle() -> sendAck :: { -> recAck :: FloodingRecordPkt(map) -> } -> Discard;
 }
 
 
@@ -113,3 +115,7 @@ fromhost -> handleIpPacket -> handlepkt;	// Process new generated packets
  
 handlepkt[0]		-> tohost;		// Deliver PKT to host
 handlepkt[1]		-> arpquerier;	// Forward PKT
+
+// Dummy elements for evaluation in ns-3
+neighbors :: Neighbors(0, false);
+Idle() -> handleack :: { -> sendAck :: { -> recAck :: FloodingRecordPkt(map) -> } -> } -> Discard;
