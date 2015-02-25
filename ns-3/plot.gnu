@@ -1,4 +1,5 @@
 if (exists("tikz")) set term tikz size 15, 7
+set term svg size 1200,800
 if (exists("outfile")) set output outfile
 set boxwidth 1 relative
 set style data histograms
@@ -32,4 +33,4 @@ set ylabel metric
 set xlabel setting
 
 plot for [COL=2:8:2] filename using COL:COL+1:xticlabels(1)
-if (!exists("tikz")) pause -1
+if (!exists("outfile")) pause -1

@@ -2,6 +2,7 @@
 
 import multiprocessing
 import subprocess
+from subprocess import PIPE
 import sys
 import argparse
 import os
@@ -92,6 +93,11 @@ def generate_all_cmd(work_dir):
 
 def evaluate(work_dir):
     for network in networks:
+        for traffic in traffics:
+            for mobility in mobilities:
+                for blackhole in blackholes:
+                    join_runs(file_name(work_dir, network, traffic, mobility, blackhole), clicks)
+    for network in networks:
         average_runs(file_name(work_dir, network=network))
     for traffic in traffics:
         average_runs(file_name(work_dir, traffic=traffic))
@@ -99,6 +105,52 @@ def evaluate(work_dir):
         average_runs(file_name(work_dir, mobility=mobility))
     for blackhole in blackholes:
         average_runs(file_name(work_dir, blackhole=blackhole))
+
+def join_runs(fileprefix, clicks=clicks):
+    bus = ["bu_unicast_pkt", "bu_broadcast_pkt", "bu_broadcast_ack", "bu_unicast_ack"]
+    for click in clicks:
+        for metric in ["bu_phy", "delay", "hopcount", "neighbors", "pdr"] + bus:
+            for mtype in ["total", "avg", "interval"]:
+                infiles = [fileprefix + "-" + click + "-" + `i` + "-" + metric + "-" + mtype for i in runs]
+                if not os.path.exists(infiles[0]):
+                    continue
+                outfilename = fileprefix + "-" + click + "-" + metric + "-" + mtype
+                outfile = file(outfilename, "w")
+                # compute average of all runs
+                paste = subprocess.Popen(["paste"] + infiles, stdout=PIPE)
+                merge = subprocess.Popen(["awk", "{sum=0; for(i=1; i<=NF; i++){sum+=$i}; sum/=NF; print sum}"], stdin=paste.stdout, stdout=outfile)
+                outfile.close()
+                if mtype == "interval":
+                    if metric == bus[-1]:
+                        bu_files = [fileprefix + "-" + click + "-" + bu + "-" + mtype for bu in bus]
+                        outfile = file(fileprefix + "-" + click + "-bu-" + mtype, "w")
+                        subprocess.Popen(["paste", "-d,"] + bu_files, stdout=outfile)
+                        outfile.close()
+                        subprocess.call(["gnuplot", "-e",
+                         "filename='" + fileprefix + "-" + click + "';" +
+                         "outfile='" + fileprefix + "-" + click + "-bu.svg';",
+                         "plot_interval_bu.gnu"])
+                    elif not metric == "bu_phy" and not metric in bus:
+                        subprocess.call(["gnuplot", "-e",
+                         "filename='" + outfilename + "';" +
+                         "outfile='" + outfilename + ".svg';" +
+                         "protocol='" + click + "';" +
+                         "metric='" + metric + "'",
+                         "plot_interval.gnu"])
+#             for mtype in ["dist"]:
+#                 infiles = [fileprefix + "-" + click + "-" + `i` + "-" + metric + "-" + mtype for i in runs]
+#                 if not os.path.exists(infiles[0]):
+#                     continue
+#                 outfilename = fileprefix + "-" + click + "-" + metric + "-" + mtype
+#                 outfile = file(outfilename, "w")
+#                 cat = subprocess.Popen(["cat"] + infiles, stdout=outfile)
+#                 outfile.close()
+#                 subprocess.call(["gnuplot", "-e",
+#                  "filename='" + outfilename + "';" +
+#                  "outfile='" + outfilename + ".svg';" +
+#                  "protocol='" + click + "';" +
+#                  "metric='" + metric + "'",
+#                  "plot_distribution.gnu"])
 
 def average_runs(fileprefix, clicks=clicks):
     if os.path.exists(fileprefix):
@@ -210,29 +262,27 @@ def generate_plots(work_dir, setting, networks=[base_conf()[0]], traffics=[base_
     write_list_to_file(bu_file, bu)
     write_list_to_file(delay_file, delay)
     
-    common_params = "setting='" + dictionary[setting] + "';" + "minx='" + `-0.5` + "';" + "maxx='" + `num_settings - 0.5` + "';" + "tikz='true'"
+    common_params = "setting='" + dictionary[setting] + "';" + "minx='" + `-0.5` + "';" + "maxx='" + `num_settings - 0.5` + "';" + "tikz='false'"
     gnu_script = "plot.gnu"
     
     subprocess.call(["gnuplot", "-e",
                      "filename='" + pdr_file + "';" + 
                      "metric='Packet Delivery Ratio';" + 
                      "maxy='1';" +
-                     "outfile='out/" + setting + "-pdr.tikz';" +
+                     "outfile='" + work_dir + setting + "-pdr.svg';" +
                      common_params,
                      gnu_script])
     subprocess.call(["gnuplot", "-e", 
                      "filename='" + bu_file + "';" +
                      "metric='Bandwidth Utilization [bytes]';" +
-                     "setting='" + setting + "';" +
-                     "outfile='out/" + setting + "-bu.tikz';" +
+                     "outfile='" + work_dir + setting + "-bu.svg';" +
                      common_params,
                      gnu_script])
     subprocess.call(["gnuplot", "-e", 
                      "filename='" + delay_file + "';" + 
                      "metric='Delay [ms]';" + 
                      "maxy='200';" +
-                     "setting='" + setting + "';" + 
-                     "outfile='out/" + setting + "-delay.tikz';" +
+                     "outfile='" + work_dir + setting + "-delay.svg';" +
                      common_params,
                      gnu_script])
 

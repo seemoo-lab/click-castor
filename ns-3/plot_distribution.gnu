@@ -1,27 +1,22 @@
 #set term tikz size 14, 7
+set term svg size 1200,800
+if (exists("outfile")) set output outfile
 
 set style fill transparent solid 0.3 border lt -1
 set linetype 1 lc rgb "#666666" lt -1
 
-#what = 'delay'
-#what = 'neighbors'
-what = 'hopcount'
-exp = 'test'
-dir = '/home/milan/'
-
-file = dir.exp.'-'.what.'-dist'
-
 binwidth=0.001 # the width of each box
 bin(x,width)=width*floor(x/width)
 
-unset key
+#unset key
 
 set yrange [0:]
+set xrange [0:]
 
 set ylabel 'frequency'
-set xlabel what
+set xlabel metric
 
 # $x indicates the xth column in the file
-plot file using (bin($1,binwidth) + binwidth/2):(1.0) smooth freq with boxes
+plot filename using (bin($1,binwidth) + binwidth/2):(1.0) smooth freq with boxes title protocol
 
-pause -1
+if (!exists("outfile")) pause -1

@@ -1,23 +1,26 @@
 #set term tikz size 14, 7
+set term svg size 1200,800
+if (exists("outfile")) set output outfile
 
-exp = 'test'
-dir = '/home/milan/'
-
-file_bu(what) = dir.exp.'-'.what.'-interval'
-file_bu_phy = file_bu('bu_phy')
-file_bu_net = file_bu('bu')
-file_bu_pkt = file_bu('bu_pkt')
-file_bu_ack = file_bu('bu_ack')
+file_bu(what) = filename.'-'.what.'-interval'
 
 set yrange [0:]
 
 set ylabel 'bandwidth utilization per pid [bytes]'
 set xlabel 'time'
+set datafile separator ","
 
-# $x indicates the xth column in the file
-plot file_bu_phy with line lt -1 lw 2 title 'PHY', \
-     file_bu_net with filledcurve x1 lc rgb "#AAAAAA" title 'PKT', \
-     file_bu_ack with filledcurve x1 lc rgb "#666666" title 'ACK', \
-     file_bu_net with line lt -1 lw 2 lc rgb "#000000" title 'NET'
+set linetype 1 lc rgb "#999999" lw 1
+set linetype 2 lc rgb "#2f599f" lw 1
+set linetype 3 lc rgb "#4582e7" lw 1
+set linetype 4 lc rgb "#9f2f2f" lw 1
+set linetype 5 lc rgb "#e74545" lw 1
 
-pause -1
+titles = "Unicast_PKT Broadcast_PKT Broadcast_ACK Unicast_ACK"
+plot \
+  file_bu('bu_phy') with filledcurve x1 title 'PHY', \
+  for [i=1:4:1] \
+    file_bu('bu') using (sum [col=i:4] column(col)) \
+      with filledcurve x1 title word(titles, i)
+
+if (!exists("outfile")) pause -1
