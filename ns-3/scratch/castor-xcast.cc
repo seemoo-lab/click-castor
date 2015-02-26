@@ -473,7 +473,7 @@ NetDeviceContainer setPhysicalChannel(NodeContainer& nodes, double transmissionR
 	wifiPhy.Set ("TxGain", DoubleValue (0) );
 	wifiPhy.Set ("RxGain", DoubleValue (0) );
 	wifiPhy.Set ("EnergyDetectionThreshold", DoubleValue(powerRx));
-	wifiPhy.Set ("CcaMode1Threshold", DoubleValue(powerRx + 20)); // recommended by IEEE Std-802.11-2012 Section 18.3.10.6
+	wifiPhy.Set ("CcaMode1Threshold", DoubleValue(powerRx - 3));
 
 	YansWifiChannelHelper wifiChannel;
 	wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
