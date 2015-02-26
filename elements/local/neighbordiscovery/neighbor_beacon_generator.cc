@@ -13,12 +13,13 @@ int NeighborBeaconGenerator::configure(Vector<String>& conf, ErrorHandler* errh)
 			"ETH", cpkP + cpkM, cpEtherAddress, &myEth,
 			"ENABLE", cpkP, cpBool, &enabled,
 			cpEnd);
-	if (!enabled) interval = 0;
 	return result;
 }
 
 int NeighborBeaconGenerator::initialize(ErrorHandler*) {
-	if (interval == 0) {
+	if (!enabled) {
+		return 0;
+	} else if (interval == 0) {
 		click_chatter("Beaconing interval is zero. Disable beacon generator.");
 		return 0;
 	}
