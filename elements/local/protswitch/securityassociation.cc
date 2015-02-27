@@ -14,7 +14,7 @@ SecurityAssociation::SecurityAssociation(SAType type, unsigned char* sa, size_t 
 	memcpy(myData, sa, length);
 }
 
-String SecurityAssociation::toString() {
+String SecurityAssociation::toString() const {
 	return String(myData, mySize);
 }
 

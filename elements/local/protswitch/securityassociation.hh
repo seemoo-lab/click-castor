@@ -17,7 +17,7 @@ public:
 
 	SecurityAssociation(SAType, String);
 	SecurityAssociation(SAType, unsigned char*, size_t);
-	String toString();
+	String toString() const;
 };
 
 CLICK_ENDDECLS

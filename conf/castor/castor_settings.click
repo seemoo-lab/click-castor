@@ -21,12 +21,10 @@ define(
 	$broadcastJitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
 	$unicastJitter 0, // to add some artificial processing delay
 	
-	$numNodes 200, // relevant for key generation
 	$headroom 544, // Fixed Xcastor header + 10 * 29 bytes per destination + IP header + Ethernet header
 );
 
 AddressInfo(fake $EthDev);
-AddressInfo(netAddr 10.0.0.0)
 
 // Need an IP routing table for ns-3 (dummy)
 rt :: StaticIPLookup(0.0.0.0/0 0);

@@ -2,7 +2,7 @@
  * Initialize common blocks *
  ****************************/
 
-sam::SAManagement(fake, netAddr, $numNodes);
+sam::SAManagement(fake);
 crypto::Crypto(sam);
 
 neighbors :: Neighbors($neighborTimeout, $neighborsEnable);
