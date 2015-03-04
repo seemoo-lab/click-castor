@@ -89,7 +89,7 @@ elementclass ToHost {
 	hostdevice :: ToSimDevice($myHostDev, IP);
 
 	input[0]
-		-> CheckIPHeader2
+		-> CheckIPHeader
 		-> hostdevice;
 
 	input[1]
@@ -104,8 +104,9 @@ elementclass FromHost {
 	$myHostDev, $myIP, $headroom |
 
 	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096, HEADROOM $headroom)
-		-> CheckIPHeader2 // Input packets have bad IP checksum, so we don't check it (CheckIPHeader2 instead of CheckIPHeader)
-		-> CastorTranslateLocalhost($myIP) // Packets coming from host have 127.0.0.1 set as source address, so replace with address of local host
+		-> CheckIPHeader
+		-> CastorTranslateLocalhost($myIP) // Packets coming from ns-3 tun0 (host) device have 127.0.0.1 set as source address
+		-> SetIPChecksum
 		-> output;
 		
 }
