@@ -44,11 +44,13 @@ void CastorRecordPkt::push(int, Packet *p) {
 			}
 			hopcounts.push_back(new UintListNode(pkt.hopcount));
 		}
-	} else { // CastorPacket::getType(p) == CastorType::ACK
+	} else if (CastorPacket::getType(p) == CastorType::ACK) {
 		if(p->dst_ip_anno() == NodeId::make_broadcast())
 			size_broadcast += p->length();
 		else
 			size_unicast += p->length();
+	} else {
+		// Any other packet type
 	}
 
 	npackets++;

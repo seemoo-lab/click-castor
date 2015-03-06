@@ -119,3 +119,4 @@ handlepkt[1]		-> arpquerier;	// Forward PKT
 // Dummy elements for evaluation in ns-3
 neighbors :: Neighbors(0, false);
 Idle() -> handleack :: { -> sendAck :: { -> recAck :: FloodingRecordPkt(map) -> } -> } -> Discard;
+Idle() -> recBeacon :: CastorRecordPkt -> Discard;

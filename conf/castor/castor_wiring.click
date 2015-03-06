@@ -27,4 +27,4 @@ handlepkt[1]		-> arpquerier; // Return ACK
 handlepkt[2]		-> arpquerier; // Forward PKT
 handleack			-> arpquerier; // Forward ACK
 
-NeighborBeaconGenerator($beaconingInterval, fake, $EthDev, $neighborsEnable) -> ethout;
+NeighborBeaconGenerator($beaconingInterval, fake, $EthDev, $neighborsEnable) -> recBeacon :: CastorRecordPkt -> ethout;
