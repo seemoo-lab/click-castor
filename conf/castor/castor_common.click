@@ -50,6 +50,8 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 
 	input
 	-> CastorXcastToUnicast(map)
+	=> (input[0] -> output;
+	    input[1] -> SetIPChecksum -> output;)
 	-> CastorAddHeader($flowDB)
 	-> CastorEncryptACKAuth($crypto)
 	//-> CastorPrint('Send', $myIP, $fullSend)

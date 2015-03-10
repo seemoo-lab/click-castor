@@ -20,7 +20,7 @@ void CastorXcastToUnicast::push(int, Packet *p) {
 		for (int i = 0; i < destinations.size(); i++) {
 			WritablePacket* q = p->clone()->uniqueify();
 			q->ip_header()->ip_dst = destinations[i].in_addr();
-			output(0).push(q);
+			output(1).push(q);
 		}
 	} else {
 		output(0).push(p);
