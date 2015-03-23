@@ -9,7 +9,6 @@ CLICK_DECLS
 
 int CastorUnicastFilter::configure(Vector<String> &conf, ErrorHandler *errh) {
 	if(Args(conf, this, errh)
-			.read_mp("NodeId", myId)
 			.read_p("ACTIVE", active)
 			.complete() < 0)
 		return -1;
@@ -25,19 +24,20 @@ void CastorUnicastFilter::push(int, Packet *p) {
 	if (CastorPacket::isXcast(p)) {
 
 		bool isBroadcast = false;
-		uint8_t index;
 
 		CastorXcastPkt pkt(p);
-		for (uint8_t i = 0; i < pkt.getNNextHops(); i++) {
-			if (pkt.getNextHop(i) == NodeId::make_broadcast()) {
+		uint8_t index;
+		for (index = 0; index < pkt.getNNextHops(); index++) {
+			if (pkt.getNextHop(index) == NodeId::make_broadcast()) {
 				isBroadcast = true;
-				index = i;
 				break;
 			}
 		}
 
 		if (!isBroadcast) {
 			output(1).push(pkt.getPacket());
+		} else if (pkt.getNextHopNAssign(index) == pkt.getNDestinations()) {
+			output(0).push(pkt.getPacket());
 		} else {
 			// These destinations are broadcast
 			Vector<unsigned int> destinations;
@@ -51,7 +51,7 @@ void CastorUnicastFilter::push(int, Packet *p) {
 			// Push PKT with broadcast destinations
 			CastorXcastPkt local(pkt.getPacket()->clone()->uniqueify());
 			local.keepDestinations(toRemain);
-			local.setSingleNextHop(myId);
+			local.setSingleNextHop(NodeId::make_broadcast());
 			output(0).push(local.getPacket());
 
 			// Push PKT with unicast destinations

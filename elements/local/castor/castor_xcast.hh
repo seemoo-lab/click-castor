@@ -133,7 +133,7 @@ public:
 		Vector<NodeId> dests;
 		Vector<PacketId> pids;
 		for(uint8_t i = 0; i < getNDestinations(); i++) {
-			if(toBeRemoved.find(i) == toBeRemoved.end()) {
+			if(toBeRemoved.count(i) == 0 /* contains NOT */) {
 				dests.push_back(getDestination(i));
 				pids.push_back(getPid(i));
 			}
@@ -152,7 +152,7 @@ public:
 		Vector<NodeId> dests;
 		Vector<PacketId> pids;
 		for(uint8_t i = 0; i < getNDestinations(); i++) {
-			if(toRemain.find(i) != toRemain.end()) {
+			if(toRemain.count(i) == 1 /* contains */) {
 				dests.push_back(getDestination(i));
 				pids.push_back(getPid(i));
 			}

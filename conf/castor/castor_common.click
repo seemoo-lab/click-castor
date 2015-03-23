@@ -138,10 +138,8 @@ elementclass CastorHandleAck {
 }
 
 elementclass CastorBlackhole {
-	$myIP |
-	
 	input
-		-> filter :: CastorUnicastFilter($myIP)
+		-> filter :: CastorUnicastFilter
 		-> output;
 		
 	filter[1]

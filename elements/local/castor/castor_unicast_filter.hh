@@ -26,7 +26,6 @@ public:
 	void push(int, Packet *);
 private:
 	bool active;
-	NodeId myId;
 
     static int write_handler(const String &, Element *, void *, ErrorHandler *);
 };

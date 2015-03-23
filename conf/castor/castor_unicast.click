@@ -51,6 +51,7 @@ elementclass CastorHandlePkt {
 	$myIP, $routeselector, $routingtable, $history, $crypto |
 
 	input
+		-> blackhole :: CastorBlackhole // inactive by default
 		-> checkDuplicate :: CastorCheckDuplicate($history)
 		-> authenticate :: CastorAuthenticateFlow($crypto)
 		-> destinationClassifier :: CastorDestClassifier($myIP);
@@ -62,7 +63,6 @@ elementclass CastorHandlePkt {
 	
 	// PKT needs to be forwarded
 	destinationClassifier[1]
-		-> blackhole :: CastorBlackhole($myIP) // By default inactive
 		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $history)
 		-> [2]output;
 
