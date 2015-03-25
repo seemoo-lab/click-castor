@@ -3,6 +3,17 @@
 
 ## Build Instructions
 
+### Prerequisites
+To compile the Castor `Element`s in Click, the **Botan** crypto library is required. On a Debian/Ubuntu system, install via
+```bash
+sudo apt-get install libbotan1.10-dev
+```
+The `Element`s currently requiring this library are
+- `elements/local/castor/crypto.cc` and
+- `elements/local/protswitch/samanagement.cc`
+
+They do so with a `ELEMENT_LIBS(-L/usr/local/lib -lbotan-1.10)` statement.
+
 ### Click with ns-3
 ```bash
 git clone <PROJECT>
