@@ -5,12 +5,12 @@
 ethin[1] -> ethout;			// Push new ARP Responses back to device
 ethin[0] -> [1]arpquerier;	// Push incoming ARP responses to querier
 ethin[2]
-	-> cEtherFilter :: CastorEtherFilter
+	-> etherFilter :: CastorEtherFilter
 	-> castorclassifier;	// Classify received packets
 
-cEtherFilter[1] // Received beacon from neighbor
-	-> AddNeighbor(neighbors, $neighborsEnable)
-	-> Discard;
+etherFilter[1] // Received beacon from neighbor
+	-> addNeighbor :: AddNeighbor(neighbors, $neighborsEnable)
+	-> null :: Discard;
 
 arpquerier -> ethout;	// Send Ethernet packets to output
 
@@ -27,4 +27,6 @@ handlepkt[1]		-> arpquerier; // Return ACK
 handlepkt[2]		-> arpquerier; // Forward PKT
 handleack			-> arpquerier; // Forward ACK
 
-NeighborBeaconGenerator($beaconingInterval, fake, $EthDev, $neighborsEnable) -> recBeacon :: CastorRecordPkt -> ethout;
+beacons :: NeighborBeaconGenerator($beaconingInterval, fake, $EthDev, $neighborsEnable)
+	-> recBeacon :: CastorRecordPkt
+	-> ethout;
