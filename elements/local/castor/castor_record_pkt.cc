@@ -55,6 +55,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 
 	npackets++;
 	size += p->length();
+	size_noreset += p->length();
 
     output(0).push(p);
 }
@@ -72,7 +73,9 @@ String CastorRecordPkt::read_handler(Element *e, void *thunk) {
 	case Statistics::size_broadcast:
 		return String(readAndReset(recorder->size_broadcast));
 	case Statistics::size_unicast:
-			return String(readAndReset(recorder->size_unicast));
+		return String(readAndReset(recorder->size_unicast));
+	case Statistics::size_noreset:
+		return String(recorder->size_noreset);
 	case Statistics::nbroadcasts:
 		return String(readAndReset(recorder->nbroadcasts));
 	case Statistics::nunicasts:
@@ -110,6 +113,7 @@ void CastorRecordPkt::add_handlers() {
 	add_read_handler("size", read_handler, Statistics::size);
 	add_read_handler("size_broadcast", read_handler, Statistics::size_broadcast);
 	add_read_handler("size_unicast", read_handler, Statistics::size_unicast);
+	add_read_handler("size_noreset", read_handler, Statistics::size_noreset);
 	add_read_handler("nbroadcasts", read_handler, Statistics::nbroadcasts);
 	add_read_handler("nunicasts", read_handler, Statistics::nunicasts);
 	add_read_handler("seq_entry", read_handler, Statistics::seq_entry);

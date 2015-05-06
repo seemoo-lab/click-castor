@@ -10,7 +10,7 @@ CLICK_DECLS
 
 class CastorRecordPkt: public Element {
 public:
-	CastorRecordPkt() : npackets(0), npids(0), size(0), size_broadcast(0), size_unicast(0), nbroadcasts(0), nunicasts(0) {}
+	CastorRecordPkt() : npackets(0), npids(0), size(0), size_broadcast(0), size_unicast(0), size_noreset(0), nbroadcasts(0), nunicasts(0) {}
 		
 	const char *class_name() const { return "CastorRecordPkt"; }
 	const char *port_count() const { return PORTS_1_1; }
@@ -40,6 +40,7 @@ protected:
 	size_t size;
 	size_t size_broadcast;
 	size_t size_unicast;
+	size_t size_noreset;
 	size_t nbroadcasts;
 	size_t nunicasts;
 
@@ -53,6 +54,7 @@ private:
 			size, // accumulated size of all packets
 			size_broadcast,
 			size_unicast,
+			size_noreset, // accumulated size without resetting statistics
 			/* Castor/Xcastor PKT specific */
 			npids, // number of pids recorded (is the same as 'npkts' for Castor)
 			nbroadcasts, // number of recorded broadcast pids
