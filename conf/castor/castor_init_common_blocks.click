@@ -9,7 +9,7 @@ neighbors :: Neighbors($neighborTimeout, $neighborsEnable);
 history :: CastorHistory;
 routingtable :: CastorRoutingTable($updateDelta);
 
-castorclassifier :: CastorClassifier(fake);
+castorclassifier :: CastorClassifier(fake, neighbors);
 
 ethin :: InputEthNoHostFilter($EthDev, fake);
 ethout :: OutputEth($EthDev, $broadcastJitter, $unicastJitter);

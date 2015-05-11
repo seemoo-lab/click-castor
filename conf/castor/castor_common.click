@@ -61,10 +61,11 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 
 elementclass CastorClassifier {
 
-	$myIP |
+	$myIP, $neighbors |
 	
 	input
 		-> CheckIPHeader
+		-> AddIPNeighbor($neighbors)
 		-> annotateSourceAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
 		-> annotateDestAddress :: GetIPAddress(IP dst, ANNO 0)
 		-> addressfilter :: IPClassifier(dst host $myIP or 255.255.255.255, -) // We filter by IP address
