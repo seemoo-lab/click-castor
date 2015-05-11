@@ -105,8 +105,7 @@ elementclass FromHost {
 
 	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096, HEADROOM $headroom)
 		-> CheckIPHeader
-		-> CastorTranslateLocalhost($myIP) // Packets coming from ns-3 tun0 (host) device have 127.0.0.1 set as source address
-		-> SetIPChecksum
+		-> SetIPSrc($myIP) // Packets coming from ns-3 tun0 (host) device have 127.0.0.1 set as source address
 		-> output;
 		
 }
