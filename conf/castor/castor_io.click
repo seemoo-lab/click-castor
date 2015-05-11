@@ -1,21 +1,17 @@
 /**
- * Delays MAC layer broadcast frames by '$jitter' milliseconds
+ * Delays MAC layer broadcast frames by a random jitter
  */
-elementclass BroadcastDelayer {
-	$broadcastJitter, $unicastJitter, $isSimulator |
+elementclass BroadcastJitter {
+	$broadcastJitter, $isSimulator |
 	
 	input[0]
-		-> dstFilter :: Classifier(0/ffffffffffff, -);
-		
-	dstFilter[0]
+		-> dstFilter :: Classifier(0/ffffffffffff, -)
 		-> Queue
 		-> JitterUnqueue($broadcastJitter, $isSimulator) // 'true' set for simulator -> much better performance
 		-> output;
 	
 	dstFilter[1]
-		-> Queue
-		-> JitterUnqueue($unicastJitter, $isSimulator) // 'true' set for simulator -> much better performance
-		-> output;
+		-> output; // Unicast frames are not delayed
 	
 }
 
@@ -23,12 +19,40 @@ elementclass BroadcastDelayer {
  * Handle output to the Ethernet device
  */
 elementclass OutputEth { 
-	$myEthDev, $broadcastJitter, $unicastJitter |
+	$myEthDev, $broadcastJitter |
 
-	input[0]
-		-> BroadcastDelayer($broadcastJitter, $unicastJitter, true)
-		-> Queue
+	// TODO: not sure if ARP requests and replies should be highest prio
+
+	prio :: PrioSched
 		-> ethdev :: ToSimDevice($myEthDev);
+
+	highestprio :: Queue -> [0] prio;
+	highprio :: Queue -> [1] prio;
+	lowprio :: Queue -> [2] prio;
+	beaconQueue :: Queue(CAPACITY 1) -> [3] prio; // lowest priority, size of one since we don't need beacon 'floods'
+
+	arpquerier :: ARPQuerier(fake, TIMEOUT 3600, POLL_TIMEOUT 0); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)
+	arpquerier[1] -> highestprio;
+
+	arpquerier[0] -> ps :: PaintSwitch -> BroadcastJitter($broadcastJitter, true) -> lowprio;
+	ps[1] -> BroadcastJitter($broadcastJitter, true) -> highprio;
+
+	input[0] // Castor PKT
+		-> Paint(0)
+		-> arpquerier;
+
+	input[1] // Castor ACK
+		-> Paint(1)
+		-> arpquerier;
+
+	input[2] // Beacons
+		-> beaconQueue;
+
+	input[3] // ARP reply (answer to one of our requests)
+		-> [1]arpquerier;
+
+	input[4] // ARP reply from us (directly send out)
+		-> highestprio;
 
 }
 

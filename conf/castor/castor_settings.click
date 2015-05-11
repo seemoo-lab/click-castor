@@ -18,8 +18,7 @@ define(
 	$neighborTimeout 4500, // in milliseconds (4 * beaconingInterval + delta)
 	$beaconingInterval 1000, // in milliseconds
 
-	$broadcastJitter 100, // jitter in microseconds to avoid collisions for broadcast traffic
-	$unicastJitter 0, // to add some artificial processing delay
+	$broadcastJitter 200, // jitter in microseconds to avoid collisions for broadcast traffic
 	
 	$headroom 544, // Fixed Xcastor header + 10 * 29 bytes per destination + IP header + Ethernet header
 );

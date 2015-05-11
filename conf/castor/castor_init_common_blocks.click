@@ -12,8 +12,6 @@ routingtable :: CastorRoutingTable($updateDelta);
 castorclassifier :: CastorClassifier(fake, neighbors);
 
 ethin :: InputEthNoHostFilter($EthDev, fake);
-ethout :: OutputEth($EthDev, $broadcastJitter, $unicastJitter);
+ethout :: OutputEth($EthDev, $broadcastJitter);
 fromhost :: FromHost($HostDev, fake, $headroom);
 tohost :: ToHost($HostDev);
-
-arpquerier :: ARPQuerier(fake, TIMEOUT 3600, POLL_TIMEOUT 0); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)
