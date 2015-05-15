@@ -59,6 +59,19 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 	-> output;
 }
 
+/**
+ * Paint frames that were broadcasted by the sender
+ */
+elementclass BroadcastPainter {
+	input[0]
+		-> dstFilter :: IPClassifier(dst host 255.255.255.255, -)
+		-> Paint(10, ANNO 32) // Packet was broadcast to us
+		-> output;
+
+	dstFilter[1]
+		-> output; // Packet was unicasted to us (no paint)
+}
+
 elementclass CastorClassifier {
 
 	$myIP, $neighbors |
@@ -66,6 +79,7 @@ elementclass CastorClassifier {
 	input
 		-> CheckIPHeader
 		-> AddIPNeighbor($neighbors)
+		-> BroadcastPainter
 		-> annotateSourceAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
 		-> annotateDestAddress :: GetIPAddress(IP dst, ANNO 0)
 		-> addressfilter :: IPClassifier(dst host $myIP or 255.255.255.255, -) // We filter by IP address

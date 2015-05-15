@@ -4,15 +4,14 @@
 elementclass BroadcastJitter {
 	$broadcastJitter, $isSimulator |
 	
-	input[0]
-		-> dstFilter :: Classifier(0/ffffffffffff, -)
+	input
+		-> cp :: CheckPaint(10, ANNO 32) // this frame was broadcasted -> jitter transmission (Paint(10))
 		-> Queue
 		-> JitterUnqueue($broadcastJitter, $isSimulator) // 'true' set for simulator -> much better performance
 		-> output;
 	
-	dstFilter[1]
-		-> output; // Unicast frames are not delayed
-	
+	cp[1]
+		-> output; // this frame was not broadcasted -> no need to delay (Paint(0))
 }
 
 /**
@@ -20,8 +19,6 @@ elementclass BroadcastJitter {
  */
 elementclass OutputEth { 
 	$myEthDev, $broadcastJitter |
-
-	// TODO: not sure if ARP requests and replies should be highest prio
 
 	prio :: PrioSched
 		-> ethdev :: ToSimDevice($myEthDev);
@@ -32,16 +29,19 @@ elementclass OutputEth {
 	beaconQueue :: Queue(CAPACITY 1) -> [3] prio; // lowest priority, size of one since we don't need beacon 'floods'
 
 	arpquerier :: ARPQuerier(fake, TIMEOUT 3600, POLL_TIMEOUT 0); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)
-	arpquerier[1] -> highestprio;
+	arpquerier[1] -> highestprio; // TODO: not sure if ARP requests and replies should be highest prio
 
-	arpquerier[0] -> ps :: PaintSwitch -> BroadcastJitter($broadcastJitter, true) -> lowprio;
-	ps[1] -> BroadcastJitter($broadcastJitter, true) -> highprio;
+	arpquerier[0] -> ps :: PaintSwitch -> lowprio;
+	// -> StoreEtherAddress(ff:ff:ff:ff:ff:ff, dst) // Force send packet as MAC layer broadcast (no retransmissions, no RTS/CTS, lowest transmission rate)
+	ps[1] -> highprio;
 
 	input[0] // Castor PKT
+		-> BroadcastJitter($broadcastJitter, true)
 		-> Paint(0)
 		-> arpquerier;
 
 	input[1] // Castor ACK
+		-> BroadcastJitter($broadcastJitter, true)
 		-> Paint(1)
 		-> arpquerier;
 
