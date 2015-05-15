@@ -43,7 +43,7 @@ class CastorRoutingTable : public Element {
 public:
 	typedef NodeId SubflowId;
 
-	CastorRoutingTable();
+	CastorRoutingTable() : updateDelta(0.8) {}
 
 	enum Operation { increase, decrease };
 	enum Estimate { first, all };

@@ -5,11 +5,6 @@
 
 CLICK_DECLS
 
-CastorRoutingTable::CastorRoutingTable() {
-	// Default values from experimental setup of Castor technical paper
-	updateDelta = 0.8;
-}
-
 int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
 			"UpdateDelta", cpkP, cpDouble, &updateDelta,
@@ -36,7 +31,7 @@ void CastorRoutingTable::updateEstimates(const FlowId& flow, NodeId subflow, Nod
 
 void CastorRoutingTable::printRoutingTable(const FlowId& flow, NodeId subflow) {
 	StringAccum sa;
-	sa << "Routing table for flow " << CastorPacket::hexToString(flow,sizeof(FlowId)) << " (" << subflow<< "):\n";
+	sa << "Routing table for flow " << CastorPacket::hexToString(flow,sizeof(FlowId)) << " (" << subflow << "):\n";
 
 	ForwarderEntry& table = getFlowEntry(flow, subflow);
 	// Iterate over the Table

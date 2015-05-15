@@ -159,9 +159,9 @@ public:
 	}
 
 private:
-	static const uint8_t src_ip_anno_offset = DST_IP_ANNO_OFFSET + DST_IP_ANNO_SIZE;
-	static const uint8_t mac_ip_anno_offset = src_ip_anno_offset + DST_IP_ANNO_SIZE;
-	static const uint8_t castor_anno_offset = mac_ip_anno_offset + DST_IP_ANNO_SIZE;
+	static const uint8_t src_ip_anno_offset = DST_IP_ANNO_OFFSET + DST_IP_ANNO_SIZE; // = 4
+	static const uint8_t mac_ip_anno_offset = src_ip_anno_offset + DST_IP_ANNO_SIZE; // = 8
+	static const uint8_t castor_anno_offset = mac_ip_anno_offset + DST_IP_ANNO_SIZE; // = 12
 
 };
 
