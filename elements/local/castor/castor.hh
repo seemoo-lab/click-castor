@@ -82,8 +82,8 @@ typedef struct {
 	Hash data;
 } FlowAuthElement;
 typedef FlowAuthElement FlowAuth[CASTOR_FLOWAUTH_ELEM];
-typedef Hash ACKAuth;
-typedef Hash EACKAuth;
+typedef Hash AckAuth;
+typedef Hash PktAuth;
 
 // The Packet Header Structure
 typedef struct {
@@ -92,13 +92,13 @@ typedef struct {
 	uint8_t 	fsize;
 	uint8_t 	ctype;
 	uint16_t 	len;
-	uint16_t	packet_num; // the k-th packet of the current flow, necessary for flow validation (determines whether fauth[i] is left or right sibling in the Merkle tree)
+	uint16_t	kpkt; // the k-th packet of the current flow, necessary for flow validation (determines whether fauth[i] is left or right sibling in the Merkle tree)
 	NodeId		src;
 	NodeId		dst;
 	FlowId	 	fid;
 	PacketId 	pid;
 	FlowAuth 	fauth;
-	EACKAuth 	eauth;
+	PktAuth 	pauth;
 #ifdef DEBUG_HOPCOUNT
 	uint8_t		hopcount;
 #endif
@@ -113,7 +113,7 @@ typedef struct {
 	NodeId		src;
 	NodeId		dst;
 #endif
-	ACKAuth 	auth;
+	AckAuth 	auth;
 } Castor_ACK;
 
 /**

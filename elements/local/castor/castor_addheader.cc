@@ -40,10 +40,10 @@ void CastorAddHeader::push(int, Packet *p) {
 
 	header->fid = label.flow_id;
 	header->pid = label.packet_id;
-	header->packet_num = label.packet_number;
+	header->kpkt = label.packet_number;
 	for (int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)
 		header->fauth[i] = label.flow_auth[i];
-	header->eauth = label.ack_auth; // Still not encrypted
+	header->pauth = label.ack_auth; // not yet encrypted (!)
 
 	CastorPacket::set_src_ip_anno(p, header->src);
 

@@ -26,7 +26,7 @@ void CastorRetransmitAck::push(int, Packet *p) {
 			// Generate new ACK
 			CastorXcastAck ack;
 			ack.type = CastorType::XCAST_ACK;
-			ack.esize = sizeof(EACKAuth);
+			ack.esize = sizeof(PktAuth);
 			ack.len = sizeof(CastorXcastAck);
 			ack.auth = history->getEAckAuth(pkt.getPid(i));
 

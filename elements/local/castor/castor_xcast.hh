@@ -77,8 +77,8 @@ public:
 		for (int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)
 			memcpy(&_fixed->flowAuth[i], &flowAuth[i], sizeof(Hash));
 	}
-	inline const ACKAuth& getAckAuth() const { return _fixed->ackAuth; }
-	inline void setAckAuth(const ACKAuth& ackAuth) { memcpy(&_fixed->ackAuth, &ackAuth, sizeof(ACKAuth)); }
+	inline const AckAuth& getAckAuth() const { return _fixed->ackAuth; }
+	inline void setAckAuth(const AckAuth& ackAuth) { memcpy(&_fixed->ackAuth, &ackAuth, sizeof(AckAuth)); }
 	/** Get the number of multicast receivers */
 	inline uint8_t getNDestinations() const { return _fixed->nDestinations; }
 	inline void setNDestinations(uint8_t n) { _fixed->nDestinations = n; setLength(); }
@@ -285,7 +285,7 @@ private:
 		GroupId multicastGroup;
 		FlowId flowId;
 		FlowAuth flowAuth;
-		ACKAuth	ackAuth;
+		AckAuth	ackAuth;
 		uint8_t nDestinations;
 		uint8_t nNextHops;
 #ifdef DEBUG_HOPCOUNT
@@ -355,7 +355,7 @@ public:
 	uint8_t  	type;
 	uint8_t 	esize;
 	uint16_t 	len;
-	EACKAuth 	auth;
+	PktAuth 	auth;
 };
 
 CLICK_ENDDECLS
