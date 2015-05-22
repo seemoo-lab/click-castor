@@ -69,7 +69,7 @@ void CastorPrint::push(int, Packet *p){
 
 	} else {
 
-		sa << "Unknown type (from " << CastorPacket::src_ip_anno(p) << " to " << p->dst_ip_anno() << ")";
+		sa << "UNKNOWN (from " << CastorPacket::src_ip_anno(p) << " to " << p->dst_ip_anno() << ")";
 
 	}
 

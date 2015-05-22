@@ -5,13 +5,6 @@
 
 CLICK_DECLS
 
-CastorRouteSelectorOriginal::CastorRouteSelectorOriginal() {
-	// Default value from experimental setup in Castor technical paper
-	broadcastAdjust = 8;
-	routingtable = 0;
-	neighbors = 0;
-}
-
 int CastorRouteSelectorOriginal::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
 			"CastorRoutingTable", cpkP+cpkM, cpElementCast, "CastorRoutingTable", &routingtable,

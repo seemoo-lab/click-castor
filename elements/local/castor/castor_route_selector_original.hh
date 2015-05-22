@@ -13,7 +13,7 @@ CLICK_DECLS
  */
 class CastorRouteSelectorOriginal: public CastorRouteSelector {
 public:
-	CastorRouteSelectorOriginal();
+	CastorRouteSelectorOriginal() : broadcastAdjust(8), routingtable(NULL), neighbors(NULL) {}
 
 	const char *class_name() const { return "CastorRouteSelectorOriginal"; }
 	int configure(Vector<String>&, ErrorHandler*);
