@@ -50,7 +50,7 @@ void CastorRetransmitAck::push(int, Packet *p) {
 		ack.hsize = sizeof(Hash);
 		ack.len = sizeof(Castor_ACK);
 		ack.auth = history->getAckAuth(pkt.pid);
-#ifdef DEBUG
+#ifdef DEBUG_ACK_SRCDST
 		ack.src = pkt.dst;
 		ack.dst = pkt.src;
 #endif

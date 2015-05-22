@@ -29,7 +29,9 @@ void CastorRecordPkt::push(int, Packet *p) {
 			size_broadcast += size_broadcast_delta;
 			size_unicast += p->length() - size_broadcast_delta;
 
+#ifdef DEBUG_HOPCOUNT
 			hopcounts.push_back(new UintListNode(pkt.getHopcount()));
+#endif
 		} else {
 			// Regular Castor PKT
 			Castor_PKT& pkt = (Castor_PKT&) *p->data();
@@ -42,7 +44,9 @@ void CastorRecordPkt::push(int, Packet *p) {
 				size_unicast += p->length();
 				nunicasts++;
 			}
+#ifdef DEBUG_HOPCOUNT
 			hopcounts.push_back(new UintListNode(pkt.hopcount));
+#endif
 		}
 	} else if (CastorPacket::getType(p) == CastorType::ACK) {
 		if(p->dst_ip_anno() == NodeId::make_broadcast())

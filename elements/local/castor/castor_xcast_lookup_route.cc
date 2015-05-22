@@ -62,8 +62,9 @@ void CastorXcastLookupRoute::push(int, Packet *p) {
 	NodeId nexthop = pkt.getNNextHops() == 1 ? pkt.getNextHop(0) : NodeId::make_broadcast();
 	pkt.getPacket()->set_dst_ip_anno(nexthop);
 
-	// Inc hop count
+#ifdef DEBUG_HOPCOUNT
 	pkt.incHopcount();
+#endif
 
 	output(0).push(pkt.getPacket());
 

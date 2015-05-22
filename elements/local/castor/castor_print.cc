@@ -60,7 +60,7 @@ void CastorPrint::push(int, Packet *p){
 			sa << "   | To: \t" << p->dst_ip_anno() << "\n";
 			sa << "   | Type: \tACK  (" <<  ack.len << " bytes)\n";
 			sa << "   | Auth: \t" << sauth << "\n";
-#ifdef DEBUG
+#ifdef DEBUG_ACK_SRCDST
 			sa << "   | Flow: \t" << ack.src << " -> " << ack.dst << "\n";
 #endif
 		} else {

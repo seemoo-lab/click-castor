@@ -28,8 +28,9 @@ void CastorAddHeader::push(int, Packet *p) {
 	header->hsize = sizeof(Hash);
 	header->fsize = CASTOR_FLOWAUTH_ELEM;
 	header->len = sizeof(Castor_PKT);
+#ifdef DEBUG_HOPCOUNT
 	header->hopcount = 0;
-
+#endif
 	header->ctype = p->ip_header()->ip_p;
 	header->src = src;
 	header->dst = dst;

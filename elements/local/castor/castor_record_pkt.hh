@@ -10,7 +10,11 @@ CLICK_DECLS
 
 class CastorRecordPkt: public Element {
 public:
-	CastorRecordPkt() : npackets(0), npids(0), size(0), size_broadcast(0), size_unicast(0), size_noreset(0), nbroadcasts(0), nunicasts(0) {}
+	CastorRecordPkt() : npackets(0), npids(0), size(0), size_broadcast(0), size_unicast(0), size_noreset(0), nbroadcasts(0), nunicasts(0) {
+#ifndef DEBUG_HOPCOUNT
+		click_chatter("Warning: recording packets without hopcount");
+#endif
+	}
 		
 	const char *class_name() const { return "CastorRecordPkt"; }
 	const char *port_count() const { return PORTS_1_1; }

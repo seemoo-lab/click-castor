@@ -5,7 +5,8 @@
 #include <click/packet_anno.hh>
 #include "node_id.hh"
 
-//#define DEBUG  // uncomment to add source and destination fields to ACK packets
+//#define DEBUG_ACK_SRCDST  // uncomment to add source and destination fields to ACK packets
+#define DEBUG_HOPCOUNT // include (unprotected) hopcount field in packets
 
 #define CASTOR_HASHLENGTH                           20
 #define CASTOR_FLOWAUTH_ELEM                         8  // log2(CASTOR_FLOWSIZE)
@@ -98,7 +99,9 @@ typedef struct {
 	PacketId 	pid;
 	FlowAuth 	fauth;
 	EACKAuth 	eauth;
-	uint8_t		hopcount; // Unprotected! For evaluation purposes only
+#ifdef DEBUG_HOPCOUNT
+	uint8_t		hopcount;
+#endif
 } Castor_PKT;
 
 // The ACK Header Structure
@@ -106,11 +109,11 @@ typedef struct {
 	uint8_t 	type;
 	uint8_t 	hsize;
 	uint16_t 	len;
-	ACKAuth 	auth;
-#ifdef DEBUG
+#ifdef DEBUG_ACK_SRCDST
 	NodeId		src;
 	NodeId		dst;
 #endif
+	ACKAuth 	auth;
 } Castor_ACK;
 
 /**
