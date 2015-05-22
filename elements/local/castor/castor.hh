@@ -64,6 +64,13 @@ public:
 	inline bool operator==(const Hash& x) const {
 		return memcmp(this->array, x.array, sizeof(array)) == 0;
 	}
+	inline String str() const {
+		char buffer[2 * sizeof(array) + 1];
+		for (int i = 0; i < sizeof(array); i++) {
+			sprintf(buffer + 2 * i, "%02x", array[i]);
+		}
+		return String(buffer);
+	}
 private:
 	uint8_t array[CASTOR_HASHLENGTH];
 };
@@ -144,18 +151,6 @@ public:
 	static inline bool isXcast(Packet* p) {
 		uint8_t type = p->data()[0] & 0x0F;
 		return (type == CastorType::XCAST);
-	}
-
-	static inline String hexToString(const Hash& hex, uint8_t length) {
-		return hexToString(hex.data(), length);
-	}
-
-	static inline String hexToString(const unsigned char* hex, uint8_t length) {
-		char buffer[2 * length + 1];
-		for (int i = 0; i < length; i++) {
-			sprintf(buffer + 2 * i, "%02x", hex[i]);
-		}
-		return String(buffer);
 	}
 
 private:

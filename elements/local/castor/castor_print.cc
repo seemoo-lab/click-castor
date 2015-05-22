@@ -31,10 +31,10 @@ void CastorPrint::push(int, Packet *p){
 			sa << (verbose ? "\n" : "") << CastorXcastPkt(p).toString(verbose).c_str();
 		} else {
 			Castor_PKT& pkt = (Castor_PKT&) *p->data();
-			String spid = CastorPacket::hexToString(pkt.pid, sizeof(PacketId));
+			String spid = pkt.pid.str();
 			if(verbose) {
-				String sfid = CastorPacket::hexToString(pkt.fid, sizeof(FlowId));
-				String seauth = CastorPacket::hexToString(pkt.eauth, sizeof(EACKAuth));
+				String sfid = pkt.fid.str();
+				String seauth = pkt.eauth.str();
 				sa << "\n";
 				sa << "   | From: \t" << CastorPacket::src_ip_anno(p) << "\n";
 				sa << "   | To: \t" << p->dst_ip_anno() << "\n";
@@ -53,7 +53,7 @@ void CastorPrint::push(int, Packet *p){
 		// TODO handle XcastAck
 
 		Castor_ACK& ack = (Castor_ACK&) *p->data();
-		String sauth = CastorPacket::hexToString(ack.auth, sizeof(ACKAuth));
+		String sauth = ack.auth.str();
 		if(verbose) {
 			sa << "\n";
 			sa << "   | From: \t" << CastorPacket::src_ip_anno(p) << "\n";

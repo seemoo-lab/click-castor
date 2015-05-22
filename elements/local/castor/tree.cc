@@ -98,20 +98,6 @@ void MerkleTree::getSiblings(Vector<SValue>& siblings, int id) {
 	}
 }
 
-String MerkleTree::toString() {
-	StringAccum sa;
-	sa << "Generated Merkle Tree:\n";
-	for (int i = 0; i < _leaves.size(); i++) {
-		Node* n = _leaves.at(i);
-		do {
-			sa << CastorPacket::hexToString(n->data.begin(), n->data.size()) << "->";
-			n = n->parent;
-		} while (n != 0);
-		sa << "\n";
-	}
-	return sa.take_string();
-}
-
 bool MerkleTree::isValidMerkleTree(unsigned int id, const SValue& in, const Vector<SValue>& siblings, const SValue& root, const Crypto& crypto) {
 	// First hash the input
 	SValue current = crypto.hash(in);

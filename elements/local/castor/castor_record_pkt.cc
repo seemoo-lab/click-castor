@@ -86,7 +86,7 @@ String CastorRecordPkt::read_handler(Element *e, void *thunk) {
 		} else {
 			PidTime* entry = recorder->records.front();
 			StringAccum sa;
-			sa << CastorPacket::hexToString(entry->pid, sizeof(Hash)) << " " << entry->time;
+			sa << entry->pid.str() << " " << entry->time;
 			recorder->records.pop_front();
 			delete entry;
 			return sa.take_string();

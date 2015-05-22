@@ -31,7 +31,7 @@ void CastorRoutingTable::updateEstimates(const FlowId& flow, NodeId subflow, Nod
 
 void CastorRoutingTable::printRoutingTable(const FlowId& flow, NodeId subflow) {
 	StringAccum sa;
-	sa << "Routing table for flow " << CastorPacket::hexToString(flow,sizeof(FlowId)) << " (" << subflow << "):\n";
+	sa << "Routing table for flow " << flow.str() << " (" << subflow << "):\n";
 
 	ForwarderEntry& table = getFlowEntry(flow, subflow);
 	// Iterate over the Table

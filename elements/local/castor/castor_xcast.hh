@@ -228,14 +228,14 @@ public:
 	StringAccum toString(bool full = false) {
 		StringAccum sa;
 		if(full) {
-			String sfid = CastorPacket::hexToString(getFlowId(), getHashSize());
-			String sauth = CastorPacket::hexToString(getAckAuth(), getHashSize());
+			String sfid = getFlowId().str();
+			String sauth = getAckAuth().str();
 			sa << "   | From:\t" << CastorPacket::src_ip_anno(_p) << "\n";
 			sa << "   | To:\t" << _p->dst_ip_anno() << "\n";
 			sa << "   | Type:\tXcast PKT (header " <<  getHeaderLength() << " / payload " << getPayloadLength() << " bytes)\n";
 			sa << "   | Flow:\t" << getSource() << " -> " << getMulticastGroup() << "\n";
 			for(unsigned int i = 0; i < getNDestinations(); i++)
-				sa << "   | \t\t -> " << getDestination(i) << " (pid " << CastorPacket::hexToString(getPid(i), getHashSize()) << ")\n";
+				sa << "   | \t\t -> " << getDestination(i) << " (pid " << getPid(i).str() << ")\n";
 			sa << "   | Flow ID:\t" << sfid << "\n";
 			sa << "   | Pkt Num: \t" << (getKPkt() + 1) << "/" << (1 << getNFlowAuthElements()) << "\n";
 			sa << "   | Ack Auth:\t" << sauth << "\n";
