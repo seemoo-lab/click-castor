@@ -18,16 +18,16 @@ void CastorAddHeader::push(int, Packet *p) {
 	NodeId dst = p->ip_header()->ip_dst.s_addr;
 
 	// Add Space for the new Header
-	uint32_t length = sizeof(Castor_PKT);
+	uint32_t length = sizeof(CastorPkt);
 	WritablePacket *q = p->push(length);
 	if (!q)
 		return;
 
-	Castor_PKT* header = (Castor_PKT*) q->data();
+	CastorPkt* header = (CastorPkt*) q->data();
 	header->type = CastorType::MERKLE_PKT;
 	header->hsize = sizeof(Hash);
 	header->fsize = CASTOR_FLOWAUTH_ELEM;
-	header->len = sizeof(Castor_PKT);
+	header->len = sizeof(CastorPkt);
 #ifdef DEBUG_HOPCOUNT
 	header->hopcount = 0;
 #endif

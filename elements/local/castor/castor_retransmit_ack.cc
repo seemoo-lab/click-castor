@@ -40,22 +40,22 @@ void CastorRetransmitAck::push(int, Packet *p) {
 		}
 
 	} else {
-		Castor_PKT& pkt = (Castor_PKT&) *p->data();
+		CastorPkt& pkt = (CastorPkt&) *p->data();
 
 		assert(history->hasAck(pkt.pid));
 
 		// Generate new ACK
-		Castor_ACK ack;
+		CastorAck ack;
 		ack.type = CastorType::MERKLE_ACK;
 		ack.hsize = sizeof(Hash);
-		ack.len = sizeof(Castor_ACK);
+		ack.len = sizeof(CastorAck);
 		ack.auth = history->getAckAuth(pkt.pid);
 #ifdef DEBUG_ACK_SRCDST
 		ack.src = pkt.dst;
 		ack.dst = pkt.src;
 #endif
 
-		WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(Castor_ACK), 0);
+		WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorAck), 0);
 		q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Unicast ACK to PKT sender
 
 		assert(history->hasPktFrom(pkt.pid, q->dst_ip_anno()));

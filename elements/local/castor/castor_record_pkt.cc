@@ -34,7 +34,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 #endif
 		} else {
 			// Regular Castor PKT
-			Castor_PKT& pkt = (Castor_PKT&) *p->data();
+			CastorPkt& pkt = (CastorPkt&) *p->data();
 			records.push_back(new PidTime(pkt.pid));
 			npids++;
 			if(p->dst_ip_anno() == NodeId::make_broadcast()) {

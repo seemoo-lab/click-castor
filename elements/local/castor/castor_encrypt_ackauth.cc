@@ -18,7 +18,7 @@ int CastorEncryptACKAuth::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorEncryptACKAuth::push(int, Packet *p) {
 
 	WritablePacket* q = p->uniqueify();
-	Castor_PKT* pkt = (Castor_PKT*) q->data();
+	CastorPkt* pkt = (CastorPkt*) q->data();
 	SValue auth(pkt->pauth.data(), sizeof(AckAuth));
 
 	const SymmetricKey* sk = _crypto->getSharedKey(pkt->dst);

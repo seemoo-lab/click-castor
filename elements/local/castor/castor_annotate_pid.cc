@@ -18,7 +18,7 @@ int CastorAnnotatePid::configure(Vector<String>& conf, ErrorHandler* errh) {
 void CastorAnnotatePid::push(int, Packet* p) {
 
 	// Compute the corresponding packet id
-	Castor_ACK& ack = (Castor_ACK&) *p->data();
+	CastorAck& ack = (CastorAck&) *p->data();
 	SValue pid = crypto->hash(SValue(ack.auth.data(), ack.hsize));
 
 	// Store it as packet annotation

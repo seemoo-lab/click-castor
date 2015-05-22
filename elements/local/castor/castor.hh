@@ -102,7 +102,7 @@ typedef struct {
 #ifdef DEBUG_HOPCOUNT
 	uint8_t		hopcount;
 #endif
-} Castor_PKT;
+} CastorPkt;
 
 // The ACK Header Structure
 typedef struct {
@@ -114,7 +114,7 @@ typedef struct {
 	NodeId		dst;
 #endif
 	AckAuth 	auth;
-} Castor_ACK;
+} CastorAck;
 
 /**
  * The Castor Class with utility functions to handle Packet Processing

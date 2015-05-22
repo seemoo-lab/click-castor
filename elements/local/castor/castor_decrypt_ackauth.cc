@@ -18,7 +18,7 @@ int CastorDecryptACKAuth::configure(Vector<String>& conf, ErrorHandler* errh) {
 void CastorDecryptACKAuth::push(int, Packet *p) {
 
 	WritablePacket* q = p->uniqueify();
-	Castor_PKT* pkt = (Castor_PKT*) q->data();
+	CastorPkt* pkt = (CastorPkt*) q->data();
 
 	SValue encAuth(pkt->pauth.data(), sizeof(PktAuth));
 

@@ -29,7 +29,7 @@ void CastorAuthenticatePkt::push(int, Packet *p) {
 
 		isPidValid = computedPid == pkt.getPid(0); // Pkt should only include a single pid
 	} else {
-		Castor_PKT* pkt = (Castor_PKT*) p->data();
+		CastorPkt* pkt = (CastorPkt*) p->data();
 
 		SValue hash = crypto->hash(SValue(CastorPacket::getCastorAnno(p), sizeof(AckAuth)));
 		PacketId computedPid(hash.begin());

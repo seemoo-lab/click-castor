@@ -30,7 +30,7 @@ void CastorPrint::push(int, Packet *p){
 		if (CastorPacket::isXcast(p)) {
 			sa << (verbose ? "\n" : "") << CastorXcastPkt(p).toString(verbose).c_str();
 		} else {
-			Castor_PKT& pkt = (Castor_PKT&) *p->data();
+			CastorPkt& pkt = (CastorPkt&) *p->data();
 			if(verbose) {
 				sa << "\n";
 				sa << "   | From: \t" << CastorPacket::src_ip_anno(p) << "\n";
@@ -49,7 +49,7 @@ void CastorPrint::push(int, Packet *p){
 
 		// TODO handle XcastAck
 
-		Castor_ACK& ack = (Castor_ACK&) *p->data();
+		CastorAck& ack = (CastorAck&) *p->data();
 		String sauth = ack.auth.str();
 		if(verbose) {
 			sa << "\n";

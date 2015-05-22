@@ -11,7 +11,7 @@ CastorRemoveHeader::~CastorRemoveHeader() {
 }
 
 void CastorRemoveHeader::push(int, Packet* p){
-	p->pull(sizeof(Castor_PKT));
+	p->pull(sizeof(CastorPkt));
 
 	output(0).push(p);
 }

@@ -17,7 +17,7 @@ int CastorAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) 
 
 void CastorAuthenticateFlow::push(int, Packet *p) {
 
-	Castor_PKT* pkt = (Castor_PKT*) p->data();
+	CastorPkt* pkt = (CastorPkt*) p->data();
 
 	SValue fid(pkt->fid.data(), sizeof(FlowId));
 	SValue pid(pkt->pid.data(), sizeof(PacketId));

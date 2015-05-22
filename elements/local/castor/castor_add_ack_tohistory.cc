@@ -26,7 +26,7 @@ void CastorAddAckToHistory::push(int, Packet *p) {
 			history->addFirstAckForXcastor(pid, CastorPacket::src_ip_anno(p), ack.auth);
 		}
 	} else {
-		Castor_ACK& ack = (Castor_ACK&) *p->data();
+		CastorAck& ack = (CastorAck&) *p->data();
 		SValue hash = crypto->hash(SValue(ack.auth.data(), ack.hsize));
 		PacketId pid(hash.begin());
 		if (history->hasAck(pid)) {

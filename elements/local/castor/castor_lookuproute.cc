@@ -16,7 +16,7 @@ int CastorLookupRoute::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorLookupRoute::push(int, Packet *p){
-	Castor_PKT* header = (Castor_PKT*) p->data();
+	CastorPkt* header = (CastorPkt*) p->data();
 
 	// Lookup
 	NodeId nextHop = selector->select(header->fid, header->dst, 0, header->pid);
