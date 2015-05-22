@@ -14,7 +14,7 @@
 
 CLICK_DECLS
 
-struct CastorType { // C++11's strongly typed 'enum class' does not work, so create artificial namespace
+namespace CastorType { // C++11's strongly typed 'enum class' does not work, so create artificial namespace
 	enum {
 		PKT = 0xC0,
 		ACK = 0xA0,
@@ -67,7 +67,7 @@ public:
 	}
 	inline String str() const {
 		char buffer[2 * sizeof(array) + 1];
-		for (int i = 0; i < sizeof(array); i++) {
+		for (size_t i = 0; i < sizeof(array); i++) {
 			sprintf(buffer + 2 * i, "%02x", array[i]);
 		}
 		return String(buffer);
