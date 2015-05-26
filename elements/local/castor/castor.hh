@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTOR_H
-#define CLICK_CASTOR_H
+#ifndef CLICK_CASTOR_HH
+#define CLICK_CASTOR_HH
 
 #include <click/ipaddress.hh>
 #include <click/packet_anno.hh>
@@ -42,13 +42,16 @@ typedef FlowAuthElement FlowAuth[CASTOR_FLOWAUTH_ELEM];
 typedef Hash AckAuth;
 typedef Hash PktAuth;
 
-// The Packet Header Structure
-typedef struct {
+/**
+ * The Castor data packet header (PKT)
+ */
+class CastorPkt {
+public:
 	uint8_t 	type;
 	uint8_t 	hsize;
+	uint16_t 	len;
 	uint8_t 	fsize;
 	uint8_t 	ctype;
-	uint16_t 	len;
 	uint16_t	kpkt; // the k-th packet of the current flow, necessary for flow validation (determines whether fauth[i] is left or right sibling in the Merkle tree)
 	NodeId		src;
 	NodeId		dst;
@@ -59,10 +62,13 @@ typedef struct {
 #ifdef DEBUG_HOPCOUNT
 	uint8_t		hopcount;
 #endif
-} CastorPkt;
+};
 
-// The ACK Header Structure
-typedef struct {
+/**
+ * The Castor acknowledgement packet (ACK)
+ */
+class CastorAck {
+public:
 	uint8_t 	type;
 	uint8_t 	hsize;
 	uint16_t 	len;
@@ -71,10 +77,10 @@ typedef struct {
 	NodeId		dst;
 #endif
 	AckAuth 	auth;
-} CastorAck;
+};
 
 /**
- * The Castor Class with utility functions to handle Packet Processing
+ * Utility class to handle packet types and annotations
  */
 class CastorPacket {
 public:
