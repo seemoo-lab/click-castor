@@ -6,7 +6,6 @@ CLICK_DECLS
 
 int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
     return cp_va_kparse(conf, this, errh,
-        "Crypto", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
 		"CastorRoutingTable", cpkP+cpkM, cpElementCast, "CastorRoutingTable", &table,
 		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
         cpEnd);
@@ -15,7 +14,6 @@ int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorUpdateEstimates::push(int, Packet *p){
 	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
 
-	// TODO do all that with a single call
 	const FlowId& fid = history->getFlowId(pid);
 	NodeId subfid = history->getDestination(pid);
 	NodeId routedTo = history->routedTo(pid);
@@ -26,7 +24,7 @@ void CastorUpdateEstimates::push(int, Packet *p){
 		table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
 	table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
 
-    output(!isFirstAck).push(p); // only forward 1st ACK on default output port 0
+    output(isFirstAck ? 0 : 1).push(p); // only forward 1st ACK on default output port 0
 }
 
 CLICK_ENDDECLS

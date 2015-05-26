@@ -116,8 +116,8 @@ elementclass CastorHandleAck {
 	// Regular ACK flow
 	input
 		-> calcPid :: CastorAnnotatePid($crypto)
-		-> authenticate :: CastorAuthenticateAck($crypto, $history, $CASTOR_VERSION)
-		-> updateEstimates :: CastorUpdateEstimates($crypto, $routingtable, $history)
+		-> authenticate :: CastorAuthenticateAck($history, $CASTOR_VERSION)
+		-> updateEstimates :: CastorUpdateEstimates($routingtable, $history)
 		-> CastorAddAckToHistory($crypto, $history)
 		//-> CastorPrint('Received valid', $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
