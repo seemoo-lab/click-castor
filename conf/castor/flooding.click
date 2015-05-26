@@ -12,7 +12,7 @@ elementclass ToHost {
 	hostdevice :: ToSimDevice($myHostDev, IP);
 
 	input
-		-> CheckIPHeader2
+		-> CheckIPHeader
 		-> hostdevice;
 
 }
@@ -24,7 +24,7 @@ elementclass FromHost {
 	$myHostDev, $myIP |
 
 	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096)
-		-> CheckIPHeader2 // Input packets have bad IP checksum, so we don't check it (CheckIPHeader2 instead of CheckIPHeader)
+		-> CheckIPHeader
 		-> output;
 		
 }
@@ -63,7 +63,7 @@ elementclass FloodingHandlePkt {
 	$myIP, $map |
 
 	input
-		-> CheckIPHeader2
+		-> CheckIPHeader
 		-> blackhole :: FloodingBlackhole($map)
 		-> duplicateClassifier :: FloodingCheckDuplicate
 		-> destinationClassifier :: FloodingDestinationClassifier($myIP, $map)
@@ -88,7 +88,7 @@ elementclass FloodingHandlePkt {
  *************************/
 
 ethin :: InputEth($EthDev, fake);
-ethout :: OutputEth($EthDev, $broadcastJitter, $unicastJitter);
+ethout :: OutputEth($EthDev, $broadcastJitter);
 fromhost :: FromHost($HostDev, fake);
 tohost :: ToHost($HostDev);
 
@@ -97,24 +97,24 @@ map :: CastorXcastDestinationMap;
 handleIpPacket :: HandleIPPacket(map);
 handlepkt :: FloodingHandlePkt(fake, map);
 
-arpquerier :: ARPQuerier(fake, TIMEOUT 3600, POLL_TIMEOUT 0); // Set timeout sufficiently long, so we don't introduce ARP overhead (we set entries in ns-3)
-
 /*******************
  * Wire the Blocks *
  *******************/
 
-ethin[1] -> ethout;			// Push new ARP Responses back to device
-ethin[0] -> [1]arpquerier;	// Push incoming arp responses to querer
+ethin[1] -> [4]ethout; // Push new ARP Responses to device
+ethin[0] -> [3]ethout; // Push incoming ARP responses to querier
+Idle()   -> [2]ethout; // Usually used for beacons, but don't use them here
+Idle()	 -> [1]ethout; // Usually used for ACKs, but don't use them here
 ethin[2]
 	-> removeEthernetHeader :: Strip(14)
- 	-> handlepkt; // received packets			
- 
-arpquerier -> ethout;	// Send Ethernet packets to output
+ 	-> handlepkt; // received packets
 
 fromhost -> handleIpPacket -> handlepkt;	// Process new generated packets
  
 handlepkt[0]		-> tohost;		// Deliver PKT to host
-handlepkt[1]		-> arpquerier;	// Forward PKT
+handlepkt[1]
+	-> Paint(10, ANNO 32) // These are always broadcast
+	-> [0]ethout; // Forward PKT
 
 // Dummy elements for evaluation in ns-3
 neighbors :: Neighbors(0, false);
