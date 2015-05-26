@@ -4,11 +4,11 @@
 #include <click/ipaddress.hh>
 #include <click/packet_anno.hh>
 #include "node_id.hh"
+#include "hash.hh"
 
 //#define DEBUG_ACK_SRCDST  // uncomment to add source and destination fields to ACK packets
 #define DEBUG_HOPCOUNT // include (unprotected) hopcount field in packets
 
-#define CASTOR_HASHLENGTH                           20
 #define CASTOR_FLOWAUTH_ELEM                         8  // log2(CASTOR_FLOWSIZE)
 #define CASTOR_FLOWSIZE		  (1<<CASTOR_FLOWAUTH_ELEM) // Number of flow auth elements in the header
 
@@ -31,49 +31,6 @@ namespace CastorType { // C++11's strongly typed 'enum class' does not work, so 
 		XCAST_PKT = PKT | XCAST,
 		XCAST_ACK = ACK | XCAST
 	};
-};
-
-class Hash {
-public:
-	typedef unsigned long hashcode_t;
-
-	inline Hash() { memset(&array, 0, sizeof(array)); }
-	inline Hash(const uint8_t array[]) { memcpy(this->array, array, sizeof(this->array)); }
-	inline hashcode_t hashcode() const {
-		hashcode_t x;
-		memcpy(&x, array, sizeof(hashcode_t));
-		return x;
-	}
-	inline Hash& operator=(const Hash& x) {
-		memcpy(&array, &x.array, sizeof(array));
-		return *this;
-	}
-	inline const uint8_t& operator[](size_t i) const {
-		assert(i < sizeof(array));
-		return array[i];
-	}
-	inline uint8_t& operator[](size_t i) {
-		assert(i < sizeof(array));
-		return array[i];
-	}
-	inline const uint8_t* data() const {
-		return array;
-	}
-	inline uint8_t* data() {
-	    return array;
-	}
-	inline bool operator==(const Hash& x) const {
-		return memcmp(this->array, x.array, sizeof(array)) == 0;
-	}
-	inline String str() const {
-		char buffer[2 * sizeof(array) + 1];
-		for (size_t i = 0; i < sizeof(array); i++) {
-			sprintf(buffer + 2 * i, "%02x", array[i]);
-		}
-		return String(buffer);
-	}
-private:
-	uint8_t array[CASTOR_HASHLENGTH];
 };
 
 typedef Hash FlowId;
