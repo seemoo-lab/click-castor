@@ -13,58 +13,31 @@ int CastorRetransmitAck::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorRetransmitAck::push(int, Packet *p) {
-
 	// We already forwarded a valid ACK for this PKT, so retransmit
-	if (CastorPacket::isXcast(p)) {
-		CastorXcastPkt pkt = CastorXcastPkt(p);
+	CastorPkt& pkt = (CastorPkt&) *p->data();
 
-		p = pkt.getPacket();
+	assert(history->hasAck(pkt.pid));
 
-		for (uint8_t i = 0; i < pkt.getNDestinations(); i++) {
-			assert(history->hasAck(pkt.getPid(i)));
-
-			// Generate new ACK
-			CastorXcastAck ack;
-			ack.type = CastorType::XCAST_ACK;
-			ack.esize = sizeof(PktAuth);
-			ack.len = sizeof(CastorXcastAck);
-			ack.auth = history->getEAckAuth(pkt.getPid(i));
-
-			WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorXcastAck), 0);
-			q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Unicast ACK to PKT sender
-
-			assert(history->hasPktFrom(pkt.getPid(i), q->dst_ip_anno()));
-
-			output(0).push(q);
-
-		}
-
-	} else {
-		CastorPkt& pkt = (CastorPkt&) *p->data();
-
-		assert(history->hasAck(pkt.pid));
-
-		// Generate new ACK
-		CastorAck ack;
-		ack.type = CastorType::MERKLE_ACK;
-		ack.hsize = sizeof(Hash);
-		ack.len = sizeof(CastorAck);
-		ack.auth = history->getAckAuth(pkt.pid);
+	// Generate new ACK
+	CastorAck ack;
+	ack.type = CastorType::MERKLE_ACK;
+	ack.hsize = sizeof(Hash);
+	ack.len = sizeof(CastorAck);
+	ack.auth = history->getAckAuth(pkt.pid);
 #ifdef DEBUG_ACK_SRCDST
-		ack.src = pkt.dst;
-		ack.dst = pkt.src;
+	ack.src = pkt.dst;
+	ack.dst = pkt.src;
 #endif
 
-		WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorAck), 0);
-		q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Unicast ACK to PKT sender
+	WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorAck), 0);
+	q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Unicast ACK to PKT sender
 
-		assert(history->hasPktFrom(pkt.pid, q->dst_ip_anno()));
-
-		output(0).push(q);
-	}
+	assert(history->hasPktFrom(pkt.pid, q->dst_ip_anno()));
 
 	// No longer need PKT
 	p->kill();
+
+	output(0).push(q);
 }
 
 CLICK_ENDDECLS

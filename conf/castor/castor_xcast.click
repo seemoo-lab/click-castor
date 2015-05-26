@@ -70,7 +70,7 @@ elementclass CastorHandleXcastPkt {
 	// Need to retransmit ACK
 	checkDuplicate[1]
 		-> CastorAddXcastPktToHistory($history)
-		-> CastorRetransmitAck($history, $myIP)
+		-> CastorXcastRetransmitAck($history, $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
 		-> sendAck;
 
