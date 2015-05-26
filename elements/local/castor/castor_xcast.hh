@@ -349,11 +349,6 @@ private:
 	}
 };
 
-/**
- * The Xcastor acknowledgement (ACK)
- */
-class CastorXcastAck : public CastorAck {};
-
 CLICK_ENDDECLS
 
 #endif

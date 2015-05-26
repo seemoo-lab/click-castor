@@ -29,7 +29,6 @@ namespace CastorType { // C++11's strongly typed 'enum class' does not work, so 
 
 		XCAST = 0x0C,
 		XCAST_PKT = PKT | XCAST,
-		XCAST_ACK = ACK | XCAST
 	};
 };
 
