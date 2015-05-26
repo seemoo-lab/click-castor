@@ -5,7 +5,7 @@ elementclass CastorLocalPkt {
 		//-> CastorPrint('Packet arrived at destination', $myIP)
 		-> CastorDecryptACKAuth($crypto)
 		-> authPkt :: CastorAuthenticatePkt($crypto)
-		-> CastorAddPKTToHistory($history)
+		-> CastorAddPktToHistory($history)
 		-> rec :: CastorRecordPkt
 		-> genAck :: CastorCreateAck
 		-> [0]output;
@@ -29,7 +29,7 @@ elementclass CastorForwardPkt {
 
 	input
 		-> route :: CastorLookupRoute($routeselector)
-		-> CastorAddPKTToHistory($history)
+		-> CastorAddPktToHistory($history)
 		-> CastorTimeout($routingtable, $history, $timeout, NodeId $myIP, VERBOSE false)
 		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> rec :: CastorRecordPkt
@@ -74,7 +74,7 @@ elementclass CastorHandlePkt {
 	// Need to retransmit ACK
 	checkDuplicate[1]
 		//-> CastorPrint("Duplicate pid, retransmit ACK", $myIP)
-		-> CastorAddPKTToHistory($history)
+		-> CastorAddPktToHistory($history)
 		-> CastorRetransmitAck($history, $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
 		-> sendAck;
@@ -83,7 +83,7 @@ elementclass CastorHandlePkt {
 	null :: Discard;
 	checkDuplicate[2]
 		//-> CastorPrint("Duplicate PKT from different neighbor", $myIP)
-		-> CastorAddPKTToHistory($history) // Add sender to history
+		-> CastorAddPktToHistory($history) // Add sender to history
 		-> null;
 
 	checkDuplicate[3]

@@ -1,24 +1,17 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include "castor_add_pkt_tohistory.hh"
+#include "castor.hh"
 
 CLICK_DECLS
 
-CastorAddPKTToHistory::CastorAddPKTToHistory() {
-}
-
-CastorAddPKTToHistory::~CastorAddPKTToHistory() {
-}
-
-int CastorAddPKTToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
+int CastorAddPktToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
 			"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
 			cpEnd);
 }
 
-void CastorAddPKTToHistory::push(int, Packet *p){
-	assert(!CastorPacket::isXcast(p));
-
+void CastorAddPktToHistory::push(int, Packet *p){
 	CastorPkt& pkt = (CastorPkt&) *p->data();
 
 	history->addPkt(pkt.pid, pkt.fid, CastorPacket::src_ip_anno(p), p->dst_ip_anno(), pkt.dst);
@@ -27,4 +20,4 @@ void CastorAddPKTToHistory::push(int, Packet *p){
 }
 
 CLICK_ENDDECLS
-EXPORT_ELEMENT(CastorAddPKTToHistory)
+EXPORT_ELEMENT(CastorAddPktToHistory)
