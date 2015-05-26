@@ -38,8 +38,8 @@ void CastorPrint::push(int, Packet *p){
 				sa << "   | Type: \tPKT (header " <<  pkt.len << " / payload " << (p->length() - pkt.len) << " bytes)\n";
 				sa << "   | Flow: \t" << pkt.src << " -> " << pkt.dst << "\n";
 				sa << "   | Flow ID: \t" << pkt.fid.str() << "\n";
-				sa << "   | Pkt ID: \t" << pkt.pid.str() << " (" << (pkt.kpkt + 1) << "/" << (1 << pkt.fsize) << ")\n";
-				sa << "   | Enc Auth: \t" << pkt.pauth.str();
+				sa << "   | PKT ID: \t" << pkt.pid.str() << " (" << (pkt.kpkt + 1) << "/" << (1 << pkt.fsize) << ")\n";
+				sa << "   | PKT Auth: \t" << pkt.pauth.str();
 			} else {
 				sa << "PKT (from " << CastorPacket::src_ip_anno(p) << " to " << p->dst_ip_anno() << ", flow " << pkt.src << " -> " << pkt.dst << "): " << pkt.pid.str();
 			}
@@ -47,21 +47,19 @@ void CastorPrint::push(int, Packet *p){
 
 	} else if (type == CastorType::ACK){
 
-		// TODO handle XcastAck
-
+		// CastorAck and CastorXcastAck are identical
 		CastorAck& ack = (CastorAck&) *p->data();
-		String sauth = ack.auth.str();
 		if(verbose) {
 			sa << "\n";
 			sa << "   | From: \t" << CastorPacket::src_ip_anno(p) << "\n";
 			sa << "   | To: \t" << p->dst_ip_anno() << "\n";
 			sa << "   | Type: \tACK  (" <<  ack.len << " bytes)\n";
-			sa << "   | Auth: \t" << sauth << "\n";
+			sa << "   | ACK Auth: \t" << ack.auth.str() << "\n";
 #ifdef DEBUG_ACK_SRCDST
 			sa << "   | Flow: \t" << ack.src << " -> " << ack.dst << "\n";
 #endif
 		} else {
-			sa << "ACK (from " << CastorPacket::src_ip_anno(p) << " to " << p->dst_ip_anno() << "): " << sauth;
+			sa << "ACK (from " << CastorPacket::src_ip_anno(p) << " to " << p->dst_ip_anno() << "): " << ack.auth.str();
 		}
 
 	} else {
