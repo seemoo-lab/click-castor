@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTOR_XCAST_H
-#define CLICK_CASTOR_XCAST_H
+#ifndef CLICK_CASTOR_XCAST_HH
+#define CLICK_CASTOR_XCAST_HH
 
 #include <click/straccum.hh>
 #include <click/vector.hh>
@@ -12,7 +12,7 @@ CLICK_DECLS
 typedef NodeId GroupId;
 
 /**
- * Castor wrapper class for a Packet. Provides accessor methods to Castor specific fields.
+ * Xcastor wrapper class for a data packet. Provides accessor methods to Xcastor specific fields.
  */
 class CastorXcastPkt {
 public:
@@ -349,14 +349,10 @@ private:
 	}
 };
 
-// The ACK Header Structure for Explicit Multicast (Xcast)
-class CastorXcastAck {
-public:
-	uint8_t  	type;
-	uint8_t 	esize;
-	uint16_t 	len;
-	PktAuth 	auth;
-};
+/**
+ * The Xcastor acknowledgement (ACK)
+ */
+class CastorXcastAck : public CastorAck {};
 
 CLICK_ENDDECLS
 
