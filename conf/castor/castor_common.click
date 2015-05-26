@@ -15,51 +15,6 @@ elementclass CastorEtherFilter {
 }
 
 /**
- * Appends Castor header to IP (unicast) packet
- */
-elementclass CastorHandleUnicastIpPacket {
-	$myIP, $flowDB, $crypto |
-
-	-> CastorAddHeader($flowDB)
-	-> CastorEncryptACKAuth($crypto)
-	//-> CastorPrint('Send', $myIP, $fullSend)
-	-> rec :: CastorRecordPkt
-	-> output;
-}
-
-/**
- * Appends Castor Xcast header to IP (multicast) packet
- */
-elementclass CastorHandleMulticastIpPacket {
-	$myIP, $flowDB, $crypto |
-
-	map :: CastorXcastDestinationMap
-
-	input
-	-> CastorXcastSetFixedHeader($flowDB)
-	-> CastorXcastSetDestinations($crypto, map)
-	//-> CastorPrint('Send', $myIP, $fullSend)
-	-> rec :: CastorRecordPkt
-	-> output;
-}
-
-elementclass CastorHandleMulticastToUnicastIpPacket {
-	$myIP, $flowDB, $crypto |
-	
-	map :: CastorXcastDestinationMap
-
-	input
-	-> CastorXcastToUnicast(map)
-	=> (input[0] -> output;
-	    input[1] -> SetIPChecksum -> output;)
-	-> CastorAddHeader($flowDB)
-	-> CastorEncryptACKAuth($crypto)
-	//-> CastorPrint('Send', $myIP, $fullSend)
-	-> rec :: CastorRecordPkt
-	-> output;
-}
-
-/**
  * Paint frames that were broadcasted by the sender
  */
 elementclass BroadcastPainter {

@@ -1,13 +1,13 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 
-#include "castor_addheader.hh"
+#include "castor_add_header.hh"
 
 CLICK_DECLS
 
 int CastorAddHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
      return cp_va_kparse(conf, this, errh,
-        "CastorAddHeader", cpkP+cpkM, cpElementCast, "CastorFlowStub", &cflow,
+        "CastorAddHeader", cpkP+cpkM, cpElementCast, "CastorFlowStub", &flow,
         cpEnd);
 }
 
@@ -36,7 +36,7 @@ void CastorAddHeader::push(int, Packet *p) {
 	header->dst = dst;
 
 	// Access the flow settings
-	PacketLabel label = cflow->getPacketLabel(src, dst);
+	PacketLabel label = flow->getPacketLabel(src, dst);
 
 	header->fid = label.flow_id;
 	header->pid = label.packet_id;
@@ -48,7 +48,6 @@ void CastorAddHeader::push(int, Packet *p) {
 	CastorPacket::set_src_ip_anno(p, header->src);
 
 	output(0).push(q);
-
 }
 
 CLICK_ENDDECLS

@@ -1,6 +1,8 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-#include "castor_checkduplicate.hh"
+
+#include "castor_check_duplicate.hh"
+#include "castor.hh"
 
 CLICK_DECLS
 

@@ -1,7 +1,7 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include <click/straccum.hh>
-#include "castor_lookuproute.hh"
+#include "castor_lookup_route.hh"
 
 CLICK_DECLS
 

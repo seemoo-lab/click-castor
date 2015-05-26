@@ -1,3 +1,19 @@
+/**
+ * Appends Castor Xcast header to IP (multicast) packet
+ */
+elementclass CastorHandleMulticastIpPacket {
+	$myIP, $flowDB, $crypto |
+
+	map :: CastorXcastDestinationMap
+
+	input
+	-> CastorXcastSetFixedHeader($flowDB)
+	-> CastorXcastSetDestinations($crypto, map)
+	//-> CastorPrint('Send', $myIP, $fullSend)
+	-> rec :: CastorRecordPkt
+	-> output;
+}
+
 elementclass CastorLocalXcastPkt {
 	$myIP, $history, $crypto |
 

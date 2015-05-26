@@ -1,14 +1,8 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-#include "castor_removeheader.hh"
+#include "castor_remove_header.hh"
 
 CLICK_DECLS
-
-CastorRemoveHeader::CastorRemoveHeader() {
-}
-
-CastorRemoveHeader::~CastorRemoveHeader() {
-}
 
 void CastorRemoveHeader::push(int, Packet* p){
 	p->pull(sizeof(CastorPkt));

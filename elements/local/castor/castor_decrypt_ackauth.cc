@@ -2,20 +2,17 @@
 #include <click/args.hh>
 #include <click/confparse.hh>
 #include "castor_decrypt_ackauth.hh"
+#include "castor.hh"
 
 CLICK_DECLS
 
-CastorDecryptACKAuth::CastorDecryptACKAuth() {
-	crypto = 0;
-}
-
-int CastorDecryptACKAuth::configure(Vector<String>& conf, ErrorHandler* errh) {
+int CastorDecryptAckAuth::configure(Vector<String>& conf, ErrorHandler* errh) {
 	return cp_va_kparse(conf, this, errh,
 		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
 		cpEnd);
 }
 
-void CastorDecryptACKAuth::push(int, Packet *p) {
+void CastorDecryptAckAuth::push(int, Packet *p) {
 
 	WritablePacket* q = p->uniqueify();
 	CastorPkt* pkt = (CastorPkt*) q->data();
@@ -44,5 +41,5 @@ void CastorDecryptACKAuth::push(int, Packet *p) {
 }
 
 CLICK_ENDDECLS
-EXPORT_ELEMENT(CastorDecryptACKAuth)
+EXPORT_ELEMENT(CastorDecryptAckAuth)
 

@@ -1,6 +1,6 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-#include "castor_updateestimates.hh"
+#include "castor_update_estimates.hh"
 
 CLICK_DECLS
 
