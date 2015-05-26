@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTOR_NODE_ID_H
-#define CLICK_CASTOR_NODE_ID_H
+#ifndef CLICK_CASTOR_NODE_ID_HH
+#define CLICK_CASTOR_NODE_ID_HH
 
 #include <click/ipaddress.hh>
 
