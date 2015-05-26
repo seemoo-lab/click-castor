@@ -27,7 +27,7 @@ void CastorXcastRetransmitAck::push(int, Packet *p) {
 		ack.type = CastorType::MERKLE_ACK;
 		ack.hsize = sizeof(PktAuth);
 		ack.len = sizeof(CastorAck);
-		ack.auth = history->getEAckAuth(pkt.getPid(i));
+		ack.auth = history->getAckAuth(pkt.getPid(i));
 #ifdef DEBUG_ACK_SRCDST
 		ack.src = pkt.getSource();
 		ack.dst = pkt.getDestination(i);

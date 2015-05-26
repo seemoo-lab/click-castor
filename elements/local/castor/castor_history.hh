@@ -29,7 +29,6 @@ public:
 
 	const FlowId& getFlowId(const PacketId&) const;
 	NodeId getDestination(const PacketId&) const;
-	const PktAuth& getEAckAuth(const PacketId&) const;
 	const AckAuth& getAckAuth(const PacketId&) const;
 	NodeId routedTo(const PacketId&) const;
 
@@ -47,7 +46,7 @@ private:
 
 		// ACKs
 		Vector<NodeId> recievedACKs;
-		Hash auth;
+		AckAuth auth;
 		bool expired;
 	};
 

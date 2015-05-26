@@ -102,11 +102,6 @@ const FlowId& CastorHistory::getFlowId(const PacketId& pid) const {
 	return entry->fid;
 }
 
-const PktAuth& CastorHistory::getEAckAuth(const PacketId& pid) const {
-	const CastorHistoryEntry* entry = getEntry(pid);
-	return entry->auth;
-}
-
 const AckAuth& CastorHistory::getAckAuth(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->auth;
