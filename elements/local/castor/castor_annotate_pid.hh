@@ -9,7 +9,7 @@ CLICK_DECLS
 
 class CastorAnnotatePid: public Element {
 public:
-	CastorAnnotatePid();
+	CastorAnnotatePid() : crypto(NULL) {}
 
 	const char *class_name() const { return "CastorAnnotatePid"; }
 	const char *port_count() const { return PORTS_1_1; }

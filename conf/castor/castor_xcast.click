@@ -7,12 +7,13 @@ elementclass CastorLocalXcastPkt {
 		-> rec :: CastorRecordPkt
 		//-> CastorPrint('Arrived at destination', $myIP)
 		-> CastorAddXcastPktToHistory($history)
-		-> genAck :: CastorXcastCreateAck
+		-> genAck :: CastorCreateAck
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT
 		//-> CastorPrint('Generated', $myIP)
-		-> CastorAddAckToHistory($crypto, $history)
+		-> calcPid :: CastorAnnotatePid($crypto)
+		-> CastorAddAckToHistory($history)
 		-> [1]output; // Push ACKs to output 1
 
 	// If invalid -> discard

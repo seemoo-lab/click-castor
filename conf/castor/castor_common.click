@@ -118,7 +118,7 @@ elementclass CastorHandleAck {
 		-> calcPid :: CastorAnnotatePid($crypto)
 		-> authenticate :: CastorAuthenticateAck($history, $CASTOR_VERSION)
 		-> updateEstimates :: CastorUpdateEstimates($routingtable, $history)
-		-> CastorAddAckToHistory($crypto, $history)
+		-> CastorAddAckToHistory($history)
 		//-> CastorPrint('Received valid', $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
 		-> CastorSetAckNexthop($history, $neighbors, $promisc)[0,1]
@@ -141,11 +141,11 @@ elementclass CastorHandleAck {
 		-> null;
 	authenticate[5]
 		-> CastorPrint("ACK from same neighbor as initial PKT sender", $myIP)
-		//-> CastorAddAckToHistory($crypto, $history)
+		//-> CastorAddAckToHistory($history)
 		-> null;
 	updateEstimates[1]
 		//-> CastorPrint("Duplicate, add to history", $myIP)
-		-> CastorAddAckToHistory($crypto, $history)
+		-> CastorAddAckToHistory($history)
 		-> null;
 	noLoopback[1]
 		//-> CastorPrint("Don't send to myself", $myIP)

@@ -2,7 +2,6 @@
 #define CLICK_CASTOR_ADD_ACK_TOHISTORY_HH
 #include <click/element.hh>
 #include "castor.hh"
-#include "crypto.hh"
 #include "castor_history.hh"
 
 CLICK_DECLS
@@ -14,7 +13,7 @@ CLICK_DECLS
  */
 class CastorAddAckToHistory: public Element {
 public:
-	CastorAddAckToHistory() : crypto(0), history(0) {}
+	CastorAddAckToHistory() : history(NULL) {}
 
 	const char *class_name() const	{ return "CastorAddAckToHistory"; }
 	const char *port_count() const	{ return PORTS_1_1; }
@@ -23,7 +22,6 @@ public:
 
 	void push(int, Packet *);
 private:
-	Crypto* crypto;
 	CastorHistory* history;
 };
 

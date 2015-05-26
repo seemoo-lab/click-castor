@@ -16,8 +16,7 @@ public:
 	const char *processing() const { return AGNOSTIC; }
 
 	void addPkt(const PacketId&, const FlowId&, NodeId prevHop, NodeId nextHop, NodeId destination);
-	bool addFirstAckForCastor(const PacketId&, NodeId prevHop, const AckAuth&);
-	bool addFirstAckForXcastor(const PacketId&, NodeId prevHop, const PktAuth&);
+	bool addFirstAckFor(const PacketId&, NodeId prevHop, const AckAuth&);
 	bool addAckFor(const PacketId&, NodeId prevHop);
 
 	bool hasPkt(const PacketId&) const;
@@ -38,7 +37,8 @@ public:
 	void setExpired(const PacketId&);
 
 private:
-	typedef struct CastorHistoryEntry {
+	class CastorHistoryEntry {
+	public:
 		// PIDs
 		FlowId fid;
 		NodeId destination; // Indicates Xcast subflow
@@ -49,7 +49,7 @@ private:
 		Vector<NodeId> recievedACKs;
 		Hash auth;
 		bool expired;
-	} CastorHistoryEntry;
+	};
 
 	inline const CastorHistoryEntry* getEntry(const PacketId&) const;
 	inline CastorHistoryEntry* getEntry(const PacketId&);
