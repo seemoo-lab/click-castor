@@ -3,7 +3,6 @@
 
 #include <click/element.hh>
 #include "castor.hh"
-#include "crypto.hh"
 #include "castor_routingtable.hh"
 #include "castor_history.hh"
 
@@ -11,7 +10,7 @@ CLICK_DECLS
 
 class CastorUpdateEstimates: public Element {
 public:
-	inline CastorUpdateEstimates() : crypto(NULL), table(NULL), history(NULL) {}
+	inline CastorUpdateEstimates() : table(NULL), history(NULL) {}
 
 	const char *class_name() const { return "CastorUpdateEstimates"; }
 	const char *port_count() const { return "1/2"; }
@@ -20,7 +19,6 @@ public:
 
 	void push(int, Packet *);
 private:
-	Crypto* crypto;
 	CastorRoutingTable* table;
 	CastorHistory* history;
 };

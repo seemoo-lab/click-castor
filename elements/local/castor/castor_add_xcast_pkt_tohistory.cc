@@ -5,10 +5,6 @@
 
 CLICK_DECLS
 
-CastorAddXcastPktToHistory::CastorAddXcastPktToHistory() {
-	history = 0;
-}
-
 int CastorAddXcastPktToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
 			"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
@@ -16,8 +12,6 @@ int CastorAddXcastPktToHistory::configure(Vector<String> &conf, ErrorHandler *er
 }
 
 void CastorAddXcastPktToHistory::push(int, Packet *p) {
-	assert(CastorPacket::isXcast(p));
-
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	unsigned int i = 0;

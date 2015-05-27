@@ -1,7 +1,7 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include <click/straccum.hh>
-#include "castor_lookuproute.hh"
+#include "castor_lookup_route.hh"
 
 CLICK_DECLS
 
@@ -16,7 +16,7 @@ int CastorLookupRoute::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorLookupRoute::push(int, Packet *p){
-	Castor_PKT* header = (Castor_PKT*) p->data();
+	CastorPkt* header = (CastorPkt*) p->data();
 
 	// Lookup
 	NodeId nextHop = selector->select(header->fid, header->dst, 0, header->pid);
@@ -25,8 +25,9 @@ void CastorLookupRoute::push(int, Packet *p){
 		output(1).push(p);
 
 	else {
+#ifdef DEBUG_HOPCOUNT
 		header->hopcount++;
-
+#endif
 		// Set annotation for destination and push Packet to Output
 		p->set_dst_ip_anno(nextHop);
 

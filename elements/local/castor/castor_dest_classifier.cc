@@ -16,7 +16,7 @@ int CastorDestClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void CastorDestClassifier::push(int, Packet *p) {
 
-	Castor_PKT* header = (Castor_PKT*) p->data();
+	CastorPkt* header = (CastorPkt*) p->data();
 
 	if (myId == header->dst) {
 		output(0).push(p);

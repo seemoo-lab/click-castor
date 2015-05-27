@@ -1,19 +1,20 @@
-#ifndef CLICK_CASTOR_H
-#define CLICK_CASTOR_H
+#ifndef CLICK_CASTOR_HH
+#define CLICK_CASTOR_HH
 
 #include <click/ipaddress.hh>
 #include <click/packet_anno.hh>
 #include "node_id.hh"
+#include "hash.hh"
 
-//#define DEBUG  // uncomment to add source and destination fields to ACK packets
+//#define DEBUG_ACK_SRCDST  // uncomment to add source and destination fields to ACK packets
+#define DEBUG_HOPCOUNT // include (unprotected) hopcount field in packets
 
-#define CASTOR_HASHLENGTH                           20
 #define CASTOR_FLOWAUTH_ELEM                         8  // log2(CASTOR_FLOWSIZE)
 #define CASTOR_FLOWSIZE		  (1<<CASTOR_FLOWAUTH_ELEM) // Number of flow auth elements in the header
 
 CLICK_DECLS
 
-struct CastorType { // C++11's strongly typed 'enum class' does not work, so create artificial namespace
+namespace CastorType { // C++11's strongly typed 'enum class' does not work, so create artificial namespace
 	enum {
 		PKT = 0xC0,
 		ACK = 0xA0,
@@ -28,44 +29,7 @@ struct CastorType { // C++11's strongly typed 'enum class' does not work, so cre
 
 		XCAST = 0x0C,
 		XCAST_PKT = PKT | XCAST,
-		XCAST_ACK = ACK | XCAST
 	};
-};
-
-class Hash {
-public:
-	typedef unsigned long hashcode_t;
-
-	inline Hash() { memset(&array, 0, sizeof(array)); }
-	inline Hash(const uint8_t array[]) { memcpy(this->array, array, sizeof(this->array)); }
-	inline hashcode_t hashcode() const {
-		hashcode_t x;
-		memcpy(&x, array, sizeof(hashcode_t));
-		return x;
-	}
-	inline Hash& operator=(const Hash& x) {
-		memcpy(&array, &x.array, sizeof(array));
-		return *this;
-	}
-	inline const uint8_t& operator[](size_t i) const {
-		assert(i < sizeof(array));
-		return array[i];
-	}
-	inline uint8_t& operator[](size_t i) {
-		assert(i < sizeof(array));
-		return array[i];
-	}
-	inline const uint8_t* data() const {
-		return array;
-	}
-	inline uint8_t* data() {
-	    return array;
-	}
-	inline bool operator==(const Hash& x) const {
-		return memcmp(this->array, x.array, sizeof(array)) == 0;
-	}
-private:
-	uint8_t array[CASTOR_HASHLENGTH];
 };
 
 typedef Hash FlowId;
@@ -74,40 +38,48 @@ typedef struct {
 	Hash data;
 } FlowAuthElement;
 typedef FlowAuthElement FlowAuth[CASTOR_FLOWAUTH_ELEM];
-typedef Hash ACKAuth;
-typedef Hash EACKAuth;
+typedef Hash AckAuth;
+typedef Hash PktAuth;
 
-// The Packet Header Structure
-typedef struct {
+/**
+ * The Castor data packet header (PKT)
+ */
+class CastorPkt {
+public:
 	uint8_t 	type;
 	uint8_t 	hsize;
+	uint16_t 	len;
 	uint8_t 	fsize;
 	uint8_t 	ctype;
-	uint16_t 	len;
-	uint16_t	packet_num; // the k-th packet of the current flow, necessary for flow validation (determines whether fauth[i] is left or right sibling in the Merkle tree)
+	uint16_t	kpkt; // the k-th packet of the current flow, necessary for flow validation (determines whether fauth[i] is left or right sibling in the Merkle tree)
 	NodeId		src;
 	NodeId		dst;
 	FlowId	 	fid;
 	PacketId 	pid;
 	FlowAuth 	fauth;
-	EACKAuth 	eauth;
-	uint8_t		hopcount; // Unprotected! For evaluation purposes only
-} Castor_PKT;
+	PktAuth 	pauth;
+#ifdef DEBUG_HOPCOUNT
+	uint8_t		hopcount;
+#endif
+};
 
-// The ACK Header Structure
-typedef struct {
+/**
+ * The Castor acknowledgement packet (ACK)
+ */
+class CastorAck {
+public:
 	uint8_t 	type;
 	uint8_t 	hsize;
 	uint16_t 	len;
-	ACKAuth 	auth;
-#ifdef DEBUG
+#ifdef DEBUG_ACK_SRCDST
 	NodeId		src;
 	NodeId		dst;
 #endif
-} Castor_ACK;
+	AckAuth 	auth;
+};
 
 /**
- * The Castor Class with utility functions to handle Packet Processing
+ * Utility class to handle packet types and annotations
  */
 class CastorPacket {
 public:
@@ -146,23 +118,11 @@ public:
 		return (type == CastorType::XCAST);
 	}
 
-	static inline String hexToString(const Hash& hex, uint8_t length) {
-		return hexToString(hex.data(), length);
-	}
-
-	static inline String hexToString(const unsigned char* hex, uint8_t length) {
-		char buffer[2 * length + 1];
-		for (int i = 0; i < length; i++) {
-			sprintf(buffer + 2 * i, "%02x", hex[i]);
-		}
-		return String(buffer);
-	}
-
 private:
 	static const uint8_t src_ip_anno_offset = DST_IP_ANNO_OFFSET + DST_IP_ANNO_SIZE; // = 4
 	static const uint8_t mac_ip_anno_offset = src_ip_anno_offset + DST_IP_ANNO_SIZE; // = 8
 	static const uint8_t castor_anno_offset = mac_ip_anno_offset + DST_IP_ANNO_SIZE; // = 12
-
+	static const uint8_t castor_paint_offset = castor_anno_offset + sizeof(Hash); // = 32, for documentation purposes only
 };
 
 CLICK_ENDDECLS

@@ -29,10 +29,12 @@ void CastorRecordPkt::push(int, Packet *p) {
 			size_broadcast += size_broadcast_delta;
 			size_unicast += p->length() - size_broadcast_delta;
 
+#ifdef DEBUG_HOPCOUNT
 			hopcounts.push_back(new UintListNode(pkt.getHopcount()));
+#endif
 		} else {
 			// Regular Castor PKT
-			Castor_PKT& pkt = (Castor_PKT&) *p->data();
+			CastorPkt& pkt = (CastorPkt&) *p->data();
 			records.push_back(new PidTime(pkt.pid));
 			npids++;
 			if(p->dst_ip_anno() == NodeId::make_broadcast()) {
@@ -42,7 +44,9 @@ void CastorRecordPkt::push(int, Packet *p) {
 				size_unicast += p->length();
 				nunicasts++;
 			}
+#ifdef DEBUG_HOPCOUNT
 			hopcounts.push_back(new UintListNode(pkt.hopcount));
+#endif
 		}
 	} else if (CastorPacket::getType(p) == CastorType::ACK) {
 		if(p->dst_ip_anno() == NodeId::make_broadcast())
@@ -86,7 +90,7 @@ String CastorRecordPkt::read_handler(Element *e, void *thunk) {
 		} else {
 			PidTime* entry = recorder->records.front();
 			StringAccum sa;
-			sa << CastorPacket::hexToString(entry->pid, sizeof(Hash)) << " " << entry->time;
+			sa << entry->pid.str() << " " << entry->time;
 			recorder->records.pop_front();
 			delete entry;
 			return sa.take_string();

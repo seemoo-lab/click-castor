@@ -36,7 +36,7 @@ void CastorTimeout::push(int, Packet* p) {
 			new PidTimer(this, header.getPid(i));
 		}
 	} else {
-		Castor_PKT& header = (Castor_PKT&) *p->data();
+		CastorPkt& header = (CastorPkt&) *p->data();
 		new PidTimer(this, header.pid);
 	}
 

@@ -1,3 +1,19 @@
+/**
+ * Appends Castor Xcast header to IP (multicast) packet
+ */
+elementclass CastorHandleMulticastIpPacket {
+	$myIP, $flowDB, $crypto |
+
+	map :: CastorXcastDestinationMap
+
+	input
+	-> CastorXcastSetFixedHeader($flowDB)
+	-> CastorXcastSetDestinations($crypto, map)
+	//-> CastorPrint('Send', $myIP, $fullSend)
+	-> rec :: CastorRecordPkt
+	-> output;
+}
+
 elementclass CastorLocalXcastPkt {
 	$myIP, $history, $crypto |
 
@@ -7,12 +23,13 @@ elementclass CastorLocalXcastPkt {
 		-> rec :: CastorRecordPkt
 		//-> CastorPrint('Arrived at destination', $myIP)
 		-> CastorAddXcastPktToHistory($history)
-		-> genAck :: CastorXcastCreateAck
+		-> genAck :: CastorCreateAck
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT
 		//-> CastorPrint('Generated', $myIP)
-		-> CastorAddAckToHistory($crypto, $history)
+		-> calcPid :: CastorAnnotatePid($crypto)
+		-> CastorAddAckToHistory($history)
 		-> [1]output; // Push ACKs to output 1
 
 	// If invalid -> discard
@@ -70,7 +87,7 @@ elementclass CastorHandleXcastPkt {
 	// Need to retransmit ACK
 	checkDuplicate[1]
 		-> CastorAddXcastPktToHistory($history)
-		-> CastorRetransmitAck($history, $myIP)
+		-> CastorXcastRetransmitAck($history, $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
 		-> sendAck;
 

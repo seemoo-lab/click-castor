@@ -15,51 +15,6 @@ elementclass CastorEtherFilter {
 }
 
 /**
- * Appends Castor header to IP (unicast) packet
- */
-elementclass CastorHandleUnicastIpPacket {
-	$myIP, $flowDB, $crypto |
-
-	-> CastorAddHeader($flowDB)
-	-> CastorEncryptACKAuth($crypto)
-	//-> CastorPrint('Send', $myIP, $fullSend)
-	-> rec :: CastorRecordPkt
-	-> output;
-}
-
-/**
- * Appends Castor Xcast header to IP (multicast) packet
- */
-elementclass CastorHandleMulticastIpPacket {
-	$myIP, $flowDB, $crypto |
-
-	map :: CastorXcastDestinationMap
-
-	input
-	-> CastorXcastSetFixedHeader($flowDB)
-	-> CastorXcastSetDestinations($crypto, map)
-	//-> CastorPrint('Send', $myIP, $fullSend)
-	-> rec :: CastorRecordPkt
-	-> output;
-}
-
-elementclass CastorHandleMulticastToUnicastIpPacket {
-	$myIP, $flowDB, $crypto |
-	
-	map :: CastorXcastDestinationMap
-
-	input
-	-> CastorXcastToUnicast(map)
-	=> (input[0] -> output;
-	    input[1] -> SetIPChecksum -> output;)
-	-> CastorAddHeader($flowDB)
-	-> CastorEncryptACKAuth($crypto)
-	//-> CastorPrint('Send', $myIP, $fullSend)
-	-> rec :: CastorRecordPkt
-	-> output;
-}
-
-/**
  * Paint frames that were broadcasted by the sender
  */
 elementclass BroadcastPainter {
@@ -116,9 +71,9 @@ elementclass CastorHandleAck {
 	// Regular ACK flow
 	input
 		-> calcPid :: CastorAnnotatePid($crypto)
-		-> authenticate :: CastorAuthenticateAck($crypto, $history, $CASTOR_VERSION)
-		-> updateEstimates :: CastorUpdateEstimates($crypto, $routingtable, $history)
-		-> CastorAddAckToHistory($crypto, $history)
+		-> authenticate :: CastorAuthenticateAck($history, $CASTOR_VERSION)
+		-> updateEstimates :: CastorUpdateEstimates($routingtable, $history)
+		-> CastorAddAckToHistory($history)
 		//-> CastorPrint('Received valid', $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
 		-> CastorSetAckNexthop($history, $neighbors, $promisc)[0,1]
@@ -141,11 +96,11 @@ elementclass CastorHandleAck {
 		-> null;
 	authenticate[5]
 		-> CastorPrint("ACK from same neighbor as initial PKT sender", $myIP)
-		//-> CastorAddAckToHistory($crypto, $history)
+		//-> CastorAddAckToHistory($history)
 		-> null;
 	updateEstimates[1]
 		//-> CastorPrint("Duplicate, add to history", $myIP)
-		-> CastorAddAckToHistory($crypto, $history)
+		-> CastorAddAckToHistory($history)
 		-> null;
 	noLoopback[1]
 		//-> CastorPrint("Don't send to myself", $myIP)

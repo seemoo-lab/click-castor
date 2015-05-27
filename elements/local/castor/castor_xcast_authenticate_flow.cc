@@ -23,7 +23,7 @@ void CastorXcastAuthenticateFlow::push(int, Packet *p){
 	SValue fid(&pkt.getFlowId()[0], sizeof(FlowId));
 
 	// Pid is implicitly given by the AckAuth
-	SValue pid = crypto->hash(SValue(&pkt.getAckAuth()[0], sizeof(ACKAuth)));
+	SValue pid = crypto->hash(SValue(&pkt.getAckAuth()[0], sizeof(AckAuth)));
 	Vector<SValue> flow_auth;
 	for(int i = 0; i < pkt.getNFlowAuthElements(); i++)
 		flow_auth.push_back(SValue(&pkt.getFlowAuth()[i].data[0], sizeof(Hash)));

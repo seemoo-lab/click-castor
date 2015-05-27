@@ -1,6 +1,8 @@
 #include <click/config.h>
 #include <click/confparse.hh>
-#include "castor_checkduplicate.hh"
+
+#include "castor_check_duplicate.hh"
+#include "castor.hh"
 
 CLICK_DECLS
 
@@ -11,7 +13,7 @@ int CastorCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorCheckDuplicate::push(int, Packet *p) {
-	Castor_PKT& pkt = (Castor_PKT&) *p->data();
+	CastorPkt& pkt = (CastorPkt&) *p->data();
 
 	int port = 0; // default behavior: have never seen pid -> forward PKT (output port 0)
 

@@ -20,7 +20,7 @@ void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
 
 	CastorXcastPkt pkt = CastorXcastPkt(p->clone());
 
-	SValue pktAuth(pkt.getAckAuth().data(), sizeof(ACKAuth));
+	SValue pktAuth(pkt.getAckAuth().data(), sizeof(AckAuth));
 
 	// Get appropriate key and decrypt encrypted ACK authenticator
 	const SymmetricKey* sk = crypto->getSharedKey(pkt.getSource());
@@ -31,13 +31,13 @@ void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
 	}
 	SValue ackAuth = crypto->encrypt(pktAuth, *sk);
 	delete sk;
-	if (ackAuth.size() != sizeof(EACKAuth)) {
+	if (ackAuth.size() != sizeof(PktAuth)) {
 		click_chatter("Cannot create ciphertext: Crypto subsystem returned wrong plaintext length. Discarding PKT...");
 		pkt.getPacket()->kill();
 		return;
 	}
 
-	memcpy(CastorPacket::getCastorAnno(pkt.getPacket()), ackAuth.begin(), sizeof(EACKAuth));
+	memcpy(CastorPacket::getCastorAnno(pkt.getPacket()), ackAuth.begin(), sizeof(PktAuth));
 
 	output(0).push(pkt.getPacket());
 

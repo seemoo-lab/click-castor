@@ -16,8 +16,7 @@ public:
 	const char *processing() const { return AGNOSTIC; }
 
 	void addPkt(const PacketId&, const FlowId&, NodeId prevHop, NodeId nextHop, NodeId destination);
-	bool addFirstAckForCastor(const PacketId&, NodeId prevHop, const ACKAuth&);
-	bool addFirstAckForXcastor(const PacketId&, NodeId prevHop, const EACKAuth&);
+	bool addFirstAckFor(const PacketId&, NodeId prevHop, const AckAuth&);
 	bool addAckFor(const PacketId&, NodeId prevHop);
 
 	bool hasPkt(const PacketId&) const;
@@ -30,15 +29,15 @@ public:
 
 	const FlowId& getFlowId(const PacketId&) const;
 	NodeId getDestination(const PacketId&) const;
-	const EACKAuth& getEAckAuth(const PacketId&) const;
-	const ACKAuth& getAckAuth(const PacketId&) const;
+	const AckAuth& getAckAuth(const PacketId&) const;
 	NodeId routedTo(const PacketId&) const;
 
 	bool isExpired(const PacketId&) const;
 	void setExpired(const PacketId&);
 
 private:
-	typedef struct CastorHistoryEntry {
+	class CastorHistoryEntry {
+	public:
 		// PIDs
 		FlowId fid;
 		NodeId destination; // Indicates Xcast subflow
@@ -47,9 +46,9 @@ private:
 
 		// ACKs
 		Vector<NodeId> recievedACKs;
-		Hash auth;
+		AckAuth auth;
 		bool expired;
-	} CastorHistoryEntry;
+	};
 
 	inline const CastorHistoryEntry* getEntry(const PacketId&) const;
 	inline CastorHistoryEntry* getEntry(const PacketId&);

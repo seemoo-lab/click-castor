@@ -1,18 +1,51 @@
+/**
+ * Appends Castor header to IP unicast packet
+ */
+elementclass CastorHandleUnicastIpPacket {
+	$myIP, $flowDB, $crypto |
+
+	-> CastorAddHeader($flowDB)
+	-> CastorEncryptAckAuth($crypto)
+	//-> CastorPrint('Send', $myIP, $fullSend)
+	-> rec :: CastorRecordPkt
+	-> output;
+}
+
+/**
+ * Creates IP unicast from multicast packets
+ */
+elementclass CastorHandleMulticastToUnicastIpPacket {
+	$myIP, $flowDB, $crypto |
+	
+	map :: CastorXcastDestinationMap
+
+	input
+	-> CastorXcastToUnicast(map)
+	=> (input[0] -> output;
+	    input[1] -> SetIPChecksum -> output;)
+	-> CastorAddHeader($flowDB)
+	-> CastorEncryptAckAuth($crypto)
+	//-> CastorPrint('Send', $myIP, $fullSend)
+	-> rec :: CastorRecordPkt
+	-> output;
+}
+
 elementclass CastorLocalPkt {
 	$myIP, $history, $crypto |
 
 	input
 		//-> CastorPrint('Packet arrived at destination', $myIP)
-		-> CastorDecryptACKAuth($crypto)
+		-> CastorDecryptAckAuth($crypto)
 		-> authPkt :: CastorAuthenticatePkt($crypto)
-		-> CastorAddPKTToHistory($history)
+		-> CastorAddPktToHistory($history)
 		-> rec :: CastorRecordPkt
 		-> genAck :: CastorCreateAck
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT
 		//-> CastorPrint('Generated', $myIP)
-		-> CastorAddAckToHistory($crypto, $history)
+		-> calcPid :: CastorAnnotatePid($crypto)
+		-> CastorAddAckToHistory($history)
 		-> [1]output; // Push ACKs to output 1
 
 	// If invalid -> discard
@@ -28,7 +61,7 @@ elementclass CastorForwardPkt {
 
 	input
 		-> route :: CastorLookupRoute($routeselector)
-		-> CastorAddPKTToHistory($history)
+		-> CastorAddPktToHistory($history)
 		-> CastorTimeout($routingtable, $history, $timeout, NodeId $myIP, VERBOSE false)
 		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> rec :: CastorRecordPkt
@@ -73,7 +106,7 @@ elementclass CastorHandlePkt {
 	// Need to retransmit ACK
 	checkDuplicate[1]
 		//-> CastorPrint("Duplicate pid, retransmit ACK", $myIP)
-		-> CastorAddPKTToHistory($history)
+		-> CastorAddPktToHistory($history)
 		-> CastorRetransmitAck($history, $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
 		-> sendAck;
@@ -82,7 +115,7 @@ elementclass CastorHandlePkt {
 	null :: Discard;
 	checkDuplicate[2]
 		//-> CastorPrint("Duplicate PKT from different neighbor", $myIP)
-		-> CastorAddPKTToHistory($history) // Add sender to history
+		-> CastorAddPktToHistory($history) // Add sender to history
 		-> null;
 
 	checkDuplicate[3]

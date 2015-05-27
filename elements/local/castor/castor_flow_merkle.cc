@@ -32,7 +32,7 @@ void CastorFlowMerkle::createFlow(NodeId source, NodeId destination) {
 	Vector<SValue> pids = Vector<SValue>();	// Packet IDs
 
 	for (int f = 0; f < CASTOR_FLOWSIZE; f++) {
-		SValue nonce = _crypto->random(sizeof(ACKAuth));
+		SValue nonce = _crypto->random(sizeof(AckAuth));
 		SValue pid = _crypto->hash(nonce);
 		ack_auths.push_back(nonce);
 		pids.push_back(pid);

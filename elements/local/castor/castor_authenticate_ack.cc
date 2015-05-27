@@ -13,7 +13,6 @@ CLICK_DECLS
 int CastorAuthenticateAck::configure(Vector<String>& conf, ErrorHandler* errh) {
 	String arg;
     int result = cp_va_kparse(conf, this, errh,
-    	"Crypto", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
 		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
 		"Version", cpkP, cpArgument, &arg,
         cpEnd);

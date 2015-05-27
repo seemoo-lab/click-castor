@@ -29,19 +29,7 @@ void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, NodeId prevHo
 	}
 }
 
-bool CastorHistory::addFirstAckForCastor(const PacketId& pid, NodeId addr, const ACKAuth& ackAuth) {
-	CastorHistoryEntry* entry = getEntry(pid);
-	if(!entry) {
-		// Received an ACK for an unknown Packet, do not care
-		click_chatter("Error: trying to add ACK for unknown PKT");
-		return false;
-	}
-	entry->recievedACKs.push_back(addr);
-	memcpy(&entry->auth, &ackAuth, sizeof(ACKAuth));
-	return true;
-}
-
-bool CastorHistory::addFirstAckForXcastor(const PacketId& pid, NodeId addr, const EACKAuth& ackAuth) {
+bool CastorHistory::addFirstAckFor(const PacketId& pid, NodeId addr, const AckAuth& ackAuth) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	if(!entry) {
 		// Received an ACK for an unknown Packet, do not care
@@ -114,12 +102,7 @@ const FlowId& CastorHistory::getFlowId(const PacketId& pid) const {
 	return entry->fid;
 }
 
-const EACKAuth& CastorHistory::getEAckAuth(const PacketId& pid) const {
-	const CastorHistoryEntry* entry = getEntry(pid);
-	return entry->auth;
-}
-
-const ACKAuth& CastorHistory::getAckAuth(const PacketId& pid) const {
+const AckAuth& CastorHistory::getAckAuth(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->auth;
 }

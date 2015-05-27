@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTORADDHEADER_HH
-#define CLICK_CASTORADDHEADER_HH
+#ifndef CLICK_CASTOR_ADD_HEADER_HH
+#define CLICK_CASTOR_ADD_HEADER_HH
 
 #include <click/element.hh>
 #include "castor.hh"
@@ -13,7 +13,7 @@ CLICK_DECLS
  */
 class CastorAddHeader: public Element {
 public:
-	CastorAddHeader() : cflow(0) {}
+	CastorAddHeader() : flow(NULL) {}
 		
 	const char *class_name() const { return "CastorAddHeader"; }
 	const char *port_count() const { return PORTS_1_1; }
@@ -22,7 +22,7 @@ public:
 
 	void push(int, Packet*);
 private:
-	CastorFlowStub* cflow;
+	CastorFlowStub* flow;
 };
 
 CLICK_ENDDECLS

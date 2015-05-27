@@ -38,7 +38,7 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 			break;
 		}
 		SValue encAckAuth = crypto->encrypt(ackAuth, *key);
-		if (encAckAuth.size() != sizeof(EACKAuth)) {
+		if (encAckAuth.size() != sizeof(PktAuth)) {
 			click_chatter("!!! Cannot create ciphertext: Crypto subsystem returned wrong ciphertext length.");
 			break;
 		}

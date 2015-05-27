@@ -3,7 +3,6 @@
 
 #include <click/element.hh>
 #include <click/vector.hh>
-#include "castor.hh"
 #include "crypto.hh"
 
 CLICK_DECLS

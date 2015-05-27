@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTOR_XCAST_H
-#define CLICK_CASTOR_XCAST_H
+#ifndef CLICK_CASTOR_XCAST_HH
+#define CLICK_CASTOR_XCAST_HH
 
 #include <click/straccum.hh>
 #include <click/vector.hh>
@@ -12,7 +12,7 @@ CLICK_DECLS
 typedef NodeId GroupId;
 
 /**
- * Castor wrapper class for a Packet. Provides accessor methods to Castor specific fields.
+ * Xcastor wrapper class for a data packet. Provides accessor methods to Xcastor specific fields.
  */
 class CastorXcastPkt {
 public:
@@ -34,8 +34,9 @@ public:
 		// otherwise next call to setLength() will result in garbage
 		pkt._fixed->nDestinations = 0;
 		pkt._fixed->nNextHops = 0;
+#ifdef DEBUG_HOPCOUNT
 		pkt._fixed->hopcount = 0;
-
+#endif
 		pkt._fixed->length = sizeof(FixedSizeHeader);
 
 		return pkt;
@@ -58,8 +59,10 @@ public:
 	inline uint32_t getTotalLength() const { return _p->length(); }
 	/** Returns the length of the payload */
 	inline uint32_t getPayloadLength() const { return getTotalLength() - getHeaderLength(); }
+#ifdef DEBUG_HOPCOUNT
 	inline uint8_t getHopcount() const { return _fixed->hopcount; }
 	inline void incHopcount() const { _fixed->hopcount++; }
+#endif
 	/** Indicates k-th PKT of the flow, required for flow validation (right or left siblings in Merkle tree?) */
 	inline uint16_t getKPkt() const { return _fixed->kPkt; }
 	inline void setKPkt(uint16_t k) { _fixed->kPkt = k; }
@@ -74,8 +77,8 @@ public:
 		for (int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)
 			memcpy(&_fixed->flowAuth[i], &flowAuth[i], sizeof(Hash));
 	}
-	inline const ACKAuth& getAckAuth() const { return _fixed->ackAuth; }
-	inline void setAckAuth(const ACKAuth& ackAuth) { memcpy(&_fixed->ackAuth, &ackAuth, sizeof(ACKAuth)); }
+	inline const AckAuth& getAckAuth() const { return _fixed->ackAuth; }
+	inline void setAckAuth(const AckAuth& ackAuth) { memcpy(&_fixed->ackAuth, &ackAuth, sizeof(AckAuth)); }
 	/** Get the number of multicast receivers */
 	inline uint8_t getNDestinations() const { return _fixed->nDestinations; }
 	inline void setNDestinations(uint8_t n) { _fixed->nDestinations = n; setLength(); }
@@ -228,14 +231,14 @@ public:
 	StringAccum toString(bool full = false) {
 		StringAccum sa;
 		if(full) {
-			String sfid = CastorPacket::hexToString(getFlowId(), getHashSize());
-			String sauth = CastorPacket::hexToString(getAckAuth(), getHashSize());
+			String sfid = getFlowId().str();
+			String sauth = getAckAuth().str();
 			sa << "   | From:\t" << CastorPacket::src_ip_anno(_p) << "\n";
 			sa << "   | To:\t" << _p->dst_ip_anno() << "\n";
 			sa << "   | Type:\tXcast PKT (header " <<  getHeaderLength() << " / payload " << getPayloadLength() << " bytes)\n";
 			sa << "   | Flow:\t" << getSource() << " -> " << getMulticastGroup() << "\n";
 			for(unsigned int i = 0; i < getNDestinations(); i++)
-				sa << "   | \t\t -> " << getDestination(i) << " (pid " << CastorPacket::hexToString(getPid(i), getHashSize()) << ")\n";
+				sa << "   | \t\t -> " << getDestination(i) << " (pid " << getPid(i).str() << ")\n";
 			sa << "   | Flow ID:\t" << sfid << "\n";
 			sa << "   | Pkt Num: \t" << (getKPkt() + 1) << "/" << (1 << getNFlowAuthElements()) << "\n";
 			sa << "   | Ack Auth:\t" << sauth << "\n";
@@ -282,10 +285,12 @@ private:
 		GroupId multicastGroup;
 		FlowId flowId;
 		FlowAuth flowAuth;
-		ACKAuth	ackAuth;
+		AckAuth	ackAuth;
 		uint8_t nDestinations;
 		uint8_t nNextHops;
-		uint8_t hopcount; // Unprotected! For evaluation purposes only
+#ifdef DEBUG_HOPCOUNT
+		uint8_t hopcount;
+#endif
 	};
 
 	Packet* _p;
@@ -342,15 +347,6 @@ private:
 
 		_fixed->length = newLength;
 	}
-};
-
-// The ACK Header Structure for Explicit Multicast (Xcast)
-class CastorXcastAck {
-public:
-	uint8_t  	type;
-	uint8_t 	esize;
-	uint16_t 	len;
-	EACKAuth 	auth;
 };
 
 CLICK_ENDDECLS

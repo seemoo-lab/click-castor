@@ -1,10 +1,9 @@
 #include <click/config.h>
 #include <click/confparse.hh>
+#include <click/hashtable.hh>
 
 #include "castor_xcast_check_duplicate.hh"
 #include "castor_xcast.hh"
-
-#include <click/hashtable.hh>
 
 CLICK_DECLS
 

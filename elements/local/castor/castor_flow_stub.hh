@@ -19,7 +19,7 @@ typedef struct {
 	PacketId packet_id;
 	uint16_t packet_number;
 	FlowAuth flow_auth;
-	ACKAuth ack_auth;
+	AckAuth ack_auth;
 } PacketLabel;
 
 typedef HashTable<NodeId, HashTable<NodeId, FlowType> > FlowMap;
