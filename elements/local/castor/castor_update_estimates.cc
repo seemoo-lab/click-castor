@@ -1,6 +1,7 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include "castor_update_estimates.hh"
+#include "castor.hh"
 
 CLICK_DECLS
 
@@ -11,7 +12,7 @@ int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
         cpEnd);
 }
 
-void CastorUpdateEstimates::push(int, Packet *p){
+void CastorUpdateEstimates::push(int, Packet *p) {
 	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
 
 	const FlowId& fid = history->getFlowId(pid);
@@ -20,9 +21,10 @@ void CastorUpdateEstimates::push(int, Packet *p){
 	NodeId from = CastorPacket::src_ip_anno(p);
 	bool isFirstAck = !history->hasAck(pid);
 
+	CastorEstimator& estimator = table->getEstimator(fid, subfid, from);
 	if (routedTo == from || isFirstAck)
-		table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::first);
-	table->updateEstimates(fid, subfid, from, CastorRoutingTable::increase, CastorRoutingTable::all);
+		estimator.increaseFirst();
+	estimator.increaseAll();
 
     output(isFirstAck ? 0 : 1).push(p); // only forward 1st ACK on default output port 0
 }

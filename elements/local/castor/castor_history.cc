@@ -14,6 +14,7 @@ void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, NodeId prevHo
 		entry.nextHop = nextHop;
 		entry.expired = false;
 		entry.fid = fid;
+		entry.timestamp = Timestamp::now_steady();
 		history.set(pid, entry);
 	} else {
 		// Entry already exists, just add prevHop to list if it does not already exist
@@ -125,6 +126,11 @@ void CastorHistory::setExpired(const PacketId& pid) {
 bool CastorHistory::isExpired(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry && entry->expired;
+}
+
+const Timestamp& CastorHistory::getTimestamp(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry->timestamp;
 }
 
 const CastorHistory::CastorHistoryEntry* CastorHistory::getEntry(const PacketId& pid) const {

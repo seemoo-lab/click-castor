@@ -4,8 +4,8 @@
 #include <click/element.hh>
 #include <click/vector.hh>
 #include <click/hashtable.hh>
+#include <click/timestamp.hh>
 #include "castor.hh"
-#include "castor_xcast.hh"
 
 CLICK_DECLS
 
@@ -32,12 +32,17 @@ public:
 	const AckAuth& getAckAuth(const PacketId&) const;
 	NodeId routedTo(const PacketId&) const;
 
+	// TODO: should not keep expired entries for ever.
+	// Can we simply delete expired entries or does that open the door to some replay attacks?
 	bool isExpired(const PacketId&) const;
 	void setExpired(const PacketId&);
 
+	const Timestamp& getTimestamp(const PacketId&) const;
 private:
 	class CastorHistoryEntry {
 	public:
+		Timestamp timestamp;
+
 		// PIDs
 		FlowId fid;
 		NodeId destination; // Indicates Xcast subflow

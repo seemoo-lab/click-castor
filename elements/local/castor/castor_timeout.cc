@@ -1,79 +1,43 @@
 #include <click/config.h>
-#include <click/confparse.hh>
-#include <click/straccum.hh>
 #include "castor_timeout.hh"
-#include "castor_xcast.hh"
 
 CLICK_DECLS
 
-CastorTimeout::PidTimer::PidTimer(CastorTimeout *element, const PacketId pid)
-: Timer(element), pid(pid) {
-	initialize(element);
-	schedule_after_msec(element->getTimeout());
+unsigned int CastorTimeout::init_timeout =  1000;
+unsigned int CastorTimeout::min_timeout  =   100;
+unsigned int CastorTimeout::max_timeout  = 60000;
+// Adaptivity parameters as suggested by TCP
+double CastorTimeout::alpha = 0.125; // 1/8
+double CastorTimeout::beta  = 0.25;  // 1/4
+
+void CastorTimeout::update(unsigned int new_rtt) {
+	if (rtt == 0) { // first measurement
+		rtt = new_rtt;
+		rtt_var = 0.5 * new_rtt;
+	} else { // subsequent measurement
+		rtt = (1 - alpha) * rtt + alpha * new_rtt;
+		unsigned int rtt_abs_diff = rtt < new_rtt ? new_rtt - rtt : rtt - new_rtt;
+		rtt_var = (1 - beta) * rtt_var + beta * rtt_abs_diff;
+	}
+	set_new_timeout(rtt + 4 * rtt_var);
 }
 
-int CastorTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
-	int result = cp_va_kparse(conf, this, errh,
-			"CastorRoutingTable", cpkP + cpkM, cpElementCast, "CastorRoutingTable", &table,
-			"CastorHistory", cpkP + cpkM, cpElementCast, "CastorHistory", &history,
-			"TIMEOUT", cpkP + cpkM, cpInteger, &timeout,
-			"NodeId", cpkN, cpIPAddress, &myId,
-			"VERBOSE", cpkN, cpBool, &verbose,
-			cpEnd);
-	if(verbose && myId.empty()) {
-		click_chatter("Need to provide node's id for verbosity");
-		return -1;
-	}
-	return result;
+void CastorTimeout::packet_loss() {
+	reset_measurements(); // this is optional according to the TCP standard
+	set_new_timeout(timeout * 2);
 }
 
-void CastorTimeout::push(int, Packet* p) {
-	// Add timer
-	if(CastorPacket::isXcast(p)) {
-		CastorXcastPkt header = CastorXcastPkt(p);
-		// Set timer for each destination individually
-		for(unsigned int i = 0; i < header.getNDestinations(); i++) {
-			new PidTimer(this, header.getPid(i));
-		}
-	} else {
-		CastorPkt& header = (CastorPkt&) *p->data();
-		new PidTimer(this, header.pid);
-	}
-
-	output(0).push(p);
+unsigned int CastorTimeout::value() const {
+	return timeout;
 }
 
-void CastorTimeout::run_timer(Timer* _timer) {
-	PidTimer *timer = (CastorTimeout::PidTimer *)_timer;
-
-	const PacketId& pid = timer->getPid();
-
-	// delete timer, done with it
-	delete timer;
-
-	// Check whether ACK has been received in the meantime
-	if (history->hasAck(pid))
-		return;
-
-	history->setExpired(pid);
-	NodeId routedTo = history->routedTo(pid);
-
-	// Check whether PKT was broadcast, if yes, do nothing as we don't know who might have received it
-	if (routedTo == NodeId::make_broadcast())
-		return;
-
-	const FlowId& fid = history->getFlowId(pid);
-	NodeId destination = history->getDestination(pid);
-
-	// decrease ratings
-	if(verbose) {
-		StringAccum sa;
-		sa << "[" << Timestamp::now() << "@" << myId << "] Timeout: no ACK received from " << routedTo.unparse();
-		click_chatter(sa.c_str());
-	}
-	table->updateEstimates(fid, destination, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::first);
-	table->updateEstimates(fid, destination, routedTo, CastorRoutingTable::decrease, CastorRoutingTable::all);
+void CastorTimeout::reset_measurements() {
+	rtt = 0;
+	rtt_var = 0;
+}
+void CastorTimeout::set_new_timeout(unsigned int new_timeout) {
+	timeout = (new_timeout < min_timeout) ? min_timeout : ((new_timeout > max_timeout) ? max_timeout : new_timeout);
 }
 
 CLICK_ENDDECLS
-EXPORT_ELEMENT(CastorTimeout)
+ELEMENT_PROVIDES(CastorTimeout)

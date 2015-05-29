@@ -8,6 +8,7 @@ crypto::Crypto(sam);
 neighbors :: Neighbors($neighborTimeout, $neighborsEnable);
 history :: CastorHistory;
 routingtable :: CastorRoutingTable($updateDelta);
+timeouttable :: CastorTimeoutTable(INIT $initTo, MIN $minTo, MAX $maxTo);
 
 castorclassifier :: CastorClassifier(fake, neighbors);
 

@@ -2,43 +2,53 @@
 #define CLICK_CASTOR_TIMEOUT_HH
 
 #include <click/element.hh>
-#include <click/timer.hh>
-#include "castor.hh"
-#include "castor_routingtable.hh"
-#include "castor_history.hh"
 
 CLICK_DECLS
 
-class CastorTimeout : public Element {
+class CastorTimeoutTable;
+
+/**
+ * Implements TCP-inspired timeout calculation.
+ */
+class CastorTimeout {
 public:
-	CastorTimeout() : table(0), history(0), timeout(500), verbose(false) {};
+	CastorTimeout() : timeout(init_timeout), rtt(0), rtt_var(0) { };
 
-	const char *class_name() const { return "CastorTimeout"; }
-	const char *port_count() const { return PORTS_1_1; }
-	const char *processing() const { return PUSH; }
-	int configure(Vector<String>&, ErrorHandler*);
+	/**
+	 * Update the timeout object with a new round-trip time sample.
+	 */
+	void update(unsigned int new_rtt);
 
-	void push(int, Packet *);
+	/**
+	 * Indicates that an ACK was not received within the timeout interval.
+	 *
+	 * Doubles the current timeout window. Resets current measurements.
+	 */
+	void packet_loss();
 
-	inline int getTimeout() const { return timeout; }
+	/**
+	 * Get the current timeout in milliseconds.
+	 */
+	unsigned int value() const;
 
+	friend class CastorTimeoutTable;
 private:
-	void run_timer(Timer*);
+	unsigned int timeout;
+	unsigned int rtt;
+	unsigned int rtt_var;
 
-	class PidTimer : public Timer {
-	public:
-		PidTimer(CastorTimeout *element, const PacketId pid);
-		inline const PacketId &getPid() const { return pid; }
-	private:
-		const PacketId pid;
-	};
+	static unsigned int init_timeout;
+	static unsigned int min_timeout;
+	static unsigned int max_timeout;
+	static double alpha;
+	static double beta;
 
-	CastorRoutingTable* table;
-	CastorHistory* history;
-	int timeout;
-	NodeId myId;
+	void reset_measurements();
 
-	bool verbose;
+	/*
+	 * assures that min_timeout <= new_timeout <= max_timeout
+	 */
+	void set_new_timeout(unsigned int new_timeout);
 };
 
 CLICK_ENDDECLS

@@ -1,7 +1,7 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include <click/straccum.hh>
-#include "castor_routingtable.hh"
+#include "castor_routing_table.hh"
 
 CLICK_DECLS
 
@@ -15,18 +15,8 @@ HashTable<NodeId, CastorEstimator>& CastorRoutingTable::getFlowEntry(const FlowI
 	return getEntryInsertDefault(getEntryInsertDefault(flows, flow), subflow);
 }
 
-void CastorRoutingTable::updateEstimates(const FlowId& flow, NodeId subflow, NodeId neighbor, Operation op, Estimate est) {
-	CastorEstimator& estimator = getEntryInsertDefault(getFlowEntry(flow, subflow), neighbor);
-
-	if (est == first && op == increase) {
-		estimator.increaseFirst(updateDelta);
-	} else if (est == all && op == increase) {
-		estimator.increaseAll(updateDelta);
-	} else if (est == first && op == decrease) {
-		estimator.decreaseFrist(updateDelta);
-	} else { // if (est == all && op == decrease)
-		estimator.decreaseAll(updateDelta);
-	}
+CastorEstimator& CastorRoutingTable::getEstimator(const FlowId& flow, SubflowId subflow, NodeId forwarder) {
+	return getEntryInsertDefault(getFlowEntry(flow, subflow), forwarder, CastorEstimator(updateDelta));
 }
 
 void CastorRoutingTable::printRoutingTable(const FlowId& flow, NodeId subflow) {
@@ -45,10 +35,10 @@ void CastorRoutingTable::printRoutingTable(const FlowId& flow, NodeId subflow) {
 }
 
 template <typename K, typename V>
-V& CastorRoutingTable::getEntryInsertDefault(HashTable<K, V>& map, const K& key) {
+V& CastorRoutingTable::getEntryInsertDefault(HashTable<K, V>& map, const K& key, const V& default_value) {
 	V* value = map.get_pointer(key);
 	if(value == 0) {
-		map.set(key, V()); // Insert default value
+		map.set(key, default_value); // Insert default value
 		value = map.get_pointer(key);
 		assert(value != 0);
 	}

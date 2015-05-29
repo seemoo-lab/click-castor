@@ -3,8 +3,8 @@
 
 #include <click/element.hh>
 #include "castor_route_selector.hh"
-#include "castor_routingtable.hh"
 #include "../neighbordiscovery/neighbors.hh"
+#include "castor_routing_table.hh"
 
 CLICK_DECLS
 

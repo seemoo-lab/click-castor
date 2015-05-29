@@ -2,9 +2,8 @@
 #define CLICK_CASTOR_UPDATE_ESTIMATES_HH
 
 #include <click/element.hh>
-#include "castor.hh"
-#include "castor_routingtable.hh"
 #include "castor_history.hh"
+#include "castor_routing_table.hh"
 
 CLICK_DECLS
 
