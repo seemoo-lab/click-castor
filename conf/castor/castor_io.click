@@ -64,7 +64,6 @@ elementclass InputEth {
 
 	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096, PROMISC true) // promiscuous mode, so beacons can be received 
 																   // no PROMISC mode seems to prevent non IP and ARP ethertypes to come through
-		-> SetTimestamp // apparently, FromSimDevice does not set a proper time annotation, real FromDevices should do this
 		-> HostEtherFilter($myEthDev)
 		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Reply / Default)
 
@@ -86,7 +85,6 @@ elementclass InputEthNoHostFilter {
 	$myEthDev, $myAddr |
 
 	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096, PROMISC true)
-		-> SetTimestamp // apparently, FromSimDevice does not set a proper time annotation, real FromDevices should do this
 		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Reply / Default)
 
 	arpclassifier[0] // Handle ARP request
@@ -130,7 +128,6 @@ elementclass FromHost {
 	$myHostDev, $myIP, $headroom |
 
 	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096, HEADROOM $headroom)
-		-> SetTimestamp // apparently, FromSimDevice does not set a proper time annotation, real FromHost should do this (?)
 		-> CheckIPHeader
 		-> SetIPSrc($myIP) // Packets coming from ns-3 tun0 (host) device have 127.0.0.1 set as source address
 		-> output;
