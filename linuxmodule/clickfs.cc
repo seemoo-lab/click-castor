@@ -950,7 +950,8 @@ do_handler_ioctl(struct inode *inode, struct file *filp,
                || !(e = click_router->element(click_ino.ino_element(inode->i_ino))))
 	retval = -EIO;
     else {
-        if (command & _CLICK_IOC_SAFE)
+        bool ioc_safe = (command & _CLICK_IOC_SAFE);
+        if (ioc_safe)
             locktype = DOWNGRADE_CONFIG_LOCK(e->router());
 
 	union {
@@ -975,6 +976,9 @@ do_handler_ioctl(struct inode *inode, struct file *filp,
 	    && (retval = CLICK_LLRPC_GET_DATA(data, address_ptr, size)) < 0)
 	    goto free_exit;
 
+        if (!ioc_safe)
+            lock_threads();
+
 	// call llrpc
         if (size && (command & (_CLICK_IOC_IN | _CLICK_IOC_OUT)))
             arg_ptr = data;
@@ -985,6 +989,9 @@ do_handler_ioctl(struct inode *inode, struct file *filp,
 	    retval = e->llrpc(command, arg_ptr);
 	else
 	    retval = e->Element::llrpc(command, arg_ptr);
+
+        if (!ioc_safe)
+            unlock_threads();
 
 	// store outgoing data if necessary
 	if (retval >= 0 && size && (command & _CLICK_IOC_OUT))
@@ -1030,12 +1037,12 @@ read_ino_info(Element *, void *)
 /*********************** Initialization and termination **********************/
 
 struct file_operations *
-click_new_file_operations()
+click_new_file_operations(const char* name)
 {
     if (!clickfs)
 	clickfs = proclikefs_register_filesystem("click", 0, click_get_sb);
     if (clickfs)
-	return proclikefs_new_file_operations(clickfs);
+	return proclikefs_new_file_operations(clickfs, name);
     else
 	return 0;
 }
@@ -1043,17 +1050,17 @@ click_new_file_operations()
 int
 init_clickfs()
 {
-    static_assert(HANDLER_DIRECT + HANDLER_WRITE_UNLIMITED < Handler::USER_FLAG_0, "Too few driver handler flags available.");
+    static_assert(HANDLER_DIRECT + HANDLER_WRITE_UNLIMITED < Handler::f_user0, "Too few driver handler flags available.");
     static_assert(((HS_DIRECT | HS_WRITE_UNLIMITED) & (HS_READING | HS_DONE | HS_RAW)) == 0, "Handler flag overlap.");
 
     mutex_init(&handler_strings_lock);
     mutex_init(&clickfs_lock);
 
     // clickfs creation moved to click_new_file_operations()
-    if (!(click_dir_file_ops = click_new_file_operations())
-	|| !(click_dir_inode_ops = proclikefs_new_inode_operations(clickfs))
-	|| !(click_handler_file_ops = click_new_file_operations())
-	|| !(click_handler_inode_ops = proclikefs_new_inode_operations(clickfs))) {
+    if (!(click_dir_file_ops = click_new_file_operations("dirf"))
+	|| !(click_dir_inode_ops = proclikefs_new_inode_operations(clickfs, "diri"))
+	|| !(click_handler_file_ops = click_new_file_operations("hf"))
+	|| !(click_handler_inode_ops = proclikefs_new_inode_operations(clickfs, "hi"))) {
 	printk(KERN_ALERT "click: could not initialize clickfs!\n");
 	return -EINVAL;
     }

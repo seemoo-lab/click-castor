@@ -315,7 +315,7 @@ init_module()
     Router::add_read_handler(0, "messages", read_messages, 0, HANDLER_DIRECT);
 #if HAVE_KERNEL_ASSERT
     Router::add_read_handler(0, "assert_stop", read_global, (void *) (intptr_t) h_assert_stop);
-    Router::add_write_handler(0, "assert_stop", write_assert_stop, 0, Handler::h_nonexclusive);
+    Router::add_write_handler(0, "assert_stop", write_assert_stop, 0, Handler::f_nonexclusive);
 #endif
 
     // filesystem interface
@@ -329,8 +329,14 @@ init_module()
     }
     click_fsmode.write = S_IWUSR | S_IWGRP;
     click_fsmode.dir = S_IFDIR | click_fsmode.read | click_fsmode.exec;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 5, 0)
+    struct user_namespace* user_ns = current_user_ns();
+    click_fsmode.uid = make_kuid(user_ns, click_parm(CLICKPARM_UID));
+    click_fsmode.gid = make_kgid(user_ns, click_parm(CLICKPARM_GID));
+#else
     click_fsmode.uid = click_parm(CLICKPARM_UID);
     click_fsmode.gid = click_parm(CLICKPARM_GID);
+#endif
 
     init_clickfs();
 

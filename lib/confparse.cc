@@ -1872,9 +1872,9 @@ cp_ethernet_address(const String &str, unsigned char *result
 		    CP_CONTEXT)
 {
 #if !CLICK_TOOL
-    return EtherAddressArg::parse(str, *reinterpret_cast<EtherAddress *>(result), Args(context));
+    return EtherAddressArg().parse(str, *reinterpret_cast<EtherAddress*>(result), Args(context));
 #else
-    return EtherAddressArg::parse(str, *reinterpret_cast<EtherAddress *>(result));
+    return EtherAddressArg().parse(str, *reinterpret_cast<EtherAddress*>(result));
 #endif
 }
 
@@ -2072,7 +2072,7 @@ cp_handler_name(const String& str,
 
 /** @brief Parse a handler reference from @a str.
  * @param  str  string
- * @param  flags  zero or more of Handler::h_read, Handler::h_write, and HandlerCall::h_preinitialize
+ * @param  flags  zero or more of Handler::f_read, Handler::f_write, and HandlerCall::f_preinitialize
  * @param[out]  result_element  stores parsed element result
  * @param[out]  result_handler  stores parsed handler result
  * @param  context  element context
@@ -2225,7 +2225,6 @@ const CpVaParseCmd
   cpElement		= "element",
   cpElementCast		= "element_cast",
   cpHandlerName		= "handler_name",
-  cpHandler		= "handler",
   cpHandlerCallRead	= "handler_call_read",
   cpHandlerCallWrite	= "handler_call_write",
   cpHandlerCallPtrRead	= "handler_call_ptr_read",
@@ -2235,7 +2234,9 @@ const CpVaParseCmd
   cpIP6PrefixLen	= "ip6_prefix_len",
   cpIP6AddressOrPrefix	= "ip6_addr_or_prefix",
   cpFilename		= "filename",
+#if !CLICK_TOOL
   cpAnno		= "anno",
+#endif
   cpInterval		= cpTimeval,
   cpReadHandlerCall	= cpHandlerCallPtrRead,
   cpWriteHandlerCall	= cpHandlerCallPtrWrite;
@@ -2684,12 +2685,12 @@ default_parsefunc(cp_value *v, const String &arg,
 
    case cpiHandlerCallRead:
    case cpiHandlerCallPtrRead:
-    underflower = HandlerCall::h_read | HandlerCall::h_preinitialize;
+    underflower = HandlerCall::f_read | HandlerCall::f_preinitialize;
     goto handler_call;
 
    case cpiHandlerCallWrite:
    case cpiHandlerCallPtrWrite:
-    underflower = HandlerCall::h_write | HandlerCall::h_preinitialize;
+    underflower = HandlerCall::f_write | HandlerCall::f_preinitialize;
     goto handler_call;
 
    handler_call: {
@@ -2940,11 +2941,11 @@ default_storefunc(cp_value *v  CP_CONTEXT)
    }
 
    case cpiHandlerCallRead:
-    helper = HandlerCall::h_read | HandlerCall::h_preinitialize;
+    helper = HandlerCall::f_read | HandlerCall::f_preinitialize;
     goto handler_call;
 
    case cpiHandlerCallWrite:
-    helper = HandlerCall::h_write | HandlerCall::h_preinitialize;
+    helper = HandlerCall::f_write | HandlerCall::f_preinitialize;
     goto handler_call;
 
    handler_call: {
@@ -2955,11 +2956,11 @@ default_storefunc(cp_value *v  CP_CONTEXT)
     }
 
    case cpiHandlerCallPtrRead:
-    helper = HandlerCall::h_read | HandlerCall::h_preinitialize;
+    helper = HandlerCall::f_read | HandlerCall::f_preinitialize;
     goto handler_call_ptr;
 
    case cpiHandlerCallPtrWrite:
-    helper = HandlerCall::h_write | HandlerCall::h_preinitialize;
+    helper = HandlerCall::f_write | HandlerCall::f_preinitialize;
     goto handler_call_ptr;
 
    handler_call_ptr:

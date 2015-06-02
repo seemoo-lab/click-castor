@@ -11,42 +11,23 @@ config.h
 config.log
 config.mk
 config.status
+configure.lineno
 depcomp
 elementmap
 elementmap.xml
+etc/pkg-config.mk
 installch
 man
+share/click/config.mk
+share/click/elementmap.xml
+share/click/pkg-config.mk
 stamp-egroup
 stamp-h
 
-# Compiled Object files
-*.slo
-*.lo
 *.o
-*.obj
-
-# Compiled Dynamic libraries
 *.so
-*.dylib
-*.dll
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Click
 .cproject
 .project
+.pydevproject
 compile
 ns/elements.csmk
-doc/testie.1
-
-# ns-3
-.pydevproject

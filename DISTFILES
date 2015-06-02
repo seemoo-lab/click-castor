@@ -343,12 +343,6 @@ linux-2.6.16.13-patch
 linux-2.6.19.2-patch
 ns-2.30-patch
 ns-2.34-patch
-pkg-Makefile
-pkg-config.mk.in
-pkg-linuxmodule-26.mk
-pkg-linuxmodule.mk
-pkg-bsdmodule.mk
-pkg-userlevel.mk
 samplellrpc
 samplepackage
 
@@ -566,6 +560,17 @@ Makefile.in
 nsclick-test.cc
 nsclick.cc
 
+./share:
+click
+
+./share/click:
+pkg-Makefile
+pkg-config.mk.in
+pkg-linuxmodule-26.mk
+pkg-linuxmodule.mk
+pkg-bsdmodule.mk
+pkg-userlevel.mk
+
 ./test:
 IPRewriter
 analysis
@@ -683,6 +688,7 @@ deviceup-01.testie
 ./test/standard:
 BandwidthRatedUnqueue-01.testie
 Classifier-01.testie
+Clipboard-01.testie
 DelayShaper-notifier-01.testie
 FullNoteQueue-upstream-notifier-01.testie
 Hub-01.testie
@@ -695,6 +701,7 @@ Queue-notifiers-01.testie
 Queue-yank-01.testie
 QuickNoteQueue-01.testie
 RatedSplitter-01.testie
+Resize-01.testie
 Script-01.testie
 Script-02.testie
 StrideSched-01.testie
@@ -750,6 +757,9 @@ xform-ip-01.testie
 ./test/userlevel:
 ControlSocket-llrpc-01.testie
 ControlSocket-llrpc-02.testie
+McastSocket-01.testie
+McastSocket-02.testie
+McastSocket-03.testie
 Script-signal-01.testie
 Script-signal-02.testie
 Script-signal-03.testie
