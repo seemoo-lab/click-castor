@@ -7,7 +7,7 @@ CLICK_DECLS
 
 int CastorAddHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
      return cp_va_kparse(conf, this, errh,
-        "CastorAddHeader", cpkP+cpkM, cpElementCast, "CastorFlowStub", &flow,
+        "CastorAddHeader", cpkP+cpkM, cpElementCast, "CastorFlowManager", &flow,
         cpEnd);
 }
 
@@ -38,12 +38,12 @@ void CastorAddHeader::push(int, Packet *p) {
 	// Access the flow settings
 	PacketLabel label = flow->getPacketLabel(src, dst);
 
-	header->fid = label.flow_id;
-	header->pid = label.packet_id;
-	header->kpkt = label.packet_number;
+	header->fid = label.fid;
+	header->pid = label.pid;
+	header->kpkt = label.num;
 	for (int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)
-		header->fauth[i] = label.flow_auth[i];
-	header->pauth = label.ack_auth; // not yet encrypted (!)
+		header->fauth[i] = label.fauth[i];
+	header->pauth = label.aauth; // not yet encrypted (!)
 
 	CastorPacket::set_src_ip_anno(p, header->src);
 

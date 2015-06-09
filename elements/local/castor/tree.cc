@@ -29,10 +29,11 @@ public:
 	SValue data;
 };
 
-MerkleTree::MerkleTree(Vector<SValue>& in, Crypto& c) :	crypto(c) {
-
-	// Verify that size of e is power of 2
-	assert(in.size() && !(in.size() & (in.size() - 1)));
+MerkleTree::MerkleTree(Vector<SValue>& in, const Crypto& c) : crypto(c) {
+	if (!(in.size() && !(in.size() & (in.size() - 1)))) {
+		click_chatter("Input vector size must be a power of 2, but was %d", in.size());
+		return;
+	}
 
 	_leaves = Vector<Node*>();
 	Vector<Node*>* layer = 0;

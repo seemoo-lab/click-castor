@@ -8,7 +8,7 @@ CLICK_DECLS
 
 int CastorXcastSetFixedHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
      return cp_va_kparse(conf, this, errh,
-        "CastorXcastSetHeader", cpkP+cpkM, cpElementCast, "CastorFlowStub", &cflow,
+        "CastorXcastSetHeader", cpkP+cpkM, cpElementCast, "CastorFlowManager", &flow,
         cpEnd);
 }
 
@@ -29,11 +29,11 @@ void CastorXcastSetFixedHeader::push(int, Packet *p) {
 	pkt.setMulticastGroup(dst);
 
 	// Access the flow settings
-	PacketLabel label = cflow->getPacketLabel(src, dst);
-	pkt.setFlowId(label.flow_id);
-	pkt.setFlowAuth(label.flow_auth);
-	pkt.setKPkt(label.packet_number);
-	pkt.setAckAuth(label.ack_auth);
+	PacketLabel label = flow->getPacketLabel(src, dst);
+	pkt.setFlowId(label.fid);
+	pkt.setFlowAuth(label.fauth);
+	pkt.setKPkt(label.num);
+	pkt.setAckAuth(label.aauth);
 
 	output(0).push(pkt.getPacket());
 }

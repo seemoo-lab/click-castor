@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include "castor.hh"
-#include "castor_flow_stub.hh"
+#include "flow/castor_flow_manager.hh"
 
 CLICK_DECLS
 
@@ -13,7 +13,7 @@ CLICK_DECLS
  */
 class CastorXcastSetFixedHeader: public Element {
 public:
-	CastorXcastSetFixedHeader() : cflow(0) {}
+	CastorXcastSetFixedHeader() : flow(NULL) {}
 		
 	const char *class_name() const { return "CastorXcastSetFixedHeader"; }
 	const char *port_count() const { return PORTS_1_1; }
@@ -22,7 +22,7 @@ public:
 
 	void push(int, Packet*);
 private:
-	CastorFlowStub* cflow;
+	CastorFlowManager* flow;
 };
 
 CLICK_ENDDECLS

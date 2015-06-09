@@ -14,7 +14,7 @@ public:
 	 * Size of input vector needs to be a power of 2.
 	 * The leave values of this tree will be the hashed values of the input vector.
 	 */
-	MerkleTree(Vector<SValue>&, Crypto&);
+	MerkleTree(Vector<SValue>&, const Crypto&);
 	~MerkleTree();
 
 	/**
@@ -47,7 +47,7 @@ private:
 
 	Node* _root;
 	Vector<Node*> _leaves;
-	Crypto& crypto;
+	const Crypto& crypto;
 };
 
 CLICK_ENDDECLS

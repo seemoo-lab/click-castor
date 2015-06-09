@@ -6,10 +6,6 @@ require(
 	library castor_init_common_blocks.click
 );
 
-// The flow to use
-flowDB :: CastorFlowStub;
-flow_merkle :: CastorFlowMerkle(flowDB, crypto);
-
 // How to choose next hop
 routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, $broadcastAdjust);
 
@@ -17,7 +13,7 @@ routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, $broadcast
 handlepkt :: CastorHandleXcastPkt(fake, routeselector, routingtable, timeouttable, history, crypto);
 handleack :: CastorHandleAck(fake, routingtable, timeouttable, history, neighbors, crypto, false);
 
-handleIpPacket :: CastorHandleMulticastIpPacket(fake, flowDB, crypto);
+handleIpPacket :: CastorHandleMulticastIpPacket(fake, flowmanager, crypto);
 removeHeader :: CastorXcastRemoveHeader;
 
 // Finally wire all blocks

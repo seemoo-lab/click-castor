@@ -4,6 +4,7 @@
 
 sam::SAManagement(fake);
 crypto::Crypto(sam);
+flowmanager :: CastorFlowManager(crypto);
 
 neighbors :: Neighbors($neighborTimeout, $neighborsEnable);
 history :: CastorHistory;
