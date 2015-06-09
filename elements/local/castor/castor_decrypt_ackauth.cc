@@ -27,7 +27,6 @@ void CastorDecryptAckAuth::push(int, Packet *p) {
 		return;
 	}
 	SValue auth = crypto->decrypt(encAuth, *sk);
-	delete sk;
 	if (auth.size() != sizeof(PktAuth)) {
 		click_chatter("Cannot create ciphertext: Crypto subsystem returned wrong plaintext length. Discarding PKT...");
 		q->kill();

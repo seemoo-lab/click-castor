@@ -1,5 +1,5 @@
-#ifndef SAMANAGEMENT_HH
-#define SAMANAGEMENT_HH
+#ifndef CLICK_SA_MANAGEMENT_HH
+#define CLICK_SA_MANAGEMENT_HH
 
 #include <click/element.hh>
 #include <click/hashtable.hh>
@@ -10,29 +10,32 @@ CLICK_DECLS
 
 class SAManagement: public Element {
 public:
-	/**
-	 * @param symmetricKeyLength length of generated symmetric keys
-	 */
 	SAManagement() : symmetricKeyLength(16) {}
 
 	const char *class_name() const	{ return "SAManagement"; }
 	const char *port_count() const	{ return PORTS_0_0; }
 	const char *processing() const	{ return AGNOSTIC; }
 
-	int configure(Vector<String> &, ErrorHandler *);
+	int configure(Vector<String>&, ErrorHandler*);
 
-	bool checkSApresence(SAType t, const NodeId& node);
-	int addSA(SecurityAssociation, const NodeId&);
-	void printSAs();
-	const SecurityAssociation* getSA(SAType t, const NodeId& node);
+	void add(const NodeId& node, const SecurityAssociation& sa);
+	const SecurityAssociation* get(const NodeId& node, SecurityAssociation::Type type);
+	void printall();
 
 private:
 	typedef Vector<SecurityAssociation> SAs;
 	typedef HashTable<NodeId, SAs> SAMap;
+	SAMap sas;
 
+	/**
+	 * XXX Warning
+	 * This function should be only used for testing. It generates unique but deterministic
+	 * keys for arbitrary node pairs.
+	 * In a production environment, shared keys should be created using some secure key
+	 * exchange protocol.
+	 */
 	SecurityAssociation genereateSymmetricSA(const NodeId&);
-	SAMap mySAs;
-	NodeId myAddr; // Local nodes' IP address
+	NodeId myAddr; // Local nodes' IP address, used as seed for the KDF
 	size_t symmetricKeyLength;
 };
 

@@ -1,23 +1,25 @@
-#ifndef SECURITYASSOCIATION_HH
-#define SECURITYASSOCIATION_HH
+#ifndef CLICK_SECURITY_ASSOCIATION_HH
+#define CLICK_SECURITY_ASSOCIATION_HH
 
 #include <click/element.hh>
+#include <botan/symkey.h>
 
 CLICK_DECLS
 
-enum SAType {
-	SApubkey, SAprivkey, SAendofhashchain, SAsharedsecret
-};
-
 class SecurityAssociation {
 public:
-	const SAType myType;
-	const int mySize;
-	unsigned char* myData;
+	enum Type {
+		pubkey, privkey, endofhashchain, sharedsecret
+	};
 
-	SecurityAssociation(SAType, String);
-	SecurityAssociation(SAType, unsigned char*, size_t);
-	String toString() const;
+	const Type type;
+	const Botan::OctetString secret;
+
+	SecurityAssociation(Type type, const Botan::OctetString& secret) : type(type), secret(secret) {}
+	String str() const;
+
+private:
+	String typeToStr(Type type) const;
 };
 
 CLICK_ENDDECLS

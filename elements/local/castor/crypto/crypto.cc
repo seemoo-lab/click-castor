@@ -42,13 +42,10 @@ SValue Crypto::random(int bytes) const {
  * Return the symmetric shared key for a destination
  */
 const SymmetricKey* Crypto::getSharedKey(NodeId id) const {
-	const SecurityAssociation* sharedKeySA = sam->getSA(SAsharedsecret, id);
-	if (!sharedKeySA) {
+	const SecurityAssociation* sharedKeySA = sam->get(id, SecurityAssociation::sharedsecret);
+	if (!sharedKeySA)
 		return 0;
-	}
-	// TODO Use Botan::OctetString directly in SecurityAssociation to avoid creating a new instance every time
-	// FIXME possible memory leak
-	SymmetricKey* sharedKey = new Botan::OctetString(sharedKeySA->myData, sharedKeySA->mySize);
+	const SymmetricKey* sharedKey = &sharedKeySA->secret;
 	return sharedKey;
 }
 
@@ -56,7 +53,7 @@ const SymmetricKey* Crypto::getSharedKey(NodeId id) const {
  * Encrypt plain using AES-128 in CTS mode.
  */
 SValue Crypto::encrypt(const SValue& plain, const SymmetricKey& key) const {
-	Botan::Pipe encryptor(get_cipher(algo, key, iv, Botan::ENCRYPTION));
+	Botan::Pipe encryptor(get_cipher(algo.c_str(), key, iv, Botan::ENCRYPTION));
 	encryptor.process_msg(plain);
 	return encryptor.read_all();
 }
@@ -65,7 +62,7 @@ SValue Crypto::encrypt(const SValue& plain, const SymmetricKey& key) const {
  * Decrypt cipher using the given key. Note that you might have to remove padding that was added during encryption.
  */
 SValue Crypto::decrypt(const SValue& cipher, const SymmetricKey& key) const {
-	Botan::Pipe decryptor(get_cipher(algo, key, iv, Botan::DECRYPTION));
+	Botan::Pipe decryptor(get_cipher(algo.c_str(), key, iv, Botan::DECRYPTION));
 	decryptor.process_msg(cipher);
 	return decryptor.read_all();
 }

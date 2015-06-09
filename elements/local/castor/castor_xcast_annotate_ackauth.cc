@@ -30,7 +30,6 @@ void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
 		return;
 	}
 	SValue ackAuth = crypto->encrypt(pktAuth, *sk);
-	delete sk;
 	if (ackAuth.size() != sizeof(PktAuth)) {
 		click_chatter("Cannot create ciphertext: Crypto subsystem returned wrong plaintext length. Discarding PKT...");
 		pkt.getPacket()->kill();

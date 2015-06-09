@@ -35,7 +35,7 @@ public:
 
 private:
 	SAManagement* sam;
-	std::string algo;
+	String algo;
 	Botan::InitializationVector iv;
 	Botan::HashFunction* hashFunction;
 };

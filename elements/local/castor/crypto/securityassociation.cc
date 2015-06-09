@@ -1,20 +1,23 @@
 #include <click/config.h>
+#include <click/straccum.hh>
 #include "securityassociation.hh"
 
 CLICK_DECLS
 
-SecurityAssociation::SecurityAssociation(SAType type, String sa) : myType(type), mySize(sa.length()) {
-	myData = new unsigned char[sa.length()];
-	memcpy(myData, sa.data(), sa.length());
+String SecurityAssociation::str() const {
+	StringAccum accum;
+	accum << "SA (type " << typeToStr(type) << "): " << secret.as_string().c_str();
+	return accum.take_string();
 }
 
-SecurityAssociation::SecurityAssociation(SAType type, unsigned char* sa, size_t length) : myType(type), mySize(length) {
-	myData = new unsigned char[length];
-	memcpy(myData, sa, length);
-}
-
-String SecurityAssociation::toString() const {
-	return String(myData, mySize);
+String SecurityAssociation::typeToStr(Type type) const {
+	switch (type) {
+	case privkey: return String("privkey");
+	case pubkey: return String("pubkey");
+	case endofhashchain: return String("endofhashchain");
+	case sharedsecret: return String("sharedsecret");
+	default: return String("unknown");
+	}
 }
 
 CLICK_ENDDECLS
