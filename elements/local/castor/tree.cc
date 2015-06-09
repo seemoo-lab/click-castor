@@ -42,7 +42,7 @@ MerkleTree::MerkleTree(Vector<SValue>& in, const Crypto& c) : crypto(c) {
 	// Create the leaves
 	for (int i = 0; i < in.size(); i++) {
 		Node* hnode = new Node();
-		hnode->data = crypto.hash(in.at(i));
+		hnode->data = crypto.hash(in[i]);
 		_leaves.push_back(hnode);
 		nextlayer->push_back(hnode);
 	}
@@ -54,26 +54,26 @@ MerkleTree::MerkleTree(Vector<SValue>& in, const Crypto& c) : crypto(c) {
 		nextlayer = new Vector<Node*>();
 
 		for (int j = 0; j < layer->size(); j += 2) {
-			Node* lc = layer->at(j);
-			Node* rc = layer->at(j + 1);
+			Node* lc = (*layer)[j];
+			Node* rc = (*layer)[j + 1];
 
 			// Create a new node
-			Node* n = new Node(0, lc, rc);
+			Node* p = new Node(0, lc, rc);
 
 			// Update lower layer nodes
-			lc->parent = n;
-			rc->parent = n;
+			lc->parent = p;
+			rc->parent = p;
 
 			// Compute hash
 			SValue tmp = SValue(lc->data);
 			for (unsigned int k = 0; k < rc->data.size(); k++)
 				tmp.push_back(rc->data.begin()[k]);
-			n->data = crypto.hash(tmp);
+			p->data = crypto.hash(tmp);
 
-			nextlayer->push_back(n);
+			nextlayer->push_back(p);
 		}
 	}
-	_root = nextlayer->at(0);
+	_root = (*nextlayer)[0];
 	delete nextlayer;
 }
 
@@ -84,11 +84,6 @@ MerkleTree::~MerkleTree(){
 
 SValue MerkleTree::getRoot(){
 	return _root->data;
-}
-
-void MerkleTree::getLeaves(Vector<SValue>& leaves){
-	for(int i=0; i<_leaves.size(); i++)
-		leaves.push_back(_leaves.at(i)->data);
 }
 
 void MerkleTree::getSiblings(Vector<SValue>& siblings, int id) {

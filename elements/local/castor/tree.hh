@@ -23,11 +23,6 @@ public:
 	SValue getRoot();
 
 	/**
-	 * Append all leave values to the given Vector
-	 */
-	void getLeaves(Vector<SValue>&);
-
-	/**
 	 * Retrieve all sibling values that are necessary to compute the root value from id
 	 */
 	void getSiblings(Vector<SValue>& siblings, int id);
