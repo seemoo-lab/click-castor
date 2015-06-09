@@ -47,6 +47,7 @@ const SymmetricKey* Crypto::getSharedKey(NodeId id) const {
 		return 0;
 	}
 	// TODO Use Botan::OctetString directly in SecurityAssociation to avoid creating a new instance every time
+	// FIXME possible memory leak
 	SymmetricKey* sharedKey = new Botan::OctetString(sharedKeySA->myData, sharedKeySA->mySize);
 	return sharedKey;
 }

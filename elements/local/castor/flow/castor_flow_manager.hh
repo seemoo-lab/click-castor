@@ -4,7 +4,7 @@
 #include <click/element.hh>
 #include "castor_flow.hh"
 #include "../node_id.hh"
-#include "../crypto.hh"
+#include "../crypto/crypto.hh"
 
 CLICK_DECLS
 

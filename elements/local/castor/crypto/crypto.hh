@@ -1,8 +1,8 @@
 #ifndef CLICK_CRYPTO_HH
 #define CLICK_CRYPTO_HH
 #include <click/element.hh>
-#include "node_id.hh"
-#include "../protswitch/samanagement.hh"
+#include "../node_id.hh"
+#include "samanagement.hh"
 #include <botan/botan.h>
 
 CLICK_DECLS
@@ -15,7 +15,7 @@ typedef Botan::SymmetricKey SymmetricKey;
 class Crypto: public Element {
 
 public:
-	Crypto() : sam(0), hashFunction(0) {}
+	Crypto() : sam(NULL), hashFunction(NULL) {}
 	~Crypto();
 
 	const char *class_name() const { return "Crypto"; }

@@ -1,5 +1,4 @@
 #include <click/config.h>
-#include <click/element.hh>
 #include "securityassociation.hh"
 
 CLICK_DECLS

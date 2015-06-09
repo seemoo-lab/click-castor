@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include <click/vector.hh>
-#include "crypto.hh"
+#include "crypto/crypto.hh"
 
 CLICK_DECLS
 

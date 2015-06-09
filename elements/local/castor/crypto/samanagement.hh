@@ -4,7 +4,7 @@
 #include <click/element.hh>
 #include <click/hashtable.hh>
 #include "securityassociation.hh"
-#include "../castor/node_id.hh"
+#include "../node_id.hh"
 
 CLICK_DECLS
 
