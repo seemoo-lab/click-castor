@@ -3,7 +3,6 @@
 
 #include <click/vector.hh>
 #include "castor_flow.hh"
-#include "../castor.hh"
 #include "../tree.hh"
 
 CLICK_DECLS
@@ -17,12 +16,10 @@ public:
 	bool isAlive() const;
 
 private:
-	const Crypto* _crypto;
-	// TODO _tree should be const
-	MerkleTree* _tree;
+	const MerkleTree* tree;
 	Vector<SValue> aauths;
 	Vector<SValue> pids;
-	size_t _pos;
+	size_t pos;
 };
 
 CLICK_ENDDECLS

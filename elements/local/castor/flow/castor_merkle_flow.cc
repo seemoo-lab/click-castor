@@ -4,23 +4,21 @@
 #define CASTOR_FLOWSIZE (1<<CASTOR_FLOWAUTH_ELEM) // Number of elements in a merkle hash tree
 
 CLICK_DECLS
-CastorMerkleFlow::CastorMerkleFlow(NodeId src, NodeId dst, const Crypto* crypto) : CastorFlow(src, dst, crypto), _crypto(crypto), _pos(0) {
-	// 'src' and 'dst' are not used here but could be useful in the future or for other flow types
-	(void) src; (void) dst;
 
+CastorMerkleFlow::CastorMerkleFlow(NodeId src, NodeId dst, const Crypto* crypto) : CastorFlow(src, dst, crypto), pos(0) {
 	aauths.reserve(CASTOR_FLOWSIZE);
 	pids.reserve(CASTOR_FLOWSIZE);
 
 	for (int i = 0; i < CASTOR_FLOWSIZE; i++) {
-		aauths.push_back(_crypto->random(sizeof(AckAuth)));
-		pids.push_back(_crypto->hash(aauths[i]));
+		aauths.push_back(crypto->random(sizeof(AckAuth)));
+		pids.push_back(crypto->hash(aauths[i]));
 	}
 
-	_tree = new MerkleTree(pids, *_crypto);
+	tree = new MerkleTree(pids, *crypto);
 }
 
 CastorMerkleFlow::~CastorMerkleFlow() {
-	delete _tree;
+	delete tree;
 }
 
 PacketLabel CastorMerkleFlow::freshLabel() {
@@ -28,25 +26,25 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 		return PacketLabel();
 
 	PacketLabel label;
-	label.num = _pos;
-	label.fid = Hash(_tree->getRoot().begin());
-	label.pid = Hash(pids[_pos].begin());
+	label.num = pos;
+	label.fid = crypto->convert(tree->getRoot());
+	label.pid = crypto->convert(pids[pos]);
 
 	// Set flow authenticator
-	Vector<SValue> siblings = _tree->getSiblings(_pos);
+	Vector<SValue> siblings = tree->getSiblings(pos);
 	assert(siblings.size() == CASTOR_FLOWAUTH_ELEM);
 	for (int j = 0; j < siblings.size(); j++)
-		label.fauth[j] = _crypto->convert(siblings[j]);
+		label.fauth[j] = crypto->convert(siblings[j]);
 
-	label.aauth = _crypto->convert(aauths[_pos]);
+	label.aauth = crypto->convert(aauths[pos]);
 
-	_pos++;
+	pos++;
 
 	return label;
 }
 
 bool CastorMerkleFlow::isAlive() const {
-	return _pos < sizeof(aauths);
+	return pos < aauths.size();
 }
 
 CLICK_ENDDECLS

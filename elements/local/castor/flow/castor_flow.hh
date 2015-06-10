@@ -9,8 +9,6 @@ CLICK_DECLS
 
 class PacketLabel {
 public:
-//	PacketLabel(size_t num, const FlowId& fid, const FlowAuth& fauth, const PacketId& pid, const AckAuth& aauth)
-//		: num(num), fid(fid), fauth(fauth), pid(pid), aauth(aauth) {}
 	size_t num;
 	FlowId fid;
 	FlowAuth fauth;
@@ -20,9 +18,7 @@ public:
 
 class CastorFlow {
 public:
-	CastorFlow(NodeId src, NodeId dst, const Crypto* crypto) {
-		(void) src; (void) dst; (void) crypto;
-	}
+	CastorFlow(NodeId src, NodeId dst, const Crypto* crypto) : src(src), dst(dst), crypto(crypto) {}
 	virtual ~CastorFlow() {}
 
 	/**
@@ -34,6 +30,11 @@ public:
 	 * Returns false otherwise.
 	 */
 	virtual bool isAlive() const = 0;
+
+protected:
+	const NodeId src;
+	const NodeId dst;
+	const Crypto* crypto;
 };
 
 CLICK_ENDDECLS
