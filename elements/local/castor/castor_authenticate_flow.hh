@@ -11,17 +11,17 @@ CLICK_DECLS
  * Flow validation takes place at every intermediate node
  */
 class CastorAuthenticateFlow : public Element {
-	public:
-		CastorAuthenticateFlow();
-		
-		const char *class_name() const	{ return "CastorAuthenticateFlow"; }
-		const char *port_count() const	{ return "1/2"; }
-		const char *processing() const	{ return PUSH; }
-		int configure(Vector<String>&, ErrorHandler*);
-		
-		void push(int, Packet *);
-	private:
-		Crypto* crypto;
+public:
+	CastorAuthenticateFlow() : crypto(NULL) {}
+
+	const char *class_name() const { return "CastorAuthenticateFlow"; }
+	const char *port_count() const { return "1/2"; }
+	const char *processing() const { return PUSH; }
+	int configure(Vector<String>&, ErrorHandler*);
+
+	void push(int, Packet *);
+private:
+	Crypto* crypto;
 };
 
 CLICK_ENDDECLS

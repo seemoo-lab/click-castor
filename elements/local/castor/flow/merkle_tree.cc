@@ -1,6 +1,6 @@
 #include <click/config.h>
 #include <click/straccum.hh>
-#include "tree.hh"
+#include "merkle_tree.hh"
 
 CLICK_DECLS
 

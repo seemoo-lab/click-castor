@@ -1,9 +1,9 @@
-#ifndef TREE_HH
-#define TREE_HH
+#ifndef CLICK_MERKLE_TREE_HH
+#define CLICK_MERKLE_TREE_HH
 
 #include <click/element.hh>
 #include <click/vector.hh>
-#include "crypto/crypto.hh"
+#include "../crypto/crypto.hh"
 
 CLICK_DECLS
 

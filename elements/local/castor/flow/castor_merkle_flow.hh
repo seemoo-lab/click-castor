@@ -2,8 +2,8 @@
 #define CLICK_CASTOR_MERKLE_FLOW_HH
 
 #include <click/vector.hh>
+#include "merkle_tree.hh"
 #include "castor_flow.hh"
-#include "../tree.hh"
 
 CLICK_DECLS
 

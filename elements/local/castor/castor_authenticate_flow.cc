@@ -1,13 +1,9 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include "castor_authenticate_flow.hh"
-#include "tree.hh"
+#include "flow/merkle_tree.hh"
 
 CLICK_DECLS
-
-CastorAuthenticateFlow::CastorAuthenticateFlow() {
-	crypto = 0;
-}
 
 int CastorAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
