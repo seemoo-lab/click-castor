@@ -1,8 +1,9 @@
 #include <click/config.h>
 #include "castor_merkle_flow.hh"
 
-CLICK_DECLS
+#define CASTOR_FLOWSIZE (1<<CASTOR_FLOWAUTH_ELEM) // Number of elements in a merkle hash tree
 
+CLICK_DECLS
 CastorMerkleFlow::CastorMerkleFlow(NodeId src, NodeId dst, const Crypto* crypto) : CastorFlow(src, dst, crypto), _crypto(crypto), _pos(0) {
 	// 'src' and 'dst' are not used here but could be useful in the future or for other flow types
 	(void) src; (void) dst;
