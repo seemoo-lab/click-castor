@@ -13,7 +13,7 @@ int CastorAddAckToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void CastorAddAckToHistory::push(int, Packet *p) {
 	CastorAck& ack = (CastorAck&) *p->data();
-	PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
+	const PacketId& pid = CastorPacket::getCastorAnno(p);
 	if (history->hasAck(pid)) {
 		history->addAckFor(pid, CastorPacket::src_ip_anno(p));
 	} else {

@@ -32,7 +32,7 @@ void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
 		return;
 	}
 
-	AckAuth& authAnno = (AckAuth&) *CastorPacket::getCastorAnno(pkt.getPacket());
+	AckAuth& authAnno = CastorPacket::getCastorAnno(pkt.getPacket());
 	authAnno = crypto->convert(ackAuth);
 
 	output(0).push(pkt.getPacket());

@@ -14,7 +14,7 @@ int CastorSetAckNexthop::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorSetAckNexthop::push(int, Packet* p) {
-	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
+	const PacketId& pid = CastorPacket::getCastorAnno(p);
 	NodeId dst = history->getPktSenders(pid)[0];  // set default ACK destination to initial PKT sender
 
 	// Use broadcast if there are at least two other neighbors than the ACK sender

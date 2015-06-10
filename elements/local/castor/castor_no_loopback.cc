@@ -14,7 +14,7 @@ int CastorNoLoopback::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void CastorNoLoopback::push(int, Packet* p) {
 
-	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
+	const PacketId& pid = CastorPacket::getCastorAnno(p);
 
 	if(history->hasPktFrom(pid, myId))
 		output(1).push(p);  // ACK arrived at source of corresponding PKT

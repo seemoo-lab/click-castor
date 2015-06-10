@@ -18,13 +18,13 @@ void CastorAuthenticatePkt::push(int, Packet *p) {
 	if(CastorPacket::isXcast(p)) {
 		CastorXcastPkt pkt = CastorXcastPkt(p);
 
-		PacketId computedPid = crypto->hash((PacketId&) (*CastorPacket::getCastorAnno(p)));
+		const PacketId& computedPid = crypto->hash(CastorPacket::getCastorAnno(p));
 
 		isPidValid = computedPid == pkt.getPid(0); // Pkt should only include a single pid
 	} else {
 		CastorPkt& pkt = (CastorPkt&) *p->data();
 
-		PacketId computedPid = crypto->hash((PacketId&) (*CastorPacket::getCastorAnno(p)));
+		const PacketId& computedPid = crypto->hash(CastorPacket::getCastorAnno(p));
 
 		isPidValid = (computedPid == pkt.pid);
 	}

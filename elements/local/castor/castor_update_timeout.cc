@@ -13,7 +13,7 @@ int CastorUpdateTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
 }
 
 void CastorUpdateTimeout::push(int, Packet* p) {
-	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
+	const PacketId& pid = CastorPacket::getCastorAnno(p);
 
 	// Calculate new round-trip time sample
 	const Timestamp& time_sent = history->getTimestamp(pid);

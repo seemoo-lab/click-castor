@@ -111,10 +111,10 @@ public:
 	/**
 	 * User annotation space for Castor
 	 */
-	static inline uint8_t* getCastorAnno(Packet* p) {
+	static inline Hash& getCastorAnno(Packet* p) {
 		uint8_t* cAnno = p->anno_u8();
 		cAnno += castor_anno_offset;
-		return cAnno;
+		return (Hash&) *cAnno;
 	}
 
 	static inline bool isXcast(Packet* p) {

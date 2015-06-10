@@ -33,7 +33,7 @@ void CastorDecryptAckAuth::push(int, Packet *p) {
 		return;
 	}
 
-	AckAuth& authAnno = (AckAuth&) *CastorPacket::getCastorAnno(p);
+	AckAuth& authAnno = CastorPacket::getCastorAnno(p);
 	authAnno = crypto->convert(auth);
 
 	output(0).push(q);
