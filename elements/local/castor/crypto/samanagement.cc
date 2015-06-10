@@ -38,7 +38,6 @@ const SecurityAssociation* SAManagement::get(const NodeId& node, SecurityAssocia
 
 	// If no entry currently exists, generate one
 	if (sa == NULL && type == SecurityAssociation::sharedsecret) {
-		printall();
 		add(node, genereateSymmetricSA(node));
 		return get(node, type);
 	}

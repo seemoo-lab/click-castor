@@ -31,15 +31,15 @@ int Crypto::configure(Vector<String> &conf, ErrorHandler *errh)
 	return 0;
 }
 
-SValue Crypto::random(int bytes) const {
+SValue Crypto::random(int nbytes) const {
 	Botan::AutoSeeded_RNG rng;
-	Botan::byte rbytes[bytes];
-	rng.randomize(rbytes, bytes);
-	return SValue(rbytes, bytes);
+	Botan::byte rbytes[nbytes];
+	rng.randomize(rbytes, nbytes);
+	return SValue(rbytes, nbytes);
 }
 
 /**
- * Return the symmetric shared key for a destination
+ * Return the symmetric shared key for a destination.
  */
 const SymmetricKey* Crypto::getSharedKey(NodeId id) const {
 	const SecurityAssociation* sharedKeySA = sam->get(id, SecurityAssociation::sharedsecret);
@@ -59,7 +59,7 @@ SValue Crypto::encrypt(const SValue& plain, const SymmetricKey& key) const {
 }
 
 /**
- * Decrypt cipher using the given key. Note that you might have to remove padding that was added during encryption.
+ * Decrypt cipher using the given key.
  */
 SValue Crypto::decrypt(const SValue& cipher, const SymmetricKey& key) const {
 	Botan::Pipe decryptor(get_cipher(algo.c_str(), key, iv, Botan::DECRYPTION));
@@ -69,6 +69,28 @@ SValue Crypto::decrypt(const SValue& cipher, const SymmetricKey& key) const {
 
 SValue Crypto::hash(const SValue& data) const {
 	return hashFunction->process(data);
+}
+
+Hash Crypto::hash(const Hash& data) const {
+	SValue hash = hashFunction->process(data.data(), data.size());
+	return convert(hash);
+}
+
+Hash Crypto::hashConvert(const SValue& data) const {
+	SValue hash = hashFunction->process(data);
+	return convert(hash);
+}
+
+SValue Crypto::hashConvert(const Hash& data) const {
+	return hashFunction->process(data.data(), data.size());
+}
+
+SValue Crypto::convert(const Hash& data) const {
+	return SValue(data.data(), data.size());
+}
+
+Hash Crypto::convert(const SValue& data) const {
+	return Hash(data.begin());
 }
 
 CLICK_ENDDECLS

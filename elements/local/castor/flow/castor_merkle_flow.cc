@@ -32,13 +32,12 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 	label.pid = Hash(pids[_pos].begin());
 
 	// Set flow authenticator
-	Vector<SValue> siblings;
-	_tree->getSiblings(siblings, _pos);
+	Vector<SValue> siblings = _tree->getSiblings(_pos);
 	assert(siblings.size() == CASTOR_FLOWAUTH_ELEM);
 	for (int j = 0; j < siblings.size(); j++)
-		label.fauth[j].data = Hash(siblings.at(j).begin());
+		label.fauth[j] = _crypto->convert(siblings[j]);
 
-	label.aauth = Hash(aauths[_pos].begin());
+	label.aauth = _crypto->convert(aauths[_pos]);
 
 	_pos++;
 

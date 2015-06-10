@@ -29,7 +29,7 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 	pkt.setDestinations(destinations.data(), destinations.size());
 
 	Vector<PacketId> pids;
-	SValue ackAuth(&pkt.getAckAuth()[0], pkt.getHashSize());
+	SValue ackAuth = crypto->convert(pkt.getPktAuth());
 	for(int i = 0; i < destinations.size(); i++) {
 		// Generate individual PKT id
 		const SymmetricKey* key = crypto->getSharedKey(destinations[i]);
@@ -42,8 +42,8 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 			click_chatter("!!! Cannot create ciphertext: Crypto subsystem returned wrong ciphertext length.");
 			break;
 		}
-		SValue pid = crypto->hash(encAckAuth);
-		pkt.setPid((PacketId&) *pid.begin(), i);
+		PacketId pid = crypto->hashConvert(encAckAuth);
+		pkt.setPid(pid, i);
 	}
 
 	// Set local node as single forwarder

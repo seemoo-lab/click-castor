@@ -6,10 +6,6 @@
 
 CLICK_DECLS
 
-CastorXcastAnnotateAckAuth::CastorXcastAnnotateAckAuth() {
-	crypto = 0;
-}
-
 int CastorXcastAnnotateAckAuth::configure(Vector<String>& conf, ErrorHandler* errh) {
 	return cp_va_kparse(conf, this, errh,
 		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
@@ -20,7 +16,7 @@ void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
 
 	CastorXcastPkt pkt = CastorXcastPkt(p->clone());
 
-	SValue pktAuth(pkt.getAckAuth().data(), sizeof(AckAuth));
+	SValue pktAuth = crypto->convert(pkt.getPktAuth());
 
 	// Get appropriate key and decrypt encrypted ACK authenticator
 	const SymmetricKey* sk = crypto->getSharedKey(pkt.getSource());
@@ -36,7 +32,8 @@ void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
 		return;
 	}
 
-	memcpy(CastorPacket::getCastorAnno(pkt.getPacket()), ackAuth.begin(), sizeof(PktAuth));
+	AckAuth& authAnno = (AckAuth&) *CastorPacket::getCastorAnno(pkt.getPacket());
+	authAnno = crypto->convert(ackAuth);
 
 	output(0).push(pkt.getPacket());
 

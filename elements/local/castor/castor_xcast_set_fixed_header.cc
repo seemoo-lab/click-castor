@@ -33,7 +33,7 @@ void CastorXcastSetFixedHeader::push(int, Packet *p) {
 	pkt.setFlowId(label.fid);
 	pkt.setFlowAuth(label.fauth);
 	pkt.setKPkt(label.num);
-	pkt.setAckAuth(label.aauth);
+	pkt.setPktAuth(label.aauth);
 
 	output(0).push(pkt.getPacket());
 }

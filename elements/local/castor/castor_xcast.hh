@@ -46,7 +46,7 @@ public:
 
 	// Fixed size header part
 	inline uint8_t getType() const { return _fixed->type; }
-	inline void setType(uint8_t type) const { _fixed->type = type; }
+	inline void setType(uint8_t type) { _fixed->type = type; }
 	inline uint8_t getHashSize() const { return _fixed->hashSize; }
 	inline void setHashSize(uint8_t hashSize) { _fixed->hashSize = hashSize; }
 	inline uint8_t getNFlowAuthElements() const { return _fixed->nFlowAuthElements; }
@@ -77,8 +77,8 @@ public:
 		for (int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)
 			memcpy(&_fixed->flowAuth[i], &flowAuth[i], sizeof(Hash));
 	}
-	inline const AckAuth& getAckAuth() const { return _fixed->ackAuth; }
-	inline void setAckAuth(const AckAuth& ackAuth) { memcpy(&_fixed->ackAuth, &ackAuth, sizeof(AckAuth)); }
+	inline const PktAuth& getPktAuth() const { return _fixed->ackAuth; }
+	inline void setPktAuth(const AckAuth& ackAuth) { memcpy(&_fixed->ackAuth, &ackAuth, sizeof(PktAuth)); }
 	/** Get the number of multicast receivers */
 	inline uint8_t getNDestinations() const { return _fixed->nDestinations; }
 	inline void setNDestinations(uint8_t n) { _fixed->nDestinations = n; setLength(); }
@@ -232,7 +232,7 @@ public:
 		StringAccum sa;
 		if(full) {
 			String sfid = getFlowId().str();
-			String sauth = getAckAuth().str();
+			String sauth = getPktAuth().str();
 			sa << "   | From:\t" << CastorPacket::src_ip_anno(_p) << "\n";
 			sa << "   | To:\t" << _p->dst_ip_anno() << "\n";
 			sa << "   | Type:\tXcast PKT (header " <<  getHeaderLength() << " / payload " << getPayloadLength() << " bytes)\n";

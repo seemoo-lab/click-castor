@@ -14,11 +14,11 @@ void CastorAnnotatePid::push(int, Packet* p) {
 
 	// Compute the corresponding packet ID
 	CastorAck& ack = (CastorAck&) *p->data();
-	SValue pid = crypto->hash(SValue(ack.auth.data(), ack.hsize));
+	PacketId pid = crypto->hash(ack.auth);
 
 	// Store it as packet annotation
 	PacketId& pidAnno = (PacketId&) *CastorPacket::getCastorAnno(p);
-	pidAnno = PacketId(pid.begin());
+	pidAnno = pid;
 
 	output(0).push(p);
 
