@@ -40,6 +40,9 @@ public:
 	inline bool operator==(const Hash& x) const {
 		return memcmp(this->array, x.array, sizeof(array)) == 0;
 	}
+	inline bool operator!=(const Hash& x) const {
+		return memcmp(this->array, x.array, sizeof(array)) != 0;
+	}
 	inline String str() const {
 		char buffer[2 * sizeof(array) + 1];
 		for (size_t i = 0; i < sizeof(array); i++) {
