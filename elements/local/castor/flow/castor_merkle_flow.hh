@@ -16,6 +16,8 @@ public:
 	bool isAlive() const;
 
 private:
+	friend class CastorContinuousMerkleFlow;
+
 	const MerkleTree* tree;
 	Vector<SValue> aauths;
 	Vector<SValue> pids;

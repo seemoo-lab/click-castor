@@ -1,7 +1,11 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include "castor_flow_manager.hh"
+#ifdef CASTOR_CONTINUOUS_FLOW
+#include "castor_continuous_merkle_flow.hh"
+#else
 #include "castor_merkle_flow.hh"
+#endif
 
 CLICK_DECLS
 
@@ -47,7 +51,11 @@ CastorFlow* CastorFlowManager::createFlowIfNotExists(NodeId src, NodeId dst) {
 }
 
 CastorFlow* CastorFlowManager::createNewFlow(NodeId src, NodeId dst) {
+#ifdef CASTOR_CONTINUOUS_FLOW
+	return new CastorContinuousMerkleFlow(src, dst, _crypto);
+#else
 	return new CastorMerkleFlow(src, dst, _crypto);
+#endif
 }
 
 CLICK_ENDDECLS
