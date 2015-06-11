@@ -38,9 +38,7 @@ typedef Hash PacketId;
 typedef Hash FlowAuth[CASTOR_FLOWAUTH_ELEM];
 typedef Hash AckAuth;
 typedef Hash PktAuth;
-#ifdef CASTOR_CONTINUOUS_FLOW
 typedef Hash NextFlowAuth; // Authenticates the next flow ID
-#endif
 
 /**
  * The Castor data packet header (PKT)

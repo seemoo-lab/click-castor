@@ -1,8 +1,6 @@
 #include <click/config.h>
 #include "castor_continuous_merkle_flow.hh"
 
-#ifdef CASTOR_CONTINUOUS_FLOW
-
 CLICK_DECLS
 
 CastorContinuousMerkleFlow::CastorContinuousMerkleFlow(NodeId src, NodeId dst, const Crypto* crypto) : CastorFlow(src, dst, crypto) {
@@ -37,5 +35,3 @@ inline NextFlowAuth CastorContinuousMerkleFlow::calculateNextFlowAuth(const SVal
 CLICK_ENDDECLS
 ELEMENT_REQUIRES(TREE)
 ELEMENT_PROVIDES(CastorContinuousMerkleFlow)
-
-#endif

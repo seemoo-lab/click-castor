@@ -4,8 +4,6 @@
 #include "castor_flow.hh"
 #include "castor_merkle_flow.hh"
 
-#ifdef CASTOR_CONTINUOUS_FLOW
-
 CLICK_DECLS
 
 class CastorContinuousMerkleFlow : public CastorFlow {
@@ -24,7 +22,5 @@ private:
 };
 
 CLICK_ENDDECLS
-
-#endif
 
 #endif

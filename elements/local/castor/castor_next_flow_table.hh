@@ -1,5 +1,5 @@
-#ifndef CLICK_CASTOR_NEXT_FID_TABLE_HH
-#define CLICK_CASTOR_NEXT_FID_TABLE_HH
+#ifndef CLICK_CASTOR_NEXT_FLOW_TABLE_HH
+#define CLICK_CASTOR_NEXT_FLOW_TABLE_HH
 
 #include <click/element.hh>
 #include <click/hashtable.hh>
@@ -7,9 +7,9 @@
 
 CLICK_DECLS
 
-class CastorNextFidTable : public Element {
+class CastorNextFlowTable : public Element {
 public:
-	const char *class_name() const { return "CastorNextFidTable"; }
+	const char *class_name() const { return "CastorNextFlowTable"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 
@@ -18,7 +18,8 @@ public:
 	 * Returns false if the mapping already exists.
 	 */
 	bool set(const NextFlowAuth& nfauth, const FlowId& fid);
-	const FlowId* get(const NextFlowAuth& nfauth);
+	bool remove(const NextFlowAuth& nfauth);
+	const FlowId* get(const NextFlowAuth& nfauth) const;
 private:
 	HashTable<NextFlowAuth, FlowId> map;
 };

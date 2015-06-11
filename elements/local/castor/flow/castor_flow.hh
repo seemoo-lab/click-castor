@@ -14,9 +14,7 @@ public:
 	FlowAuth fauth;
 	PacketId pid;
 	AckAuth aauth;
-#ifdef CASTOR_CONTINUOUS_FLOW
 	NextFlowAuth nfauth;
-#endif
 };
 
 class CastorFlow {

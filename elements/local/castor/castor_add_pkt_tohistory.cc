@@ -14,8 +14,11 @@ int CastorAddPktToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorAddPktToHistory::push(int, Packet *p){
 	CastorPkt& pkt = (CastorPkt&) *p->data();
 
-	history->addPkt(pkt.pid, pkt.fid, CastorPacket::src_ip_anno(p), p->dst_ip_anno(), pkt.dst);
-
+#ifdef CASTOR_CONTINUOUS_FLOW
+	history->addPkt(pkt.pid, pkt.fid, pkt.nfauth, CastorPacket::src_ip_anno(p), p->dst_ip_anno(), pkt.dst);
+#else
+	history->addPkt(pkt.pid, pkt.fid, NextFlowAuth(), CastorPacket::src_ip_anno(p), p->dst_ip_anno(), pkt.dst);
+#endif
 	output(0).push(p);
 }
 

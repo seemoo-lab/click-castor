@@ -57,9 +57,10 @@ elementclass CastorLocalPkt {
 }
 
 elementclass CastorForwardPkt {
-	$myIP, $routeselector, $routingtable, $timeouttable, $history |
+	$myIP, $routeselector, $routingtable, $timeouttable, $nextflowtable, $history, $crypto |
 
 	input
+		-> checkNextFlow :: CastorCheckContinuousFlow($nextflowtable, $routingtable, $crypto)
 		-> route :: CastorLookupRoute($routeselector)
 		-> CastorAddPktToHistory($history)
 		-> CastorStartTimer($routingtable, $timeouttable, $history, NodeId $myIP, VERBOSE false)
@@ -81,7 +82,7 @@ elementclass CastorForwardPkt {
  * Output(2):	Forwarded PKT
  */
 elementclass CastorHandlePkt {
-	$myIP, $routeselector, $routingtable, $timeouttable, $history, $crypto |
+	$myIP, $routeselector, $routingtable, $timeouttable, $nextflowtable, $history, $crypto |
 
 	input
 		-> blackhole :: CastorBlackhole // inactive by default
@@ -96,7 +97,7 @@ elementclass CastorHandlePkt {
 	
 	// PKT needs to be forwarded
 	destinationClassifier[1]
-		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $timeouttable, $history)
+		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $timeouttable, $nextflowtable, $history, $crypto)
 		-> [2]output;
 
 	handleLocal[1]
