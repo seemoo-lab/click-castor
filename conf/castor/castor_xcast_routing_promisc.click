@@ -12,7 +12,7 @@ routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, $broadcast
 // How to handle PKTs and ACKs
 handlepkt :: {
 	input
-		-> handleXcastPkt :: CastorHandleXcastPkt(fake, routeselector, routingtable, timeouttable, history, crypto)[0,1]
+		-> handleXcastPkt :: CastorHandleXcastPkt(fake, routeselector, routingtable, timeouttable, nextflowtable, history, crypto)[0,1]
 		=> [0,1]output;
 	handleXcastPkt[2] -> CastorXcastResetDstAnno(true) -> [2]output;
 };

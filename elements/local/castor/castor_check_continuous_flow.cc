@@ -22,8 +22,9 @@ void CastorCheckContinuousFlow::push(int, Packet *p) {
 	if (oldFid) {
 		const FlowId& newFid = pkt.fid;
 		const NodeId& subflow = pkt.dst;
-		if (routingTable->copyFlowEntry(newFid, *oldFid, subflow))
-			fidTable->remove(nfauth);
+		if (!routingTable->copyFlowEntry(newFid, *oldFid, subflow))
+			click_chatter("Warning: tried to override routing entry by continuous flow");
+		fidTable->remove(nfauth); // we only try once, no longer needed
 	}
 
 	output(0).push(p);

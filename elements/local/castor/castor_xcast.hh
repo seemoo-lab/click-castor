@@ -72,6 +72,10 @@ public:
 	inline void setMulticastGroup(GroupId multicastAddress) { _fixed->multicastGroup = multicastAddress; }
 	inline const FlowId& getFlowId() const { return _fixed->flowId; }
 	inline void setFlowId(const FlowId& fid) { memcpy(&_fixed->flowId, &fid, sizeof(FlowId)); }
+#ifdef CASTOR_CONTINUOUS_FLOW
+	inline const NextFlowAuth& getNextFlowAuth() const { return _fixed->nfauth; }
+	inline void setNextFlowAuth(const NextFlowAuth& nfauth) { _fixed->nfauth = nfauth; }
+#endif
 	inline const FlowAuth& getFlowAuth() const { return _fixed->flowAuth; }
 	inline void setFlowAuth(const FlowAuth& flowAuth) {
 		for (int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)
@@ -284,6 +288,9 @@ private:
 		NodeId source;
 		GroupId multicastGroup;
 		FlowId flowId;
+#ifdef CASTOR_CONTINUOUS_FLOW
+		NextFlowAuth nfauth;
+#endif
 		FlowAuth flowAuth;
 		AckAuth	ackAuth;
 		uint8_t nDestinations;
