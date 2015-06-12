@@ -11,7 +11,7 @@
 
 #define CASTOR_CONTINUOUS_FLOW
 
-#define CASTOR_FLOWAUTH_ELEM                         8  // Number of flow auth elements
+#define CASTOR_FLOWAUTH_ELEM                         4  // Number of flow auth elements
 
 CLICK_DECLS
 
