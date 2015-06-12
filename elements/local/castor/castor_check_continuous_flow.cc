@@ -17,14 +17,14 @@ int CastorCheckContinuousFlow::configure(Vector<String> &conf, ErrorHandler *err
 void CastorCheckContinuousFlow::push(int, Packet *p) {
 	const CastorPkt& pkt = (CastorPkt&) *p->data();
 
-	const NextFlowAuth nfauth = crypto->hash(pkt.fid);
-	const FlowId* oldFid = fidTable->get(nfauth);
+	const FlowId& newFid = pkt.fid;
+	const NextFlowAuth nfauth = crypto->hash(newFid);
+	const FlowId* oldFid = fidTable->get(nfauth, pkt.dst);
 	if (oldFid) {
-		const FlowId& newFid = pkt.fid;
 		const NodeId& subflow = pkt.dst;
 		if (!routingTable->copyFlowEntry(newFid, *oldFid, subflow))
-			click_chatter("Warning: tried to override routing entry by continuous flow");
-		fidTable->remove(nfauth); // we only try once, no longer needed
+			click_chatter("[CastorCheckContinuousFlow] Warning: tried to override routing entry by continuous flow (should not happen)");
+		fidTable->remove(nfauth, pkt.dst); // we only try once, no longer needed
 	}
 
 	output(0).push(p);

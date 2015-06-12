@@ -18,18 +18,16 @@ int CastorXcastCheckContinuousFlow::configure(Vector<String> &conf, ErrorHandler
 void CastorXcastCheckContinuousFlow::push(int, Packet *p) {
 	const CastorXcastPkt pkt(p);
 
-	const NextFlowAuth nfauth = crypto->hash(pkt.getFlowId());
-	const FlowId* oldFid = fidTable->get(nfauth);
-	if (oldFid) {
-		const FlowId& newFid = pkt.getFlowId();
-		for (int i = 0; i < pkt.getNDestinations(); i++) {
-			const NodeId subflow = pkt.getDestination(i);
+	const FlowId& newFid = pkt.getFlowId();
+	const NextFlowAuth nfauth = crypto->hash(newFid);
+	for (int i = 0; i < pkt.getNDestinations(); i++) {
+		const NodeId subflow = pkt.getDestination(i);
+		const FlowId* oldFid = fidTable->get(nfauth, subflow);
+		if (oldFid) {
 			if (!routingTable->copyFlowEntry(newFid, *oldFid, subflow))
-				click_chatter("Warning: tried to override routing entry by continuous flow");
+				click_chatter("[CastorXcastCheckContinuousFlow] Warning: tried to override routing entry by continuous flow (should not happen)");
+			fidTable->remove(nfauth, subflow); // we only try once, no longer needed
 		}
-		// FIXME wir müssen auch hier wieder <fid,subflow> separat betrachten.
-		//       ein Gruppenknoten darf bspw. _nicht_ für einen anderen den nfauth bestätigen dürfen.
-		fidTable->remove(nfauth); // we only try once, no longer needed
 	}
 
 	output(0).push(p);

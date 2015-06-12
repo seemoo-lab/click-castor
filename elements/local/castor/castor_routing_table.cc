@@ -29,7 +29,10 @@ bool CastorRoutingTable::copyFlowEntry(const FlowId& newFlow, const FlowId& oldF
 
 	SubflowEntry* nse = flows.get_pointer(newFlow);
 	if (!nse) {
-		flows.set(newFlow, *se);
+		// We cannot copy the complete subflow entry (contains potentially multiple ForwarderEntrys)
+		SubflowEntry nse;
+		nse.set(subflow, *fe);
+		flows.set(newFlow, nse);
 		return true;
 	}
 	ForwarderEntry* nfe = nse->get_pointer(subflow);

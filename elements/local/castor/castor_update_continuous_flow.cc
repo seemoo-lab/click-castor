@@ -19,8 +19,7 @@ void CastorUpdateContinuousFlow::push(int, Packet *p) {
 
 	// XXX we assume here that the ACK was validated, such that we can be sure
 	//     that the NextFlowAuth belonging to PID is valid
-	// XXX unsure if we should overwrite or not
-	fidTable->set(history->getNextFlowAuth(pid), history->getFlowId(pid));
+	fidTable->set(history->getNextFlowAuth(pid), history->getFlowId(pid), history->getDestination(pid));
 
 	output(0).push(p);
 }

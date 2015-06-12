@@ -17,11 +17,17 @@ public:
 	 * Sets a new mapping. Returns true if the map was changed.
 	 * Returns false if the mapping already exists.
 	 */
-	bool set(const NextFlowAuth& nfauth, const FlowId& fid);
-	bool remove(const NextFlowAuth& nfauth);
-	const FlowId* get(const NextFlowAuth& nfauth) const;
+	bool set(const NextFlowAuth& nfauth, const FlowId& fid, NodeId subflow);
+	void remove(const NextFlowAuth& nfauth, NodeId subflow);
+	const FlowId* get(const NextFlowAuth& nfauthm, NodeId subflow) const;
+	void print(const NextFlowAuth& nfauth);
 private:
-	HashTable<NextFlowAuth, FlowId> map;
+	class Entry {
+	public:
+		FlowId fid;
+		HashTable<NodeId, NodeId> subflows;
+	};
+	HashTable<NextFlowAuth, Entry> map;
 };
 
 CLICK_ENDDECLS
