@@ -16,8 +16,9 @@ define(
 
 	/** Neighbor discovery */
 	$neighborsEnable true, // whether or not to use neighbor beacons; if set to false, settings for neighborTimeout and beaconingInterval are irrelevant
-	$neighborTimeout 4500, // in milliseconds (4 * beaconingInterval + delta)
-	$beaconingInterval 1000, // in milliseconds
+
+	$neighborTimeout  1000, // in milliseconds (4 * beaconingInterval)
+	$beaconingInterval 250, // in milliseconds
 
 	$broadcastJitter 1000, // jitter in microseconds to avoid collisions for broadcast traffic, only relevant when running under ns-3
 	
