@@ -19,6 +19,7 @@ PacketLabel CastorContinuousMerkleFlow::freshLabel() {
 		current = next;
 		next = new CastorMerkleFlow(src, dst, crypto);
 	}
+	assert(current->isAlive());
 	PacketLabel label = current->freshLabel();
 	label.nfauth = calculateNextFlowAuth(next->tree->getRoot());
 	return label;

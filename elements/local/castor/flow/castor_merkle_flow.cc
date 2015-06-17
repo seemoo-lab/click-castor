@@ -44,7 +44,8 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 }
 
 bool CastorMerkleFlow::isAlive() const {
-	return pos < aauths.size();
+	assert(aauths.size() >= 0);
+	return pos < (size_t) aauths.size();
 }
 
 CLICK_ENDDECLS
