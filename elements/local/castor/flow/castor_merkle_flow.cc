@@ -49,5 +49,5 @@ bool CastorMerkleFlow::isAlive() const {
 }
 
 CLICK_ENDDECLS
-ELEMENT_REQUIRES(TREE)
+ELEMENT_REQUIRES(MerkleTree)
 ELEMENT_PROVIDES(CastorMerkleFlow)

@@ -30,5 +30,5 @@ void CastorAuthenticateFlow::push(int, Packet *p) {
 }
 
 CLICK_ENDDECLS
-ELEMENT_REQUIRES(TREE)
+ELEMENT_REQUIRES(MerkleTree)
 EXPORT_ELEMENT(CastorAuthenticateFlow)

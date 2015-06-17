@@ -34,5 +34,4 @@ inline NextFlowAuth CastorContinuousMerkleFlow::calculateNextFlowAuth(const SVal
 }
 
 CLICK_ENDDECLS
-ELEMENT_REQUIRES(TREE)
 ELEMENT_PROVIDES(CastorContinuousMerkleFlow)

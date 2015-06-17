@@ -118,4 +118,4 @@ bool MerkleTree::isValidMerkleTree(unsigned int i, const SValue& in, const Vecto
 }
 
 CLICK_ENDDECLS
-ELEMENT_PROVIDES(TREE)
+ELEMENT_PROVIDES(MerkleTree)
