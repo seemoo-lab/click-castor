@@ -16,7 +16,7 @@ void CastorXcastAuthenticateFlow::push(int, Packet *p){
 
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
-	// Pid is implicitly given by the AckAuth
+	// Pid is implicitly given by the PktAuth
 	SValue pid = crypto->hashConvert(pkt.getPktAuth());
 
 	SValue fid = crypto->convert(pkt.getFlowId());
