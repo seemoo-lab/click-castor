@@ -14,11 +14,11 @@ int CastorTimeoutTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 			"BETA", cpkN, cpDouble, &CastorTimeout::beta,
 			cpEnd);
 	if (CastorTimeout::init_timeout < CastorTimeout::min_timeout || CastorTimeout::init_timeout > CastorTimeout::max_timeout) {
-		errh->fatal("INIT needs to between MIN and MAX");
+		errh->fatal("INIT must be in the range [MIN,MAX]");
 		return -1;
 	}
 	if (CastorTimeout::alpha < 0 || CastorTimeout::alpha > 1 || CastorTimeout::beta < 0 || CastorTimeout::beta > 1) {
-		errh->fatal("ALPHA and BETA need to be within 0 and 1");
+		errh->fatal("ALPHA and BETA must be in the range [0,1]");
 		return -1;
 	}
 	return ret;
