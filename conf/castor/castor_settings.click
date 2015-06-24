@@ -3,10 +3,6 @@
  **************/
 
 define(
-	/** Device names for ns3 **/
-	$EthDev eth0,
-	$HostDev tap0,
-
 	$CASTORTYPE 201,
 
 	/** Castor parameters (settings from experimental setup of Castor technical report) **/
@@ -23,13 +19,12 @@ define(
 	$neighborTimeout 4500, // in milliseconds (4 * beaconingInterval + delta)
 	$beaconingInterval 1000, // in milliseconds
 
-	$broadcastJitter 1000, // jitter in microseconds to avoid collisions for broadcast traffic
+	$broadcastJitter 1000, // jitter in microseconds to avoid collisions for broadcast traffic, only relevant when running under ns-3
 	
 	$headroom 544, // Fixed Xcastor header + 10 * 29 bytes per destination + IP header + Ethernet header
 );
 
-AddressInfo(fake $EthDev);
-
-// Need an IP routing table for ns-3 (dummy)
-rt :: StaticIPLookup(0.0.0.0/0 0);
-Idle() -> rt -> Discard;
+require(
+	library castor_io_ns3.click,
+	//library castor_io_userlevel.click,
+);

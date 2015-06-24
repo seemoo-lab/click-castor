@@ -12,7 +12,7 @@ timeouttable :: CastorTimeoutTable(INIT $initTo, MIN $minTo, MAX $maxTo);
 
 castorclassifier :: CastorClassifier(fake, neighbors);
 
-ethin :: InputEthNoHostFilter($EthDev, fake);
-ethout :: OutputEth($EthDev, $broadcastJitter);
-fromhost :: FromHost($HostDev, fake, $headroom);
-tohost :: ToHost($HostDev);
+fromextdev -> ethin :: InputEthNoHostFilter($EthDev, fake);
+ethout :: OutputEth($broadcastJitter) -> toextdev;
+fromhostdev -> fromhost :: FromHost(fake);
+tohost :: ToHost() -> tohostdev;

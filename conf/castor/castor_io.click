@@ -1,27 +1,11 @@
 /**
- * Delays MAC layer broadcast frames by a random jitter
- */
-elementclass BroadcastJitter {
-	$broadcastJitter, $isSimulator |
-	
-	input
-		-> cp :: CheckPaint(10, ANNO 32) // this frame was broadcasted -> jitter transmission (Paint(10))
-		-> Queue
-		-> JitterUnqueue($broadcastJitter, $isSimulator) // 'true' set for simulator -> much better performance
-		-> output;
-	
-	cp[1]
-		-> output; // this frame was not broadcasted -> no need to delay (Paint(0))
-}
-
-/**
  * Handle output to the Ethernet device
  */
 elementclass OutputEth { 
-	$myEthDev, $broadcastJitter |
+	$broadcastJitter |
 
 	prio :: PrioSched
-		-> ethdev :: ToSimDevice($myEthDev);
+		-> output
 
 	highestprio :: Queue -> [0] prio;
 	highprio :: Queue -> [1] prio;
@@ -36,12 +20,12 @@ elementclass OutputEth {
 	ps[1] -> highprio;
 
 	input[0] // Castor PKT
-		-> BroadcastJitter($broadcastJitter, true)
+		-> BroadcastJitter($broadcastJitter)
 		-> Paint(0)
 		-> arpquerier;
 
 	input[1] // Castor ACK
-		-> BroadcastJitter($broadcastJitter, true)
+		-> BroadcastJitter($broadcastJitter)
 		-> Paint(1)
 		-> arpquerier;
 
@@ -62,8 +46,7 @@ elementclass OutputEth {
 elementclass InputEth {
 	$myEthDev, $myAddr |
 
-	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096, PROMISC true) // promiscuous mode, so beacons can be received 
-																   // no PROMISC mode seems to prevent non IP and ARP ethertypes to come through
+	input
 		-> HostEtherFilter($myEthDev)
 		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Reply / Default)
 
@@ -84,7 +67,7 @@ elementclass InputEth {
 elementclass InputEthNoHostFilter {
 	$myEthDev, $myAddr |
 
-	ethdev :: FromSimDevice($myEthDev, SNAPLEN 4096, PROMISC true)
+	input
 		-> arpclassifier :: Classifier(12/0806 20/0001, 12/0806 20/0002, -); // Filter ARP messages (Request / Reply / Default)
 
 	arpclassifier[0] // Handle ARP request
@@ -108,16 +91,13 @@ elementclass InputEthNoHostFilter {
  * Input(1): Other packet
  */
 elementclass ToHost {
-	$myHostDev |
 	
-	hostdevice :: ToSimDevice($myHostDev, IP);
-
 	input[0]
 		-> CheckIPHeader
-		-> hostdevice;
+		-> output;
 
 	input[1]
-		-> hostdevice;
+		-> output;
 
 }
 
@@ -125,9 +105,9 @@ elementclass ToHost {
  * Handle incoming packets from local host
  */
 elementclass FromHost {
-	$myHostDev, $myIP, $headroom |
+	$myIP |
 
-	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096, HEADROOM $headroom)
+	input
 		-> CheckIPHeader
 		-> SetIPSrc($myIP) // Packets coming from ns-3 tun0 (host) device have 127.0.0.1 set as source address
 		-> output;
