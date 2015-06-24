@@ -31,7 +31,7 @@ make
 to include the new `Element`s in the build process.
 
 ### Click on Linux (userlevel)
-Basically as above:
+Basically as above, but disable nsclick and enable user level elements:
 ```bash
 git clone <PROJECT>
 cd click-castor
@@ -40,7 +40,7 @@ make
 ```
 
 #### Cross compilation for i386
-To build Click for a different architecture (such as i386 in our mesh nodes) on your x64 machine, you can cross compile using the `--host=i386-linux-gnu` and enabling userlevel elements:
+To build Click for a different architecture (such as i386 in our mesh nodes) on your x64 machine, you can cross compile using the `--host=i386-linux-gnu`:
 ```bash
 ./configure --host=i386-linux-gnu --enable-local --enable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads
 ```
