@@ -6,7 +6,7 @@ define(
 
 AddressInfo(fake $EthDev);
 
-tun :: KernelTun(fake:ip/8, HEADROOM $headroom, DEVNAME $HostDev);
+tun :: KernelTun(fake:ip/16, HEADROOM $headroom, DEVNAME $HostDev);
 tun -> fromhostdev :: { input -> output };
 tohostdev :: { input -> output; } -> tun;
 fromextdev :: FromDevice($EthDev, SNAPLEN 4096, PROMISC true, SNIFFER false)
