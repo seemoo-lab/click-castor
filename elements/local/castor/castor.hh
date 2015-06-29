@@ -9,9 +9,9 @@
 //#define DEBUG_ACK_SRCDST  // uncomment to add source and destination fields to ACK packets
 #define DEBUG_HOPCOUNT // include (unprotected) hopcount field in packets
 
-#define CASTOR_CONTINUOUS_FLOW
+//#define CASTOR_CONTINUOUS_FLOW
 
-#define CASTOR_FLOWAUTH_ELEM                         4  // Number of flow auth elements
+#define CASTOR_FLOWAUTH_ELEM                         8  // Number of flow auth elements
 
 CLICK_DECLS
 
