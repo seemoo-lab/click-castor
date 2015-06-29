@@ -13,7 +13,7 @@ int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorUpdateEstimates::push(int, Packet *p) {
-	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
+	const PacketId& pid = CastorPacket::getCastorAnno(p);
 
 	const FlowId& fid = history->getFlowId(pid);
 	NodeId subfid = history->getDestination(pid);

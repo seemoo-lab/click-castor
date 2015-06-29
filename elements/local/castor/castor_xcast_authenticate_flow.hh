@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include "castor.hh"
-#include "crypto.hh"
+#include "crypto/crypto.hh"
 
 CLICK_DECLS
 
@@ -11,17 +11,17 @@ CLICK_DECLS
  * Flow validation takes place at every intermediate node
  */
 class CastorXcastAuthenticateFlow : public Element {
-	public:
-		CastorXcastAuthenticateFlow();
-		
-		const char *class_name() const	{ return "CastorXcastAuthenticateFlow"; }
-		const char *port_count() const	{ return "1/2"; }
-		const char *processing() const	{ return PUSH; }
-		int configure(Vector<String>&, ErrorHandler*);
-		
-		void push(int, Packet *);
-	private:
-		Crypto* crypto;
+public:
+	CastorXcastAuthenticateFlow() : crypto(NULL) {}
+
+	const char *class_name() const	{ return "CastorXcastAuthenticateFlow"; }
+	const char *port_count() const	{ return "1/2"; }
+	const char *processing() const	{ return PUSH; }
+	int configure(Vector<String>&, ErrorHandler*);
+
+	void push(int, Packet *);
+private:
+	Crypto* crypto;
 };
 
 CLICK_ENDDECLS

@@ -54,6 +54,12 @@ public:
 
 	CastorEstimator& getEstimator(const FlowId& flow, SubflowId subflow, NodeId forwarder);
 
+	/**
+	 * Copies the forwarder entry of one flow to another.
+	 * If an entry for (newFlow, subflow) already exists, that entry is not overwritten.
+	 * Returns true if entry was copied, false otherwise.
+	 */
+	bool copyFlowEntry(const FlowId& newFlow, const FlowId& oldFlow, NodeId subflow);
 private:
 	typedef HashTable<NodeId, CastorEstimator> ForwarderEntry;
 	typedef HashTable<SubflowId, ForwarderEntry> SubflowEntry;

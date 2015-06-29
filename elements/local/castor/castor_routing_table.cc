@@ -19,6 +19,30 @@ CastorEstimator& CastorRoutingTable::getEstimator(const FlowId& flow, SubflowId 
 	return getEntryInsertDefault(getFlowEntry(flow, subflow), forwarder, CastorEstimator(updateDelta));
 }
 
+bool CastorRoutingTable::copyFlowEntry(const FlowId& newFlow, const FlowId& oldFlow, NodeId subflow) {
+	const SubflowEntry* se = flows.get_pointer(oldFlow);
+	if (!se)
+		return false;
+	const ForwarderEntry* fe = se->get_pointer(subflow);
+	if (!fe)
+		return false;
+
+	SubflowEntry* nse = flows.get_pointer(newFlow);
+	if (!nse) {
+		// We cannot copy the complete subflow entry (contains potentially multiple ForwarderEntrys)
+		SubflowEntry nse;
+		nse.set(subflow, *fe);
+		flows.set(newFlow, nse);
+		return true;
+	}
+	ForwarderEntry* nfe = nse->get_pointer(subflow);
+	if (!nfe) {
+		nse->set(subflow, *fe);
+		return true;
+	}
+	return false; // An entry already exists, do not override!
+}
+
 void CastorRoutingTable::printRoutingTable(const FlowId& flow, NodeId subflow) {
 	StringAccum sa;
 	sa << "Routing table for flow " << flow.str() << " (" << subflow << "):\n";

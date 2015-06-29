@@ -2,7 +2,7 @@
 #define CLICK_CASTOR_DECRYPT_ACKAUTH_HH
 
 #include <click/element.hh>
-#include "crypto.hh"
+#include "crypto/crypto.hh"
 
 CLICK_DECLS
 

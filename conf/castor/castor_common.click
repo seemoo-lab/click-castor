@@ -66,7 +66,7 @@ elementclass CastorSendAck {
 }
 
 elementclass CastorHandleAck {
-	$myIP, $routingtable, $timeouttable, $history, $neighbors, $crypto, $promisc |
+	$myIP, $routingtable, $timeouttable, $nextflowtable, $history, $neighbors, $crypto, $promisc |
 
 	// Regular ACK flow
 	input
@@ -74,6 +74,7 @@ elementclass CastorHandleAck {
 		-> authenticate :: CastorAuthenticateAck($history, $CASTOR_VERSION)
 		-> updateTimeout :: CastorUpdateTimeout($timeouttable, $history)
 		-> updateEstimates :: CastorUpdateEstimates($routingtable, $history)
+		-> updateNextFlow :: CastorUpdateContinuousFlow($nextflowtable, $history, $crypto) // only first ACK updates next flow
 		-> CastorAddAckToHistory($history)
 		//-> CastorPrint('Received valid', $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP)

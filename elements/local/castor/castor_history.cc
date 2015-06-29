@@ -3,7 +3,7 @@
 
 CLICK_DECLS
 
-void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, NodeId prevHop, NodeId nextHop, NodeId destination) {
+void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, const NextFlowAuth& nfauth, NodeId prevHop, NodeId nextHop, NodeId destination) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	assert(prevHop.addr() != 0);
 	assert(nextHop.addr() != 0);
@@ -14,6 +14,7 @@ void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, NodeId prevHo
 		entry.nextHop = nextHop;
 		entry.expired = false;
 		entry.fid = fid;
+		entry.nfauth = nfauth;
 		entry.timestamp = Timestamp::now_steady();
 		history.set(pid, entry);
 	} else {
@@ -101,6 +102,11 @@ size_t CastorHistory::getAcks(const PacketId& pid) const {
 const FlowId& CastorHistory::getFlowId(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->fid;
+}
+
+const NextFlowAuth& CastorHistory::getNextFlowAuth(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry->nfauth;
 }
 
 const AckAuth& CastorHistory::getAckAuth(const PacketId& pid) const {

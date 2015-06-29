@@ -15,7 +15,7 @@ public:
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 
-	void addPkt(const PacketId&, const FlowId&, NodeId prevHop, NodeId nextHop, NodeId destination);
+	void addPkt(const PacketId&, const FlowId&, const NextFlowAuth&, NodeId prevHop, NodeId nextHop, NodeId destination);
 	bool addFirstAckFor(const PacketId&, NodeId prevHop, const AckAuth&);
 	bool addAckFor(const PacketId&, NodeId prevHop);
 
@@ -28,6 +28,7 @@ public:
 	size_t getAcks(const PacketId&) const;
 
 	const FlowId& getFlowId(const PacketId&) const;
+	const NextFlowAuth& getNextFlowAuth(const PacketId&) const;
 	NodeId getDestination(const PacketId&) const;
 	const AckAuth& getAckAuth(const PacketId&) const;
 	NodeId routedTo(const PacketId&) const;
@@ -39,12 +40,15 @@ public:
 
 	const Timestamp& getTimestamp(const PacketId&) const;
 private:
+	// TODO entry should also contain a hash of the packet, so that we can differentiate between
+	//      different versions of a PKT
 	class CastorHistoryEntry {
 	public:
 		Timestamp timestamp;
 
 		// PIDs
 		FlowId fid;
+		NextFlowAuth nfauth;
 		NodeId destination; // Indicates Xcast subflow
 		Vector<NodeId> prevHops;
 		NodeId nextHop;

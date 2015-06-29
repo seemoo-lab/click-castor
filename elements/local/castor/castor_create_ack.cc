@@ -11,7 +11,7 @@ void CastorCreateAck::push(int, Packet* p) {
 	ack.type = CastorType::MERKLE_ACK;
 	ack.hsize = sizeof(AckAuth);
 	ack.len = sizeof(CastorAck);
-	ack.auth = AckAuth(CastorPacket::getCastorAnno(p));
+	ack.auth = CastorPacket::getCastorAnno(p);
 
 	// Make enough room for prepended headers
 	WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorAck), 0);

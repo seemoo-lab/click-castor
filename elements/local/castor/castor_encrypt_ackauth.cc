@@ -14,24 +14,23 @@ int CastorEncryptAckAuth::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorEncryptAckAuth::push(int, Packet *p) {
 
 	WritablePacket* q = p->uniqueify();
-	CastorPkt* pkt = (CastorPkt*) q->data();
-	SValue auth(pkt->pauth.data(), sizeof(AckAuth));
+	CastorPkt& pkt = (CastorPkt&) *q->data();
+	SValue auth = crypto->convert(pkt.pauth);
 
-	const SymmetricKey* sk = crypto->getSharedKey(pkt->dst);
+	const SymmetricKey* sk = crypto->getSharedKey(pkt.dst);
 	if (!sk) {
-		click_chatter("Could not find shared key for host %s. Discarding PKT...", pkt->dst.unparse().c_str());
+		click_chatter("Could not find shared key for host %s. Discarding PKT...", pkt.dst.unparse().c_str());
 		q->kill();
 		return;
 	}
 	SValue cipher = crypto->encrypt(auth, *sk);
-	delete sk;
 	if (cipher.size() != sizeof(PktAuth)) {
 		click_chatter("Cannot create ciphertext: Crypto subsystem returned wrong ciphertext length. Discarding PKT...");
 		q->kill();
 		return;
 	}
 
-	memcpy(pkt->pauth.data(), cipher.begin(), sizeof(PktAuth));
+	pkt.pauth = crypto->convert(cipher);
 
 	output(0).push(q);
 

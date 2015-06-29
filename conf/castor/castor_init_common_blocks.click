@@ -4,11 +4,13 @@
 
 sam::SAManagement(fake);
 crypto::Crypto(sam);
+flowmanager :: CastorFlowManager(crypto);
 
 neighbors :: Neighbors($neighborTimeout, $neighborsEnable);
 history :: CastorHistory;
 routingtable :: CastorRoutingTable($updateDelta);
 timeouttable :: CastorTimeoutTable(INIT $initTo, MIN $minTo, MAX $maxTo);
+nextflowtable :: CastorNextFlowTable();
 
 castorclassifier :: CastorClassifier(fake, neighbors);
 

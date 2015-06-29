@@ -15,47 +15,40 @@ int SAManagement::configure(Vector<String> &conf, ErrorHandler *errh) {
 			.complete();
 }
 
-int SAManagement::addSA(SecurityAssociation sa, const NodeId& node) {
-	SAMap::iterator it = mySAs.find(node);
-	if (it != mySAs.end()) {
+void SAManagement::add(const NodeId& node, const SecurityAssociation& sa) {
+	SAMap::iterator it = sas.find(node);
+	if (it != sas.end()) {
 		it.value().push_back(sa);
 	} else {
 		Vector<SecurityAssociation> newentry;
 		newentry.push_back(sa);
-		mySAs.set(node, newentry);
+		sas.set(node, newentry);
 	}
+}
+
+const SecurityAssociation* SAManagement::get(const NodeId& node, SecurityAssociation::Type type) {
+	const SecurityAssociation* sa = NULL;
+	SAMap::iterator it = sas.find(node);
+	if (it != sas.end()) {
+		SAs& sas = it.value();
+		for (SecurityAssociation* sa = sas.begin(); sa != sas.end(); ++sa)
+			if (sa->type == type)
+				return sa;
+	}
+
+	// If no entry currently exists, generate one
+	if (sa == NULL && type == SecurityAssociation::sharedsecret) {
+		add(node, genereateSymmetricSA(node));
+		return get(node, type);
+	}
+
 	return 0;
 }
 
-void SAManagement::printSAs() {
-	for (SAMap::iterator i = mySAs.begin(); i != mySAs.end(); i++)
-		for (int k = 0; k < i.value().size(); k++)
-			click_chatter("SA of type %i for %s", (i.value())[k].myType, i.key().unparse().c_str());
-}
-
-bool SAManagement::checkSApresence(SAType t, const NodeId& node) {
-	SAMap::iterator it = mySAs.find(node);
-	if (it == mySAs.end())
-		return false;
-	SAs& sas = it.value();
-	for (SecurityAssociation* sa = sas.begin(); sa != sas.end(); ++sa)
-		if (sa->myType == t)
-			return true;
-	return false;
-}
-
-const SecurityAssociation* SAManagement::getSA(SAType t, const NodeId& node) {
-	if (t == SAsharedsecret && !checkSApresence(t, node))
-		addSA(genereateSymmetricSA(node), node);
-
-	SAMap::iterator it = mySAs.find(node);
-	if (it == mySAs.end())
-		return 0;
-	SAs& sas = it.value();
-	for (SecurityAssociation* sa = sas.begin(); sa != sas.end(); ++sa)
-		if (sa->myType == t)
-			return sa;
-	return 0;
+void SAManagement::printall() {
+	for (SAMap::iterator i = sas.begin(); i != sas.end(); i++)
+		for (int j = 0; j < i.value().size(); j++)
+			click_chatter("[SAManagement] entry for %s: %s", i.key().unparse().c_str(), (i.value())[j].str().c_str());
 }
 
 SecurityAssociation SAManagement::genereateSymmetricSA(const NodeId& node) {
@@ -78,7 +71,7 @@ SecurityAssociation SAManagement::genereateSymmetricSA(const NodeId& node) {
 	Botan::SecureVector<Botan::byte> key = kdf->derive_key(
 			symmetricKeyLength, rbytes, sizeof(rbytes), salt,
 			sizeof(salt));
-	return SecurityAssociation(SAsharedsecret, key.begin(), key.size());
+	return SecurityAssociation(SecurityAssociation::sharedsecret, key);
 }
 
 CLICK_ENDDECLS

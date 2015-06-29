@@ -1,13 +1,9 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include "castor_authenticate_flow.hh"
-#include "tree.hh"
+#include "flow/merkle_tree.hh"
 
 CLICK_DECLS
-
-CastorAuthenticateFlow::CastorAuthenticateFlow() {
-	crypto = 0;
-}
 
 int CastorAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
@@ -17,15 +13,16 @@ int CastorAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) 
 
 void CastorAuthenticateFlow::push(int, Packet *p) {
 
-	CastorPkt* pkt = (CastorPkt*) p->data();
+	CastorPkt& pkt = (CastorPkt&) *p->data();
 
-	SValue fid(pkt->fid.data(), sizeof(FlowId));
-	SValue pid(pkt->pid.data(), sizeof(PacketId));
-	Vector<SValue> flow_auth;
-	for (int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)
-		flow_auth.push_back(SValue(pkt->fauth[i].data.data(), sizeof(Hash)));
+	SValue fid = crypto->convert(pkt.fid);
+	SValue pid = crypto->convert(pkt.pid);
+	Vector<SValue> fauth;
+	fauth.reserve(pkt.fsize);
+	for (int i = 0; i < pkt.fsize; i++)
+		fauth.push_back(crypto->convert(pkt.fauth[i]));
 
-	if (MerkleTree::isValidMerkleTree(pkt->kpkt, pid, flow_auth, fid, *crypto))
+	if (MerkleTree::isValidMerkleTree(pkt.kpkt, pid, fauth, fid, *crypto))
 		output(0).push(p);
 	else
 		output(1).push(p); // Invalid -> discard
@@ -33,5 +30,5 @@ void CastorAuthenticateFlow::push(int, Packet *p) {
 }
 
 CLICK_ENDDECLS
-ELEMENT_REQUIRES(TREE)
+ELEMENT_REQUIRES(MerkleTree)
 EXPORT_ELEMENT(CastorAuthenticateFlow)

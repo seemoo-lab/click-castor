@@ -9,8 +9,9 @@
 //#define DEBUG_ACK_SRCDST  // uncomment to add source and destination fields to ACK packets
 #define DEBUG_HOPCOUNT // include (unprotected) hopcount field in packets
 
-#define CASTOR_FLOWAUTH_ELEM                         8  // log2(CASTOR_FLOWSIZE)
-#define CASTOR_FLOWSIZE		  (1<<CASTOR_FLOWAUTH_ELEM) // Number of flow auth elements in the header
+//#define CASTOR_CONTINUOUS_FLOW
+
+#define CASTOR_FLOWAUTH_ELEM                         8  // Number of flow auth elements
 
 CLICK_DECLS
 
@@ -34,12 +35,10 @@ namespace CastorType { // C++11's strongly typed 'enum class' does not work, so 
 
 typedef Hash FlowId;
 typedef Hash PacketId;
-typedef struct {
-	Hash data;
-} FlowAuthElement;
-typedef FlowAuthElement FlowAuth[CASTOR_FLOWAUTH_ELEM];
+typedef Hash FlowAuth[CASTOR_FLOWAUTH_ELEM];
 typedef Hash AckAuth;
 typedef Hash PktAuth;
+typedef Hash NextFlowAuth; // Authenticates the next flow ID
 
 /**
  * The Castor data packet header (PKT)
@@ -55,6 +54,9 @@ public:
 	NodeId		src;
 	NodeId		dst;
 	FlowId	 	fid;
+#ifdef CASTOR_CONTINUOUS_FLOW
+	NextFlowAuth nfauth;
+#endif
 	PacketId 	pid;
 	FlowAuth 	fauth;
 	PktAuth 	pauth;
@@ -107,10 +109,10 @@ public:
 	/**
 	 * User annotation space for Castor
 	 */
-	static inline uint8_t* getCastorAnno(Packet* p) {
+	static inline Hash& getCastorAnno(Packet* p) {
 		uint8_t* cAnno = p->anno_u8();
 		cAnno += castor_anno_offset;
-		return cAnno;
+		return (Hash&) *cAnno;
 	}
 
 	static inline bool isXcast(Packet* p) {

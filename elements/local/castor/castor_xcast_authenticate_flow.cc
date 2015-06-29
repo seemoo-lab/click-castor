@@ -1,14 +1,10 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include "castor_xcast_authenticate_flow.hh"
-#include "tree.hh"
 #include "castor_xcast.hh"
+#include "flow/merkle_tree.hh"
 
 CLICK_DECLS
-
-CastorXcastAuthenticateFlow::CastorXcastAuthenticateFlow() {
-	crypto = 0;
-}
 
 int CastorXcastAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return cp_va_kparse(conf, this, errh,
@@ -20,15 +16,17 @@ void CastorXcastAuthenticateFlow::push(int, Packet *p){
 
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
-	SValue fid(&pkt.getFlowId()[0], sizeof(FlowId));
+	// Pid is implicitly given by the PktAuth
+	SValue pid = crypto->hashConvert(pkt.getPktAuth());
 
-	// Pid is implicitly given by the AckAuth
-	SValue pid = crypto->hash(SValue(&pkt.getAckAuth()[0], sizeof(AckAuth)));
-	Vector<SValue> flow_auth;
+	SValue fid = crypto->convert(pkt.getFlowId());
+
+	Vector<SValue> fauth;
+	fauth.reserve(pkt.getNFlowAuthElements());
 	for(int i = 0; i < pkt.getNFlowAuthElements(); i++)
-		flow_auth.push_back(SValue(&pkt.getFlowAuth()[i].data[0], sizeof(Hash)));
+		fauth.push_back(crypto->convert(pkt.getFlowAuth()[i]));
 
-	if(MerkleTree::isValidMerkleTree(pkt.getKPkt(), pid, flow_auth, fid, *crypto))
+	if(MerkleTree::isValidMerkleTree(pkt.getKPkt(), pid, fauth, fid, *crypto))
 		output(0).push(pkt.getPacket());
 	else
 		output(1).push(pkt.getPacket()); // Invalid -> discard
@@ -36,5 +34,5 @@ void CastorXcastAuthenticateFlow::push(int, Packet *p){
 }
 
 CLICK_ENDDECLS
-ELEMENT_REQUIRES(TREE)
+ELEMENT_REQUIRES(MerkleTree)
 EXPORT_ELEMENT(CastorXcastAuthenticateFlow)

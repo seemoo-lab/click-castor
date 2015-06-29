@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include "castor.hh"
-#include "crypto.hh"
+#include "crypto/crypto.hh"
 #include "castor_xcast_destination_map.hh"
 
 CLICK_DECLS

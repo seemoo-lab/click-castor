@@ -1,8 +1,9 @@
 #ifndef CLICK_CRYPTO_HH
 #define CLICK_CRYPTO_HH
 #include <click/element.hh>
-#include "node_id.hh"
-#include "../protswitch/samanagement.hh"
+#include "../node_id.hh"
+#include "../hash.hh"
+#include "samanagement.hh"
 #include <botan/botan.h>
 
 CLICK_DECLS
@@ -13,9 +14,8 @@ typedef Botan::Public_Key PublicKey;
 typedef Botan::SymmetricKey SymmetricKey;
 
 class Crypto: public Element {
-
 public:
-	Crypto() : sam(0), hashFunction(0) {}
+	Crypto() : sam(NULL), hashFunction(NULL) {}
 	~Crypto();
 
 	const char *class_name() const { return "Crypto"; }
@@ -30,12 +30,17 @@ public:
 	SValue encrypt(const SValue&, const SymmetricKey&) const;
 	SValue decrypt(const SValue&, const SymmetricKey&) const;
 
-	SValue random(int bytes) const;
+	SValue random(int nbytes) const;
 	SValue hash(const SValue& data) const;
+	Hash hash(const Hash& data) const;
+	Hash hashConvert(const SValue& data) const;
+	SValue hashConvert(const Hash& data) const;
 
+	SValue convert(const Hash& data) const;
+	Hash convert(const SValue& data) const;
 private:
 	SAManagement* sam;
-	std::string algo;
+	String algo;
 	Botan::InitializationVector iv;
 	Botan::HashFunction* hashFunction;
 };

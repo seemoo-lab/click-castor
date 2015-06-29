@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include "castor.hh"
-#include "castor_flow_stub.hh"
+#include "flow/castor_flow_manager.hh"
 
 CLICK_DECLS
 
@@ -22,7 +22,7 @@ public:
 
 	void push(int, Packet*);
 private:
-	CastorFlowStub* flow;
+	CastorFlowManager* flow;
 };
 
 CLICK_ENDDECLS

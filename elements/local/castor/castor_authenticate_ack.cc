@@ -22,7 +22,7 @@ int CastorAuthenticateAck::configure(Vector<String>& conf, ErrorHandler* errh) {
 
 void CastorAuthenticateAck::push(int, Packet* p) {
 
-	const PacketId& pid = (PacketId&) *CastorPacket::getCastorAnno(p);
+	const PacketId& pid = CastorPacket::getCastorAnno(p);
 	const NodeId src = CastorPacket::src_ip_anno(p);
 	int port = 0;
 

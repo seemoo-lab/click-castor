@@ -34,8 +34,14 @@ public:
 	inline uint8_t* data() {
 	    return array;
 	}
+	inline size_t size() const {
+		return sizeof(array);
+	}
 	inline bool operator==(const Hash& x) const {
 		return memcmp(this->array, x.array, sizeof(array)) == 0;
+	}
+	inline bool operator!=(const Hash& x) const {
+		return memcmp(this->array, x.array, sizeof(array)) != 0;
 	}
 	inline String str() const {
 		char buffer[2 * sizeof(array) + 1];
