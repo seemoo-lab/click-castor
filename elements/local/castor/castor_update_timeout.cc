@@ -8,6 +8,7 @@ int CastorUpdateTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
 	int result = cp_va_kparse(conf, this, errh,
 			"CastorTimeoutTable", cpkP + cpkM, cpElementCast, "CastorTimeoutTable", &table,
 			"CastorHistory", cpkP + cpkM, cpElementCast, "CastorHistory", &history,
+			"VERBOSE", cpkN, cpBool, &verbose,
 			cpEnd);
 	return result;
 }
@@ -19,6 +20,9 @@ void CastorUpdateTimeout::push(int, Packet* p) {
 	const Timestamp& time_sent = history->getTimestamp(pid);
 	const Timestamp& time_recv = p->timestamp_anno();
 	unsigned int new_rtt = (time_recv.sec() - time_sent.sec()) * 1000 + (time_recv.msec() - time_sent.msec());
+
+	if (verbose)
+		click_chatter("[CastorUpdateTimeout] new RTT for pid %s: %u ms", pid.str().c_str(), new_rtt);
 
 	// Get flow's timeout object
 	const FlowId& fid = history->getFlowId(pid);

@@ -9,7 +9,7 @@ CLICK_DECLS
 
 class CastorUpdateTimeout : public Element {
 public:
-	CastorUpdateTimeout() : table(NULL), history(NULL) {};
+	CastorUpdateTimeout() : table(NULL), history(NULL), verbose(false) {};
 
 	const char *class_name() const { return "CastorUpdateTimeout"; }
 	const char *port_count() const { return PORTS_1_1; }
@@ -20,6 +20,7 @@ public:
 private:
 	CastorTimeoutTable* table;
 	CastorHistory* history;
+	bool verbose;
 };
 
 CLICK_ENDDECLS
