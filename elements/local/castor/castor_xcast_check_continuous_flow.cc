@@ -16,6 +16,7 @@ int CastorXcastCheckContinuousFlow::configure(Vector<String> &conf, ErrorHandler
 }
 
 void CastorXcastCheckContinuousFlow::push(int, Packet *p) {
+#ifdef CASTOR_CONTINUOUS_FLOW
 	const CastorXcastPkt pkt(p);
 
 	const FlowId& newFid = pkt.getFlowId();
@@ -29,6 +30,7 @@ void CastorXcastCheckContinuousFlow::push(int, Packet *p) {
 			fidTable->remove(nfauth, subflow); // we only try once, no longer needed
 		}
 	}
+#endif
 
 	output(0).push(p);
 }

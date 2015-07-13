@@ -15,6 +15,7 @@ int CastorCheckContinuousFlow::configure(Vector<String> &conf, ErrorHandler *err
 }
 
 void CastorCheckContinuousFlow::push(int, Packet *p) {
+#ifdef CASTOR_CONTINUOUS_FLOW
 	const CastorPkt& pkt = (CastorPkt&) *p->data();
 
 	const FlowId& newFid = pkt.fid;
@@ -26,6 +27,7 @@ void CastorCheckContinuousFlow::push(int, Packet *p) {
 			click_chatter("[CastorCheckContinuousFlow] Warning: tried to override routing entry by continuous flow (should not happen)");
 		fidTable->remove(nfauth, pkt.dst); // we only try once, no longer needed
 	}
+#endif
 
 	output(0).push(p);
 }

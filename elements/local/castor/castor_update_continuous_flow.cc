@@ -15,12 +15,13 @@ int CastorUpdateContinuousFlow::configure(Vector<String> &conf, ErrorHandler *er
 }
 
 void CastorUpdateContinuousFlow::push(int, Packet *p) {
+#ifdef CASTOR_CONTINUOUS_FLOW
 	const PacketId& pid = CastorPacket::getCastorAnno(p);
 
 	// XXX we assume here that the ACK was validated, such that we can be sure
 	//     that the NextFlowAuth belonging to PID is valid
 	fidTable->set(history->getNextFlowAuth(pid), history->getFlowId(pid), history->getDestination(pid));
-
+#endif
 	output(0).push(p);
 }
 
