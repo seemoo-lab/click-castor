@@ -3,7 +3,7 @@
 
 CLICK_DECLS
 
-void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, const NextFlowAuth& nfauth, NodeId prevHop, NodeId nextHop, NodeId destination) {
+void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, const NextFlowAuth& nfauth, NodeId prevHop, NodeId nextHop, NodeId destination, Timestamp timestamp) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	assert(prevHop.addr() != 0);
 	assert(nextHop.addr() != 0);
@@ -15,7 +15,7 @@ void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, const NextFlo
 		entry.expired = false;
 		entry.fid = fid;
 		entry.nfauth = nfauth;
-		entry.timestamp = Timestamp::now_steady();
+		entry.timestamp = timestamp;
 		history.set(pid, entry);
 	} else {
 		// Entry already exists, just add prevHop to list if it does not already exist

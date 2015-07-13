@@ -15,7 +15,7 @@ public:
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 
-	void addPkt(const PacketId&, const FlowId&, const NextFlowAuth&, NodeId prevHop, NodeId nextHop, NodeId destination);
+	void addPkt(const PacketId&, const FlowId&, const NextFlowAuth&, NodeId prevHop, NodeId nextHop, NodeId destination, Timestamp timestamp);
 	bool addFirstAckFor(const PacketId&, NodeId prevHop, const AckAuth&);
 	bool addAckFor(const PacketId&, NodeId prevHop);
 

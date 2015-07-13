@@ -19,9 +19,9 @@ void CastorAddXcastPktToHistory::push(int, Packet *p) {
 		unsigned int pos = i;
 		for(; i < pos + pkt.getNextHopNAssign(j); i++) {
 #ifdef CASTOR_CONTINUOUS_FLOW
-			history->addPkt(pkt.getPid(i), pkt.getFlowId(), pkt.getNextFlowAuth(), CastorPacket::src_ip_anno(pkt.getPacket()), pkt.getNextHop(j), pkt.getDestination(i));
+			history->addPkt(pkt.getPid(i), pkt.getFlowId(), pkt.getNextFlowAuth(), CastorPacket::src_ip_anno(pkt.getPacket()), pkt.getNextHop(j), pkt.getDestination(i), p->timestamp_anno());
 #else
-			history->addPkt(pkt.getPid(i), pkt.getFlowId(), NextFlowAuth(), CastorPacket::src_ip_anno(pkt.getPacket()), pkt.getNextHop(j), pkt.getDestination(i));
+			history->addPkt(pkt.getPid(i), pkt.getFlowId(), NextFlowAuth(), CastorPacket::src_ip_anno(pkt.getPacket()), pkt.getNextHop(j), pkt.getDestination(i), p->timestamp_anno());
 #endif
 		}
 	}
