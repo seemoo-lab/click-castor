@@ -27,7 +27,7 @@ public:
 	/**
 	 * Whether such a neighbor exists and it has not yet timed out.
 	 */
-	inline bool hasNeighbor(NodeId neighbor) { return !enabled || neighbors.get_pointer(neighbor) != NULL; }
+	inline bool hasNeighbor(NodeId neighbor) const { return !enabled || neighbors.get_pointer(neighbor) != NULL; }
 
 	/**
 	 * Returns the number of neighbors that have not yet timed out.
