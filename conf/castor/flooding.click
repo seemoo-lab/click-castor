@@ -3,32 +3,6 @@ require(
 	library castor_io.click,
 );
 
-/**
- * Handle packets destined for local host
- */
-elementclass ToHost {
-	$myHostDev |
-	
-	hostdevice :: ToSimDevice($myHostDev, IP);
-
-	input
-		-> CheckIPHeader
-		-> hostdevice;
-
-}
-
-/**
- * Handle incoming packets from local host
- */
-elementclass FromHost {
-	$myHostDev, $myIP |
-
-	fromhost :: FromSimDevice($myHostDev, SNAPLEN 4096)
-		-> CheckIPHeader
-		-> output;
-		
-}
-
 elementclass RecordPkt {
 	$map |
 	
@@ -87,10 +61,11 @@ elementclass FloodingHandlePkt {
  * Initialize the Blocks *
  *************************/
 
-ethin :: InputEth($EthDev, fake);
-ethout :: OutputEth($EthDev, $broadcastJitter);
-fromhost :: FromHost($HostDev, fake);
-tohost :: ToHost($HostDev);
+fromextdev -> ethin :: InputEthNoHostFilter($EthDev, fake);
+ethout :: OutputEth($broadcastJitter) -> toextdev;
+fromhostdev -> fromhost :: FromHost(fake);
+tohost :: ToHost() -> tohostdev;
+Idle() -> [1]tohost;
 
 map :: CastorXcastDestinationMap;
 
