@@ -23,7 +23,10 @@ void CastorTimeout::update(unsigned int new_rtt) {
 }
 
 void CastorTimeout::packet_loss() {
-	reset_measurements(); // this is optional according to the TCP standard
+	/*
+	 * Do not reset measurements: might yield unstable RTT estimates
+	 */
+	//reset_measurements(); // this is optional according to the TCP standard
 	set_new_timeout(timeout * 2);
 }
 
