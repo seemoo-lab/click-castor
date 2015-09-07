@@ -5,6 +5,7 @@
 CLICK_DECLS
 
 bool CastorNextFlowTable::set(const NextFlowAuth& nfauth, const FlowId& fid, NodeId subflow) {
+#ifdef CASTOR_CONTINUOUS_FLOW
 	Entry* entry = map.get_pointer(nfauth);
 	if (entry == 0) {
 		Entry newEntry;
@@ -21,6 +22,10 @@ bool CastorNextFlowTable::set(const NextFlowAuth& nfauth, const FlowId& fid, Nod
 	} else {
 		return false;
 	}
+#else
+	(void) nfauth; (void) fid; (void) subflow;
+	return false;
+#endif
 }
 
 void CastorNextFlowTable::remove(const NextFlowAuth& nfauth, NodeId subflow) {
