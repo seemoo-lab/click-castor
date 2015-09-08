@@ -33,7 +33,7 @@ elementclass CastorClassifier {
 	
 	input
 		-> CheckIPHeader
-		-> AddIPNeighbor($neighbors)
+		-> AddIPNeighbor($neighbors, ENABLE $neighborsEnable)
 		-> BroadcastPainter
 		-> annotateSourceAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
 		-> annotateDestAddress :: GetIPAddress(IP dst, ANNO 0)
