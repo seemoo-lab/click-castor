@@ -1,14 +1,28 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include <click/straccum.hh>
+#include <click/error.hh>
 #include "castor_routing_table.hh"
 
 CLICK_DECLS
 
 int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return cp_va_kparse(conf, this, errh,
-			"UpdateDelta", cpkP, cpDouble, &updateDelta,
-			cpEnd);
+	double updateDelta;
+	if (cp_va_kparse(conf, this, errh,
+			"UpdateDelta", cpkP + cpkM, cpDouble, &updateDelta,
+			cpEnd) < 0)
+		return -1;
+	if (updateDelta < 0 || updateDelta > 1) {
+		errh->error("Invalid updateDelta value: %f (should be between 0 and 1)", updateDelta);
+		return -1;
+	}
+	// Gratuitous user warnings if values seem 'impractical'
+	if (updateDelta < 0.30)
+		errh->warning("Possibly unwanted updateDelta value: %f (reliability estimator adaption is too fast)", updateDelta);
+	if (updateDelta > 0.95)
+		errh->warning("Possibly unwanted updateDelta value: %f (reliability estimator adaption is very slow)", updateDelta);
+	this->updateDelta = updateDelta;
+	return 0;
 }
 
 HashTable<NodeId, CastorEstimator>& CastorRoutingTable::getFlowEntry(const FlowId& flow, const SubflowId& subflow) {

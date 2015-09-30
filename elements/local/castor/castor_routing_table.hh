@@ -43,8 +43,6 @@ class CastorRoutingTable : public Element {
 public:
 	typedef NodeId SubflowId;
 
-	CastorRoutingTable() : updateDelta(0.8) {}
-
 	const char *class_name() const { return "CastorRoutingTable"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
