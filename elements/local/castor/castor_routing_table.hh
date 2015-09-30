@@ -7,36 +7,48 @@
 
 CLICK_DECLS
 
-class CastorEstimator {
+class ExponentialMovingAverage {
 public:
-	CastorEstimator(double updateDelta = 0.0) : updateDelta(updateDelta), alpha_all(0), beta_all(1), alpha_first(0), beta_first(1) { };
-	double getEstimate() const {
-		double s_all = alpha_all / (alpha_all + beta_all);
-		double s_first = alpha_first / (alpha_first + beta_first);
-		return (s_all + s_first) / 2;
+	ExponentialMovingAverage (double delta) : delta(delta), alpha(0), beta(1) { };
+	double get() const {
+		return alpha / (alpha + beta);
 	}
-	void increaseFirst() {
-		alpha_first = updateDelta * alpha_first + 1;
-		beta_first = updateDelta * beta_first;
+	void increase() {
+		alpha = delta * alpha + 1;
+		beta  = delta * beta;
 	}
-	void increaseAll() {
-		alpha_all = updateDelta * alpha_all + 1;
-		beta_all = updateDelta * beta_all;
-	}
-	void decreaseFrist() {
-		alpha_first = updateDelta * alpha_first;
-		beta_first = updateDelta * beta_first + 1;
-	}
-	void decreaseAll() {
-		alpha_all = updateDelta * alpha_all;
-		beta_all = updateDelta * beta_all + 1;
+	void decrease() {
+		alpha = delta * alpha;
+		beta  = delta * beta  + 1;
 	}
 private:
-	double updateDelta;
-	double alpha_all;
-	double beta_all;
-	double alpha_first;
-	double beta_first;
+	double delta; // update weight
+	double alpha; // running average of packets delivered
+	double beta;  // running average of packets not delivered
+};
+
+class CastorEstimator {
+public:
+	CastorEstimator(double delta) : first(ExponentialMovingAverage(delta)), all(ExponentialMovingAverage(delta)) { };
+	CastorEstimator() : first(ExponentialMovingAverage(0)), all(ExponentialMovingAverage(0)) { };
+	double getEstimate() const {
+		return (all.get() + first.get()) / 2;
+	}
+	void increaseFirst() {
+		first.increase();
+	}
+	void increaseAll() {
+		all.increase();
+	}
+	void decreaseFrist() {
+		first.decrease();
+	}
+	void decreaseAll() {
+		all.decrease();
+	}
+private:
+	ExponentialMovingAverage first;
+	ExponentialMovingAverage all;
 };
 
 class CastorRoutingTable : public Element {
