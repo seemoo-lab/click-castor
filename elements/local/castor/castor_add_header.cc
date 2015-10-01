@@ -27,7 +27,7 @@ void CastorAddHeader::push(int, Packet *p) {
 	header->type = CastorType::MERKLE_PKT;
 	header->hsize = sizeof(Hash);
 	header->fsize = CASTOR_FLOWAUTH_ELEM;
-	header->len = sizeof(CastorPkt);
+	header->len = htons(sizeof(CastorPkt));
 #ifdef DEBUG_HOPCOUNT
 	header->hopcount = 0;
 #endif
@@ -43,7 +43,7 @@ void CastorAddHeader::push(int, Packet *p) {
 	header->nfauth = label.nfauth;
 #endif
 	header->pid = label.pid;
-	header->kpkt = label.num;
+	header->kpkt = htons(label.num);
 	for (int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)
 		header->fauth[i] = label.fauth[i];
 	header->pauth = label.aauth; // not yet encrypted (!)

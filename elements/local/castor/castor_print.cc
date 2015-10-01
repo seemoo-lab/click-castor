@@ -35,10 +35,10 @@ void CastorPrint::push(int, Packet *p){
 				sa << "\n";
 				sa << "   | From: \t" << CastorPacket::src_ip_anno(p) << "\n";
 				sa << "   | To: \t" << p->dst_ip_anno() << "\n";
-				sa << "   | Type: \tPKT (header " <<  pkt.len << " / payload " << (p->length() - pkt.len) << " bytes)\n";
+				sa << "   | Type: \tPKT (header " <<  ntohs(pkt.len) << " / payload " << (p->length() - ntohs(pkt.len)) << " bytes)\n";
 				sa << "   | Flow: \t" << pkt.src << " -> " << pkt.dst << "\n";
 				sa << "   | Flow ID: \t" << pkt.fid.str() << "\n";
-				sa << "   | PKT ID: \t" << pkt.pid.str() << " (" << (pkt.kpkt + 1) << "/" << (1 << pkt.fsize) << ")\n";
+				sa << "   | PKT ID: \t" << pkt.pid.str() << " (" << (ntohs(pkt.kpkt) + 1) << "/" << (1 << pkt.fsize) << ")\n";
 				sa << "   | PKT Auth: \t" << pkt.pauth.str();
 			} else {
 				sa << "PKT (from " << CastorPacket::src_ip_anno(p) << " to " << p->dst_ip_anno() << ", flow " << pkt.src << " -> " << pkt.dst << "): " << pkt.pid.str();
