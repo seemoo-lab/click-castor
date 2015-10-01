@@ -21,40 +21,33 @@ int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 		errh->warning("Possibly unwanted updateDelta value: %f (reliability estimator adaption is too fast)", updateDelta);
 	if (updateDelta > 0.95)
 		errh->warning("Possibly unwanted updateDelta value: %f (reliability estimator adaption is very slow)", updateDelta);
-	this->updateDelta = updateDelta;
+
+	// Initialize the flows so that it uses the new updateDelta value as default
+	flows = FlowEntry(SubflowEntry(ForwarderEntry(CastorEstimator(updateDelta))));
+
 	return 0;
 }
 
 HashTable<NodeId, CastorEstimator>& CastorRoutingTable::getFlowEntry(const FlowId& flow, const SubflowId& subflow) {
-	return getEntryInsertDefault(getEntryInsertDefault(flows, flow), subflow);
+	// HashTable's [] operator adds a default element if it does not exist
+	return flows[flow][subflow];
 }
 
 CastorEstimator& CastorRoutingTable::getEstimator(const FlowId& flow, SubflowId subflow, NodeId forwarder) {
-	return getEntryInsertDefault(getFlowEntry(flow, subflow), forwarder, CastorEstimator(updateDelta));
+	// HashTable's [] operator adds a default element if it does not exist
+	return flows[flow][subflow][forwarder];
 }
 
 bool CastorRoutingTable::copyFlowEntry(const FlowId& newFlow, const FlowId& oldFlow, NodeId subflow) {
-	const SubflowEntry* se = flows.get_pointer(oldFlow);
-	if (!se)
+	// This method might be broken for the CONTINUOUS_FLOW
+	if (!flows.get(newFlow).get(subflow).empty() ||
+		!flows.get(oldFlow).get(subflow).empty()) {
 		return false;
-	const ForwarderEntry* fe = se->get_pointer(subflow);
-	if (!fe)
-		return false;
+	}
 
-	SubflowEntry* nse = flows.get_pointer(newFlow);
-	if (!nse) {
-		// We cannot copy the complete subflow entry (contains potentially multiple ForwarderEntrys)
-		SubflowEntry nse;
-		nse.set(subflow, *fe);
-		flows.set(newFlow, nse);
-		return true;
-	}
-	ForwarderEntry* nfe = nse->get_pointer(subflow);
-	if (!nfe) {
-		nse->set(subflow, *fe);
-		return true;
-	}
-	return false; // An entry already exists, do not override!
+	flows[newFlow][subflow] = flows[oldFlow][subflow];
+
+	return true;
 }
 
 void CastorRoutingTable::printRoutingTable(const FlowId& flow, NodeId subflow) {
@@ -70,17 +63,6 @@ void CastorRoutingTable::printRoutingTable(const FlowId& flow, NodeId subflow) {
 		sa << " -    --- empty --- \n";
 
 	click_chatter(sa.c_str());
-}
-
-template <typename K, typename V>
-V& CastorRoutingTable::getEntryInsertDefault(HashTable<K, V>& map, const K& key, const V& default_value) {
-	V* value = map.get_pointer(key);
-	if(value == 0) {
-		map.set(key, default_value); // Insert default value
-		value = map.get_pointer(key);
-		assert(value != 0);
-	}
-	return *value;
 }
 
 CLICK_ENDDECLS

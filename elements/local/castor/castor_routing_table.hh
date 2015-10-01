@@ -30,7 +30,6 @@ private:
 class CastorEstimator {
 public:
 	CastorEstimator(double delta) : first(ExponentialMovingAverage(delta)), all(ExponentialMovingAverage(delta)) { };
-	CastorEstimator() : first(ExponentialMovingAverage(0)), all(ExponentialMovingAverage(0)) { };
 	double getEstimate() const {
 		return (all.get() + first.get()) / 2;
 	}
@@ -55,6 +54,8 @@ class CastorRoutingTable : public Element {
 public:
 	typedef NodeId SubflowId;
 
+	CastorRoutingTable() : flows(FlowEntry(SubflowEntry(ForwarderEntry(CastorEstimator(0.0))))) { };
+
 	const char *class_name() const { return "CastorRoutingTable"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
@@ -74,17 +75,10 @@ private:
 	typedef HashTable<NodeId, CastorEstimator> ForwarderEntry;
 	typedef HashTable<SubflowId, ForwarderEntry> SubflowEntry;
 	typedef HashTable<FlowId, SubflowEntry> FlowEntry;
+
 	FlowEntry flows;
 
-	/**
-	 * Adaptivity of the reliability estimators
-	 */
-	double updateDelta;
-
 	void printRoutingTable(const FlowId&, SubflowId);
-
-	template <typename K, typename V>
-	V& getEntryInsertDefault(HashTable<K, V>& map, const K& key, const V& default_value = V());
 };
 
 CLICK_ENDDECLS
