@@ -45,4 +45,6 @@ To build Click for a different architecture (such as i386 in our mesh nodes) on 
 ./configure --host=i386-linux-gnu --enable-local --enable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads
 ```
 
+**Important**: Make sure to `chroot` in the target file system.
+
 **Important**: Do not try to disable `int64` support (`--disable-int64`) as this will break some of the core Click libraries.
