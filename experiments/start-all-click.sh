@@ -1,9 +1,10 @@
 #!/bin/bash
 
 EXPERIMENT_DIR=/root/click-castor/experiments
+NODEINFO=`dirname $0`/nodeinfo.sh
 
 # List all nodes
-NODES=`./nodeinfo.sh -t ID`
+NODES=`${NODEINFO} -t ID`
 
 REBOOT='no'
 NOCHECK='no'
@@ -21,13 +22,13 @@ if [[ ${REBOOT} == 'yes' ]]; then
 
 	for n in ${NODES}; do
 		echo "  ... node ${n} ..."
-		pypwrctrl off `./nodeinfo.sh -i ${n} -t PYPWR` &>/dev/null
+		pypwrctrl off `${NODEINFO} -i ${n} -t PYPWR` &>/dev/null
 	done
 
 	sleep 1
 
 	for n in ${NODES}; do
-		pypwrctrl on  `./nodeinfo.sh -i ${n} -t PYPWR` &>/dev/null
+		pypwrctrl on  `${NODEINFO} -i ${n} -t PYPWR` &>/dev/null
 	done
 fi
 
@@ -35,7 +36,7 @@ if [[ ${NOCHECK} == 'no' ]]; then
 	echo "--- Checking if nodes are up ..."
 	for n in ${NODES}
 	do
-		nodename=`./nodeinfo.sh -i ${n} -t DNS`
+		nodename=`${NODEINFO} -i ${n} -t DNS`
 		# ':' is no-op command
 		#while ! ping -c 1 ${nodename} &>/dev/null; do sleep 0.1; done
 		until ssh ${nodename} : &>/dev/null; do
@@ -48,7 +49,7 @@ fi
 echo "--- Starting Click ..."
 
 HOSTS=`mktemp`
-./nodeinfo.sh -t DNS > ${HOSTS}
+${NODEINFO} -t DNS > ${HOSTS}
 
 pssh -l root -h ${HOSTS} ${EXPERIMENT_DIR}/start-click.sh
 
