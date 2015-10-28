@@ -50,17 +50,17 @@ bool CastorRoutingTable::copyFlowEntry(const FlowId& newFlow, const FlowId& oldF
 	return true;
 }
 
-void CastorRoutingTable::printRoutingTable(const FlowId& flow, NodeId subflow) {
+void CastorRoutingTable::print(const FlowId& flow, SubflowId subflow) {
 	StringAccum sa;
 	sa << "Routing table for flow " << flow.str() << " (" << subflow << "):\n";
 
-	ForwarderEntry& table = getFlowEntry(flow, subflow);
+	ForwarderEntry& table = flows[flow][subflow];
 	// Iterate over the Table
-	for (HashTable<NodeId, CastorEstimator>::iterator it = table.begin(); it != table.end(); it++) {
-		sa << " - " << it.key() << "\t" << it.value().getEstimate() << "\n";
-	}
 	if(table.size()==0)
 		sa << " -    --- empty --- \n";
+	else
+		for (ForwarderEntry::iterator it = table.begin(); it != table.end(); it++)
+			sa << " - " << it.key() << "\t" << it.value().getEstimate() << "\n";
 
 	click_chatter(sa.c_str());
 }

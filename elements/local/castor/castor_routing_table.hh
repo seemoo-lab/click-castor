@@ -30,6 +30,7 @@ private:
 class CastorEstimator {
 public:
 	CastorEstimator(double delta) : first(ExponentialMovingAverage(delta)), all(ExponentialMovingAverage(delta)) { };
+
 	double getEstimate() const {
 		return (all.get() + first.get()) / 2;
 	}
@@ -54,7 +55,7 @@ class CastorRoutingTable : public Element {
 public:
 	typedef NodeId SubflowId;
 
-	CastorRoutingTable() : flows(FlowEntry(SubflowEntry(ForwarderEntry(CastorEstimator(0.0))))) { };
+	CastorRoutingTable() : flows(SubflowEntry(ForwarderEntry(CastorEstimator(0.0)))) { };
 
 	const char *class_name() const { return "CastorRoutingTable"; }
 	const char *port_count() const { return PORTS_0_0; }
@@ -78,7 +79,7 @@ private:
 
 	FlowEntry flows;
 
-	void printRoutingTable(const FlowId&, SubflowId);
+	void print(const FlowId&, SubflowId);
 };
 
 CLICK_ENDDECLS
