@@ -10,7 +10,6 @@ neighbors :: Neighbors($neighborTimeout, $neighborsEnable);
 history :: CastorHistory;
 routingtable :: CastorRoutingTable($updateDelta);
 timeouttable :: CastorTimeoutTable(INIT $initTo, MIN $minTo, MAX $maxTo);
-nextflowtable :: CastorNextFlowTable();
 
 castorclassifier :: CastorClassifier(fake, neighbors);
 

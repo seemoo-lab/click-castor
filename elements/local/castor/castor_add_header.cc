@@ -39,9 +39,6 @@ void CastorAddHeader::push(int, Packet *p) {
 	PacketLabel label = flow->getPacketLabel(src, dst);
 
 	header->fid = label.fid;
-#ifdef CASTOR_CONTINUOUS_FLOW
-	header->nfauth = label.nfauth;
-#endif
 	header->pid = label.pid;
 	header->kpkt = htons(label.num);
 	for (int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)

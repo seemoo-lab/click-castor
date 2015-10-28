@@ -32,9 +32,6 @@ void CastorXcastSetFixedHeader::push(int, Packet *p) {
 	PacketLabel label = flow->getPacketLabel(src, dst);
 	pkt.setFlowId(label.fid);
 	pkt.setFlowAuth(label.fauth);
-#ifdef CASTOR_CONTINUOUS_FLOW
-	pkt.setNextFlowAuth(label.nfauth);
-#endif
 	pkt.setKPkt(label.num);
 	pkt.setPktAuth(label.aauth);
 

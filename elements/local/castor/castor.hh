@@ -9,8 +9,6 @@
 //#define DEBUG_ACK_SRCDST  // uncomment to add source and destination fields to ACK packets
 #define DEBUG_HOPCOUNT // include (unprotected) hopcount field in packets
 
-//#define CASTOR_CONTINUOUS_FLOW
-
 #define CASTOR_FLOWAUTH_ELEM                         8  // Number of flow auth elements
 
 CLICK_DECLS
@@ -38,7 +36,6 @@ typedef Hash PacketId;
 typedef Hash FlowAuth[CASTOR_FLOWAUTH_ELEM];
 typedef Hash AckAuth;
 typedef Hash PktAuth;
-typedef Hash NextFlowAuth; // Authenticates the next flow ID
 
 /**
  * The Castor data packet header (PKT)
@@ -54,9 +51,6 @@ public:
 	NodeId		src;
 	NodeId		dst;
 	FlowId	 	fid;
-#ifdef CASTOR_CONTINUOUS_FLOW
-	NextFlowAuth nfauth;
-#endif
 	PacketId 	pid;
 	FlowAuth 	fauth;
 	PktAuth 	pauth;

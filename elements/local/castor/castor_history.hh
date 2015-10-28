@@ -15,7 +15,7 @@ public:
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 
-	void addPkt(const PacketId&, const FlowId&, const NextFlowAuth&, NodeId prevHop, NodeId nextHop, NodeId destination, Timestamp timestamp);
+	void addPkt(const PacketId&, const FlowId&, NodeId prevHop, NodeId nextHop, NodeId destination, Timestamp timestamp);
 	bool addFirstAckFor(const PacketId&, NodeId prevHop, const AckAuth&);
 	bool addAckFor(const PacketId&, NodeId prevHop);
 
@@ -28,7 +28,6 @@ public:
 	size_t getAcks(const PacketId&) const;
 
 	const FlowId& getFlowId(const PacketId&) const;
-	const NextFlowAuth& getNextFlowAuth(const PacketId&) const;
 	NodeId getDestination(const PacketId&) const;
 	const AckAuth& getAckAuth(const PacketId&) const;
 	NodeId routedTo(const PacketId&) const;
@@ -48,7 +47,6 @@ private:
 
 		// PIDs
 		FlowId fid;
-		NextFlowAuth nfauth;
 		NodeId destination; // Indicates Xcast subflow
 		Vector<NodeId> prevHops;
 		NodeId nextHop;
