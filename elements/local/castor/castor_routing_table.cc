@@ -50,19 +50,37 @@ bool CastorRoutingTable::copyFlowEntry(const FlowId& newFlow, const FlowId& oldF
 	return true;
 }
 
-void CastorRoutingTable::print(const FlowId& flow, SubflowId subflow) {
+String CastorRoutingTable::str(const FlowId& flow, SubflowId subflow) {
 	StringAccum sa;
-	sa << "Routing table for flow " << flow.str() << " (" << subflow << "):\n";
-
-	ForwarderEntry& table = flows[flow][subflow];
-	// Iterate over the Table
-	if(table.size()==0)
-		sa << " -    --- empty --- \n";
+	sa << "Routing entry for flow " << flow.str() << " (subflow " << subflow << "):\n";
+	const auto& fe = flows[flow][subflow];
+	if(fe.size() == 0)
+		sa << " - EMPTY \n";
 	else
-		for (ForwarderEntry::iterator it = table.begin(); it != table.end(); it++)
-			sa << " - " << it.key() << "\t" << it.value().getEstimate() << "\n";
+		for (const auto&  it : fe)
+			sa << " - " << it.first << "\t" << it.second.getEstimate() << "\n";
+	return String(sa.c_str());
+}
 
+void CastorRoutingTable::print(const FlowId& flow, SubflowId subflow) {
+	click_chatter(str(flow, subflow).c_str());
+}
+
+void CastorRoutingTable::add_handlers() {
+	add_read_handler("print", read_table_handler, 0);
+}
+
+String CastorRoutingTable::read_table_handler(Element *e, void *) {
+	CastorRoutingTable* rt = (CastorRoutingTable*) e;
+	const FlowEntry& flows = rt->flows;
+	StringAccum sa;
+	for (const auto& sfe : flows) {
+		for (const auto& fe : sfe.second) {
+			sa << rt->str(sfe.first, fe.first);
+		}
+	}
 	click_chatter(sa.c_str());
+	return String(sa.c_str());
 }
 
 CLICK_ENDDECLS

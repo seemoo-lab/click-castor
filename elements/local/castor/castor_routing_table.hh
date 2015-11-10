@@ -72,6 +72,8 @@ public:
 	 * Returns true if entry was copied, false otherwise.
 	 */
 	bool copyFlowEntry(const FlowId& newFlow, const FlowId& oldFlow, NodeId subflow);
+
+	void add_handlers();
 private:
 	typedef HashTable<NodeId, CastorEstimator> ForwarderEntry;
 	typedef HashTable<SubflowId, ForwarderEntry> SubflowEntry;
@@ -79,7 +81,10 @@ private:
 
 	FlowEntry flows;
 
+	String str(const FlowId&, SubflowId);
 	void print(const FlowId&, SubflowId);
+
+	static String read_table_handler(Element *e, void *);
 };
 
 CLICK_ENDDECLS
