@@ -79,7 +79,6 @@ String CastorRoutingTable::read_table_handler(Element *e, void *) {
 			sa << rt->str(sfe.first, fe.first);
 		}
 	}
-	click_chatter(sa.c_str());
 	return String(sa.c_str());
 }
 
