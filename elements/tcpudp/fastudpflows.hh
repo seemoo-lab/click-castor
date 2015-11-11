@@ -1,5 +1,13 @@
 #ifndef FASTUDPFLOWS_HH
 #define FASTUDPFLOWS_HH
+#include <click/element.hh>
+#include <click/glue.hh>
+#include <click/gaprate.hh>
+#include <click/packet.hh>
+#include <clicknet/ether.h>
+#include <clicknet/udp.h>
+
+CLICK_DECLS
 
 /*
  * =c
@@ -48,13 +56,6 @@
  *    -> ToDevice;
  */
 
-#include <click/element.hh>
-#include <click/glue.hh>
-#include <click/gaprate.hh>
-#include <click/packet.hh>
-#include <clicknet/ether.h>
-#include <clicknet/udp.h>
-
 class FastUDPFlows : public Element {
 
   bool _rate_limited;
@@ -71,7 +72,7 @@ class FastUDPFlows : public Element {
 
   struct flow_t {
       Packet *packet;
-      int flow_count;
+      unsigned flow_count;
   };
   flow_t *_flows;
   void change_ports(int);
@@ -105,5 +106,5 @@ class FastUDPFlows : public Element {
   click_jiffies_t last() { return _last; }
 };
 
-
+CLICK_ENDDECLS
 #endif

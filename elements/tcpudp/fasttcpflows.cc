@@ -24,6 +24,8 @@
 #include <click/glue.hh>
 #include <click/standard/alignmentinfo.hh>
 
+CLICK_DECLS
+
 const unsigned FastTCPFlows::NO_LIMIT;
 
 FastTCPFlows::FastTCPFlows()
@@ -155,7 +157,7 @@ FastTCPFlows::initialize(ErrorHandler *)
   _sent_all_fins = false;
   _flows = new flow_t[_nflows];
 
-  for (int i=0; i<_nflows; i++) {
+  for (unsigned i=0; i<_nflows; i++) {
     unsigned short sport = (click_random() >> 2) % 0xFFFF;
     unsigned short dport = (click_random() >> 2) % 0xFFFF;
 
@@ -275,7 +277,7 @@ void
 FastTCPFlows::cleanup(CleanupStage)
 {
   if (_flows) {
-    for (int i=0; i<_nflows; i++) {
+    for (unsigned i=0; i<_nflows; i++) {
       _flows[i].syn_packet->kill();
       _flows[i].data_packet->kill();
       _flows[i].fin_packet->kill();
@@ -358,7 +360,7 @@ FastTCPFlows_limit_write_handler
 (const String &s, Element *e, void *, ErrorHandler *errh)
 {
   FastTCPFlows *c = (FastTCPFlows *)e;
-  unsigned limit;
+  int limit;
   if (!IntArg().parse(s, limit))
     return errh->error("limit parameter must be integer >= 0");
   c->_limit = (limit >= 0 ? limit : c->NO_LIMIT);
@@ -404,4 +406,5 @@ FastTCPFlows::add_handlers()
   add_write_handler("limit", FastTCPFlows_limit_write_handler, 0);
 }
 
+CLICK_ENDDECLS
 EXPORT_ELEMENT(FastTCPFlows)
