@@ -50,15 +50,14 @@ void CastorStartTimer::run_timer(Timer* _timer) {
 	PidTimer *timer = (CastorStartTimer::PidTimer *)_timer;
 
 	const PacketId& pid = timer->getPid();
+	if (!history->hasAck(pid))
+		adjust_rating(pid);
+	history->remove(pid);
 
-	// delete timer, done with it
 	delete timer;
+}
 
-	// Check whether ACK has been received in the meantime
-	if (history->hasAck(pid))
-		return;
-
-	history->setExpired(pid);
+void CastorStartTimer::adjust_rating(const PacketId& pid) {
 	NodeId routedTo = history->routedTo(pid);
 
 	// Check whether PKT was broadcast, if yes, do nothing as we don't know who might have received it

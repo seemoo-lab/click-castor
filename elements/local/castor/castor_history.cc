@@ -12,7 +12,6 @@ void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, NodeId prevHo
 		entry.destination = destination;
 		entry.prevHops.push_back(prevHop);
 		entry.nextHop = nextHop;
-		entry.expired = false;
 		entry.fid = fid;
 		entry.timestamp = timestamp;
 		history.set(pid, entry);
@@ -118,14 +117,8 @@ NodeId CastorHistory::routedTo(const PacketId& pid) const {
 	return entry->nextHop;
 }
 
-void CastorHistory::setExpired(const PacketId& pid) {
-	CastorHistoryEntry* entry = getEntry(pid);
-	entry->expired = true;
-}
-
-bool CastorHistory::isExpired(const PacketId& pid) const {
-	const CastorHistoryEntry* entry = getEntry(pid);
-	return entry && entry->expired;
+bool CastorHistory::remove(const PacketId& pid) {
+	return history.erase(pid) > 0;
 }
 
 const Timestamp& CastorHistory::getTimestamp(const PacketId& pid) const {

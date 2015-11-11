@@ -28,8 +28,7 @@ void CastorAuthenticateAck::push(int, Packet* p) {
 
 	if (!history->hasPkt(pid)) {
 		port = 1; // never forwarded corresponding PKT -> discard
-	} else if(history->isExpired(pid)) {
-		port = 2; // ACK arrived too late -> discard
+	// TODO port 2 unused: we no longer can distinguish late ACKs since expired pids are deleted
 	} else if (history->hasAckFrom(pid, src)) {
 		port = 3; // already received ACK from this neighbor -> discard
 	} else if (version <= 1) {

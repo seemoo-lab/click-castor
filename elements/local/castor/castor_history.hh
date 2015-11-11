@@ -32,10 +32,7 @@ public:
 	const AckAuth& getAckAuth(const PacketId&) const;
 	NodeId routedTo(const PacketId&) const;
 
-	// TODO: should not keep expired entries for ever.
-	// Can we simply delete expired entries or does that open the door to some replay attacks?
-	bool isExpired(const PacketId&) const;
-	void setExpired(const PacketId&);
+	bool remove(const PacketId&);
 
 	const Timestamp& getTimestamp(const PacketId&) const;
 private:
@@ -54,7 +51,6 @@ private:
 		// ACKs
 		Vector<NodeId> recievedACKs;
 		AckAuth auth;
-		bool expired;
 	};
 
 	inline const CastorHistoryEntry* getEntry(const PacketId&) const;

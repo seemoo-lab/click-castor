@@ -32,6 +32,8 @@ private:
 		const PacketId pid;
 	};
 
+	void adjust_rating(const PacketId&);
+
 	CastorRoutingTable* table;
 	CastorTimeoutTable* toTable;
 	CastorHistory* history;
