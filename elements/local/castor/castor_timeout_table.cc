@@ -25,19 +25,7 @@ int CastorTimeoutTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 CastorTimeout& CastorTimeoutTable::getTimeout(const FlowId& flow, const SubflowId& subflow, NodeId forwarder) {
-	CastorTimeout& entry = getEntryInsertDefault(getEntryInsertDefault(getEntryInsertDefault(flows, flow), subflow), forwarder);
-	return entry;
-}
-
-template <typename K, typename V>
-V& CastorTimeoutTable::getEntryInsertDefault(HashTable<K, V>& map, const K& key) {
-	V* value = map.get_pointer(key);
-	if(value == 0) {
-		map.set(key, V()); // Insert default value
-		value = map.get_pointer(key);
-		assert(value != 0);
-	}
-	return *value;
+	return flows[flow][subflow][forwarder];
 }
 
 CLICK_ENDDECLS

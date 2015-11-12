@@ -24,9 +24,6 @@ private:
 	typedef HashTable<SubflowId, ForwarderEntry> SubflowEntry;
 	typedef HashTable<FlowId, SubflowEntry> FlowEntry;
 	FlowEntry flows;
-
-	template <typename K, typename V>
-	static V& getEntryInsertDefault(HashTable<K, V>& map, const K& key);
 };
 
 CLICK_ENDDECLS
