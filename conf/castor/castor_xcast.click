@@ -102,11 +102,12 @@ elementclass CastorHandleXcastPkt {
 		//-> CastorPrint("Node not in forwarder list", $myIP)
 		-> null;
 	checkDuplicate[2]
-		//-> CastorPrint("Duplicate PKT from different neighbor", $myIP)
+		//-> CastorPrint("PKT duplicate, but from different neighbor", $myIP)
 		-> CastorAddXcastPktToHistory($history) // Add sender to history
 		-> null;
 	checkDuplicate[3]
-		//-> CastorPrint("Duplicate PKT from same neighbor", $myIP)
+		// Might rarely happen if MAC ACK was lost and Xcastor PKT is retransmitted
+		-> CastorPrint("PKT duplicate from same neighbor", $myIP)
 		-> null;
 	validate[1]
 		-> CastorPrint("Flow authentication failed", $myIP)

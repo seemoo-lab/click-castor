@@ -114,12 +114,13 @@ elementclass CastorHandlePkt {
 	// If invalid or duplicate -> discard
 	null :: Discard;
 	checkDuplicate[2]
-		//-> CastorPrint("Duplicate PKT from different neighbor", $myIP)
+		//-> CastorPrint("PKT duplicate, but from different neighbor", $myIP)
 		-> CastorAddPktToHistory($history) // Add sender to history
 		-> null;
 
 	checkDuplicate[3]
-		//-> CastorPrint("Duplicate PKT from same neighbor", $myIP)
+		// Might rarely happen if MAC ACK was lost and Castor PKT is retransmitted
+		-> CastorPrint("PKT duplicate from same neighbor", $myIP)
 		-> null;
 
 	authenticate[1]
