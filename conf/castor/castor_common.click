@@ -46,6 +46,7 @@ elementclass CastorClassifier {
 		-> Discard; // not intended for us
 
 	cclassifier[0] // Castor PKTs -> output 0
+		-> CastorRateLimiter($myIP)
 		-> [0]output;
 
 	cclassifier[1] // Castor ACKs -> output 1
