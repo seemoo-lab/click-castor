@@ -17,6 +17,7 @@ int CastorStartTimer::configure(Vector<String>& conf, ErrorHandler* errh) {
 			"CastorRoutingTable", cpkP + cpkM, cpElementCast, "CastorRoutingTable", &table,
 			"CastorTimeoutTable", cpkP + cpkM, cpElementCast, "CastorTimeoutTable", &toTable,
 			"CastorHistory", cpkP + cpkM, cpElementCast, "CastorHistory", &history,
+			"CastorRateLimitTable", cpkP + cpkM, cpElementCast, "CastorRateLimitTable", &rate_limits,
 			"VERBOSE", cpkN, cpBool, &verbose,
 			"NodeId", cpkN, cpIPAddress, &myId,
 			cpEnd);
@@ -50,14 +51,16 @@ void CastorStartTimer::run_timer(Timer* _timer) {
 	PidTimer *timer = (CastorStartTimer::PidTimer *)_timer;
 
 	const PacketId& pid = timer->getPid();
-	if (!history->hasAck(pid))
-		adjust_rating(pid);
+	if (!history->hasAck(pid)) {
+		adjust_estimator(pid);
+		adjust_rate_limit(pid);
+	}
 	history->remove(pid);
 
 	delete timer;
 }
 
-void CastorStartTimer::adjust_rating(const PacketId& pid) {
+void CastorStartTimer::adjust_estimator(const PacketId& pid) {
 	NodeId routedTo = history->routedTo(pid);
 
 	// Check whether PKT was broadcast, if yes, do nothing as we don't know who might have received it
@@ -76,6 +79,15 @@ void CastorStartTimer::adjust_rating(const PacketId& pid) {
 	CastorEstimator& estimator = table->getEstimator(fid, destination, routedTo);
 	estimator.decreaseFrist();
 	estimator.decreaseAll();
+}
+
+void CastorStartTimer::adjust_rate_limit(const PacketId& pid) {
+	auto& senders = history->getPktSenders(pid);
+
+	for (auto& sender : senders) {
+		rate_limits->lookup(sender).decrease();
+		rate_limits->notify(sender);
+	}
 }
 
 CLICK_ENDDECLS

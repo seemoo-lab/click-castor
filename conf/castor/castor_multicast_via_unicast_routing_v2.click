@@ -14,7 +14,7 @@ require(
 routeselector :: CastorRouteSelectorExperimental(routingtable, neighbors, history, $broadcastAdjust);
 
 // How to handle PKTs and ACKs
-handlepkt :: CastorHandlePkt(fake, routeselector, routingtable, timeouttable, nextflowtable, history, crypto);
+handlepkt :: CastorHandlePkt(fake, routeselector, routingtable, timeouttable, nextflowtable, ratelimits, history, crypto);
 handleack :: { input -> handleCastorAck :: CastorHandleAck(fake, routingtable, timeouttable, nextflowtable, ratelimits, history, neighbors, crypto, true) -> CastorXcastResetDstAnno(true) -> output; };
 
 handleIpPacket :: CastorHandleMulticastToUnicastIpPacket(fake, flowmanager, crypto);
