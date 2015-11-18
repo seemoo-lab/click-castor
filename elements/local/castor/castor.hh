@@ -1,6 +1,7 @@
 #ifndef CLICK_CASTOR_HH
 #define CLICK_CASTOR_HH
 
+#include <click/packet.hh>
 #include <click/ipaddress.hh>
 #include <click/packet_anno.hh>
 #include "node_id.hh"
