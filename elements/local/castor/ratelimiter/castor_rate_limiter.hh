@@ -6,6 +6,7 @@
 #include <click/tokenbucket.hh>
 #include <click/timer.hh>
 #include "../node_id.hh"
+#include "castor_rate_limit_table.hh"
 
 CLICK_DECLS
 
@@ -17,6 +18,8 @@ public:
 	int configure(Vector<String>&, ErrorHandler*);
 
 	void push(int, Packet* p);
+
+	void update(const NodeId&);
 private:
 	class RingBuffer {
 	public:
@@ -76,8 +79,6 @@ private:
 		NodeId _node;
 	};
 
-	NodeId node_id;
-
 	void run_timer(Timer*);
 	void run_timer(RateTimer*);
 
@@ -88,6 +89,8 @@ private:
 	HashTable<const NodeId, RingBuffer> buckets;
 	HashTable<const NodeId, TokenBucket> tokens;
 	HashTable<const NodeId, RateTimer> timers;
+
+	CastorRateLimitTable* rate_limits;
 };
 
 CLICK_ENDDECLS

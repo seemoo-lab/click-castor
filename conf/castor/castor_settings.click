@@ -14,6 +14,11 @@ define(
 	$minTo   100, // 100 ms
 	$maxTo 60000, // 1 minute
 
+	/** Rate limit boundaries (in PKTs/sec) */
+	$initRate  4,
+	$minRate   1,
+	$maxRate 100,
+
 	/** Neighbor discovery */
 	$neighborsEnable true, // whether or not to use neighbor beacons; if set to false, settings for neighborTimeout and beaconingInterval are irrelevant
 

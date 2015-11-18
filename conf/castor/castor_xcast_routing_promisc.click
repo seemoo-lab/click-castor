@@ -16,7 +16,7 @@ handlepkt :: {
 		=> [0,1]output;
 	handleXcastPkt[2] -> CastorResetDstAnno -> [2]output;
 };
-handleack :: { input -> handleXcastAck :: CastorHandleAck(fake, routingtable, timeouttable, history, neighbors, crypto, true) -> CastorResetDstAnno -> output; };
+handleack :: { input -> handleXcastAck :: CastorHandleAck(fake, routingtable, timeouttable, ratelimits, history, neighbors, crypto, true) -> CastorResetDstAnno -> output; };
 
 handleIpPacket :: CastorHandleMulticastIpPacket(fake, flowmanager, crypto);
 removeHeader :: CastorXcastRemoveHeader;

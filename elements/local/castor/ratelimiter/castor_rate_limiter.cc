@@ -5,21 +5,25 @@
 
 CLICK_DECLS
 
-unsigned int CastorRateLimiter::RingBuffer::default_capacity = 3;
+CastorRateLimiter::RingBuffer::index_t CastorRateLimiter::RingBuffer::default_capacity;
 
 int CastorRateLimiter::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return Args(conf, this, errh)
-			.read_mp("NODEID", node_id)
-			.read_p("BUCKET_SIZE", CastorRateLimiter::RingBuffer::default_capacity)
-			.complete();
+	if (Args(conf, this, errh)
+			.read_mp    ("RATE_LIMITS", ElementCastArg("CastorRateLimitTable"), rate_limits)
+			.read_or_set("BUCKET_SIZE", CastorRateLimiter::RingBuffer::default_capacity, 3)
+			.complete() < 0)
+		return -1;
+	rate_limits->register_listener(this);
+	return 0;
 }
 
 void CastorRateLimiter::push(int, Packet* p) {
 	NodeId sender = CastorPacket::src_ip_anno(p);
 
 	if (buckets.count(sender) == 0) {
-		// TODO make initial values configurable
-		tokens.set(sender, TokenBucket(1, CastorRateLimiter::RingBuffer::default_capacity));
+		tokens.set(sender, TokenBucket(
+				rate_limits->lookup(sender).value(),
+				CastorRateLimiter::RingBuffer::default_capacity));
 		assert(timers.count(sender) == 0);
 		RateTimer& timer = timers[sender];
 		timer.set_node(sender);
@@ -35,6 +39,15 @@ void CastorRateLimiter::push(int, Packet* p) {
 	}
 	else {
 		emit_packet(sender);
+	}
+}
+
+void CastorRateLimiter::update(const NodeId& node) {
+	auto new_rate = rate_limits->lookup(node).value();
+	auto& current = tokens[node];
+	if (new_rate != current.rate()) {
+		current.assign_adjust(new_rate, current.capacity());
+		emit_packet(node); // node might now be allowed to send packet
 	}
 }
 
