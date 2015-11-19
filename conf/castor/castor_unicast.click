@@ -57,12 +57,12 @@ elementclass CastorLocalPkt {
 }
 
 elementclass CastorForwardPkt {
-	$myIP, $routeselector, $routingtable, $timeouttable, $history, $crypto |
+	$myIP, $routeselector, $routingtable, $timeouttable, $ratelimits, $history, $crypto |
 
 	input
 		-> route :: CastorLookupRoute($routeselector)
 		-> CastorAddPktToHistory($history)
-		-> CastorStartTimer($routingtable, $timeouttable, $history, NodeId $myIP, VERBOSE false)
+		-> CastorStartTimer($routingtable, $timeouttable, $history, $ratelimits, NodeId $myIP, VERBOSE false)
 		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> rec :: CastorRecordPkt
 		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)
@@ -81,7 +81,7 @@ elementclass CastorForwardPkt {
  * Output(2):	Forwarded PKT
  */
 elementclass CastorHandlePkt {
-	$myIP, $routeselector, $routingtable, $timeouttable, $history, $crypto |
+	$myIP, $routeselector, $routingtable, $timeouttable, $ratelimits, $history, $crypto |
 
 	input
 		-> blackhole :: CastorBlackhole // inactive by default
@@ -96,7 +96,7 @@ elementclass CastorHandlePkt {
 	
 	// PKT needs to be forwarded
 	destinationClassifier[1]
-		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $timeouttable, $history, $crypto)
+		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $timeouttable, $ratelimits, $history, $crypto)
 		-> [2]output;
 
 	handleLocal[1]

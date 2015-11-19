@@ -29,8 +29,8 @@ elementclass BroadcastPainter {
 
 elementclass CastorClassifier {
 
-	$myIP, $neighbors |
-	
+	$myIP, $neighbors, $ratelimits |
+
 	input
 		-> CheckIPHeader
 		-> AddIPNeighbor($neighbors, ENABLE $neighborsEnable)
@@ -46,6 +46,7 @@ elementclass CastorClassifier {
 		-> Discard; // not intended for us
 
 	cclassifier[0] // Castor PKTs -> output 0
+		-> CastorRateLimiter($ratelimits)
 		-> [0]output;
 
 	cclassifier[1] // Castor ACKs -> output 1
@@ -66,7 +67,7 @@ elementclass CastorSendAck {
 }
 
 elementclass CastorHandleAck {
-	$myIP, $routingtable, $timeouttable, $history, $neighbors, $crypto, $promisc |
+	$myIP, $routingtable, $timeouttable, $ratelimits, $history, $neighbors, $crypto, $promisc |
 
 	// Regular ACK flow
 	input
@@ -77,6 +78,7 @@ elementclass CastorHandleAck {
 		-> CastorAddAckToHistory($history)
 		//-> CastorPrint('Received valid', $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
+		-> updateRate :: CastorUpdateRateLimit($ratelimits, $history)
 		-> CastorSetAckNexthop($history, $neighbors, $promisc)[0,1]
 		-> sendAck :: CastorSendAck($myIP)
 		-> output;

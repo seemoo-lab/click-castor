@@ -7,12 +7,13 @@
 #include "castor_routing_table.hh"
 #include "castor_timeout_table.hh"
 #include "castor_history.hh"
+#include "ratelimiter/castor_rate_limit_table.hh"
 
 CLICK_DECLS
 
 class CastorStartTimer : public Element {
 public:
-	CastorStartTimer() : table(NULL), toTable(NULL), history(NULL), verbose(false) {};
+	CastorStartTimer() : table(NULL), toTable(NULL), history(NULL), rate_limits(NULL), verbose(false) {};
 
 	const char *class_name() const { return "CastorStartTimer"; }
 	const char *port_count() const { return PORTS_1_1; }
@@ -32,11 +33,13 @@ private:
 		const PacketId pid;
 	};
 
-	void adjust_rating(const PacketId&);
+	void adjust_estimator(const PacketId&);
+	void adjust_rate_limit(const PacketId& pid);
 
 	CastorRoutingTable* table;
 	CastorTimeoutTable* toTable;
 	CastorHistory* history;
+	CastorRateLimitTable* rate_limits;
 	NodeId myId;
 
 	bool verbose;
