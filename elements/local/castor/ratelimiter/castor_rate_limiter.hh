@@ -84,6 +84,11 @@ private:
 
 	void emit_packet(const NodeId&);
 
+	/** Make sure that a timer for node exists and is initialized */
+	void verify_timer_is_init(const NodeId&);
+	/** Make sure a TokenBucket for node exists and is initialized */
+	void verify_token_is_init(const NodeId&);
+
 	atomic_uint32_t drops;
 
 	HashTable<const NodeId, RingBuffer> buckets;

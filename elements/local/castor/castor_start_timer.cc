@@ -1,5 +1,6 @@
 #include <click/config.h>
 #include <click/confparse.hh>
+#include <click/error.hh>
 #include <click/straccum.hh>
 #include "castor_start_timer.hh"
 #include "castor_xcast.hh"
@@ -22,7 +23,7 @@ int CastorStartTimer::configure(Vector<String>& conf, ErrorHandler* errh) {
 			"NodeId", cpkN, cpIPAddress, &myId,
 			cpEnd);
 	if(verbose && myId.empty()) {
-		click_chatter("Need to provide node's id for verbosity");
+		errh->error("Need to provide NodeId with VERBOSE");
 		return -1;
 	}
 	return result;
@@ -83,10 +84,11 @@ void CastorStartTimer::adjust_estimator(const PacketId& pid) {
 
 void CastorStartTimer::adjust_rate_limit(const PacketId& pid) {
 	auto& senders = history->getPktSenders(pid);
-
 	for (auto& sender : senders) {
-		rate_limits->lookup(sender).decrease();
-		rate_limits->notify(sender);
+		if (sender != myId) {
+			rate_limits->lookup(sender).decrease();
+			rate_limits->notify(sender);
+		}
 	}
 }
 

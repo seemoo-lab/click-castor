@@ -20,16 +20,7 @@ int CastorRateLimiter::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorRateLimiter::push(int, Packet* p) {
 	NodeId sender = CastorPacket::src_ip_anno(p);
 
-	if (buckets.count(sender) == 0) {
-		tokens.set(sender, TokenBucket(
-				rate_limits->lookup(sender).value(),
-				CastorRateLimiter::RingBuffer::default_capacity));
-		assert(timers.count(sender) == 0);
-		RateTimer& timer = timers[sender];
-		timer.set_node(sender);
-		timer.assign(this);
-		timer.initialize(this);
-	}
+	verify_token_is_init(sender);
 
 	auto& bucket = buckets[sender];
 	if (!bucket.push(p)) {
@@ -43,6 +34,7 @@ void CastorRateLimiter::push(int, Packet* p) {
 }
 
 void CastorRateLimiter::update(const NodeId& node) {
+	verify_token_is_init(node);
 	auto new_rate = rate_limits->lookup(node).value();
 	auto& current = tokens[node];
 	if (new_rate != current.rate()) {
@@ -72,13 +64,32 @@ void CastorRateLimiter::emit_packet(const NodeId& node) {
 		buckets.erase(node);
 		timers.erase(node);
 	} else if (!bucket.empty()) {
+		verify_timer_is_init(node);
 		timers[node].schedule_after(
 				Timestamp::make_jiffies(tokens[node].time_until_contains(1))
 		);
 	} else if (!tokens[node].full()) {
+		verify_timer_is_init(node);
 		timers[node].schedule_after(
 				Timestamp::make_jiffies(tokens[node].time_until_contains(CastorRateLimiter::RingBuffer::default_capacity))
 		);
+	}
+}
+
+void CastorRateLimiter::verify_timer_is_init(const NodeId& node) {
+	auto& timer = timers[node];
+	if (!timer.initialized()) {
+		timer.set_node(node);
+		timer.assign(this);
+		timer.initialize(this);
+	}
+}
+
+void CastorRateLimiter::verify_token_is_init(const NodeId& node) {
+	if (tokens.count(node) == 0) {
+		tokens.set(node, TokenBucket(
+				rate_limits->lookup(node).value(),
+				CastorRateLimiter::RingBuffer::default_capacity));
 	}
 }
 
