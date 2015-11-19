@@ -18,7 +18,7 @@ void CastorUpdateEstimates::push(int, Packet *p) {
 	const FlowId& fid = history->getFlowId(pid);
 	NodeId subfid = history->getDestination(pid);
 	NodeId routedTo = history->routedTo(pid);
-	NodeId from = CastorPacket::src_ip_anno(p);
+	NodeId from = CastorPacket::src_id_anno(p);
 	bool isFirstAck = !history->hasAck(pid);
 
 	CastorEstimator& estimator = table->getEstimator(fid, subfid, from);

@@ -29,7 +29,7 @@ void CastorXcastCheckDuplicate::push(int, Packet *p) {
 
 	for(unsigned int i = 0; i < pkt.getNDestinations(); i++)
 		if(history->hasPkt(pkt.getPid(i))) {
-			if (history->hasPktFrom(pkt.getPid(i), CastorPacket::src_ip_anno(p))) {
+			if (history->hasPktFrom(pkt.getPid(i), CastorPacket::src_id_anno(p))) {
 				alreadySeen.set(i, i); // Already received Pid from this neighbor -> discard
 			} else if (history->hasAck(pkt.getPid(i))) {
 				retransmitAckTo.set(i, i); // Have not received Pid from this neighbor before AND already know corresponding ACK

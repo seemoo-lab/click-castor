@@ -15,9 +15,9 @@ void CastorAddAckToHistory::push(int, Packet *p) {
 	CastorAck& ack = (CastorAck&) *p->data();
 	const PacketId& pid = CastorPacket::getCastorAnno(p);
 	if (history->hasAck(pid)) {
-		history->addAckFor(pid, CastorPacket::src_ip_anno(p));
+		history->addAckFor(pid, CastorPacket::src_id_anno(p));
 	} else {
-		history->addFirstAckFor(pid, CastorPacket::src_ip_anno(p), ack.auth);
+		history->addFirstAckFor(pid, CastorPacket::src_id_anno(p), ack.auth);
 	}
 
 	output(0).push(p);

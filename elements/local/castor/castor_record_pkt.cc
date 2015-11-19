@@ -37,7 +37,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 			CastorPkt& pkt = (CastorPkt&) *p->data();
 			records.push_back(new PidTime(pkt.pid));
 			npids++;
-			if(p->dst_ip_anno() == NodeId::make_broadcast()) {
+			if(CastorPacket::dst_id_anno(p) == NodeId::make_broadcast()) {
 				size_broadcast += p->length();
 				nbroadcasts++;
 			} else {
@@ -49,7 +49,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 #endif
 		}
 	} else if (CastorPacket::getType(p) == CastorType::ACK) {
-		if(p->dst_ip_anno() == NodeId::make_broadcast())
+		if(CastorPacket::dst_id_anno(p) == NodeId::make_broadcast())
 			size_broadcast += p->length();
 		else
 			size_unicast += p->length();

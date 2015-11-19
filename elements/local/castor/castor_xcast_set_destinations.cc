@@ -49,7 +49,7 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 	// Set local node as single forwarder
 	pkt.setSingleNextHop(pkt.getSource());
 
-	CastorPacket::set_src_ip_anno(pkt.getPacket(), pkt.getSource());
+	CastorPacket::set_src_id_anno(pkt.getPacket(), pkt.getSource());
 
 	output(0).push(pkt.getPacket());
 

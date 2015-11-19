@@ -30,7 +30,7 @@ void CastorXcastLookupRoute::push(int, Packet *p) {
 
 	// Lookup routes
 	for(unsigned int i = 0; i < nDestinations; i++) {
-		NodeId nextHop = selector->select(pkt.getFlowId(), pkt.getDestination(i),  &allDestinations, pkt.getPid(i));
+		NodeId nextHop = selector->select(pkt.getFlowId(), pkt.getDestination(i), &allDestinations, pkt.getPid(i));
 		if(!map.get_pointer(nextHop))
 			map.set(nextHop, Vector<unsigned int>());
 		Vector<unsigned int>* entry = map.get_pointer(nextHop);
@@ -56,11 +56,11 @@ void CastorXcastLookupRoute::push(int, Packet *p) {
 		}
 	}
 	int randIndex = click_random() % nexthopMac.size();
-	CastorPacket::set_mac_ip_anno(pkt.getPacket(), nexthopMac[randIndex]);  // This is the address we want the MAC layer to transmit to
+	CastorPacket::hop_id_anno(pkt.getPacket()) = nexthopMac[randIndex];  // This is the address we want the MAC layer to transmit to
 
 	// If there is only a single recipient, we unicast to his address; otherwise broadcast
 	NodeId nexthop = pkt.getNNextHops() == 1 ? pkt.getNextHop(0) : NodeId::make_broadcast();
-	pkt.getPacket()->set_dst_ip_anno(nexthop);
+	CastorPacket::dst_id_anno(pkt.getPacket()) = nexthop;
 
 #ifdef DEBUG_HOPCOUNT
 	pkt.incHopcount();

@@ -31,9 +31,9 @@ void CastorSetAckNexthop::push(int, Packet* p) {
 	}
 
 	// Set packet destination
-	p->set_dst_ip_anno(use_broadcast ? NodeId::make_broadcast() : dst);
+	CastorPacket::dst_id_anno(p) = use_broadcast ? NodeId::make_broadcast() : dst;
 	if (promisc)
-		CastorPacket::set_mac_ip_anno(p, dst);
+		CastorPacket::hop_id_anno(p) = dst;
 
 	output(use_broadcast).push(p);
 }

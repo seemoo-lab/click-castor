@@ -62,7 +62,7 @@ void CastorUnicastFilter::push(int, Packet *p) {
 
 	} else {
 
-		if (p->dst_ip_anno() == NodeId::make_broadcast())
+		if (CastorPacket::dst_id_anno(p) == NodeId::make_broadcast())
 			output(0).push(p); // Was forwarded to me as broadcast PKT
 		else
 			output(1).push(p); // Was unicast to me as broadcast PKT

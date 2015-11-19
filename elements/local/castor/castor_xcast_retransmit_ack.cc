@@ -34,9 +34,9 @@ void CastorXcastRetransmitAck::push(int, Packet *p) {
 #endif
 
 		WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorAck), 0);
-		q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Unicast ACK to PKT sender
+		CastorPacket::dst_id_anno(q) = CastorPacket::src_id_anno(p); // Unicast ACK to PKT sender
 
-		assert(history->hasPktFrom(pkt.getPid(i), q->dst_ip_anno()));
+		assert(history->hasPktFrom(pkt.getPid(i), CastorPacket::dst_id_anno(q)));
 
 		output(0).push(q);
 	}

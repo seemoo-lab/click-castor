@@ -14,8 +14,8 @@ int CastorAddHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorAddHeader::push(int, Packet *p) {
 
 	// Extract source and destination from packet
-	NodeId src = p->ip_header()->ip_src.s_addr;
-	NodeId dst = p->ip_header()->ip_dst.s_addr;
+	NodeId src(reinterpret_cast<const uint8_t*>(&(p->ip_header()->ip_src)));
+	NodeId dst(reinterpret_cast<const uint8_t*>(&(p->ip_header()->ip_dst)));
 
 	// Add Space for the new Header
 	uint32_t length = sizeof(CastorPkt);
@@ -45,7 +45,7 @@ void CastorAddHeader::push(int, Packet *p) {
 		header->fauth[i] = label.fauth[i];
 	header->pauth = label.aauth; // not yet encrypted (!)
 
-	CastorPacket::set_src_ip_anno(p, header->src);
+	CastorPacket::set_src_id_anno(p, header->src);
 
 	output(0).push(q);
 }

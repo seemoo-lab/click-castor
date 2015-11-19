@@ -33,7 +33,7 @@ void CastorPrint::push(int, Packet *p){
 			CastorPkt& pkt = (CastorPkt&) *p->data();
 			if(verbose) {
 				sa << "\n";
-				sa << "   | From: \t" << CastorPacket::src_ip_anno(p) << "\n";
+				sa << "   | From: \t" << CastorPacket::src_id_anno(p) << "\n";
 				sa << "   | To: \t" << p->dst_ip_anno() << "\n";
 				sa << "   | Type: \tPKT (header " <<  ntohs(pkt.len) << " / payload " << (p->length() - ntohs(pkt.len)) << " bytes)\n";
 				sa << "   | Flow: \t" << pkt.src << " -> " << pkt.dst << "\n";
@@ -41,7 +41,7 @@ void CastorPrint::push(int, Packet *p){
 				sa << "   | PKT ID: \t" << pkt.pid.str() << " (" << (ntohs(pkt.kpkt) + 1) << "/" << (1 << pkt.fsize) << ")\n";
 				sa << "   | PKT Auth: \t" << pkt.pauth.str();
 			} else {
-				sa << "PKT (from " << CastorPacket::src_ip_anno(p) << " to " << p->dst_ip_anno() << ", flow " << pkt.src << " -> " << pkt.dst << "): " << pkt.pid.str();
+				sa << "PKT (from " << CastorPacket::src_id_anno(p) << " to " << p->dst_ip_anno() << ", flow " << pkt.src << " -> " << pkt.dst << "): " << pkt.pid.str();
 			}
 		}
 
@@ -51,7 +51,7 @@ void CastorPrint::push(int, Packet *p){
 		CastorAck& ack = (CastorAck&) *p->data();
 		if(verbose) {
 			sa << "\n";
-			sa << "   | From: \t" << CastorPacket::src_ip_anno(p) << "\n";
+			sa << "   | From: \t" << CastorPacket::src_id_anno(p) << "\n";
 			sa << "   | To: \t" << p->dst_ip_anno() << "\n";
 			sa << "   | Type: \tACK  (" <<  ack.len << " bytes)\n";
 			sa << "   | ACK Auth: \t" << ack.auth.str() << "\n";
@@ -59,11 +59,11 @@ void CastorPrint::push(int, Packet *p){
 			sa << "   | Flow: \t" << ack.src << " -> " << ack.dst << "\n";
 #endif
 		} else {
-			sa << "ACK (from " << CastorPacket::src_ip_anno(p) << " to " << p->dst_ip_anno() << "): " << ack.auth.str();
+			sa << "ACK (from " << CastorPacket::src_id_anno(p) << " to " << p->dst_ip_anno() << "): " << ack.auth.str();
 		}
 
 	} else {
-		sa << "UNKNOWN (from " << CastorPacket::src_ip_anno(p) << " to " << p->dst_ip_anno() << ")";
+		sa << "UNKNOWN (from " << CastorPacket::src_id_anno(p) << " to " << p->dst_ip_anno() << ")";
 	}
 
 	click_chatter("%s", sa.c_str());

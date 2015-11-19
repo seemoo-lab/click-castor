@@ -3,10 +3,8 @@
 
 CLICK_DECLS
 
-void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, NodeId prevHop, NodeId nextHop, NodeId destination, Timestamp timestamp) {
+void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, const NodeId& prevHop, const NodeId& nextHop, const NodeId& destination, Timestamp timestamp) {
 	CastorHistoryEntry* entry = getEntry(pid);
-	assert(prevHop.addr() != 0);
-	assert(nextHop.addr() != 0);
 	if(!entry) {
 		CastorHistoryEntry entry;
 		entry.destination = destination;

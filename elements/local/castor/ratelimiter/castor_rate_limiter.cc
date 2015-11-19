@@ -18,7 +18,7 @@ int CastorRateLimiter::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorRateLimiter::push(int, Packet* p) {
-	NodeId sender = CastorPacket::src_ip_anno(p);
+	NodeId sender = CastorPacket::src_id_anno(p);
 
 	verify_token_is_init(sender);
 

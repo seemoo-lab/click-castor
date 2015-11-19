@@ -233,7 +233,7 @@ public:
 		if(full) {
 			String sfid = getFlowId().str();
 			String sauth = getPktAuth().str();
-			sa << "   | From:\t" << CastorPacket::src_ip_anno(_p) << "\n";
+			sa << "   | From:\t" << CastorPacket::src_id_anno(_p) << "\n";
 			sa << "   | To:\t" << _p->dst_ip_anno() << "\n";
 			sa << "   | Type:\tXcast PKT (header " <<  getHeaderLength() << " / payload " << getPayloadLength() << " bytes)\n";
 			sa << "   | Flow:\t" << getSource() << " -> " << getMulticastGroup() << "\n";
@@ -256,7 +256,7 @@ public:
 				sa << "\n";
 			}
 		} else {
-			sa << "Xcast PKT (from " << CastorPacket::src_ip_anno(_p) << " to " << getPacket()->dst_ip_anno() << ", flow " << getSource() << " -> ";
+			sa << "Xcast PKT (from " << CastorPacket::src_id_anno(_p) << " to " << getPacket()->dst_ip_anno() << ", flow " << getSource() << " -> ";
 			sa << getDestination(0);
 			for(unsigned int i = 1; i < getNDestinations(); i++)
 				sa << ", " << getDestination(i);
