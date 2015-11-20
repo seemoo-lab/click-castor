@@ -27,7 +27,7 @@ int CastorRateLimitTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return 0;
 }
 
-CastorRateLimit& CastorRateLimitTable::lookup(const NodeId& node) {
+CastorRateLimit& CastorRateLimitTable::lookup(const NeighborId& node) {
 	return _table[node];
 }
 
@@ -36,7 +36,7 @@ void CastorRateLimitTable::register_listener(CastorRateLimiter* element) {
 	_listener = element;
 }
 
-void CastorRateLimitTable::notify(const NodeId& node) const {
+void CastorRateLimitTable::notify(const NeighborId& node) const {
 	assert(_listener);
 	_listener->update(node);
 }

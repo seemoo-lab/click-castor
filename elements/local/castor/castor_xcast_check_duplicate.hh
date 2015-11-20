@@ -2,8 +2,8 @@
 #define CLICK_CASTOR_XCAST_CHECK_DUPLICATE_HH
 
 #include <click/element.hh>
-#include "castor.hh"
 #include "castor_history.hh"
+#include "../neighbordiscovery/neighbor_id.hh"
 
 CLICK_DECLS
 
@@ -19,7 +19,7 @@ public:
 	void push(int, Packet *);
 private:
 	CastorHistory* history;
-	NodeId myId;
+	NeighborId myId;
 };
 
 CLICK_ENDDECLS

@@ -21,7 +21,7 @@ public:
 	/**
 	 * Select the best next hop for a given flow/subflow
 	 */
-	NodeId select(const FlowId& flow, NodeId subflow, const Vector<NodeId>* others, const PacketId &pid);
+	NeighborId select(const FlowId& flow, const NodeId& subflow, const Vector<NodeId>* others, const PacketId &pid);
 
 protected:
 	/**
@@ -32,11 +32,11 @@ protected:
 	CastorRoutingTable* routingtable;
 	Neighbors* neighbors;
 
-	virtual bool selectNeighbor(const NodeId &entry, double entryEstimate, Vector<NodeId> &bestEntries, double &bestEstimate, const PacketId &pid);
-	virtual NodeId chooseNeighbor(Vector<NodeId> &bestNeighbors, double best, const PacketId &pid);
+	virtual bool selectNeighbor(const NeighborId &entry, double entryEstimate, Vector<NeighborId> &bestEntries, double &bestEstimate, const PacketId &pid);
+	virtual NeighborId chooseNeighbor(Vector<NeighborId> &bestNeighbors, double best, const PacketId &pid);
 
-	double findBest(HashTable<NodeId, CastorEstimator>& entry, Vector<NodeId>& bestNeighbors, const PacketId& pid);
-	inline NodeId selectDefault() const { return NodeId::make_broadcast(); }
+	double findBest(HashTable<NeighborId, CastorEstimator>& entry, Vector<NeighborId>& bestNeighbors, const PacketId& pid);
+	inline NeighborId selectDefault() const { return NeighborId::make_broadcast(); }
 };
 
 CLICK_ENDDECLS

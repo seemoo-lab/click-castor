@@ -2,10 +2,11 @@
  * Appends Castor header to IP unicast packet
  */
 elementclass CastorHandleUnicastIpPacket {
-	$myIP, $flowmanager, $crypto |
+	$myIP, $myEth, $flowmanager, $crypto |
 
 	-> CastorAddHeader($flowmanager)
 	-> CastorEncryptAckAuth($crypto)
+	-> CastorAnnotateId($myEth, OFFSET SRC)
 	//-> CastorPrint('Send', $myIP, $fullSend)
 	-> rec :: CastorRecordPkt
 	-> output;
@@ -15,7 +16,7 @@ elementclass CastorHandleUnicastIpPacket {
  * Creates IP unicast from multicast packets
  */
 elementclass CastorHandleMulticastToUnicastIpPacket {
-	$myIP, $flowmanager, $crypto |
+	$myIP, $myEth, $flowmanager, $crypto |
 	
 	map :: CastorXcastDestinationMap
 
@@ -25,6 +26,7 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 	    input[1] -> SetIPChecksum -> output;)
 	-> CastorAddHeader($flowmanager)
 	-> CastorEncryptAckAuth($crypto)
+	-> CastorAnnotateId($myEth, OFFSET SRC)
 	//-> CastorPrint('Send', $myIP, $fullSend)
 	-> rec :: CastorRecordPkt
 	-> output;

@@ -2,10 +2,11 @@
 #define CLICK_CASTOR_XCAST_DESTINATION_MAP_HH
 
 #include <click/element.hh>
+#include <click/ipaddress.hh>
 #include <click/hashtable.hh>
 #include <click/vector.hh>
-#include "castor.hh"
 #include "castor_xcast.hh"
+#include "node_id.hh"
 
 CLICK_DECLS
 
@@ -15,16 +16,16 @@ public:
 	const char *port_count() const	{ return PORTS_0_0; }
 	const char *processing() const	{ return AGNOSTIC; }
 
-	const Vector<NodeId>& getDestinations(GroupId group) const;
+	const Vector<NodeId>& get(const GroupId& group) const;
 
     void add_handlers();
 private:
-	HashTable<GroupId, Vector<NodeId> > _map;
-	Vector<NodeId> _empty;
+	HashTable<GroupId, Vector<NodeId> > map;
+	const Vector<NodeId> empty;
 
-	int insertDestinations(GroupId group, const Vector<NodeId>&);
+	int insert(const GroupId& group, const Vector<NodeId>&);
 
-    static int write_handler(const String &, Element *, void *, ErrorHandler *);
+    static int write_handler(const String&, Element*, void*, ErrorHandler*);
 };
 
 CLICK_ENDDECLS

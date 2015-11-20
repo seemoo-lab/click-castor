@@ -16,8 +16,8 @@ public:
 	int configure(Vector<String>&, ErrorHandler*);
 
 private:
-	bool selectNeighbor(const NodeId &entry, double entryEstimate, Vector<NodeId> &bestEntries, double &bestEstimate, const PacketId &pid);
-	NodeId chooseNeighbor(Vector<NodeId> &bestNeighbors, double best, const PacketId &pid);
+	bool selectNeighbor(const NeighborId &entry, double entryEstimate, Vector<NeighborId> &bestEntries, double &bestEstimate, const PacketId &pid);
+	NeighborId chooseNeighbor(Vector<NeighborId> &bestNeighbors, double best, const PacketId &pid);
 
 	CastorHistory* history;
 };

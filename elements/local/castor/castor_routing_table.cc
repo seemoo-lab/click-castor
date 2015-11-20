@@ -28,17 +28,17 @@ int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return 0;
 }
 
-HashTable<NodeId, CastorEstimator>& CastorRoutingTable::getFlowEntry(const FlowId& flow, const SubflowId& subflow) {
+HashTable<NeighborId, CastorEstimator>& CastorRoutingTable::getFlowEntry(const FlowId& flow, const SubflowId& subflow) {
 	// HashTable's [] operator adds a default element if it does not exist
 	return flows[flow][subflow];
 }
 
-CastorEstimator& CastorRoutingTable::getEstimator(const FlowId& flow, SubflowId subflow, NodeId forwarder) {
+CastorEstimator& CastorRoutingTable::getEstimator(const FlowId& flow, const SubflowId& subflow, const NeighborId& forwarder) {
 	// HashTable's [] operator adds a default element if it does not exist
 	return flows[flow][subflow][forwarder];
 }
 
-bool CastorRoutingTable::copyFlowEntry(const FlowId& newFlow, const FlowId& oldFlow, NodeId subflow) {
+bool CastorRoutingTable::copyFlowEntry(const FlowId& newFlow, const FlowId& oldFlow, const SubflowId& subflow) {
 	// This method might be broken for the CONTINUOUS_FLOW
 	if (!flows.get(newFlow).get(subflow).empty() ||
 		!flows.get(oldFlow).get(subflow).empty()) {
@@ -50,7 +50,7 @@ bool CastorRoutingTable::copyFlowEntry(const FlowId& newFlow, const FlowId& oldF
 	return true;
 }
 
-String CastorRoutingTable::str(const FlowId& flow, SubflowId subflow) {
+String CastorRoutingTable::str(const FlowId& flow, const SubflowId& subflow) {
 	StringAccum sa;
 	sa << "Routing entry for flow " << flow.str() << " (subflow " << subflow << "):\n";
 	const auto& fe = flows[flow][subflow];
@@ -62,7 +62,7 @@ String CastorRoutingTable::str(const FlowId& flow, SubflowId subflow) {
 	return String(sa.c_str());
 }
 
-void CastorRoutingTable::print(const FlowId& flow, SubflowId subflow) {
+void CastorRoutingTable::print(const FlowId& flow, const SubflowId& subflow) {
 	click_chatter(str(flow, subflow).c_str());
 }
 

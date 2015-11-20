@@ -6,6 +6,7 @@
 #include <click/hashtable.hh>
 #include <click/timestamp.hh>
 #include "castor.hh"
+#include "../neighbordiscovery/neighbor_id.hh"
 
 CLICK_DECLS
 
@@ -15,22 +16,22 @@ public:
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 
-	void addPkt(const PacketId&, const FlowId&, const NodeId& prevHop, const NodeId& nextHop, const NodeId& destination, Timestamp timestamp);
-	bool addFirstAckFor(const PacketId&, NodeId prevHop, const AckAuth&);
-	bool addAckFor(const PacketId&, NodeId prevHop);
+	void addPkt(const PacketId&, const FlowId&, const NeighborId& prevHop, const NeighborId& nextHop, const NodeId& destination, Timestamp timestamp);
+	bool addFirstAckFor(const PacketId&, const NeighborId& prevHop, const AckAuth&);
+	bool addAckFor(const PacketId&, const NeighborId& prevHop);
 
 	bool hasPkt(const PacketId&) const;
-	bool hasPktFrom (const PacketId&, NodeId) const;
+	bool hasPktFrom (const PacketId&, const NeighborId&) const;
 	bool hasAck(const PacketId&) const;
-	bool hasAckFrom(const PacketId&, NodeId) const;
+	bool hasAckFrom(const PacketId&, const NeighborId&) const;
 	size_t getPkts(const PacketId&) const;
-	const Vector<NodeId>& getPktSenders(const PacketId&) const;
+	const Vector<NeighborId>& getPktSenders(const PacketId&) const;
 	size_t getAcks(const PacketId&) const;
 
 	const FlowId& getFlowId(const PacketId&) const;
-	NodeId getDestination(const PacketId&) const;
+	const NodeId& getDestination(const PacketId&) const;
 	const AckAuth& getAckAuth(const PacketId&) const;
-	NodeId routedTo(const PacketId&) const;
+	const NeighborId& routedTo(const PacketId&) const;
 
 	bool remove(const PacketId&);
 
@@ -45,11 +46,11 @@ private:
 		// PIDs
 		FlowId fid;
 		NodeId destination; // Indicates Xcast subflow
-		Vector<NodeId> prevHops;
-		NodeId nextHop;
+		Vector<NeighborId> prevHops;
+		NeighborId nextHop;
 
 		// ACKs
-		Vector<NodeId> recievedACKs;
+		Vector<NeighborId> recievedACKs;
 		AckAuth auth;
 	};
 

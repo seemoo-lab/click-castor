@@ -2,7 +2,6 @@
 #define CLICK_CASTOR_XCAST_TO_UNICAST_HH
 
 #include <click/element.hh>
-#include "castor.hh"
 #include "castor_xcast_destination_map.hh"
 
 CLICK_DECLS
@@ -16,7 +15,7 @@ public:
 
 	void push(int, Packet*);
 private:
-	CastorXcastDestinationMap* _map;
+	CastorXcastDestinationMap* map;
 };
 
 CLICK_ENDDECLS

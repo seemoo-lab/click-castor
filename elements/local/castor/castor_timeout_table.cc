@@ -24,7 +24,7 @@ int CastorTimeoutTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return ret;
 }
 
-CastorTimeout& CastorTimeoutTable::getTimeout(const FlowId& flow, const SubflowId& subflow, NodeId forwarder) {
+CastorTimeout& CastorTimeoutTable::getTimeout(const FlowId& flow, const SubflowId& subflow, const NeighborId& forwarder) {
 	return flows[flow][subflow][forwarder];
 }
 

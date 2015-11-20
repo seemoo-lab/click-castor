@@ -32,7 +32,7 @@ void Neighbors::run_timer(Timer*) {
 	timer.schedule_at_steady(node->timeout);
 }
 
-void Neighbors::addNeighbor(NodeId neighbor) {
+void Neighbors::add(NeighborId neighbor) {
 	// Compute the neighbor's timeout based on the current "steady" time
 	// We use steady time because, in difference to the system time, it is unaffected by user clock changes
 	Timestamp node_timeout = Timestamp::recent_steady() + Timestamp::make_msec(timeout);
@@ -73,7 +73,7 @@ String Neighbors::read_handler(Element *e, void *thunk) {
 
 	switch(reinterpret_cast<uintptr_t>(thunk)) {
 	case Statistics::num:
-		return String(neighbors->neighborCount());
+		return String(neighbors->size());
 	default:
 		click_chatter("enum error");
 		return String();

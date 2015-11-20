@@ -1,18 +1,16 @@
 #include <click/config.h>
 #include <click/args.hh>
-#include <click/confparse.hh>
 #include <click/hashtable.hh>
 #include "castor_unicast_filter.hh"
 #include "castor_xcast.hh"
+#include "castor_anno.hh"
 
 CLICK_DECLS
 
 int CastorUnicastFilter::configure(Vector<String> &conf, ErrorHandler *errh) {
-	if(Args(conf, this, errh)
+	return Args(conf, this, errh)
 			.read_p("ACTIVE", active)
-			.complete() < 0)
-		return -1;
-	return 0;
+			.complete();
 }
 
 void CastorUnicastFilter::push(int, Packet *p) {
@@ -28,7 +26,7 @@ void CastorUnicastFilter::push(int, Packet *p) {
 		CastorXcastPkt pkt(p);
 		uint8_t index;
 		for (index = 0; index < pkt.getNNextHops(); index++) {
-			if (pkt.getNextHop(index) == NodeId::make_broadcast()) {
+			if (pkt.getNextHop(index) == NeighborId::make_broadcast()) {
 				isBroadcast = true;
 				break;
 			}
@@ -51,18 +49,18 @@ void CastorUnicastFilter::push(int, Packet *p) {
 			// Push PKT with broadcast destinations
 			CastorXcastPkt local(pkt.getPacket()->clone()->uniqueify());
 			local.keepDestinations(toRemain);
-			local.setSingleNextHop(NodeId::make_broadcast());
+			local.setSingleNextHop(NeighborId::make_broadcast());
 			output(0).push(local.getPacket());
 
 			// Push PKT with unicast destinations
 			pkt.removeDestinations(toRemain);
-			pkt.setSingleNextHop(NodeId());
+			pkt.setSingleNextHop(NeighborId());
 			output(1).push(pkt.getPacket());
 		}
 
 	} else {
 
-		if (CastorPacket::dst_id_anno(p) == NodeId::make_broadcast())
+		if (CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast())
 			output(0).push(p); // Was forwarded to me as broadcast PKT
 		else
 			output(1).push(p); // Was unicast to me as broadcast PKT

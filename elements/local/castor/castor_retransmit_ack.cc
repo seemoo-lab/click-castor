@@ -1,15 +1,16 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include <clicknet/ether.h>
 #include "castor_retransmit_ack.hh"
+#include "castor_anno.hh"
 
 CLICK_DECLS
 
 int CastorRetransmitAck::configure(Vector<String> &conf, ErrorHandler *errh) {
-     return cp_va_kparse(conf, this, errh,
-        "CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
-        "ADDR", cpkP+cpkM, cpIPAddress, &myId,
-        cpEnd);
+	return Args(conf, errh)
+			.read_mp("CastorHistory", ElementCastArg("CastorHistory"), history)
+			.read_mp("ID", myId)
+			.complete();
 }
 
 void CastorRetransmitAck::push(int, Packet *p) {
@@ -29,10 +30,11 @@ void CastorRetransmitAck::push(int, Packet *p) {
 	ack.dst = pkt.src;
 #endif
 
+	// TODO adjust default headroom
 	WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorAck), 0);
-	CastorPacket::dst_id_anno(q) = CastorPacket::src_id_anno(p); // Unicast ACK to PKT sender
+	CastorAnno::dst_id_anno(q) = CastorAnno::src_id_anno(p); // Unicast ACK to PKT sender
 
-	assert(history->hasPktFrom(pkt.pid, CastorPacket::dst_id_anno(q)));
+	assert(history->hasPktFrom(pkt.pid, CastorAnno::dst_id_anno(q)));
 
 	// No longer need PKT
 	p->kill();

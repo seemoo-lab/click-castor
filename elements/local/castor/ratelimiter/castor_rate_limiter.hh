@@ -5,7 +5,7 @@
 #include <click/hashtable.hh>
 #include <click/tokenbucket.hh>
 #include <click/timer.hh>
-#include "../node_id.hh"
+#include "../../neighbordiscovery/neighbor_id.hh"
 #include "castor_rate_limit_table.hh"
 
 CLICK_DECLS
@@ -19,7 +19,7 @@ public:
 
 	void push(int, Packet* p);
 
-	void update(const NodeId&);
+	void update(const NeighborId&);
 private:
 	class RingBuffer {
 	public:
@@ -73,27 +73,27 @@ private:
 
 	class RateTimer : public Timer {
 	public:
-		void set_node(const NodeId& node) { _node = node; }
-		const NodeId& node() const { return _node; }
+		void set_node(const NeighborId& node) { _node = node; }
+		const NeighborId& node() const { return _node; }
 	private:
-		NodeId _node;
+		NeighborId _node;
 	};
 
 	void run_timer(Timer*);
 	void run_timer(RateTimer*);
 
-	void emit_packet(const NodeId&);
+	void emit_packet(const NeighborId&);
 
 	/** Make sure that a timer for node exists and is initialized */
-	void verify_timer_is_init(const NodeId&);
+	void verify_timer_is_init(const NeighborId&);
 	/** Make sure a TokenBucket for node exists and is initialized */
-	void verify_token_is_init(const NodeId&);
+	void verify_token_is_init(const NeighborId&);
 
 	atomic_uint32_t drops;
 
-	HashTable<const NodeId, RingBuffer> buckets;
-	HashTable<const NodeId, TokenBucket> tokens;
-	HashTable<const NodeId, RateTimer> timers;
+	HashTable<const NeighborId, RingBuffer> buckets;
+	HashTable<const NeighborId, TokenBucket> tokens;
+	HashTable<const NeighborId, RateTimer> timers;
 
 	CastorRateLimitTable* rate_limits;
 };

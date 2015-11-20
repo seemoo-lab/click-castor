@@ -1,47 +1,48 @@
 #ifndef CLICK_CASTOR_NODE_ID_HH
 #define CLICK_CASTOR_NODE_ID_HH
 
-#include <click/etheraddress.hh>
+#include <click/ipaddress.hh>
 
 CLICK_DECLS
 
-class NodeId : public EtherAddress {
+class NodeId : public IPAddress {
 public:
-    inline NodeId() : EtherAddress() { }
+    inline NodeId() : IPAddress() { }
 
-    explicit inline NodeId(const unsigned char *data) : EtherAddress(data) { }
+    explicit inline NodeId(const unsigned char *data) : IPAddress(data) { }
 
-    inline NodeId(const uninitialized_type &unused) : EtherAddress(unused) { }
+    inline NodeId(const uninitialized_type &unused) : IPAddress(unused) { }
+
+    inline NodeId(IPAddress addr) : IPAddress(addr.data()) { }
 
 	static NodeId make_broadcast() {
-		return static_cast<NodeId>(EtherAddress::make_broadcast());
+		return static_cast<NodeId>(IPAddress::make_broadcast().data());
+	}
+
+	inline bool is_multicast() const {
+		return IPAddress::is_multicast();
 	}
 
     /** @brief Return a pointer to the address data. */
     inline unsigned char *data() {
-    	return EtherAddress::data();
+    	return IPAddress::data();
     }
 
     /** @overload */
     inline const unsigned char *data() const {
-    	return EtherAddress::data();
+    	return IPAddress::data();
     }
 
     inline bool empty() {
-    	return (uint32_t) sdata()[0] + sdata()[1] + sdata()[2] == (uint32_t) 0;
+    	return IPAddress::empty();
     }
-
-private:
-    inline NodeId(EtherAddress ea) : EtherAddress(ea.data()) { }
 };
 
 class ArgContext;
 class Args;
 extern const ArgContext blank_args;
 
-class NodeIdArg : public EtherAddressArg {
-public:
-    NodeIdArg(int flags = 0) : EtherAddressArg(flags) {}
+class NodeIdArg : public IPAddressArg {
 };
 
 template<> struct DefaultArg<NodeId> : public NodeIdArg {};

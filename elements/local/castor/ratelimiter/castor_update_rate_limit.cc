@@ -1,7 +1,8 @@
 #include <click/config.h>
 #include <click/args.hh>
-#include "../castor.hh"
 #include "castor_update_rate_limit.hh"
+#include "../castor.hh"
+#include "../castor_anno.hh"
 
 CLICK_DECLS
 
@@ -15,7 +16,7 @@ int CastorUpdateRateLimit::configure(Vector<String> &conf, ErrorHandler *errh) {
 Packet* CastorUpdateRateLimit::simple_action(Packet* p) {
 	assert(CastorPacket::getType(p) == CastorType::ACK);
 
-	const PacketId& pid = CastorPacket::getCastorAnno(p);
+	const PacketId& pid = CastorAnno::hash_anno(p);
 
 	const auto& senders = history->getPktSenders(pid);
 

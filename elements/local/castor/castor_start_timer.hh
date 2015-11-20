@@ -40,7 +40,7 @@ private:
 	CastorTimeoutTable* toTable;
 	CastorHistory* history;
 	CastorRateLimitTable* rate_limits;
-	NodeId myId;
+	NeighborId myId;
 
 	bool verbose;
 };

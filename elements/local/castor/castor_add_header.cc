@@ -45,8 +45,6 @@ void CastorAddHeader::push(int, Packet *p) {
 		header->fauth[i] = label.fauth[i];
 	header->pauth = label.aauth; // not yet encrypted (!)
 
-	CastorPacket::set_src_id_anno(p, header->src);
-
 	output(0).push(q);
 }
 

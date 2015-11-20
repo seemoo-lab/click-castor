@@ -9,6 +9,7 @@ elementclass CastorHandleMulticastIpPacket {
 	input
 	-> CastorXcastSetFixedHeader($flowmanager)
 	-> CastorXcastSetDestinations($crypto, map)
+	-> CastorAnnotateId($myEth, OFFSET SRC)
 	//-> CastorPrint('Send', $myIP, $fullSend)
 	-> rec :: CastorRecordPkt
 	-> output;

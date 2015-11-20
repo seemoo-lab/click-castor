@@ -2,6 +2,7 @@
 #include <click/args.hh>
 #include "castor_rate_limiter.hh"
 #include "../castor.hh"
+#include "../castor_anno.hh"
 
 CLICK_DECLS
 
@@ -18,7 +19,7 @@ int CastorRateLimiter::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorRateLimiter::push(int, Packet* p) {
-	NodeId sender = CastorPacket::src_id_anno(p);
+	const auto& sender = CastorAnno::src_id_anno(p);
 
 	verify_token_is_init(sender);
 
@@ -33,7 +34,7 @@ void CastorRateLimiter::push(int, Packet* p) {
 	}
 }
 
-void CastorRateLimiter::update(const NodeId& node) {
+void CastorRateLimiter::update(const NeighborId& node) {
 	verify_token_is_init(node);
 	auto new_rate = rate_limits->lookup(node).value();
 	auto& current = tokens[node];
@@ -51,7 +52,7 @@ void CastorRateLimiter::run_timer(RateTimer* timer) {
 	emit_packet(timer->node());
 }
 
-void CastorRateLimiter::emit_packet(const NodeId& node) {
+void CastorRateLimiter::emit_packet(const NeighborId& node) {
 	tokens[node].refill();
 	auto& bucket = buckets[node];
 	while (!bucket.empty() && tokens[node].contains(1)) {
@@ -76,7 +77,7 @@ void CastorRateLimiter::emit_packet(const NodeId& node) {
 	}
 }
 
-void CastorRateLimiter::verify_timer_is_init(const NodeId& node) {
+void CastorRateLimiter::verify_timer_is_init(const NeighborId& node) {
 	auto& timer = timers[node];
 	if (!timer.initialized()) {
 		timer.set_node(node);
@@ -85,7 +86,7 @@ void CastorRateLimiter::verify_timer_is_init(const NodeId& node) {
 	}
 }
 
-void CastorRateLimiter::verify_token_is_init(const NodeId& node) {
+void CastorRateLimiter::verify_token_is_init(const NeighborId& node) {
 	if (tokens.count(node) == 0) {
 		tokens.set(node, TokenBucket(
 				rate_limits->lookup(node).value(),

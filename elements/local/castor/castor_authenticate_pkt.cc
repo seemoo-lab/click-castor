@@ -2,6 +2,7 @@
 #include <click/confparse.hh>
 #include "castor_authenticate_pkt.hh"
 #include "castor_xcast.hh"
+#include "castor_anno.hh"
 
 CLICK_DECLS
 
@@ -18,13 +19,13 @@ void CastorAuthenticatePkt::push(int, Packet *p) {
 	if(CastorPacket::isXcast(p)) {
 		CastorXcastPkt pkt = CastorXcastPkt(p);
 
-		const PacketId& computedPid = crypto->hash(CastorPacket::getCastorAnno(p));
+		const PacketId& computedPid = crypto->hash(CastorAnno::hash_anno(p));
 
 		isPidValid = computedPid == pkt.getPid(0); // Pkt should only include a single pid
 	} else {
 		CastorPkt& pkt = (CastorPkt&) *p->data();
 
-		const PacketId& computedPid = crypto->hash(CastorPacket::getCastorAnno(p));
+		const PacketId& computedPid = crypto->hash(CastorAnno::hash_anno(p));
 
 		isPidValid = (computedPid == pkt.pid);
 	}

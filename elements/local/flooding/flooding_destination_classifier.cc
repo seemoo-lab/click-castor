@@ -1,26 +1,25 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include <click/vector.hh>
 #include "flooding_destination_classifier.hh"
-
 
 CLICK_DECLS
 
 int FloodingDestinationClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return cp_va_kparse(conf, this, errh,
-		"ADDR", cpkP+cpkM, cpIPAddress, &myIP,
-		"MAP", cpkP+cpkM, cpElementCast, "CastorXcastDestinationMap", &map,
-		cpEnd);
+	return Args(conf, errh)
+			.read_mp("ID", myIP)
+			.read_mp("MAP", ElementCastArg("CastorXcastDestinationMap"), map)
+			.complete();
 }
 
 void FloodingDestinationClassifier::push(int, Packet *p) {
 
-	IPAddress dst(p->ip_header()->ip_dst);
+	GroupId dst(IPAddress(p->ip_header()->ip_dst).data());
 
 	bool isDestination = false;
-	const Vector<IPAddress>& dsts = map->getDestinations(dst);
-	for (Vector<IPAddress>::const_iterator it = dsts.begin(); it != dsts.end(); it++) {
-		if (*it == myIP) {
+	const auto& dsts = map->get(dst);
+	for (const auto& dst : dsts) {
+		if (dst == GroupId(myIP)) {
 			isDestination = true;
 			break;
 		}

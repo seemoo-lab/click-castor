@@ -5,6 +5,7 @@
 #include <click/hashtable.hh>
 #include "castor.hh"
 #include "castor_timeout.hh"
+#include "../neighbordiscovery/neighbor_id.hh"
 
 CLICK_DECLS
 
@@ -17,10 +18,10 @@ public:
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	CastorTimeout& getTimeout(const FlowId& flow, const SubflowId& subflow, NodeId forwarder);
+	CastorTimeout& getTimeout(const FlowId& flow, const SubflowId& subflow, const NeighborId& forwarder);
 
 private:
-	typedef HashTable<NodeId, CastorTimeout> ForwarderEntry;
+	typedef HashTable<NeighborId, CastorTimeout> ForwarderEntry;
 	typedef HashTable<SubflowId, ForwarderEntry> SubflowEntry;
 	typedef HashTable<FlowId, SubflowEntry> FlowEntry;
 	FlowEntry flows;

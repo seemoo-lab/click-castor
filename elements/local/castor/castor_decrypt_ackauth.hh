@@ -12,15 +12,12 @@ CLICK_DECLS
 class CastorDecryptAckAuth : public Element {
 
 public:
-	CastorDecryptAckAuth() : crypto(NULL) {}
-
 	const char *class_name() const { return "CastorDecryptAckAuth"; }
-	const char *port_count() const { return PORTS_1_1; }
+	const char *port_count() const { return "1/1-2"; }
 	const char *processing() const { return PUSH; }
 	int configure(Vector<String>&, ErrorHandler*);
 
 	void push(int, Packet*);
-
 private:
 	Crypto* crypto;
 
