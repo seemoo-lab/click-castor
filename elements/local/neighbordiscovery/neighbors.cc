@@ -13,7 +13,9 @@ int Neighbors::configure(Vector<String>& conf, ErrorHandler* errh) {
 	return result;
 }
 
-void Neighbors::run_timer(Timer*) {
+void Neighbors::run_timer(Timer* _timer) {
+	assert(_timer == &timer);
+
 	ListNode *node;
 
 	// Fetch expired neighbors from the timer queue and remove them from the neighbors set
