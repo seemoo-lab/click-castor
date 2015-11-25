@@ -49,7 +49,7 @@ elementclass DynamicEtherEncap {
 
 	input
 		-> EtherEncap($ETHERTYPE_CASTOR, $myAddr, 00:00:00:00:00:00)
-		-> StoreEtherAddress(OFFSET dst, ANNO 12)
+		-> StoreEtherAddress(OFFSET dst, ANNO 6)
 		-> output;
 }
 
@@ -76,7 +76,7 @@ elementclass CastorHandleAck {
 		//-> CastorPrint("Unknown corresponding PKT", $myIP)
 		-> null;
 	authenticate[2]
-		//-> CastorPrint("Too late", $myIP)
+		-> CastorPrint("Too late (SHOULD NO LONGER OCCUR!)", $myIP)
 		-> null;
 	authenticate[3]
 		// Might rarely happen if MAC ACK was lost and Castor ACK is retransmitted
