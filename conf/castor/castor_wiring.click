@@ -4,7 +4,7 @@
 
 fromhost
 	-> handleIpPacket
-	-> SetEtherAddress(ANNO 0, ADDR fake)
+	-> annoSrcAddr :: SetEtherAddress(ANNO 0, ADDR fake)
 	-> handlepkt;		// Process new generated packets
 
 castorclassifier[0]
@@ -18,5 +18,5 @@ handlepkt[1]		-> DynamicEtherEncap(fake) -> [1]ethout; // Return ACK
 handlepkt[2]		-> DynamicEtherEncap(fake) -> [0]ethout; // Forward PKT
 handleack			-> DynamicEtherEncap(fake) -> [1]ethout; // Forward ACK
 
-beacons :: NeighborBeaconGenerator($beaconingInterval, $EthDev, $neighborsEnable)
+beacons :: NeighborBeaconGenerator($beaconingInterval, fake, $neighborsEnable)
 	-> [2]ethout;

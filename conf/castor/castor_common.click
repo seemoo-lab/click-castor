@@ -53,14 +53,6 @@ elementclass DynamicEtherEncap {
 		-> output;
 }
 
-elementclass CastorSendAck {
-	$myAddr |
-	
-	input
-		-> recAck :: CastorRecordPkt
-		-> output;
-}
-
 elementclass CastorHandleAck {
 	$myIP, $routingtable, $timeouttable, $ratelimits, $history, $neighbors, $crypto, $promisc |
 
@@ -75,7 +67,7 @@ elementclass CastorHandleAck {
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
 		-> updateRate :: CastorUpdateRateLimit($ratelimits, $history)
 		-> CastorSetAckNexthop($history, $neighbors, $promisc)[0,1]
-		-> sendAck :: CastorSendAck($myIP)
+		-> recAck :: CastorRecordPkt
 		-> output;
 
 	// Discarding...

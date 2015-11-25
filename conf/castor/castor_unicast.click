@@ -101,7 +101,7 @@ elementclass CastorHandlePkt {
 		-> [2]output;
 
 	handleLocal[1]
-		-> sendAck :: CastorSendAck($myIP)
+		-> recAck :: CastorRecordPkt
 		-> [1]output;
 	
 	// Need to retransmit ACK
@@ -110,7 +110,7 @@ elementclass CastorHandlePkt {
 		-> CastorAddPktToHistory($history)
 		-> CastorRetransmitAck($history)
 		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
-		-> sendAck;
+		-> recAck;
 
 	// If invalid or duplicate -> discard
 	null :: Discard;
