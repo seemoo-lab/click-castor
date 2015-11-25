@@ -6,6 +6,8 @@ sam::SAManagement(fake);
 crypto::Crypto(sam);
 flowmanager :: CastorFlowManager(crypto);
 
+groupmap :: CastorXcastDestinationMap;
+
 neighbors :: Neighbors($neighborTimeout, $neighborsEnable);
 history :: CastorHistory;
 routingtable :: CastorRoutingTable($updateDelta);

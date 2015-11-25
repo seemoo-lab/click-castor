@@ -13,7 +13,7 @@ routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, $broadcast
 handlepkt :: CastorHandlePkt(fake, routeselector, routingtable, timeouttable, ratelimits, history, crypto);
 handleack :: CastorHandleAck(fake, routingtable, timeouttable, ratelimits, history, neighbors, crypto, true);
 
-handleIpPacket :: CastorHandleMulticastToUnicastIpPacket(fake, flowmanager, crypto);
+handleIpPacket :: CastorHandleMulticastToUnicastIpPacket(fake, flowmanager, crypto, groupmap);
 removeHeader :: CastorRemoveHeader;
 
 // Finally wire all blocks

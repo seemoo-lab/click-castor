@@ -48,7 +48,7 @@ elementclass FloodingHandlePkt {
 		-> [1]output; // Forward the message
 
 	// Dummy element for evaluation in ns-3
-	Idle() -> recAck :: FloodingRecordPkt(map) -> Discard;
+	Idle() -> recAck :: FloodingRecordPkt($map) -> Discard;
 }
 
 
@@ -63,10 +63,10 @@ fromhostdev -> fromhost :: FromHost(fake);
 tohost :: ToHost() -> tohostdev;
 Idle() -> [1]tohost;
 
-map :: CastorXcastDestinationMap;
+groupmap :: CastorXcastDestinationMap;
 
-handleIpPacket :: HandleIPPacket(map);
-handlepkt :: FloodingHandlePkt(fake, map);
+handleIpPacket :: HandleIPPacket(groupmap);
+handlepkt :: FloodingHandlePkt(fake, groupmap);
 
 /*******************
  * Wire the Blocks *
@@ -86,5 +86,5 @@ handlepkt[1]
 
 // Dummy elements for evaluation in ns-3
 neighbors :: Neighbors(0, false);
-Idle() -> handleack :: { -> recAck :: FloodingRecordPkt(map) -> } -> Discard;
+Idle() -> handleack :: { -> recAck :: FloodingRecordPkt(groupmap) -> } -> Discard;
 Idle() -> recBeacon :: CastorRecordPkt -> Discard;

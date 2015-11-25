@@ -2,12 +2,10 @@
  * Creates IP unicast from multicast packets
  */
 elementclass CastorHandleMulticastToUnicastIpPacket {
-	$myAddrInfo, $flowmanager, $crypto |
+	$myAddrInfo, $flowmanager, $crypto, $map |
 	
-	map :: CastorXcastDestinationMap
-
 	input
-	-> CastorXcastToUnicast(map)
+	-> CastorXcastToUnicast($map)
 	=> (input[0] -> output;
 	    input[1] -> SetIPChecksum -> output;)
 	-> CastorAddHeader($flowmanager)
