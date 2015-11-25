@@ -23,7 +23,7 @@ elementclass BroadcastJitter {
 	$broadcastJitter |
 
 	input
-		-> cp :: CheckPaint(10, ANNO 32) // this frame was broadcasted -> jitter transmission (Paint(10))
+		-> cp :: CheckPaint(10, ANNO 38) // this frame was broadcasted -> jitter transmission (Paint(10))
 		-> Queue
 		-> JitterUnqueue($broadcastJitter, true) // 'true' set for simulator -> much better performance
 		-> output;

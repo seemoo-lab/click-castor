@@ -3,7 +3,9 @@
  **************/
 
 define(
-	$CASTORTYPE 201,
+	// 0x88B5 and 0x88B6 reserved for private experiments, so we use them
+	$ETHERTYPE_CASTOR 0x88B6,
+	$ETHERTYPE_BEACON 0x88B5,
 
 	/** Castor parameters (settings from experimental setup of Castor technical report) **/
 	$broadcastAdjust 8.0, // bandwidth investment for route discovery (larger values reduce the broadcast probability)

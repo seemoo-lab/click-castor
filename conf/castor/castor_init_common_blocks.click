@@ -12,9 +12,10 @@ routingtable :: CastorRoutingTable($updateDelta);
 timeouttable :: CastorTimeoutTable(INIT $initTo, MIN $minTo, MAX $maxTo);
 ratelimits :: CastorRateLimitTable(INIT $initRate, MIN $minRate, MAX $maxRate);
 
-castorclassifier :: CastorClassifier(fake, neighbors, ratelimits);
+castorclassifier :: CastorClassifier(fake, neighbors)
+ratelimiter :: CastorRateLimiter(ratelimits);
 
-fromextdev -> ethin :: InputEthNoHostFilter($EthDev, fake);
+fromextdev -> castorclassifier;
 ethout :: OutputEth($broadcastJitter) -> toextdev;
 fromhostdev -> fromhost :: FromHost(fake);
 tohost :: ToHost() -> tohostdev;

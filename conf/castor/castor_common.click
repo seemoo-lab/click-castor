@@ -2,67 +2,62 @@ define(
 	$fullSend false,
 );
 
-
-elementclass CastorEtherFilter {
-	input
-		-> beaconClassifier :: Classifier(12/88B5, -) // Castor beacon; other
-		-> removeEthernetHeader :: Strip(14)
-		-> [1]output; // Castor beacon
-		
-	beaconClassifier[1]
-		-> removeEthernetHeader2 :: Strip(14)
-		-> [0]output; // Castor PKT or ACK
-}
-
 /**
  * Paint frames that were broadcasted by the sender
  */
 elementclass BroadcastPainter {
 	input[0]
-		-> dstFilter :: IPClassifier(dst host 255.255.255.255, -)
-		-> Paint(10, ANNO 32) // Packet was broadcast to us
+		-> broadcastFilter :: HostEtherFilter(FF:FF:FF:FF:FF:FF)
+		-> Paint(10, ANNO 38) // Packet was broadcast to us
 		-> output;
 
-	dstFilter[1]
+	broadcastFilter[1]
 		-> output; // Packet was unicasted to us (no paint)
 }
 
 elementclass CastorClassifier {
-
-	$myIP, $neighbors, $ratelimits |
+	$myAddr, $neighbors |
 
 	input
-		-> CheckIPHeader
-		-> AddIPNeighbor($neighbors, ENABLE $neighborsEnable)
+		-> annoSrcAddr :: GetEtherAddress(ANNO 0, OFFSET src)
+		-> AddNeighbor($neighbors, ENABLE $neighborsEnable) // add all neighbors that we receive transmissions from
+		-> HostEtherFilter($myAddr) // FromSimDevice is always in promisc mode, so filter here
 		-> BroadcastPainter
-		-> annotateSourceAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
-		-> annotateDestAddress :: GetIPAddress(IP dst, ANNO 0)
-		-> addressfilter :: IPClassifier(dst host $myIP or 255.255.255.255, -) // We filter by IP address
-		-> ipclassifier :: IPClassifier(ip proto $CASTORTYPE, -)
-		-> StripIPHeader
-		-> cclassifier :: Classifier(0/c?, 0/a?);
-
-	addressfilter[1]
-		-> Discard; // not intended for us
+		-> annoDstAddr :: GetEtherAddress(ANNO 6, OFFSET dst)
+		-> ethclassifier :: Classifier(12/88B6, 12/88B5, -) // (0) Castor PKT/ACK; (1) beacon; (2) other
+		-> removeEthernetHeader :: Strip(14)
+		-> cclassifier :: Classifier(0/c?, 0/a?, -);
 
 	cclassifier[0] // Castor PKTs -> output 0
-		-> CastorRateLimiter($ratelimits)
 		-> [0]output;
 
 	cclassifier[1] // Castor ACKs -> output 1
 		-> [1]output;
 
-	ipclassifier[1] // Other packets -> output 2
-		-> [2]output;
+	cclassifier[2] // Malformed Castor packet
+		-> Discard;
 
+	ethclassifier[1] // Beacon
+		-> Discard
+
+	ethclassifier[2] // Other packet
+		-> [2]output;
+}
+
+elementclass DynamicEtherEncap {
+	$myAddr |
+
+	input
+		-> EtherEncap($ETHERTYPE_CASTOR, $myAddr, $myAddr)
+		-> StoreEtherAddress(OFFSET dst, ANNO 12)
+		-> output;
 }
 
 elementclass CastorSendAck {
-	$myIP |
+	$myAddr |
 	
 	input
 		-> recAck :: CastorRecordPkt
-		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)
 		-> output;
 }
 
