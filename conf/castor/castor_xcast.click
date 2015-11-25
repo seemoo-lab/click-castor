@@ -8,8 +8,7 @@ elementclass CastorHandleMulticastIpPacket {
 
 	input
 	-> CastorXcastSetFixedHeader($flowmanager)
-	-> CastorXcastSetDestinations($crypto, map)
-	-> CastorAnnotateId($myEth, OFFSET SRC)
+	-> CastorXcastSetDestinations($crypto, map, $myIP)
 	//-> CastorPrint('Send', $myIP, $fullSend)
 	-> rec :: CastorRecordPkt
 	-> output;
@@ -47,10 +46,9 @@ elementclass CastorForwardXcastPkt {
 	input
 		-> route :: CastorXcastLookupRoute($routeselector)
 		-> CastorAddXcastPktToHistory($history)
-		-> CastorStartTimer($routingtable, $timeouttable, $history, $ratelimits, NodeId $myIP, VERBOSE false)
+		-> CastorStartTimer($routingtable, $timeouttable, $history, $ratelimits, ID $myIP, VERBOSE true)
 		//-> CastorPrint('Forwarding', $myIP)
 		-> rec :: CastorRecordPkt
-		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO) // Encapsulate in a new IP Packet
 		-> output;
 		
 	route[1]
@@ -72,25 +70,23 @@ elementclass CastorHandleXcastPkt {
 		-> forwarderClassifier :: CastorXcastForwarderClassifier($myIP)
 		-> checkDuplicate :: CastorXcastCheckDuplicate($history, $myIP)
 		-> validate :: CastorXcastAuthenticateFlow($crypto)
-		-> destinationClassifier :: CastorXcastDestClassifier($myIP);
+		-> destinationClassifier :: CastorXcastDestClassifier(ENDID $myIP, ID $myIP);
 
  	// PKT arrived at destination
 	destinationClassifier[0]
 		-> handleLocal :: CastorLocalXcastPkt($myIP, $history, $crypto)
 		-> [0]output;
 
-	sendAck :: CastorSendAck($myIP)
-		-> [1]output;
-
 	handleLocal[1]
-		-> sendAck;
+		-> recAck :: CastorRecordPkt
+		-> [1]output;
 
 	// Need to retransmit ACK
 	checkDuplicate[1]
 		-> CastorAddXcastPktToHistory($history)
-		-> CastorXcastRetransmitAck($history, $myIP)
+		-> CastorXcastRetransmitAck($history)
 		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
-		-> sendAck;
+		-> recAck;
 
 	// PKT needs to be forwarded
 	destinationClassifier[1]

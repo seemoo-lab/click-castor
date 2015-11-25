@@ -6,7 +6,6 @@ elementclass CastorHandleUnicastIpPacket {
 
 	-> CastorAddHeader($flowmanager)
 	-> CastorEncryptAckAuth($crypto)
-	-> CastorAnnotateId($myEth, OFFSET SRC)
 	//-> CastorPrint('Send', $myIP, $fullSend)
 	-> rec :: CastorRecordPkt
 	-> output;
@@ -26,7 +25,6 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 	    input[1] -> SetIPChecksum -> output;)
 	-> CastorAddHeader($flowmanager)
 	-> CastorEncryptAckAuth($crypto)
-	-> CastorAnnotateId(ID $myAddrInfo, OFFSET SRC)
 	//-> CastorPrint('Send', $myIP, $fullSend)
 	-> rec :: CastorRecordPkt
 	-> output;
