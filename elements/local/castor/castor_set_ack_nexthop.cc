@@ -17,18 +17,18 @@ void CastorSetAckNexthop::push(int, Packet* p) {
 	const PacketId& pid = CastorAnno::hash_anno(p);
 	NeighborId dst = history->getPktSenders(pid)[0];  // set default ACK destination to initial PKT sender
 
-	// Use broadcast if there are at least two other neighbors than the ACK sender
-	// We also use broadcast (opportunistically) if the ACK sender is our only current neighbor
-	bool use_broadcast = neighbors->size() != 2;
-
 	// Walk through the list of PKT senders and select the first one that is still a neighbor
-	for (size_t i = 0; i < history->getPkts(pid); i++) {
-		NeighborId pktSender = history->getPktSenders(pid)[i];
-		if (neighbors->contains(pktSender)) {
-			dst = pktSender;
-			break;
+	size_t active_count = 0;
+	for (const auto& sender : history->getPktSenders(pid)) {
+		if (neighbors->contains(sender)) {
+			if (active_count == 0)
+				dst = sender;
+			active_count++;
 		}
 	}
+	// Use broadcast if there are at least two other neighbors than the ACK sender
+	// We also use broadcast (opportunistically) if the ACK sender is our only current neighbor
+	bool use_broadcast = active_count != 2;
 
 	// Set packet destination
 	CastorAnno::dst_id_anno(p) = use_broadcast ? NeighborId::make_broadcast() : dst;
