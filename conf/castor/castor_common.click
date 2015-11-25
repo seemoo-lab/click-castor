@@ -48,7 +48,7 @@ elementclass DynamicEtherEncap {
 	$myAddr |
 
 	input
-		-> EtherEncap($ETHERTYPE_CASTOR, $myAddr, $myAddr)
+		-> EtherEncap($ETHERTYPE_CASTOR, $myAddr, 00:00:00:00:00:00)
 		-> StoreEtherAddress(OFFSET dst, ANNO 12)
 		-> output;
 }
