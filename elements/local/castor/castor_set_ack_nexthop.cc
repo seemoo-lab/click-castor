@@ -9,7 +9,6 @@ int CastorSetAckNexthop::configure(Vector<String> &conf, ErrorHandler *errh) {
     return cp_va_kparse(conf, this, errh,
 		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
 		"Neighbors", cpkP+cpkM, cpElementCast, "Neighbors", &neighbors,
-		"PROMISC", cpkP+cpkM, cpBool, &promisc,
         cpEnd);
 }
 
@@ -32,10 +31,9 @@ void CastorSetAckNexthop::push(int, Packet* p) {
 
 	// Set packet destination
 	CastorAnno::dst_id_anno(p) = use_broadcast ? NeighborId::make_broadcast() : dst;
-	if (promisc)
-		CastorAnno::hop_id_anno(p) = dst;
+	CastorAnno::hop_id_anno(p) = dst;
 
-	output(use_broadcast).push(p);
+	output(0).push(p);
 }
 
 CLICK_ENDDECLS
