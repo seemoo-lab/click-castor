@@ -29,9 +29,9 @@ public:
 	}
 
 	/** Position of annotation fields, we have a maximum of Packet::anno_size = 48 bytes (!) */
-	static const uint8_t dst_id_anno_offset = 0;
-	static const uint8_t src_id_anno_offset = dst_id_anno_offset + sizeof(NeighborId);
-	static const uint8_t hop_id_anno_offset = src_id_anno_offset + sizeof(NeighborId);
+	static const uint8_t src_id_anno_offset = 0;
+	static const uint8_t dst_id_anno_offset = src_id_anno_offset + sizeof(NeighborId);
+	static const uint8_t hop_id_anno_offset = dst_id_anno_offset + sizeof(NeighborId);
 	static const uint8_t castor_anno_offset = hop_id_anno_offset + sizeof(NeighborId);
 	static const uint8_t castor_paint_offset = castor_anno_offset + sizeof(Hash);
 

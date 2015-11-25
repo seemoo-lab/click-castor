@@ -7,9 +7,8 @@
 CLICK_DECLS
 
 int CastorRetransmitAck::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return Args(conf, errh)
+	return Args(conf, this, errh)
 			.read_mp("CastorHistory", ElementCastArg("CastorHistory"), history)
-			.read_mp("ID", myId)
 			.complete();
 }
 
@@ -33,6 +32,7 @@ void CastorRetransmitAck::push(int, Packet *p) {
 	// TODO adjust default headroom
 	WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorAck), 0);
 	CastorAnno::dst_id_anno(q) = CastorAnno::src_id_anno(p); // Unicast ACK to PKT sender
+	CastorAnno::hop_id_anno(q) = CastorAnno::dst_id_anno(q);
 
 	assert(history->hasPktFrom(pkt.pid, CastorAnno::dst_id_anno(q)));
 

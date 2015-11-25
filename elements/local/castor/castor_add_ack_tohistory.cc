@@ -6,7 +6,7 @@
 CLICK_DECLS
 
 int CastorAddAckToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return Args(conf, errh)
+	return Args(conf, this, errh)
 			.read_mp("CastorHistory", ElementCastArg("CastorHistory"), history)
 			.complete();
 }

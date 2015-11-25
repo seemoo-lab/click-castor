@@ -17,6 +17,7 @@ void CastorCreateAck::push(int, Packet* p) {
 	// TODO fix headroom size
 	WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorAck), 0);
 	CastorAnno::dst_id_anno(q) = CastorAnno::src_id_anno(p); // Set DST_ANNO to source of PKT
+	CastorAnno::hop_id_anno(q) = CastorAnno::dst_id_anno(q);
 
 	output(0).push(p); // PKT -> output 0
 	output(1).push(q); // ACK -> output 1

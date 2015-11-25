@@ -13,7 +13,7 @@ double CastorRateLimit::sigma_increase;
 double CastorRateLimit::sigma_decrease;
 
 int CastorRateLimitTable::configure(Vector<String> &conf, ErrorHandler *errh) {
-	if (Args(conf, errh)
+	if (Args(conf, this, errh)
 		.read_or_set("MIN",  CastorRateLimit::min_rate,    1)
 		.read_or_set("MAX",  CastorRateLimit::max_rate,  100)
 		.read_or_set("INIT", CastorRateLimit::init_rate,   1)

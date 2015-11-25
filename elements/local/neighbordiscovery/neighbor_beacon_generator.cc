@@ -8,7 +8,7 @@
 CLICK_DECLS
 
 int NeighborBeaconGenerator::configure(Vector<String>& conf, ErrorHandler* errh) {
-	return Args(conf, errh)
+	return Args(conf, this, errh)
 			.read_mp("INTERVAL", interval)
 			.read_mp("ID", my_id)
 			.read_or_set_p("ENABLE", enabled, true)

@@ -7,7 +7,7 @@
 CLICK_DECLS
 
 int CastorDecryptAckAuth::configure(Vector<String>& conf, ErrorHandler* errh) {
-	return Args(conf, errh)
+	return Args(conf, this, errh)
 			.read_mp("Crypto", ElementCastArg("Crypto"), crypto)
 			.complete();
 }

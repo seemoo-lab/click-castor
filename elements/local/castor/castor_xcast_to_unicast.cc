@@ -29,5 +29,4 @@ void CastorXcastToUnicast::push(int, Packet *p) {
 }
 
 CLICK_ENDDECLS
-ELEMENT_REQUIRES(IP)
 EXPORT_ELEMENT(CastorXcastToUnicast)

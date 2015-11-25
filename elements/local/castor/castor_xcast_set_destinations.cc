@@ -7,7 +7,7 @@
 CLICK_DECLS
 
 int CastorXcastSetDestinations::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return Args(conf, errh)
+	return Args(conf, this, errh)
 			.read_mp("Crypto", ElementCastArg("Crypto"), crypto)
 			.read_mp("MAP", ElementCastArg("CastorXcastDestinationMap"), map)
 			.read_mp("ID", my_id)

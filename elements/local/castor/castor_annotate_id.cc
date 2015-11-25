@@ -7,7 +7,7 @@ CLICK_DECLS
 
 int CastorAnnotateId::configure(Vector<String> &conf, ErrorHandler *errh) {
 	String _offset;
-	if (Args(conf, errh)
+	if (Args(conf, this, errh)
 			.read_mp("ID", id)
 			.read_mp("OFFSET", AnyArg(), _offset)
 			.complete() < 0)

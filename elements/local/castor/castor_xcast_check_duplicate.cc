@@ -8,7 +8,7 @@
 CLICK_DECLS
 
 int CastorXcastCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return Args(conf, errh)
+	return Args(conf, this, errh)
 			.read_mp("CastorHistory", ElementCastArg("CastorHistory"), history)
 			.read_mp("ID", myId)
 			.complete();

@@ -13,7 +13,7 @@ CastorStartTimer::PidTimer::PidTimer(CastorStartTimer *element, const PacketId p
 }
 
 int CastorStartTimer::configure(Vector<String>& conf, ErrorHandler* errh) {
-	return Args(conf, errh)
+	return Args(conf, this, errh)
 			.read_mp("RT", ElementCastArg("CastorRoutingTable"), table)
 			.read_mp("TO", ElementCastArg("CastorTimeoutTable"), toTable)
 			.read_mp("HISTORY", ElementCastArg("CastorHistory"), history)

@@ -6,7 +6,7 @@
 CLICK_DECLS
 
 int CastorNoLoopback::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return Args(conf, errh)
+	return Args(conf, this, errh)
 			.read_mp("CastorHistory", ElementCastArg("CastorHistory"), history)
 			.read_mp("ID", id)
 			.complete();
@@ -14,7 +14,6 @@ int CastorNoLoopback::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 void CastorNoLoopback::push(int, Packet* p) {
 	const PacketId& pid = CastorAnno::hash_anno(p);
-
 	if(history->hasPktFrom(pid, id))
 		output(1).push(p);  // ACK arrived at source of corresponding PKT
 	else

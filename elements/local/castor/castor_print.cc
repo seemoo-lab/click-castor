@@ -18,7 +18,6 @@ int CastorPrint::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 Packet* CastorPrint::simple_action(Packet *p) {
-
 	StringAccum sa;
 	sa << "[" << Timestamp::now() << "@" << myId << "] " << label << " ";
 
@@ -33,14 +32,14 @@ Packet* CastorPrint::simple_action(Packet *p) {
 			if(verbose) {
 				sa << "\n";
 				sa << "   | From: \t" << CastorAnno::src_id_anno(p) << "\n";
-				sa << "   | To: \t" << p->dst_ip_anno() << "\n";
+				sa << "   | To: \t" << CastorAnno::dst_id_anno(p) << "\n";
 				sa << "   | Type: \tPKT (header " <<  ntohs(pkt.len) << " / payload " << (p->length() - ntohs(pkt.len)) << " bytes)\n";
 				sa << "   | Flow: \t" << pkt.src << " -> " << pkt.dst << "\n";
 				sa << "   | Flow ID: \t" << pkt.fid.str() << "\n";
 				sa << "   | PKT ID: \t" << pkt.pid.str() << " (" << (ntohs(pkt.kpkt) + 1) << "/" << (1 << pkt.fsize) << ")\n";
 				sa << "   | PKT Auth: \t" << pkt.pauth.str();
 			} else {
-				sa << "PKT (from " << CastorAnno::src_id_anno(p) << " to " << p->dst_ip_anno() << ", flow " << pkt.src << " -> " << pkt.dst << "): " << pkt.pid.str();
+				sa << "PKT (from " << CastorAnno::src_id_anno(p) << " to " << CastorAnno::dst_id_anno(p) << ", flow " << pkt.src << " -> " << pkt.dst << "): " << pkt.pid.str();
 			}
 		}
 
@@ -51,23 +50,23 @@ Packet* CastorPrint::simple_action(Packet *p) {
 		if(verbose) {
 			sa << "\n";
 			sa << "   | From: \t" << CastorAnno::src_id_anno(p) << "\n";
-			sa << "   | To: \t" << p->dst_ip_anno() << "\n";
+			sa << "   | To: \t" << CastorAnno::dst_id_anno(p) << "\n";
 			sa << "   | Type: \tACK  (" <<  ack.len << " bytes)\n";
 			sa << "   | ACK Auth: \t" << ack.auth.str() << "\n";
 #ifdef DEBUG_ACK_SRCDST
 			sa << "   | Flow: \t" << ack.src << " -> " << ack.dst << "\n";
 #endif
 		} else {
-			sa << "ACK (from " << CastorAnno::src_id_anno(p) << " to " << p->dst_ip_anno() << "): " << ack.auth.str();
+			sa << "ACK (from " << CastorAnno::src_id_anno(p) << " to " << CastorAnno::dst_id_anno(p) << "): " << ack.auth.str();
 		}
 
 	} else {
-		sa << "UNKNOWN (from " << CastorAnno::src_id_anno(p) << " to " << p->dst_ip_anno() << ")";
+		sa << "UNKNOWN (from " << CastorAnno::src_id_anno(p) << " to " << CastorAnno::dst_id_anno(p) << ")";
 	}
 
 	click_chatter("%s", sa.c_str());
 
-    output(0).push(p);
+    return p;
 }
 
 CLICK_ENDDECLS
