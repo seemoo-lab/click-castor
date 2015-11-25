@@ -7,17 +7,14 @@
 CLICK_DECLS
 
 class FloodingSetPktId : public Element {
-	public:
-		FloodingSetPktId() : seq(0) {}
+public:
+	const char *class_name() const	{ return "FloodingSetPktId"; }
+	const char *port_count() const	{ return PORTS_1_1; }
+	const char *processing() const	{ return AGNOSTIC; }
 
-		const char *class_name() const	{ return "FloodingSetPktId"; }
-		const char *port_count() const	{ return PORTS_1_1; }
-		const char *processing() const	{ return PUSH; }
-
-		void push(int, Packet *);
-
-	private:
-		Flooding::Id seq;
+	Packet* simple_action(Packet *);
+private:
+	Flooding::Id seq;
 };
 
 CLICK_ENDDECLS

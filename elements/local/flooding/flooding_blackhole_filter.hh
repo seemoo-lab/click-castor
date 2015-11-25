@@ -6,21 +6,19 @@
 CLICK_DECLS
 
 class FloodingBlackholeFilter : public Element {
-	public:
-		FloodingBlackholeFilter() : active(false) {}
+public:
+	const char *class_name() const	{ return "FloodingBlackholeFilter"; }
+	const char *port_count() const	{ return "1/2"; }
+	const char *processing() const	{ return PUSH; }
+	int configure(Vector<String>&, ErrorHandler*);
 
-		const char *class_name() const	{ return "FloodingBlackholeFilter"; }
-		const char *port_count() const	{ return "1/2"; }
-		const char *processing() const	{ return PUSH; }
-		int configure(Vector<String>&, ErrorHandler*);
+	void add_handlers();
 
-		void add_handlers();
+	void push(int, Packet *);
+private:
+	bool active;
 
-		void push(int, Packet *);
-	private:
-		bool active;
-
-	    static int write_handler(const String &, Element *, void *, ErrorHandler *);
+	static int write_handler(const String &, Element *, void *, ErrorHandler *);
 };
 
 CLICK_ENDDECLS

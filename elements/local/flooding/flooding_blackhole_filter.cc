@@ -1,26 +1,20 @@
 #include <click/config.h>
 #include <click/args.hh>
-#include <click/confparse.hh>
-
 #include "flooding_blackhole_filter.hh"
 
 CLICK_DECLS
 
 int FloodingBlackholeFilter::configure(Vector<String> &conf, ErrorHandler *errh) {
-	if(Args(conf, this, errh)
-			.read_p("ACTIVE", active)
-			.complete() < 0)
-		return -1;
-	return 0;
+	return Args(conf, this, errh)
+			.read_or_set_p("ACTIVE", active, false)
+			.complete();
 }
 
 void FloodingBlackholeFilter::push(int, Packet *p) {
-
 	if(active)
 		output(1).push(p);
 	else
 		output(0).push(p);
-
 }
 
 int FloodingBlackholeFilter::write_handler(const String &str, Element *e, void *, ErrorHandler *errh) {

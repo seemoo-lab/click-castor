@@ -8,17 +8,16 @@
 CLICK_DECLS
 
 class FloodingDestinationClassifier : public Element {
-	public:
-		const char *class_name() const	{ return "FloodingDestinationClassifier"; }
-		const char *port_count() const	{ return "1/2"; }
-		const char *processing() const	{ return PUSH; }
-		int configure(Vector<String>&, ErrorHandler*);
+public:
+	const char *class_name() const { return "FloodingDestinationClassifier"; }
+	const char *port_count() const { return "1/2"; }
+	const char *processing() const { return PUSH; }
+	int configure(Vector<String>&, ErrorHandler*);
 
-		void push(int, Packet *);
-
-	private:
-		CastorXcastDestinationMap* map;
-		IPAddress myIP;
+	void push(int, Packet *);
+private:
+	CastorXcastDestinationMap* map;
+	IPAddress myIP;
 };
 
 CLICK_ENDDECLS

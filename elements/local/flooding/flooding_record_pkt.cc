@@ -6,20 +6,19 @@
 CLICK_DECLS
 
 int FloodingRecordPkt::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return Args(conf, errh)
+	return Args(conf, this, errh)
 			.read_mp("MAP", ElementCastArg("CastorXcastDestinationMap"), map)
 			.complete();
 }
 
-void FloodingRecordPkt::push(int, Packet *p) {
-	uint8_t recId[sizeof(PacketId)];
-	memset(&recId, 0, sizeof(recId));
-	Flooding::Id id = Flooding::getId(p);
-	memcpy(&recId, &id, sizeof(Flooding::Id));
-	PacketId castorPid = PacketId(recId); // Convert to Castor's pid type
+Packet* FloodingRecordPkt::simple_action(Packet *p) {
+	PacketId castorPid;
+	memcpy(&castorPid,
+		   &Flooding::id(p),
+		   sizeof(Flooding::Id) > sizeof(PacketId) ? sizeof(PacketId) : sizeof(Flooding::Id));
 	records.push_back(new PidTime(castorPid));
 
-	hopcounts.push_back(new UintListNode(Flooding::getHopcount(p)));
+	hopcounts.push_back(new UintListNode(Flooding::hopcount(p)));
 
 	// TODO this is a hack so that we can count npids for multicast packets that are flooded
 	GroupId group = IPAddress(p->ip_header()->ip_dst);
@@ -31,7 +30,7 @@ void FloodingRecordPkt::push(int, Packet *p) {
 	size += p->length();
 	size_broadcast += p->length();
 
-    output(0).push(p);
+	return p;
 }
 
 CLICK_ENDDECLS

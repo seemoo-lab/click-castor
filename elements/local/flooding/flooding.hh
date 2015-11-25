@@ -11,27 +11,27 @@ public:
 	typedef unsigned long long Id;
 	typedef unsigned int hopcount_t;
 
-	static inline Id getId(const Packet* p) {
-		return *getField<Id>(p, 0);
+	static inline const Id& id(Packet* p) {
+		return get<Id>(p, 0);
 	}
-	static inline void setId(WritablePacket* p, Id id) {
-		*getField<Id>(p, 0) = id;
+	static inline Id& id(WritablePacket* p) {
+		return get<Id>(p, 0);
 	}
-	static inline hopcount_t getHopcount(const Packet* p) {
-		return *getField<hopcount_t>(p, sizeof(Id));
+	static inline const hopcount_t& hopcount(Packet* p) {
+		return get<hopcount_t>(p, sizeof(Id));
 	}
-	static inline void setHopcount(WritablePacket* p, hopcount_t hc) {
-		*getField<hopcount_t>(p, sizeof(Id)) = hc;
+	static inline hopcount_t& hopcount(WritablePacket* p) {
+		return get<hopcount_t>(p, sizeof(Id));
 	}
 
 private:
 	template<typename T>
-	static inline const T* getField(const Packet* p, unsigned int off) {
-		return (T*) (p->data() + sizeof(click_ip) + off);
+	static inline const T& get(Packet* p, unsigned int off) {
+		return reinterpret_cast<const T&>(*(p->data() + sizeof(click_ip) + off));
 	}
 	template<typename T>
-	static inline T* getField(WritablePacket* p, unsigned int off) {
-		return (T*) (p->data() + sizeof(click_ip) + off);
+	static inline T& get(WritablePacket* p, unsigned int off) {
+		return reinterpret_cast<T&>(*(p->data() + sizeof(click_ip) + off));
 	}
 };
 
