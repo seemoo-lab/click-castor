@@ -18,7 +18,7 @@ They do so with a `ELEMENT_LIBS(-L/usr/local/lib -lbotan-1.10)` statement.
 ```bash
 git clone <PROJECT>
 cd click-castor
-./configure --enable-local --enable-nsclick --disable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads
+./configure --enable-local --enable-nsclick --disable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools CXXFLAGS="-std=c++11"
 make
 ```
 Note, that `--enable-local` (include Castor modules in `elements/local/` directory) and `--enable-nsclick` (ns-3 support) are mandatory. User level and linux modules are not required.
