@@ -44,7 +44,7 @@ elementclass CastorForwardXcastPkt {
 	input
 		-> route :: CastorXcastLookupRoute($routeselector)
 		-> CastorAddXcastPktToHistory($history)
-		-> CastorStartTimer($routingtable, $timeouttable, $history, $ratelimits, ID $myIP, VERBOSE true)
+		-> CastorStartTimer($routingtable, $timeouttable, $history, $ratelimits, ID $myIP, VERBOSE false)
 		//-> CastorPrint('Forwarding', $myIP)
 		-> rec :: CastorRecordPkt
 		-> output;
