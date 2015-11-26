@@ -81,7 +81,7 @@ elementclass CastorHandleAck {
 		-> null;
 	authenticate[3]
 		// Might rarely happen if MAC ACK was lost and Castor ACK is retransmitted
-		-> CastorPrint("ACK duplicate from same neighbor", $myIP)
+		//-> CastorPrint("ACK duplicate from same neighbor", $myIP)
 		-> null;
 	authenticate[4]
 		//-> CastorPrint("ACK from different neighbor than PKT was forwarded to", $myIP)
