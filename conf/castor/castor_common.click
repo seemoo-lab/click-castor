@@ -21,11 +21,11 @@ elementclass CastorClassifier {
 	input
 		-> annoSrcAddr :: GetEtherAddress(ANNO 0, OFFSET src)
 		-> AddNeighbor($neighbors, ENABLE $neighborsEnable) // add all neighbors that we receive transmissions from
-		-> HostEtherFilter($myAddr) // FromSimDevice is always in promisc mode, so filter here
 		-> BroadcastPainter
-		-> annoDstAddr :: GetEtherAddress(ANNO 6, OFFSET dst)
 		-> ethclassifier :: Classifier(12/88B6, 12/88B5, -) // (0) Castor PKT/ACK; (1) beacon; (2) other
 		-> removeEthernetHeader :: Strip(14)
+		-> forwaderFilter :: ForwarderFilter($myAddr)
+		-> removeForwarderList :: RemoveForwarderList
 		-> cclassifier :: Classifier(0/c?, 0/a?, -);
 
 	cclassifier[0] // Castor PKTs -> output 0
@@ -48,8 +48,9 @@ elementclass DynamicEtherEncap {
 	$myAddr |
 
 	input
+		-> AddForwarderList
 		-> EtherEncap($ETHERTYPE_CASTOR, $myAddr, 00:00:00:00:00:00)
-		-> StoreEtherAddress(OFFSET dst, ANNO 6)
+		-> StoreEtherAddress(OFFSET dst, ANNO 12)
 		-> output;
 }
 

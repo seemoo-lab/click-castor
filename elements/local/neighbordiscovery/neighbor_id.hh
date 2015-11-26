@@ -33,7 +33,7 @@ public:
 
 private:
     inline NeighborId(EtherAddress ea) : EtherAddress(ea.data()) { }
-};
+} CLICK_SIZE_PACKED_ATTRIBUTE;
 
 class ArgContext;
 class Args;
