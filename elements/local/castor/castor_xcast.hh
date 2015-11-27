@@ -82,68 +82,80 @@ public:
 	 * Removes an IP address and corresponding Pid from the destination list. Does not affect the next hop mapping, i.e., the mapping might be outdated after this call.
 	 * Returns true if the address was removed from the destination list.
 	 */
-	bool remove(const NodeId& destination) {
-		bool found = false;
-		for(unsigned int i = 0; i < ndst(); i++) {
-			found = destination == dst(i);
-			if(found) {
-				// Cache old destinations & pids
-				Vector<NodeId> dests;
-				Vector<PacketId> pids;
-				for(unsigned int j = 0; j < ndst(); j++)
-					if(j != i) {
-						// omit pid from destination being removed
-						dests.push_back(dst(j));
-						pids.push_back(pid(j));
-					}
-
-				set_ndst(ndst() - 1);
-
-				// Write pids back
-				for(unsigned int j = 0; j < ndst(); j++) {
-					dst(j) = dests[j];
-					pid(j) = pids[j];
-				}
-				break;
-			}
-		}
-		return found;
+	void remove(const NodeId& destination) {
+		uint8_t index = dst_index(destination);
+		if (index < 0)
+			return;
+		HashTable<uint8_t,uint8_t> map;
+		map.set(index, index);
+		remove(map);
 	}
 
-	void remove(HashTable<uint8_t, uint8_t>& toBeRemoved) {
-		Vector<NodeId> dests;
-		Vector<PacketId> pids;
-		for(uint8_t i = 0; i < ndst(); i++) {
-			if(toBeRemoved.count(i) == 0 /* contains NOT */) {
-				dests.push_back(dst(i));
-				pids.push_back(pid(i));
+	/**
+	 * Find index of specified destination node
+	 * Returns -1 if not found
+	 */
+	uint8_t dst_index(const NodeId& node) {
+		for(uint8_t i = 0; i < ndst(); i++)
+			if (dst(i) == node)
+				return i;
+		return -1;
+	}
+
+	/**
+	 * Remove destinations at specified indices (keep all others)
+	 *
+	 * Warning: invalidates next hop assignment
+	 */
+	inline void remove(const HashTable<uint8_t, uint8_t>& dst_indices) {
+		if (dst_indices.empty())
+			return;
+
+		uint8_t new_ndst = ndst() - dst_indices.size();
+
+		NodeId   dsts[new_ndst];
+		PacketId pids[new_ndst];
+		for(uint8_t i = 0, j = 0; i < ndst(); i++) {
+			if(dst_indices.count(i) == 0) {
+				dsts[j] = dst(i);
+				pids[j] = pid(i);
+				j++;
 			}
 		}
 
-		set_ndst(ndst() - toBeRemoved.size());
+		set_ndst(new_ndst);
 
-		// Write pids back
-		for(unsigned int j = 0; j < ndst(); j++) {
-			dst(j) = dests[j];
+		for(uint8_t j = 0; j < new_ndst; j++) {
+			dst(j) = dsts[j];
 			pid(j) = pids[j];
 		}
 	}
 
-	void keep(const HashTable<uint8_t, uint8_t>& dsts) {
-		Vector<NodeId> dests;
-		Vector<PacketId> pids;
-		for(uint8_t i = 0; i < ndst(); i++) {
-			if(dsts.count(i) == 1 /* contains */) {
-				dests.push_back(dst(i));
-				pids.push_back(pid(i));
+	/**
+	 * Keep destinations at specified indices (remove all others)
+	 *
+	 * Warning: invalidates next hop assignment
+	 */
+	inline void keep(const HashTable<uint8_t, uint8_t>& dst_indices) {
+		if (dst_indices.empty())
+			return;
+
+		uint8_t new_ndst = dst_indices.size();
+
+		NodeId   dsts[new_ndst];
+		PacketId pids[new_ndst];
+		for(uint8_t i = 0, j = 0; i < ndst(); i++) {
+			if(dst_indices.count(i) == 1) {
+				dsts[j] = dst(i);
+				pids[j] = pid(i);
+				j++;
 			}
 		}
 
-		set_ndst(dsts.size());
+		set_ndst(new_ndst);
 
-		// Write pids back
-		for(unsigned int j = 0; j < ndst(); j++) {
-			dst(j) = dests[j];
+		for(uint8_t j = 0; j < new_ndst; j++) {
+			dst(j) = dsts[j];
 			pid(j) = pids[j];
 		}
 	}
@@ -192,7 +204,7 @@ public:
 			old_pids[i] = pid(i);
 		}
 
-		unsigned int hop = 0, dst_off = 0;
+		uint8_t hop = 0, dst_off = 0;
 		for(const auto& entry : map) {
 			const auto& dsts = entry.second;
 			nexthop(hop) = entry.first;
