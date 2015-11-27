@@ -2,10 +2,9 @@
 #define CLICK_CASTOR_XCAST_DESTINATION_MAP_HH
 
 #include <click/element.hh>
-#include <click/ipaddress.hh>
 #include <click/hashtable.hh>
 #include <click/vector.hh>
-#include "castor_xcast.hh"
+#include "group_id.hh"
 #include "node_id.hh"
 
 CLICK_DECLS

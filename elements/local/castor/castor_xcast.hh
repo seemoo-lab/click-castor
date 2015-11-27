@@ -6,10 +6,9 @@
 #include <click/hashtable.hh>
 #include "castor.hh"
 #include "castor_anno.hh"
+#include "group_id.hh"
 
 CLICK_DECLS
-
-typedef NodeId GroupId;
 
 /**
  * Xcastor wrapper class for a data packet. Provides accessor methods to Xcastor specific fields.
