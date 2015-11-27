@@ -217,7 +217,7 @@ public:
 		}
 	}
 
-	StringAccum toString(bool full = false) {
+	String unparse(bool full = false) {
 		StringAccum sa;
 		if(full) {
 			String sfid = fid().str();
@@ -251,7 +251,7 @@ public:
 				sa << ", " << dst(i);
 			sa << ")";
 		}
-		return sa;
+		return sa.take_string();
 	}
 
 private:
