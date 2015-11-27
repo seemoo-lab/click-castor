@@ -32,7 +32,7 @@ public:
 		return pkt;
 	}
 
-	Packet* getPacket() { return _p; }
+	Packet* getPacket() const { return _p; }
 
 	// Fixed size header part
 	inline uint8_t& type() { return _fixed->type; }
@@ -70,15 +70,14 @@ public:
 	inline PacketId& pid(uint8_t i) { return reinterpret_cast<PacketId&>(*pid_off(i)); }
 
 	/**
-	 * Removes an IP address and corresponding Pid from the destination list. Does not affect the next hop mapping, i.e., the mapping might be outdated after this call.
-	 * Returns true if the address was removed from the destination list.
+	 * Remove a single destination at specified index (keep all others)
+	 *
+	 * Warning: invalidates next hop assignment
 	 */
-	void remove(const NodeId& destination) {
-		uint8_t index = dst_index(destination);
-		if (index < 0)
-			return;
+	inline void remove(uint8_t i) {
+		assert(i < ndst());
 		HashTable<uint8_t,uint8_t> map;
-		map.set(index, index);
+		map.set(i, i);
 		remove(map);
 	}
 
@@ -86,7 +85,7 @@ public:
 	 * Find index of specified destination node
 	 * Returns -1 if not found
 	 */
-	uint8_t dst_index(const NodeId& node) {
+	int dst_index(const NodeId& node) {
 		for(uint8_t i = 0; i < ndst(); i++)
 			if (dst(i) == node)
 				return i;
@@ -165,7 +164,7 @@ public:
 
 	inline NeighborId& nexthop(uint8_t j) const { return reinterpret_cast<NeighborId&>(*nexthop_off(j)); }
 
-	inline void nexthop_assigned_dsts(uint8_t j, Vector<unsigned int>& destinations) const {
+	inline void nexthop_assigned_dsts(uint8_t j, Vector<uint8_t>& destinations) const {
 		uint8_t off = 0;
 		for(uint8_t i = 0; i < j; i++)
 			off += nexthop_assign(i);

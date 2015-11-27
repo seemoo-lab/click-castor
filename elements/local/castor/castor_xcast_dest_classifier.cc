@@ -12,45 +12,30 @@ int CastorXcastDestClassifier::configure(Vector<String> &conf, ErrorHandler *err
 }
 
 void CastorXcastDestClassifier::push(int, Packet *p) {
+	CastorXcastPkt pkt = CastorXcastPkt(p->uniqueify());
 
-	CastorXcastPkt pkt = CastorXcastPkt(p);
+	int my_index = pkt.dst_index(my_end_node_id);
+	bool deliver = my_index > -1;
+	bool forward = pkt.ndst() > (deliver ? 1 : 0);
 
-	bool delivered = false;
-	bool forwarded = false;
-
-	unsigned int nDests = pkt.ndst();
-
-	for (unsigned int i = 0; i < nDests; i++)
-		if (my_end_node_id == pkt.dst(i)) {
-			delivered = true;
-
-			CastorXcastPkt localPkt = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
-
-			// Cleanup PKT header
-			localPkt.set_single_dst(i);
-			localPkt.set_single_nexthop(my_id);
-
-			output(0).push(localPkt.getPacket()); // local node is destination
-			break;
-		}
-
-	if (nDests > (delivered ? 1 : 0)) {
-		forwarded = true;
-
-		// If packet was delivered, remove own address from destination list
-		if(delivered) {
-			pkt.remove(my_end_node_id);
-			pkt.set_single_nexthop(my_id);
-		}
-
+	if (deliver && forward) {
+		CastorXcastPkt pkt_copy = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
+		pkt_copy.set_single_dst(my_index);
+		pkt_copy.set_single_nexthop(my_id);
+		output(0).push(pkt_copy.getPacket());
+		pkt.remove(my_index);
+		pkt.set_single_nexthop(my_id);
+		output(1).push(pkt.getPacket());
+	} else if (deliver) {
+		pkt.set_single_dst(my_index);
+		pkt.set_single_nexthop(my_id);
+		output(0).push(pkt.getPacket());
+	} else if (forward) {
+		pkt.set_single_nexthop(my_id);
 		output(1).push(pkt.getPacket());
 	} else {
-		// We delivered a copy
-		pkt.getPacket()->kill();
+		assert(false); // assert(deliver || forward)
 	}
-
-	assert(delivered || forwarded);
-
 }
 
 CLICK_ENDDECLS

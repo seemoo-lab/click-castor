@@ -2,6 +2,7 @@
 #include <click/args.hh>
 #include <click/hashtable.hh>
 #include "castor_unicast_filter.hh"
+#include "castor.hh"
 #include "castor_xcast.hh"
 #include "castor_anno.hh"
 
@@ -9,21 +10,19 @@ CLICK_DECLS
 
 int CastorUnicastFilter::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
-			.read_p("ACTIVE", active)
+			.read_or_set_p("ACTIVE", active, false)
 			.complete();
 }
 
-void CastorUnicastFilter::push(int, Packet *p) {
-	if (!active) {
-		output(0).push(p);
-		return;
-	}
+Packet* CastorUnicastFilter::simple_action(Packet *p) {
+	if (!active)
+		return p;
 
 	if (CastorPacket::isXcast(p)) {
 
 		bool isBroadcast = false;
 
-		CastorXcastPkt pkt(p);
+		const CastorXcastPkt pkt(p);
 		uint8_t index;
 		for (index = 0; index < pkt.nnexthop(); index++) {
 			if (pkt.nexthop(index) == NeighborId::make_broadcast()) {
@@ -35,10 +34,11 @@ void CastorUnicastFilter::push(int, Packet *p) {
 		if (!isBroadcast) {
 			output(1).push(pkt.getPacket());
 		} else if (pkt.nexthop_assign(index) == pkt.ndst()) {
-			output(0).push(pkt.getPacket());
+			return pkt.getPacket();
 		} else {
+			CastorXcastPkt pkt(p);
 			// These destinations are broadcast
-			Vector<unsigned int> destinations;
+			Vector<uint8_t> destinations;
 			pkt.nexthop_assigned_dsts(index, destinations);
 
 			HashTable<uint8_t, uint8_t> toRemain;
@@ -59,12 +59,10 @@ void CastorUnicastFilter::push(int, Packet *p) {
 		}
 
 	} else {
-
 		if (CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast())
-			output(0).push(p); // Was forwarded to me as broadcast PKT
+			return 0;
 		else
-			output(1).push(p); // Was unicast to me as broadcast PKT
-
+			checked_output_push(1, p);
 	}
 }
 

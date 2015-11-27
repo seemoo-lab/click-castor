@@ -11,32 +11,24 @@ int CastorXcastForwarderClassifier::configure(Vector<String> &conf, ErrorHandler
 }
 
 void CastorXcastForwarderClassifier::push(int, Packet *p) {
-
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	// Get responsible destinations
-	Vector<unsigned int> destinations;
-	for (unsigned int i = 0, dstPos = 0; i < pkt.nnexthop(); dstPos += pkt.nexthop_assign(i), i++) {
-		if (pkt.nexthop(i) == NeighborId::make_broadcast()
-				|| pkt.nexthop(i) == my_id) {
-			pkt.nexthop_assigned_dsts(i, destinations);
-		}
-	}
+	Vector<uint8_t> dsts;
+	for (uint8_t hop_i = 0, dst_i = 0; hop_i < pkt.nnexthop(); dst_i += pkt.nexthop_assign(hop_i), hop_i++)
+		if (pkt.nexthop(hop_i) == NeighborId::make_broadcast() ||
+			pkt.nexthop(hop_i) == my_id)
+			pkt.nexthop_assigned_dsts(hop_i, dsts);
 
-	if(destinations.empty()) {
-
-		output(1).push(pkt.getPacket()); // Node is not in the forwarder list -> discard
-
+	if(dsts.empty()) {
+		checked_output_push(1, pkt.getPacket());
 	} else {
-		// Node is in the forwarder list
-		HashTable<uint8_t, uint8_t> toRemain;
-		for(int i = 0; i < destinations.size(); i++) {
-			toRemain.set(destinations[i], destinations[i]);
-		}
-
-		pkt.keep(toRemain);
+		HashTable<uint8_t, uint8_t> dst_keep;
+		for(int i = 0; i < dsts.size(); i++)
+			dst_keep.set(dsts[i], dsts[i]);
+		CastorXcastPkt pkt(p->uniqueify());
+		pkt.keep(dst_keep);
 		pkt.set_single_nexthop(my_id);
-
 		output(0).push(pkt.getPacket());
 	}
 }
