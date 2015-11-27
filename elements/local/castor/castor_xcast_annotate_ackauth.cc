@@ -16,12 +16,12 @@ void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
 
 	CastorXcastPkt pkt = CastorXcastPkt(p->clone());
 
-	SValue pktAuth = crypto->convert(pkt.getPktAuth());
+	SValue pktAuth = crypto->convert(pkt.pkt_auth());
 
 	// Get appropriate key and decrypt encrypted ACK authenticator
-	const SymmetricKey* sk = crypto->getSharedKey(pkt.getSource());
+	const SymmetricKey* sk = crypto->getSharedKey(pkt.src());
 	if (!sk) {
-		click_chatter("Could not find shared key for host %s. Discarding PKT...", pkt.getDestination(0).unparse().c_str());
+		click_chatter("Could not find shared key for host %s. Discarding PKT...", pkt.dst(0).unparse().c_str());
 		pkt.getPacket()->kill();
 		return;
 	}

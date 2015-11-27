@@ -17,16 +17,16 @@ void CastorXcastAuthenticateFlow::push(int, Packet *p){
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	// Pid is implicitly given by the PktAuth
-	SValue pid = crypto->hashConvert(pkt.getPktAuth());
+	SValue pid = crypto->hashConvert(pkt.pkt_auth());
 
-	SValue fid = crypto->convert(pkt.getFlowId());
+	SValue fid = crypto->convert(pkt.fid());
 
 	Vector<SValue> fauth;
-	fauth.reserve(pkt.getNFlowAuthElements());
-	for(int i = 0; i < pkt.getNFlowAuthElements(); i++)
-		fauth.push_back(crypto->convert(pkt.getFlowAuth()[i]));
+	fauth.reserve(pkt.flow_size());
+	for(int i = 0; i < pkt.flow_size(); i++)
+		fauth.push_back(crypto->convert(pkt.flow_auth()[i]));
 
-	if(MerkleTree::isValidMerkleTree(pkt.getKPkt(), pid, fauth, fid, *crypto))
+	if(MerkleTree::isValidMerkleTree(pkt.kpkt(), pid, fauth, fid, *crypto))
 		output(0).push(pkt.getPacket());
 	else
 		output(1).push(pkt.getPacket()); // Invalid -> discard

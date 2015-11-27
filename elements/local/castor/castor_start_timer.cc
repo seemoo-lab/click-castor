@@ -28,9 +28,9 @@ void CastorStartTimer::push(int, Packet* p) {
 	if(CastorPacket::isXcast(p)) {
 		CastorXcastPkt header = CastorXcastPkt(p);
 		// Set timer for each destination individually
-		for(unsigned int i = 0; i < header.getNDestinations(); i++) {
-			const PacketId pid = header.getPid(i);
-			unsigned int timeout = toTable->getTimeout(header.getFlowId(), header.getDestination(i), history->routedTo(pid)).value();
+		for(unsigned int i = 0; i < header.ndst(); i++) {
+			const PacketId pid = header.pid(i);
+			unsigned int timeout = toTable->getTimeout(header.fid(), header.dst(i), history->routedTo(pid)).value();
 			new PidTimer(this, pid, timeout);
 		}
 	} else {

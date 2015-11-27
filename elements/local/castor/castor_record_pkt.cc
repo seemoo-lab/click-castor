@@ -11,27 +11,27 @@ Packet* CastorRecordPkt::simple_action(Packet *p) {
 		if(CastorPacket::isXcast(p)) {
 			CastorXcastPkt pkt = CastorXcastPkt(p);
 			// Add all pids
-			for(unsigned int i = 0; i < pkt.getNDestinations(); i++) {
-				records.push_back(new PidTime(pkt.getPid(i)));
+			for(unsigned int i = 0; i < pkt.ndst(); i++) {
+				records.push_back(new PidTime(pkt.pid(i)));
 				npids++;
 			}
 			uint8_t nbroadcasts_old = nbroadcasts;
 			// Add next hop decision for each destination
-			for(unsigned int i = 0; i < pkt.getNNextHops(); i++) {
-				if(pkt.getNextHop(i) == NeighborId::make_broadcast()) {
-					nbroadcasts += pkt.getNextHopNAssign(i);
+			for(unsigned int i = 0; i < pkt.nnexthop(); i++) {
+				if(pkt.nexthop(i) == NeighborId::make_broadcast()) {
+					nbroadcasts += pkt.nexthop_assign(i);
 				} else {
-					nunicasts += pkt.getNextHopNAssign(i);
+					nunicasts += pkt.nexthop_assign(i);
 				}
 			}
 			// We partially add packet size to size_broadcast and size_unicast
 			uint8_t nbroadcasts_delta = nbroadcasts - nbroadcasts_old;
-			size_t size_broadcast_delta = p->length() * nbroadcasts_delta / pkt.getNDestinations();
+			size_t size_broadcast_delta = p->length() * nbroadcasts_delta / pkt.ndst();
 			size_broadcast += size_broadcast_delta;
 			size_unicast += p->length() - size_broadcast_delta;
 
 #ifdef DEBUG_HOPCOUNT
-			hopcounts.push_back(new UintListNode(pkt.getHopcount()));
+			hopcounts.push_back(new UintListNode(pkt.hopcount()));
 #endif
 		} else {
 			// Regular Castor PKT

@@ -18,7 +18,7 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
-	GroupId multicastDst = pkt.getMulticastGroup();
+	GroupId multicastDst = pkt.dst_group();
 	const Vector<NodeId>& destinations = map->get(multicastDst);
 
 	if(destinations.size() == 0) {
@@ -28,10 +28,10 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 	}
 
 	// Write destinations to PKT
-	pkt.setDestinations(destinations.data(), destinations.size());
+	pkt.set_dsts(destinations.data(), destinations.size());
 
 	Vector<PacketId> pids;
-	SValue ackAuth = crypto->convert(pkt.getPktAuth());
+	SValue ackAuth = crypto->convert(pkt.pkt_auth());
 	for(int i = 0; i < destinations.size(); i++) {
 		// Generate individual PKT id
 		const SymmetricKey* key = crypto->getSharedKey(destinations[i]);
@@ -44,12 +44,11 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 			click_chatter("!!! Cannot create ciphertext: Crypto subsystem returned wrong ciphertext length.");
 			break;
 		}
-		PacketId pid = crypto->hashConvert(encAckAuth);
-		pkt.setPid(pid, i);
+		pkt.pid(i) = crypto->hashConvert(encAckAuth);
 	}
 
 	// Set local node as single forwarder
-	pkt.setSingleNextHop(my_id);
+	pkt.set_single_nexthop(my_id);
 
 	output(0).push(pkt.getPacket());
 

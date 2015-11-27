@@ -25,8 +25,8 @@ void CastorUnicastFilter::push(int, Packet *p) {
 
 		CastorXcastPkt pkt(p);
 		uint8_t index;
-		for (index = 0; index < pkt.getNNextHops(); index++) {
-			if (pkt.getNextHop(index) == NeighborId::make_broadcast()) {
+		for (index = 0; index < pkt.nnexthop(); index++) {
+			if (pkt.nexthop(index) == NeighborId::make_broadcast()) {
 				isBroadcast = true;
 				break;
 			}
@@ -34,12 +34,12 @@ void CastorUnicastFilter::push(int, Packet *p) {
 
 		if (!isBroadcast) {
 			output(1).push(pkt.getPacket());
-		} else if (pkt.getNextHopNAssign(index) == pkt.getNDestinations()) {
+		} else if (pkt.nexthop_assign(index) == pkt.ndst()) {
 			output(0).push(pkt.getPacket());
 		} else {
 			// These destinations are broadcast
 			Vector<unsigned int> destinations;
-			pkt.getNextHopDestinations(index, destinations);
+			pkt.nexthop_assigned_dsts(index, destinations);
 
 			HashTable<uint8_t, uint8_t> toRemain;
 			for(int i = 0; i < destinations.size(); i++) {
@@ -48,13 +48,13 @@ void CastorUnicastFilter::push(int, Packet *p) {
 
 			// Push PKT with broadcast destinations
 			CastorXcastPkt local(pkt.getPacket()->clone()->uniqueify());
-			local.keepDestinations(toRemain);
-			local.setSingleNextHop(NeighborId::make_broadcast());
+			local.keep(toRemain);
+			local.set_single_nexthop(NeighborId::make_broadcast());
 			output(0).push(local.getPacket());
 
 			// Push PKT with unicast destinations
-			pkt.removeDestinations(toRemain);
-			pkt.setSingleNextHop(NeighborId());
+			pkt.remove(toRemain);
+			pkt.set_single_nexthop(NeighborId());
 			output(1).push(pkt.getPacket());
 		}
 

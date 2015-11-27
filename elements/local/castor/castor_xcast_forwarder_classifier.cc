@@ -16,10 +16,10 @@ void CastorXcastForwarderClassifier::push(int, Packet *p) {
 
 	// Get responsible destinations
 	Vector<unsigned int> destinations;
-	for (unsigned int i = 0, dstPos = 0; i < pkt.getNNextHops(); dstPos += pkt.getNextHopNAssign(i), i++) {
-		if (pkt.getNextHop(i) == NeighborId::make_broadcast()
-				|| pkt.getNextHop(i) == my_id) {
-			pkt.getNextHopDestinations(i, destinations);
+	for (unsigned int i = 0, dstPos = 0; i < pkt.nnexthop(); dstPos += pkt.nexthop_assign(i), i++) {
+		if (pkt.nexthop(i) == NeighborId::make_broadcast()
+				|| pkt.nexthop(i) == my_id) {
+			pkt.nexthop_assigned_dsts(i, destinations);
 		}
 	}
 
@@ -34,8 +34,8 @@ void CastorXcastForwarderClassifier::push(int, Packet *p) {
 			toRemain.set(destinations[i], destinations[i]);
 		}
 
-		pkt.keepDestinations(toRemain);
-		pkt.setSingleNextHop(my_id);
+		pkt.keep(toRemain);
+		pkt.set_single_nexthop(my_id);
 
 		output(0).push(pkt.getPacket());
 	}

@@ -18,17 +18,17 @@ void CastorXcastDestClassifier::push(int, Packet *p) {
 	bool delivered = false;
 	bool forwarded = false;
 
-	unsigned int nDests = pkt.getNDestinations();
+	unsigned int nDests = pkt.ndst();
 
 	for (unsigned int i = 0; i < nDests; i++)
-		if (my_end_node_id == pkt.getDestination(i)) {
+		if (my_end_node_id == pkt.dst(i)) {
 			delivered = true;
 
 			CastorXcastPkt localPkt = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
 
 			// Cleanup PKT header
-			localPkt.setSingleDestination(i);
-			localPkt.setSingleNextHop(my_id);
+			localPkt.set_single_dst(i);
+			localPkt.set_single_nexthop(my_id);
 
 			output(0).push(localPkt.getPacket()); // local node is destination
 			break;
@@ -39,8 +39,8 @@ void CastorXcastDestClassifier::push(int, Packet *p) {
 
 		// If packet was delivered, remove own address from destination list
 		if(delivered) {
-			pkt.removeDestination(my_end_node_id);
-			pkt.setSingleNextHop(my_id);
+			pkt.remove(my_end_node_id);
+			pkt.set_single_nexthop(my_id);
 		}
 
 		output(1).push(pkt.getPacket());

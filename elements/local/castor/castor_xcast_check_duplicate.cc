@@ -27,11 +27,11 @@ void CastorXcastCheckDuplicate::push(int, Packet *p) {
 	HashTable<uint8_t, uint8_t> retransmitAckTo;
 	HashTable<uint8_t, uint8_t> addToHistory;
 
-	for(unsigned int i = 0; i < pkt.getNDestinations(); i++)
-		if(history->hasPkt(pkt.getPid(i))) {
-			if (history->hasPktFrom(pkt.getPid(i), CastorAnno::src_id_anno(p))) {
+	for(unsigned int i = 0; i < pkt.ndst(); i++)
+		if(history->hasPkt(pkt.pid(i))) {
+			if (history->hasPktFrom(pkt.pid(i), CastorAnno::src_id_anno(p))) {
 				alreadySeen.set(i, i); // Already received Pid from this neighbor -> discard
-			} else if (history->hasAck(pkt.getPid(i))) {
+			} else if (history->hasAck(pkt.pid(i))) {
 				retransmitAckTo.set(i, i); // Have not received Pid from this neighbor before AND already know corresponding ACK
 			} else {
 				addToHistory.set(i, i); // Have not received Pid from this neighbor before AND do NOT know corresponding ACK
@@ -43,32 +43,32 @@ void CastorXcastCheckDuplicate::push(int, Packet *p) {
 	bool retransmitAck = retransmitAckTo.size() > 0;
 	if(retransmitAck) {
 		CastorXcastPkt copy = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
-		copy.keepDestinations(retransmitAckTo);
-		copy.setSingleNextHop(myId);
+		copy.keep(retransmitAckTo);
+		copy.set_single_nexthop(myId);
 		output(1).push(copy.getPacket());
 	}
 
 	bool toHistory = addToHistory.size() > 0;
 	if (toHistory) {
 		CastorXcastPkt copy = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
-		copy.keepDestinations(addToHistory);
-		copy.setSingleNextHop(myId);
+		copy.keep(addToHistory);
+		copy.set_single_nexthop(myId);
 		output(2).push(copy.getPacket());
 	}
 
 	bool discard = alreadySeen.size() > 0;
 	if(discard) {
 		CastorXcastPkt copy = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
-		copy.keepDestinations(alreadySeen);
-		copy.setSingleNextHop(myId);
+		copy.keep(alreadySeen);
+		copy.set_single_nexthop(myId);
 		output(3).push(copy.getPacket());
 	}
 
 	bool isNew = unseen.size() > 0;
 	if (isNew) {
 		CastorXcastPkt copy = CastorXcastPkt(pkt.getPacket()->clone()->uniqueify());
-		copy.keepDestinations(unseen);
-		copy.setSingleNextHop(myId);
+		copy.keep(unseen);
+		copy.set_single_nexthop(myId);
 		output(0).push(copy.getPacket());
 	}
 

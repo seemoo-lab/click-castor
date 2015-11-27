@@ -21,7 +21,7 @@ void CastorAuthenticatePkt::push(int, Packet *p) {
 
 		const PacketId& computedPid = crypto->hash(CastorAnno::hash_anno(p));
 
-		isPidValid = computedPid == pkt.getPid(0); // Pkt should only include a single pid
+		isPidValid = computedPid == pkt.pid(0); // Pkt should only include a single pid
 	} else {
 		CastorPkt& pkt = (CastorPkt&) *p->data();
 
