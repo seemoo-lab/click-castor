@@ -271,6 +271,9 @@ private:
 		uint8_t nNextHops;
 #ifdef DEBUG_HOPCOUNT
 		uint8_t hopcount;
+		uint8_t _; /* padding */
+#else
+		uint16_t _; /* padding */
 #endif
 	};
 
