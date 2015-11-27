@@ -32,7 +32,11 @@ namespace CastorType { // C++11's strongly typed 'enum class' does not work, so 
 
 typedef Hash FlowId;
 typedef Hash PacketId;
-typedef Hash FlowAuth[CASTOR_FLOWAUTH_ELEM];
+typedef struct {
+	Hash& operator[](int i) { return elem[i]; }
+private:
+	Hash elem[CASTOR_FLOWAUTH_ELEM];
+} FlowAuth;
 typedef Hash AckAuth;
 typedef Hash PktAuth;
 
