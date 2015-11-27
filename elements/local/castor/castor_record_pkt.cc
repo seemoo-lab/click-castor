@@ -1,11 +1,12 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/straccum.hh>
 #include "castor_record_pkt.hh"
 #include "castor_xcast.hh"
+#include "castor_anno.hh"
 
 CLICK_DECLS
 
-void CastorRecordPkt::push(int, Packet *p) {
+Packet* CastorRecordPkt::simple_action(Packet *p) {
 	if(CastorPacket::getType(p) == CastorType::PKT) {
 		if(CastorPacket::isXcast(p)) {
 			CastorXcastPkt pkt = CastorXcastPkt(p);
@@ -17,7 +18,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 			uint8_t nbroadcasts_old = nbroadcasts;
 			// Add next hop decision for each destination
 			for(unsigned int i = 0; i < pkt.getNNextHops(); i++) {
-				if(pkt.getNextHop(i) == NodeId::make_broadcast()) {
+				if(pkt.getNextHop(i) == NeighborId::make_broadcast()) {
 					nbroadcasts += pkt.getNextHopNAssign(i);
 				} else {
 					nunicasts += pkt.getNextHopNAssign(i);
@@ -37,7 +38,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 			CastorPkt& pkt = (CastorPkt&) *p->data();
 			records.push_back(new PidTime(pkt.pid));
 			npids++;
-			if(p->dst_ip_anno() == NodeId::make_broadcast()) {
+			if(CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast()) {
 				size_broadcast += p->length();
 				nbroadcasts++;
 			} else {
@@ -49,7 +50,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 #endif
 		}
 	} else if (CastorPacket::getType(p) == CastorType::ACK) {
-		if(p->dst_ip_anno() == NodeId::make_broadcast())
+		if(CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast())
 			size_broadcast += p->length();
 		else
 			size_unicast += p->length();
@@ -61,7 +62,7 @@ void CastorRecordPkt::push(int, Packet *p) {
 	size += p->length();
 	size_noreset += p->length();
 
-    output(0).push(p);
+    return p;
 }
 
 String CastorRecordPkt::read_handler(Element *e, void *thunk) {

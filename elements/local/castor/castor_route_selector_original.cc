@@ -13,26 +13,26 @@ int CastorRouteSelectorOriginal::configure(Vector<String> &conf, ErrorHandler *e
 			cpEnd);
 }
 
-NodeId CastorRouteSelectorOriginal::select(const FlowId& flow, NodeId subflow, const Vector<NodeId>*, const PacketId &pid) {
+NeighborId CastorRouteSelectorOriginal::select(const FlowId& flow, const NodeId& subflow, const Vector<NodeId>*, const PacketId &pid) {
 
 	// Search for the neighbors with the highest estimates
-	Vector<NodeId> bestNeighbors;
+	Vector<NeighborId> bestNeighbors;
 	double best = findBest(routingtable->getFlowEntry(flow, subflow), bestNeighbors, pid);
 
 	// Choose a subset (typically one or all) of the selected neighbors for PKT forwarding
 	return chooseNeighbor(bestNeighbors, best, pid);
 }
 
-double CastorRouteSelectorOriginal::findBest(HashTable<NodeId, CastorEstimator>& entry, Vector<NodeId>& bestNeighbors, const PacketId& pid) {
+double CastorRouteSelectorOriginal::findBest(HashTable<NeighborId, CastorEstimator>& entry, Vector<NeighborId>& bestNeighbors, const PacketId& pid) {
 	double bestEstimate = 0;
-	for (HashTable<NodeId, CastorEstimator>::iterator neighborIterator = entry.begin(); neighborIterator != entry.end();  /* increment in loop */) {
-		if(neighbors->hasNeighbor(neighborIterator.key())) {
+	for (HashTable<NeighborId, CastorEstimator>::iterator neighborIterator = entry.begin(); neighborIterator != entry.end();  /* increment in loop */) {
+		if(neighbors->contains(neighborIterator.key())) {
 			double estimate = neighborIterator.value().getEstimate();
 			selectNeighbor(neighborIterator.key(), estimate, bestNeighbors, bestEstimate, pid);
 			neighborIterator++;
 		} else {
 			// Entry timed out
-			HashTable<NodeId, CastorEstimator>::iterator old = neighborIterator;
+			HashTable<NeighborId, CastorEstimator>::iterator old = neighborIterator;
 			neighborIterator++; // save old position and increment, otherwise it might be invalid after erase
 			entry.erase(old.key());
 		}
@@ -40,7 +40,7 @@ double CastorRouteSelectorOriginal::findBest(HashTable<NodeId, CastorEstimator>&
 	return bestEstimate;
 }
 
-bool CastorRouteSelectorOriginal::selectNeighbor(const NodeId &entry, double entryEstimate, Vector<NodeId> &bestEntries, double &bestEstimate, const PacketId &pid)
+bool CastorRouteSelectorOriginal::selectNeighbor(const NeighborId &entry, double entryEstimate, Vector<NeighborId> &bestEntries, double &bestEstimate, const PacketId &pid)
 {
 	(void)pid;  // we do not make use of the packet identifier in selecting neighbors, but other selector classes may
 
@@ -54,7 +54,7 @@ bool CastorRouteSelectorOriginal::selectNeighbor(const NodeId &entry, double ent
 	return true;
 }
 
-NodeId CastorRouteSelectorOriginal::chooseNeighbor(Vector<NodeId> &bestNeighbors, double best, const PacketId &)
+NeighborId CastorRouteSelectorOriginal::chooseNeighbor(Vector<NeighborId> &bestNeighbors, double best, const PacketId &)
 {
 	if (best == 0)
 		return selectDefault();

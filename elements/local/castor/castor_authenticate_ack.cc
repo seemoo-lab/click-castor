@@ -7,6 +7,8 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include "castor_authenticate_ack.hh"
+#include "castor.hh"
+#include "castor_anno.hh"
 
 CLICK_DECLS
 
@@ -22,8 +24,8 @@ int CastorAuthenticateAck::configure(Vector<String>& conf, ErrorHandler* errh) {
 
 void CastorAuthenticateAck::push(int, Packet* p) {
 
-	const PacketId& pid = CastorPacket::getCastorAnno(p);
-	const NodeId src = CastorPacket::src_ip_anno(p);
+	const PacketId& pid = CastorAnno::hash_anno(p);
+	const NeighborId& src = CastorAnno::src_id_anno(p);
 	int port = 0;
 
 	if (!history->hasPkt(pid)) {
@@ -32,14 +34,14 @@ void CastorAuthenticateAck::push(int, Packet* p) {
 	} else if (history->hasAckFrom(pid, src)) {
 		port = 3; // already received ACK from this neighbor -> discard
 	} else if (version <= 1) {
-		const NodeId routedTo = history->routedTo(pid);
-		if (routedTo != src && routedTo != NodeId::make_broadcast()) {
+		const NeighborId& routedTo = history->routedTo(pid);
+		if (routedTo != src && routedTo != NeighborId::make_broadcast()) {
 			port = 4; // received ACK from a neighbor we never forwarded the PKT to -> discard (standard Castor)
 		}
 	} else {
 #if 1
-		const NodeId routedTo = history->routedTo(pid);
-		if (routedTo != src && routedTo != NodeId::make_broadcast()) {
+		const NeighborId& routedTo = history->routedTo(pid);
+		if (routedTo != src && routedTo != NeighborId::make_broadcast()) {
 			port = 4; // received ACK from a neighbor we never forwarded the PKT to -> discard (standard Castor)
 		}
 #elif 0
@@ -54,7 +56,7 @@ void CastorAuthenticateAck::push(int, Packet* p) {
 			}
 		}
 #endif
-		const NodeId firstPktSender = history->getPktSenders(pid)[0];
+		const NeighborId& firstPktSender = history->getPktSenders(pid)[0];
 		if (src == firstPktSender) {
 			port = 5; // received ACK from the neighbor that initially forwarded us the PKT -> discard (Castor improvement)
 		}

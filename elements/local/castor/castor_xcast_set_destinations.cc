@@ -1,16 +1,17 @@
 #include <click/config.h>
-#include <click/confparse.hh>
-
+#include <click/args.hh>
 #include "castor_xcast_set_destinations.hh"
+#include "castor.hh"
 #include "castor_xcast.hh"
 
 CLICK_DECLS
 
 int CastorXcastSetDestinations::configure(Vector<String> &conf, ErrorHandler *errh) {
-     return cp_va_kparse(conf, this, errh,
-    	"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
-        "CastorXcastDestinationMap", cpkP+cpkM, cpElementCast, "CastorXcastDestinationMap", &map,
-        cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("Crypto", ElementCastArg("Crypto"), crypto)
+			.read_mp("MAP", ElementCastArg("CastorXcastDestinationMap"), map)
+			.read_mp("ID", my_id)
+			.complete();
 }
 
 void CastorXcastSetDestinations::push(int, Packet *p) {
@@ -18,11 +19,12 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	GroupId multicastDst = pkt.getMulticastGroup();
-	const Vector<NodeId>& destinations = map->getDestinations(multicastDst);
+	const Vector<NodeId>& destinations = map->get(multicastDst);
 
 	if(destinations.size() == 0) {
 		click_chatter("!!! No Xcast destination mapping found for multicast address %s, drop packet", multicastDst.unparse().c_str());
 		pkt.getPacket()->kill();
+		return;
 	}
 
 	// Write destinations to PKT
@@ -47,9 +49,7 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 	}
 
 	// Set local node as single forwarder
-	pkt.setSingleNextHop(pkt.getSource());
-
-	CastorPacket::set_src_ip_anno(pkt.getPacket(), pkt.getSource());
+	pkt.setSingleNextHop(my_id);
 
 	output(0).push(pkt.getPacket());
 

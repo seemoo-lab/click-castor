@@ -1,17 +1,17 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include <click/hashtable.hh>
-
 #include "castor_xcast_check_duplicate.hh"
 #include "castor_xcast.hh"
+#include "castor_anno.hh"
 
 CLICK_DECLS
 
 int CastorXcastCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *errh) {
-     return cp_va_kparse(conf, this, errh,
-        "CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
-        "NodeId", cpkP+cpkM, cpIPAddress, &myId,
-        cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("CastorHistory", ElementCastArg("CastorHistory"), history)
+			.read_mp("ID", myId)
+			.complete();
 }
 
 void CastorXcastCheckDuplicate::push(int, Packet *p) {
@@ -29,7 +29,7 @@ void CastorXcastCheckDuplicate::push(int, Packet *p) {
 
 	for(unsigned int i = 0; i < pkt.getNDestinations(); i++)
 		if(history->hasPkt(pkt.getPid(i))) {
-			if (history->hasPktFrom(pkt.getPid(i), CastorPacket::src_ip_anno(p))) {
+			if (history->hasPktFrom(pkt.getPid(i), CastorAnno::src_id_anno(p))) {
 				alreadySeen.set(i, i); // Already received Pid from this neighbor -> discard
 			} else if (history->hasAck(pkt.getPid(i))) {
 				retransmitAckTo.set(i, i); // Have not received Pid from this neighbor before AND already know corresponding ACK

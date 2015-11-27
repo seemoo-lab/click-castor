@@ -3,6 +3,7 @@
 
 #include <click/element.hh>
 #include "castor.hh"
+#include "../neighbordiscovery/neighbor_id.hh"
 
 CLICK_DECLS
 
@@ -15,7 +16,7 @@ public:
 	/**
 	 * Select the best next hop for a given flow/subflow
 	 */
-	virtual NodeId select(const FlowId& flow, NodeId subflow, const Vector<NodeId>* others, const PacketId& pid) = 0;
+	virtual NeighborId select(const FlowId& flow, const NodeId& subflow, const Vector<NodeId>* others, const PacketId& pid) = 0;
 };
 
 CLICK_ENDDECLS

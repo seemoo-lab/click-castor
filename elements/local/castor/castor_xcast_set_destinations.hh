@@ -2,9 +2,9 @@
 #define CLICK_CASTOR_XCAST_SET_HEADER_HH
 
 #include <click/element.hh>
-#include "castor.hh"
 #include "crypto/crypto.hh"
 #include "castor_xcast_destination_map.hh"
+#include "../neighbordiscovery/neighbor_id.hh"
 
 CLICK_DECLS
 
@@ -24,6 +24,7 @@ public:
 private:
 	Crypto* crypto;
 	CastorXcastDestinationMap* map;
+	NeighborId my_id;
 };
 
 CLICK_ENDDECLS

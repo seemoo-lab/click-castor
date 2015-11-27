@@ -8,15 +8,14 @@
 CLICK_DECLS
 
 class FloodingCheckDuplicate : public Element {
-	public:
-		const char *class_name() const	{ return "FloodingCheckDuplicate"; }
-		const char *port_count() const	{ return "1/2"; }
-		const char *processing() const	{ return PUSH; }
+public:
+	const char *class_name() const	{ return "FloodingCheckDuplicate"; }
+	const char *port_count() const	{ return "1/1-2"; }
+	const char *processing() const	{ return "a/ah"; }
 
-		void push(int, Packet *);
-
-	private:
-		HashTable<IPAddress, HashTable<Flooding::Id,Flooding::Id> > history;
+	Packet* simple_action(Packet *);
+private:
+	HashTable<IPAddress, HashTable<Flooding::Id,Flooding::Id> > history;
 };
 
 CLICK_ENDDECLS

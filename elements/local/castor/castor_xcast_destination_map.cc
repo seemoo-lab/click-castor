@@ -1,37 +1,34 @@
 #include <click/config.h>
 #include <click/args.hh>
-#include <click/confparse.hh>
-
 #include "castor_xcast_destination_map.hh"
 
 CLICK_DECLS
 
-const Vector<NodeId>& CastorXcastDestinationMap::getDestinations(GroupId multicastAddr) const {
-	const Vector<NodeId>* result = _map.get_pointer(multicastAddr);
-	if(result)
-		return *result;
+const Vector<NodeId>& CastorXcastDestinationMap::get(const GroupId& group) const {
+	if (map.count(group) == 0)
+		return empty;
 	else
-		return _empty;
+		return map[group];
 }
 
-int CastorXcastDestinationMap::insertDestinations(GroupId group, const Vector<NodeId>& dests) {
-	_map.set(group, dests);
+int CastorXcastDestinationMap::insert(const GroupId& group, const Vector<NodeId>& dests) {
+	map.set(group, dests);
 	return 0;
 }
 
-int CastorXcastDestinationMap::write_handler(const String &str, Element *e, void *, ErrorHandler *errh) {
+int CastorXcastDestinationMap::write_handler(const String& str, Element* e, void*, ErrorHandler* errh) {
 	CastorXcastDestinationMap* map = (CastorXcastDestinationMap*) e;
 
-	NodeId group;
+	GroupId group;
 	Vector<NodeId> dsts;
 
 	if(Args(map, errh).push_back_words(str)
-			.read_p("GroupAddr", group)
+			.read_p  ("GroupAddr", group)
 			.read_all("IP", Args::positional, DefaultArg<NodeId>(), dsts)
 			.complete() < 0)
 		return -1;
 
-	return map->insertDestinations(group, dsts);
+	return map->insert(group, dsts);
 }
 
 void CastorXcastDestinationMap::add_handlers() {

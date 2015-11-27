@@ -4,6 +4,7 @@
 #include <click/element.hh>
 #include "castor.hh"
 #include "castor_xcast.hh"
+#include "../neighbordiscovery/neighbor_id.hh"
 
 CLICK_DECLS
 
@@ -21,7 +22,8 @@ public:
 
 	void push(int, Packet *);
 private:
-	NodeId myId;
+	NeighborId my_id;
+	NodeId my_end_node_id;
 };
 
 CLICK_ENDDECLS

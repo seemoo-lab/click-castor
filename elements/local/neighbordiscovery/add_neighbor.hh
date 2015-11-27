@@ -2,22 +2,18 @@
 #define CLICK_ADD_NEIGHBOR_HH
 
 #include <click/element.hh>
-#include "neighbor_beacon.hh"
 #include "neighbors.hh"
 
 CLICK_DECLS
 
 class AddNeighbor : public Element {
 public:
-	AddNeighbor() : neighbors(0), enabled(true) {}
-
 	const char *class_name() const { return "AddNeighbor"; }
-	const char *port_count() const { return PORTS_1_1; }
-	const char *processing() const { return PUSH; }
+	const char *port_count() const { return "1/1"; }
+	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	void push(int, Packet *);
-
+	Packet* simple_action(Packet *);
 private:
 	Neighbors* neighbors;
 	bool enabled;

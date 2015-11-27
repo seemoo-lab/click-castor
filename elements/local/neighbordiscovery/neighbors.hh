@@ -6,7 +6,7 @@
 #include <click/list.hh>
 #include <click/timer.hh>
 #include <click/timestamp.hh>
-#include "neighbor_beacon.hh"
+#include "neighbor_id.hh"
 
 CLICK_DECLS
 
@@ -22,25 +22,25 @@ public:
 	/**
 	 * Inserts the neighbor. If an entry already exists, it is updated with the current timestamp.
 	 */
-	void addNeighbor(NodeId neighbor);
+	void add(NeighborId neighbor);
 
 	/**
 	 * Whether such a neighbor exists and it has not yet timed out.
 	 */
-	inline bool hasNeighbor(NodeId neighbor) const { return !enabled || neighbors.get_pointer(neighbor) != NULL; }
+	inline bool contains(NeighborId neighbor) const { return !enabled || neighbors.get_pointer(neighbor) != NULL; }
 
 	/**
 	 * Returns the number of neighbors that have not yet timed out.
 	 */
-	inline unsigned int neighborCount() const { return neighbors.size(); }
+	inline unsigned int size() const { return neighbors.size(); }
 
     void add_handlers();
 
 private:
 	struct ListNode {
-		inline ListNode(NodeId neighbor, Timestamp timeout) : neighbor(neighbor), timeout(timeout) {}
+		inline ListNode(NeighborId neighbor, Timestamp timeout) : neighbor(neighbor), timeout(timeout) {}
 		List_member<ListNode> node;
-		NodeId neighbor;
+		NeighborId neighbor;
 		Timestamp timeout;
 	};
 
@@ -51,15 +51,15 @@ public:
 	 */
 	class const_iterator {
 	public:
-		inline const_iterator(HashTable<NodeId, ListNode *>::const_iterator it) { this->it = it; }
+		inline const_iterator(HashTable<NeighborId, ListNode *>::const_iterator it) { this->it = it; }
 		inline bool operator==(const_iterator it) { return this->it == it.it; }
 		inline bool operator!=(const_iterator it) { return this->it != it.it; }
 		inline void operator++(int) { it++; }
 
-		inline const NodeId &entry() const { return it.key(); }
+		inline const NeighborId &entry() const { return it.key(); }
 
 	private:
-		HashTable<NodeId, ListNode *>::const_iterator it;
+		HashTable<NeighborId, ListNode *>::const_iterator it;
 	};
 
 	inline const_iterator begin() const { const_iterator it(neighbors.begin()); return it; }
@@ -71,7 +71,7 @@ private:
 	List<ListNode, &ListNode::node> timeout_queue;
 	Timer timer;
 
-	HashTable<NodeId, ListNode *> neighbors;
+	HashTable<NeighborId, ListNode *> neighbors;
 
 	unsigned int timeout;
 

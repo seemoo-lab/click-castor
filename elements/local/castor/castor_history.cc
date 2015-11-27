@@ -3,10 +3,8 @@
 
 CLICK_DECLS
 
-void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, NodeId prevHop, NodeId nextHop, NodeId destination, Timestamp timestamp) {
+void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, const NeighborId& prevHop, const NeighborId& nextHop, const NodeId& destination, Timestamp timestamp) {
 	CastorHistoryEntry* entry = getEntry(pid);
-	assert(prevHop.addr() != 0);
-	assert(nextHop.addr() != 0);
 	if(!entry) {
 		CastorHistoryEntry entry;
 		entry.destination = destination;
@@ -29,7 +27,7 @@ void CastorHistory::addPkt(const PacketId& pid, const FlowId& fid, NodeId prevHo
 	}
 }
 
-bool CastorHistory::addFirstAckFor(const PacketId& pid, NodeId addr, const AckAuth& ackAuth) {
+bool CastorHistory::addFirstAckFor(const PacketId& pid, const NeighborId& addr, const AckAuth& ackAuth) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	if(!entry) {
 		// Received an ACK for an unknown Packet, do not care
@@ -41,7 +39,7 @@ bool CastorHistory::addFirstAckFor(const PacketId& pid, NodeId addr, const AckAu
 	return true;
 }
 
-bool CastorHistory::addAckFor(const PacketId& pid, NodeId addr) {
+bool CastorHistory::addAckFor(const PacketId& pid, const NeighborId& addr) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	if(!entry) {
 		// Received an ACK for an unknown Packet, do not care
@@ -53,11 +51,11 @@ bool CastorHistory::addAckFor(const PacketId& pid, NodeId addr) {
 	return true;
 }
 
-bool CastorHistory::hasPktFrom(const PacketId& pid, NodeId addr) const {
+bool CastorHistory::hasPktFrom(const PacketId& pid, const NeighborId& addr) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	if (entry) {
-		for (Vector<NodeId>::const_iterator it = entry->prevHops.begin(); it != entry->prevHops.end(); it++)
-			if (*it == addr)
+		for (const auto& prevHop : entry->prevHops)
+			if (prevHop == addr)
 				return true;
 	}
 	return false;
@@ -73,7 +71,7 @@ bool CastorHistory::hasAck(const PacketId& pid) const {
 	return entry && !entry->recievedACKs.empty();
 }
 
-bool CastorHistory::hasAckFrom(const PacketId& pid, NodeId addr) const {
+bool CastorHistory::hasAckFrom(const PacketId& pid, const NeighborId& addr) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	if (entry) {
 		for (int i = 0; i < entry->recievedACKs.size(); i++)
@@ -87,7 +85,8 @@ size_t CastorHistory::getPkts(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->prevHops.size();
 }
-const Vector<NodeId>& CastorHistory::getPktSenders(const PacketId& pid) const {
+
+const Vector<NeighborId>& CastorHistory::getPktSenders(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->prevHops;
 }
@@ -107,12 +106,12 @@ const AckAuth& CastorHistory::getAckAuth(const PacketId& pid) const {
 	return entry->auth;
 }
 
-NodeId CastorHistory::getDestination(const PacketId& pid) const {
+const NodeId& CastorHistory::getDestination(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->destination;
 }
 
-NodeId CastorHistory::routedTo(const PacketId& pid) const {
+const NeighborId& CastorHistory::routedTo(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->nextHop;
 }

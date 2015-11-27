@@ -1,6 +1,7 @@
 #include <click/config.h>
 #include <click/confparse.hh>
 #include "castor_update_timeout.hh"
+#include "castor_anno.hh"
 
 CLICK_DECLS
 
@@ -14,7 +15,7 @@ int CastorUpdateTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
 }
 
 void CastorUpdateTimeout::push(int, Packet* p) {
-	const PacketId& pid = CastorPacket::getCastorAnno(p);
+	const PacketId& pid = CastorAnno::hash_anno(p);
 
 	// Calculate new round-trip time sample
 	const Timestamp& time_sent = history->getTimestamp(pid);
@@ -27,7 +28,7 @@ void CastorUpdateTimeout::push(int, Packet* p) {
 	// Get flow's timeout object
 	const FlowId& fid = history->getFlowId(pid);
 	NodeId subfid = history->getDestination(pid);
-	NodeId routedTo = history->routedTo(pid);
+	NeighborId routedTo = history->routedTo(pid);
 	CastorTimeout& timeout = table->getTimeout(fid, subfid, routedTo);
 
 	// Update timeout

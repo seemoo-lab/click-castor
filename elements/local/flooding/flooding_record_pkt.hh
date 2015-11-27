@@ -2,21 +2,19 @@
 #define CLICK_FLOODING_RECORD_PKT_HH
 
 #include <click/element.hh>
-#include "../castor/castor.hh"
-#include "../castor/castor_xcast_destination_map.hh"
 #include "../castor/castor_record_pkt.hh"
+#include "../castor/castor_xcast_destination_map.hh"
 
 CLICK_DECLS
 
 class FloodingRecordPkt: public CastorRecordPkt {
 public:
-	FloodingRecordPkt() : map(0) {}
-
 	const char *class_name() const { return "FloodingRecordPkt"; }
+	const char *port_count() const { return PORTS_1_1; }
+	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	void push(int, Packet *);
-
+	Packet* simple_action(Packet *);
 private:
 	CastorXcastDestinationMap* map;
 };

@@ -1,26 +1,11 @@
 /**
- * Appends Castor header to IP unicast packet
- */
-elementclass CastorHandleUnicastIpPacket {
-	$myIP, $flowmanager, $crypto |
-
-	-> CastorAddHeader($flowmanager)
-	-> CastorEncryptAckAuth($crypto)
-	//-> CastorPrint('Send', $myIP, $fullSend)
-	-> rec :: CastorRecordPkt
-	-> output;
-}
-
-/**
  * Creates IP unicast from multicast packets
  */
 elementclass CastorHandleMulticastToUnicastIpPacket {
-	$myIP, $flowmanager, $crypto |
+	$myAddrInfo, $flowmanager, $crypto, $map |
 	
-	map :: CastorXcastDestinationMap
-
 	input
-	-> CastorXcastToUnicast(map)
+	-> CastorXcastToUnicast($map)
 	=> (input[0] -> output;
 	    input[1] -> SetIPChecksum -> output;)
 	-> CastorAddHeader($flowmanager)
@@ -62,10 +47,9 @@ elementclass CastorForwardPkt {
 	input
 		-> route :: CastorLookupRoute($routeselector)
 		-> CastorAddPktToHistory($history)
-		-> CastorStartTimer($routingtable, $timeouttable, $history, $ratelimits, NodeId $myIP, VERBOSE false)
+		-> CastorStartTimer($routingtable, $timeouttable, $history, $ratelimits, ID fake, VERBOSE false)
 		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> rec :: CastorRecordPkt
-		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)
 		-> output;
 
 	route[1]
@@ -100,16 +84,16 @@ elementclass CastorHandlePkt {
 		-> [2]output;
 
 	handleLocal[1]
-		-> sendAck :: CastorSendAck($myIP)
+		-> recAck :: CastorRecordPkt
 		-> [1]output;
 	
 	// Need to retransmit ACK
 	checkDuplicate[1]
 		//-> CastorPrint("Duplicate pid, retransmit ACK", $myIP)
 		-> CastorAddPktToHistory($history)
-		-> CastorRetransmitAck($history, $myIP)
+		-> CastorRetransmitAck($history)
 		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
-		-> sendAck;
+		-> recAck;
 
 	// If invalid or duplicate -> discard
 	null :: Discard;

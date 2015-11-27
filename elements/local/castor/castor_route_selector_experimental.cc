@@ -13,7 +13,7 @@ int CastorRouteSelectorExperimental::configure(Vector<String> &conf, ErrorHandle
 			cpEnd);
 }
 
-bool CastorRouteSelectorExperimental::selectNeighbor(const NodeId &entry, double entryEstimate, Vector<NodeId> &bestEntries, double &bestEstimate, const PacketId &pid)
+bool CastorRouteSelectorExperimental::selectNeighbor(const NeighborId &entry, double entryEstimate, Vector<NeighborId> &bestEntries, double &bestEstimate, const PacketId &pid)
 {
 #if 1
 	if (!history->hasPkt(pid) || entry != history->getPktSenders(pid)[0])
@@ -35,7 +35,7 @@ bool CastorRouteSelectorExperimental::selectNeighbor(const NodeId &entry, double
 	return false;
 }
 
-NodeId CastorRouteSelectorExperimental::chooseNeighbor(Vector<NodeId> &bestNeighbors, double best, const PacketId &pid)
+NeighborId CastorRouteSelectorExperimental::chooseNeighbor(Vector<NeighborId> &bestNeighbors, double best, const PacketId &pid)
 {
 #if 0
 	if (history->hasPkt(pid)) {

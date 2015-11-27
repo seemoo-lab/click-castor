@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include <click/hashtable.hh>
-#include "../node_id.hh"
+#include "../../neighbordiscovery/neighbor_id.hh"
 #include "castor_rate_limit.hh"
 
 CLICK_DECLS
@@ -12,18 +12,16 @@ class CastorRateLimiter;
 
 class CastorRateLimitTable : public Element {
 public:
-	CastorRateLimitTable() : _listener(NULL) {}
-
 	const char *class_name() const { return "CastorRateLimitTable"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	CastorRateLimit& lookup(const NodeId& node);
+	CastorRateLimit& lookup(const NeighborId& node);
 	void register_listener(CastorRateLimiter*);
-	void notify(const NodeId&) const;
+	void notify(const NeighborId&) const;
 private:
-	HashTable<const NodeId, CastorRateLimit> _table;
+	HashTable<const NeighborId, CastorRateLimit> _table;
 
 	CastorRateLimiter* _listener;
 };

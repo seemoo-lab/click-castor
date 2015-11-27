@@ -2,14 +2,15 @@
 #include <click/confparse.hh>
 #include <clicknet/ether.h>
 #include "castor_xcast_retransmit_ack.hh"
+#include "castor.hh"
 #include "castor_xcast.hh"
+#include "castor_anno.hh"
 
 CLICK_DECLS
 
 int CastorXcastRetransmitAck::configure(Vector<String> &conf, ErrorHandler *errh) {
      return cp_va_kparse(conf, this, errh,
         "CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
-        "ADDR", cpkP+cpkM, cpIPAddress, &myId,
         cpEnd);
 }
 
@@ -33,10 +34,12 @@ void CastorXcastRetransmitAck::push(int, Packet *p) {
 		ack.dst = pkt.getDestination(i);
 #endif
 
+		// TODO change default headroom size
 		WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorAck), 0);
-		q->set_dst_ip_anno(CastorPacket::src_ip_anno(p)); // Unicast ACK to PKT sender
+		CastorAnno::dst_id_anno(q) = CastorAnno::src_id_anno(p); // Unicast ACK to PKT sender
+		CastorAnno::hop_id_anno(q) = CastorAnno::dst_id_anno(q);
 
-		assert(history->hasPktFrom(pkt.getPid(i), q->dst_ip_anno()));
+		assert(history->hasPktFrom(pkt.getPid(i), CastorAnno::dst_id_anno(q)));
 
 		output(0).push(q);
 	}

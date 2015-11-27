@@ -1,18 +1,16 @@
 #include <click/config.h>
-#include <click/confparse.hh>
-#include <click/vector.hh>
 #include "flooding_set_pkt_id.hh"
 #include "flooding.hh"
 
 CLICK_DECLS
 
-void FloodingSetPktId::push(int, Packet *p) {
+Packet* FloodingSetPktId::simple_action(Packet *p) {
 	WritablePacket* q = p->uniqueify();
-	Flooding::setId(q, seq);
+	Flooding::id(q) = seq;
 	seq++;
-	Flooding::setHopcount(q, 0);
+	Flooding::hopcount(q) = 0;
 
-	output(0).push(q);
+	return q;
 }
 
 CLICK_ENDDECLS

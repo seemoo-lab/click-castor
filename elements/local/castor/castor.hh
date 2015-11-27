@@ -2,8 +2,6 @@
 #define CLICK_CASTOR_HH
 
 #include <click/packet.hh>
-#include <click/ipaddress.hh>
-#include <click/packet_anno.hh>
 #include "node_id.hh"
 #include "hash.hh"
 
@@ -80,46 +78,14 @@ public:
  */
 class CastorPacket {
 public:
-
 	static inline uint8_t getType(const Packet* p) {
 		uint8_t type = p->data()[0] & 0xF0;
 		return type;
 	}
-
-	static inline IPAddress src_ip_anno(const Packet* p) {
-		return IPAddress(p->anno_u32(src_ip_anno_offset));
-	}
-
-	static inline void set_src_ip_anno(Packet* p, IPAddress addr) {
-		p->set_anno_u32(src_ip_anno_offset, addr.addr());
-	}
-
-	static inline IPAddress mac_ip_anno(const Packet* p) {
-		return IPAddress(p->anno_u32(mac_ip_anno_offset));
-	}
-
-	static inline void set_mac_ip_anno(Packet* p, IPAddress addr) {
-		p->set_anno_u32(mac_ip_anno_offset, addr.addr());
-	}
-	/**
-	 * User annotation space for Castor
-	 */
-	static inline Hash& getCastorAnno(Packet* p) {
-		uint8_t* cAnno = p->anno_u8();
-		cAnno += castor_anno_offset;
-		return (Hash&) *cAnno;
-	}
-
 	static inline bool isXcast(Packet* p) {
 		uint8_t type = p->data()[0] & 0x0F;
 		return (type == CastorType::XCAST);
 	}
-
-private:
-	static const uint8_t src_ip_anno_offset = DST_IP_ANNO_OFFSET + DST_IP_ANNO_SIZE; // = 4
-	static const uint8_t mac_ip_anno_offset = src_ip_anno_offset + DST_IP_ANNO_SIZE; // = 8
-	static const uint8_t castor_anno_offset = mac_ip_anno_offset + DST_IP_ANNO_SIZE; // = 12
-	static const uint8_t castor_paint_offset = castor_anno_offset + sizeof(Hash); // = 32, for documentation purposes only
 };
 
 CLICK_ENDDECLS

@@ -22,7 +22,7 @@ public:
 
 private:
 	CastorHistory *history;
-	NodeId myId;
+	NeighborId id;
 };
 
 CLICK_ENDDECLS

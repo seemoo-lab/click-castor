@@ -1,22 +1,22 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include "add_neighbor.hh"
+#include "../castor/castor_anno.hh"
 
 CLICK_DECLS
 
 int AddNeighbor::configure(Vector<String>& conf, ErrorHandler* errh) {
-	return cp_va_kparse(conf, this, errh,
-			"Neighbors", cpkP + cpkM, cpElementCast, "Neighbors", &neighbors,
-			"ENABLE", cpkP, cpBool, &enabled,
-			cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("NEIGHBORS", ElementCastArg("Neighbors"), neighbors)
+			.read_or_set_p("ENABLE", enabled, true)
+			.complete();
 }
 
-void AddNeighbor::push(int, Packet* p) {
-	if (enabled) {
-		NeighborBeacon& beacon = (NeighborBeacon&) *p->data();
-		neighbors->addNeighbor(beacon.src);
-	}
-	output(0).push(p);
+Packet* AddNeighbor::simple_action(Packet* p) {
+	if (enabled)
+		neighbors->add(CastorAnno::src_id_anno(p));
+
+	return p;
 }
 
 CLICK_ENDDECLS

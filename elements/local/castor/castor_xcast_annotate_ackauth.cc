@@ -1,15 +1,15 @@
 #include <click/config.h>
 #include <click/args.hh>
-#include <click/confparse.hh>
 #include "castor_xcast_annotate_ackauth.hh"
 #include "castor_xcast.hh"
+#include "castor_anno.hh"
 
 CLICK_DECLS
 
 int CastorXcastAnnotateAckAuth::configure(Vector<String>& conf, ErrorHandler* errh) {
-	return cp_va_kparse(conf, this, errh,
-		"CRYPT", cpkP+cpkM, cpElementCast, "Crypto", &crypto,
-		cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("Crypto", ElementCastArg("Crypto"), crypto)
+			.complete();
 }
 
 void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
@@ -32,7 +32,7 @@ void CastorXcastAnnotateAckAuth::push(int, Packet *p) {
 		return;
 	}
 
-	AckAuth& authAnno = CastorPacket::getCastorAnno(pkt.getPacket());
+	AckAuth& authAnno = CastorAnno::hash_anno(pkt.getPacket());
 	authAnno = crypto->convert(ackAuth);
 
 	output(0).push(pkt.getPacket());

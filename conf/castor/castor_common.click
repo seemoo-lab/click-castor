@@ -2,72 +2,60 @@ define(
 	$fullSend false,
 );
 
-
-elementclass CastorEtherFilter {
-	input
-		-> beaconClassifier :: Classifier(12/88B5, -) // Castor beacon; other
-		-> removeEthernetHeader :: Strip(14)
-		-> [1]output; // Castor beacon
-		
-	beaconClassifier[1]
-		-> removeEthernetHeader2 :: Strip(14)
-		-> [0]output; // Castor PKT or ACK
-}
-
 /**
  * Paint frames that were broadcasted by the sender
  */
 elementclass BroadcastPainter {
 	input[0]
-		-> dstFilter :: IPClassifier(dst host 255.255.255.255, -)
-		-> Paint(10, ANNO 32) // Packet was broadcast to us
+		-> broadcastFilter :: HostEtherFilter(FF:FF:FF:FF:FF:FF)
+		-> Paint(10, ANNO 38) // Packet was broadcast to us
 		-> output;
 
-	dstFilter[1]
+	broadcastFilter[1]
 		-> output; // Packet was unicasted to us (no paint)
 }
 
 elementclass CastorClassifier {
-
-	$myIP, $neighbors, $ratelimits |
+	$myAddr, $neighbors |
 
 	input
-		-> CheckIPHeader
-		-> AddIPNeighbor($neighbors, ENABLE $neighborsEnable)
+		-> annoSrcAddr :: GetEtherAddress(ANNO 0, OFFSET src)
+		-> AddNeighbor($neighbors, ENABLE $neighborsEnable) // add all neighbors that we receive transmissions from
 		-> BroadcastPainter
-		-> annotateSourceAddress :: GetIPAddress(IP src, ANNO 4) // Put source address after dst_ip_anno()
-		-> annotateDestAddress :: GetIPAddress(IP dst, ANNO 0)
-		-> addressfilter :: IPClassifier(dst host $myIP or 255.255.255.255, -) // We filter by IP address
-		-> ipclassifier :: IPClassifier(ip proto $CASTORTYPE, -)
-		-> StripIPHeader
-		-> cclassifier :: Classifier(0/c?, 0/a?);
-
-	addressfilter[1]
-		-> Discard; // not intended for us
+		-> ethclassifier :: Classifier(12/88B6, 12/88B5, -) // (0) Castor PKT/ACK; (1) beacon; (2) other
+		-> removeEthernetHeader :: Strip(14)
+		-> forwaderFilter :: ForwarderFilter($myAddr)
+		-> removeForwarderList :: RemoveForwarderList
+		-> cclassifier :: Classifier(0/c?, 0/a?, -);
 
 	cclassifier[0] // Castor PKTs -> output 0
-		-> CastorRateLimiter($ratelimits)
 		-> [0]output;
 
 	cclassifier[1] // Castor ACKs -> output 1
 		-> [1]output;
 
-	ipclassifier[1] // Other packets -> output 2
-		-> [2]output;
+	cclassifier[2] // Malformed Castor packet
+		-> Discard;
 
+	ethclassifier[1] // Beacon
+		-> Discard
+
+	ethclassifier[2] // Other packet
+		-> [2]output;
 }
 
-elementclass CastorSendAck {
-	$myIP |
-	
+elementclass DynamicEtherEncap {
+	$myAddr |
+
 	input
-		-> recAck :: CastorRecordPkt
-		-> IPEncap($CASTORTYPE, $myIP, DST_ANNO)
+		-> AddForwarderList
+		-> EtherEncap($ETHERTYPE_CASTOR, $myAddr, 00:00:00:00:00:00)
+		-> StoreEtherAddress(OFFSET dst, ANNO 12)
 		-> output;
 }
 
 elementclass CastorHandleAck {
-	$myIP, $routingtable, $timeouttable, $ratelimits, $history, $neighbors, $crypto, $promisc |
+	$myIP, $routingtable, $timeouttable, $ratelimits, $history, $neighbors, $crypto |
 
 	// Regular ACK flow
 	input
@@ -79,8 +67,8 @@ elementclass CastorHandleAck {
 		//-> CastorPrint('Received valid', $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
 		-> updateRate :: CastorUpdateRateLimit($ratelimits, $history)
-		-> CastorSetAckNexthop($history, $neighbors, $promisc)[0,1]
-		-> sendAck :: CastorSendAck($myIP)
+		-> CastorSetAckNexthop($history, $neighbors)
+		-> recAck :: CastorRecordPkt
 		-> output;
 
 	// Discarding...
@@ -89,11 +77,11 @@ elementclass CastorHandleAck {
 		//-> CastorPrint("Unknown corresponding PKT", $myIP)
 		-> null;
 	authenticate[2]
-		//-> CastorPrint("Too late", $myIP)
+		-> CastorPrint("Too late (SHOULD NO LONGER OCCUR!)", $myIP)
 		-> null;
 	authenticate[3]
 		// Might rarely happen if MAC ACK was lost and Castor ACK is retransmitted
-		-> CastorPrint("ACK duplicate from same neighbor", $myIP)
+		//-> CastorPrint("ACK duplicate from same neighbor", $myIP)
 		-> null;
 	authenticate[4]
 		//-> CastorPrint("ACK from different neighbor than PKT was forwarded to", $myIP)

@@ -1,27 +1,21 @@
 #include <click/config.h>
-#include <click/confparse.hh>
 
 #include "flooding_check_duplicate.hh"
 
 CLICK_DECLS
 
-void FloodingCheckDuplicate::push(int, Packet *p) {
+Packet* FloodingCheckDuplicate::simple_action(Packet *p) {
+	IPAddress dst = p->ip_header()->ip_dst;
+	Flooding::Id id = Flooding::id(p);
+	history[dst].count(id);
 
-	Flooding::Id id = Flooding::getId(p);
-	IPAddress dst = p->ip_header()->ip_dst.s_addr;
-	HashTable<Flooding::Id, Flooding::Id>* ids = history.get_pointer(dst);
-
-	if (ids && ids->get_pointer(id)) {
-		output(1).push(p); // -> Duplicate
+	if (history[dst].count(id) > 0) {
+		checked_output_push(1, p); // -> Duplicate
+		return 0;
 	} else {
-		if (!ids) {
-			history.set(dst, HashTable<Flooding::Id,Flooding::Id>());
-			ids = history.get_pointer(dst);
-		}
-		ids->set(id, id);
-		output(0).push(p);
+		history[dst].set(id, id);
+		return p;
 	}
-
 }
 
 CLICK_ENDDECLS

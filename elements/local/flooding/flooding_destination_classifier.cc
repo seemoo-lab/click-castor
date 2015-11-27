@@ -1,38 +1,42 @@
 #include <click/config.h>
-#include <click/confparse.hh>
-#include <click/vector.hh>
+#include <click/args.hh>
 #include "flooding_destination_classifier.hh"
-
 
 CLICK_DECLS
 
 int FloodingDestinationClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return cp_va_kparse(conf, this, errh,
-		"ADDR", cpkP+cpkM, cpIPAddress, &myIP,
-		"MAP", cpkP+cpkM, cpElementCast, "CastorXcastDestinationMap", &map,
-		cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("ID", myIP)
+			.read_mp("MAP", ElementCastArg("CastorXcastDestinationMap"), map)
+			.complete();
 }
 
 void FloodingDestinationClassifier::push(int, Packet *p) {
-
-	IPAddress dst(p->ip_header()->ip_dst);
-
+	GroupId dst(IPAddress(p->ip_header()->ip_dst).data());
+	const auto& dsts = map->get(dst);
 	bool isDestination = false;
-	const Vector<IPAddress>& dsts = map->getDestinations(dst);
-	for (Vector<IPAddress>::const_iterator it = dsts.begin(); it != dsts.end(); it++) {
-		if (*it == myIP) {
+	for (const auto& dst : dsts) {
+		if (dst == GroupId(myIP)) {
 			isDestination = true;
 			break;
 		}
 	}
+	WritablePacket* q = p->uniqueify();
+	Flooding::hopcount(q)++;
 
-	if (isDestination) {
-		output(0).push(p->clone()); // Deliver to host
-	} else {
-		p->set_dst_ip_anno(IPAddress::make_broadcast());
-		WritablePacket* q = p->uniqueify();
-		Flooding::setHopcount(q, Flooding::getHopcount(q) + 1); // hopcount++
-		output(1).push(q); // Forward packet
+	int group_size = dsts.size();
+	assert(group_size > 0);
+
+	if (isDestination && group_size == 1) {
+		// only deliver to host
+		output(0).push(q);
+	} else if (!isDestination) {
+		// only forward
+		output(1).push(q);
+	} else { /* isDestination && group_size > 1 */
+		// deliver to host AND forward
+		output(0).push(q->clone());
+		output(1).push(q);
 	}
 }
 

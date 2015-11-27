@@ -4,8 +4,8 @@
 #include <click/straccum.hh>
 #include <click/vector.hh>
 #include <click/hashtable.hh>
-#include <clicknet/ether.h>
 #include "castor.hh"
+#include "castor_anno.hh"
 
 CLICK_DECLS
 
@@ -180,8 +180,8 @@ public:
 	}
 
 
-	inline NodeId getNextHop(unsigned int j) const { return NodeId(&_var[getNextHopOff(j)]); }
-	inline void setNextHop(NodeId nextHop, unsigned int j) { memcpy(&_var[getNextHopOff(j)], &nextHop, sizeof(NodeId));}
+	inline NeighborId getNextHop(unsigned int j) const { return NeighborId(&_var[getNextHopOff(j)]); }
+	inline void setNextHop(const NeighborId& nextHop, unsigned int j) { memcpy(&_var[getNextHopOff(j)], &nextHop, sizeof(NeighborId));}
 
 	inline void getNextHopDestinations(unsigned int j, Vector<unsigned int>& destinations) const {
 		unsigned int off = 0;
@@ -195,7 +195,7 @@ public:
 	inline uint8_t getNextHopNAssign(unsigned int j) const { return _var[getNextHopNAssignOff(j)]; }
 	inline void setNextHopAssign(uint8_t assign, unsigned int j) { _var[getNextHopNAssignOff(j)] = assign; }
 
-	inline void setSingleNextHop(NodeId nextHop) {
+	inline void setSingleNextHop(NeighborId nextHop) {
 		setNNextHops(1);
 		setNextHopAssign(getNDestinations(), 0);
 		setNextHop(nextHop, 0);
@@ -205,7 +205,7 @@ public:
 	 * Sets new next hops.
 	 * Parameter includes a mapping of next hops to destination indices.
 	 */
-	void setNextHopMapping(const HashTable<NodeId,Vector<unsigned int> >& map) {
+	void setNextHopMapping(const HashTable<NeighborId,Vector<unsigned int> >& map) {
 		setNNextHops(map.size());
 
 		// Cache old destinations and pids
@@ -217,7 +217,7 @@ public:
 		}
 
 		unsigned int hopPos = 0, dstOff = 0;
-		for(HashTable<NodeId,Vector<unsigned int> >::const_iterator it = map.begin(); it.live(); hopPos++, it++) {
+		for(HashTable<NeighborId,Vector<unsigned int> >::const_iterator it = map.begin(); it.live(); hopPos++, it++) {
 			const Vector<unsigned int>& destinations = it.value();
 			setNextHop(it.key(), hopPos);
 			setNextHopAssign(destinations.size(), hopPos);
@@ -233,8 +233,8 @@ public:
 		if(full) {
 			String sfid = getFlowId().str();
 			String sauth = getPktAuth().str();
-			sa << "   | From:\t" << CastorPacket::src_ip_anno(_p) << "\n";
-			sa << "   | To:\t" << _p->dst_ip_anno() << "\n";
+			sa << "   | From:\t" << CastorAnno::src_id_anno(_p) << "\n";
+			sa << "   | To:\t" << CastorAnno::dst_id_anno(_p) << "\n";
 			sa << "   | Type:\tXcast PKT (header " <<  getHeaderLength() << " / payload " << getPayloadLength() << " bytes)\n";
 			sa << "   | Flow:\t" << getSource() << " -> " << getMulticastGroup() << "\n";
 			for(unsigned int i = 0; i < getNDestinations(); i++)
@@ -256,7 +256,7 @@ public:
 				sa << "\n";
 			}
 		} else {
-			sa << "Xcast PKT (from " << CastorPacket::src_ip_anno(_p) << " to " << getPacket()->dst_ip_anno() << ", flow " << getSource() << " -> ";
+			sa << "Xcast PKT (from " << CastorAnno::src_id_anno(_p) << " to " << CastorAnno::dst_id_anno(_p) << ", flow " << getSource() << " -> ";
 			sa << getDestination(0);
 			for(unsigned int i = 1; i < getNDestinations(); i++)
 				sa << ", " << getDestination(i);
@@ -299,7 +299,7 @@ private:
 
 	inline unsigned int getDestinationOff(unsigned int i) const { return sizeof(NodeId) * i; }
 	inline unsigned int getPidOff(unsigned int i) const { return getDestinationOff(getNDestinations()) + sizeof(PacketId) * i; }
-	inline unsigned int getNextHopOff(unsigned int i) const { return getPidOff(getNDestinations()) + sizeof(NodeId) * i; }
+	inline unsigned int getNextHopOff(unsigned int i) const { return getPidOff(getNDestinations()) + sizeof(NeighborId) * i; }
 	inline unsigned int getNextHopNAssignOff(unsigned int i) const { return getNextHopOff(getNNextHops()) + sizeof(uint8_t) * i; }
 
 	void setPointers(Packet* p) {
@@ -317,7 +317,7 @@ private:
 
 		size_t newLength = sizeof(FixedSizeHeader)
 			+ getNDestinations() * (sizeof(NodeId) + sizeof(PacketId))
-			+ getNNextHops() * (sizeof(NodeId) + sizeof(uint8_t));
+			+ getNNextHops() * (sizeof(NeighborId) + sizeof(uint8_t));
 
 		if(oldLength == newLength)
 			return; // No need to resize -> cheap

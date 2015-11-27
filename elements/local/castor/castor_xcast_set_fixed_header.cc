@@ -21,8 +21,8 @@ void CastorXcastSetFixedHeader::push(int, Packet *p) {
 	pkt.setNFlowAuthElements(CASTOR_FLOWAUTH_ELEM);
 
 	// Extract source and destination from wrapped IP packet
-	NodeId src = pkt.getPacket()->ip_header()->ip_src.s_addr;
-	NodeId dst = pkt.getPacket()->ip_header()->ip_dst.s_addr;
+	NodeId src(reinterpret_cast<const uint8_t*>(&(pkt.getPacket()->ip_header()->ip_src)));
+	NodeId dst(reinterpret_cast<const uint8_t*>(&(pkt.getPacket()->ip_header()->ip_dst)));
 
 	pkt.setContentType(pkt.getPacket()->ip_header()->ip_p);
 	pkt.setSource(src);
