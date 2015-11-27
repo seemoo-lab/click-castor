@@ -285,8 +285,8 @@ private:
 
 	void set_internal_pointers(Packet* p) {
 		_p = p;
-		_fixed = (FixedSizeHeader*) _p->data();
-		_var = (unsigned char*) (_p->data() + sizeof(FixedSizeHeader));
+		_fixed = reinterpret_cast<FixedSizeHeader*>(const_cast<uint8_t*>(_p->data()));
+		_var = const_cast<uint8_t*>(_p->data()) + sizeof(FixedSizeHeader);
 	}
 
 	/**
