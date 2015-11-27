@@ -28,16 +28,7 @@ public:
 	static CastorXcastPkt initialize(Packet* p) {
 		WritablePacket* q = p->push(sizeof(FixedSizeHeader));
 		CastorXcastPkt pkt(q);
-
-		// Important to initialize those two to zero,
-		// otherwise next call to setLength() will result in garbage
-		pkt._fixed->nDestinations = 0;
-		pkt._fixed->nNextHops = 0;
-#ifdef DEBUG_HOPCOUNT
-		pkt._fixed->hopcount = 0;
-#endif
-		pkt._fixed->length = sizeof(FixedSizeHeader);
-
+		*pkt._fixed = FixedSizeHeader();
 		return pkt;
 	}
 
@@ -67,7 +58,7 @@ public:
 	inline void set_nnexthop(uint8_t n) { _fixed->nNextHops = n; set_length(); }
 
 	// Variable length header fields
-	inline NodeId& dst(uint8_t i) { return reinterpret_cast<NodeId&>(*(_var + dst_off(i))); }
+	inline NodeId& dst(uint8_t i) { return reinterpret_cast<NodeId&>(*dst_off(i)); }
 	/** After method returns, next hops have to be newly set **/
 	inline void set_dsts(const NodeId destinations[], size_t n) {
 		set_ndst(n);
@@ -76,7 +67,7 @@ public:
 	}
 	inline void set_dsts(const Vector<NodeId>& destinations) { set_dsts(destinations.data(), destinations.size()); }
 
-	inline PacketId& pid(uint8_t i) { return reinterpret_cast<PacketId&>(*(_var + pid_off(i))); }
+	inline PacketId& pid(uint8_t i) { return reinterpret_cast<PacketId&>(*pid_off(i)); }
 
 	/**
 	 * Removes an IP address and corresponding Pid from the destination list. Does not affect the next hop mapping, i.e., the mapping might be outdated after this call.
@@ -172,7 +163,7 @@ public:
 		pid(0) = tmp_pid;
 	}
 
-	inline NeighborId& nexthop(uint8_t j) const { return reinterpret_cast<NeighborId&>(*(_var + nexthop_off(j))); }
+	inline NeighborId& nexthop(uint8_t j) const { return reinterpret_cast<NeighborId&>(*nexthop_off(j)); }
 
 	inline void nexthop_assigned_dsts(uint8_t j, Vector<unsigned int>& destinations) const {
 		uint8_t off = 0;
@@ -182,7 +173,7 @@ public:
 			destinations.push_back(pos + off);
 	}
 
-	inline uint8_t& nexthop_assign(unsigned int j) const { return _var[nexthop_assign_off(j)]; }
+	inline uint8_t& nexthop_assign(unsigned int j) const { return *nexthop_assign_off(j); }
 
 	inline void set_single_nexthop(const NeighborId& node) {
 		set_nnexthop(1);
@@ -256,6 +247,18 @@ public:
 
 private:
 	struct FixedSizeHeader {
+		FixedSizeHeader() :
+			type(CastorType::XCAST_PKT),
+			hashSize(sizeof(Hash)),
+			nFlowAuthElements(CASTOR_FLOWAUTH_ELEM),
+			contentType(0),
+			length(sizeof(*this)),
+			nDestinations(0), // reasonable value, otherwise set_length() will segfault
+			nNextHops(0),     // reasonable value, otherwise set_length() will segfault
+#ifdef DEBUG_HOPCOUNT
+			hopcount(0),
+#endif
+			_(0) {}
 		uint8_t type;
 		uint8_t hashSize;
 		uint8_t nFlowAuthElements;
@@ -281,10 +284,10 @@ private:
 	FixedSizeHeader* _fixed; // Accessor to fixed fields
 	uint8_t* _var; // Pointer to beginning of var fields
 
-	inline unsigned int dst_off(uint8_t i) const { return sizeof(NodeId) * i; }
-	inline unsigned int pid_off(uint8_t i) const { return dst_off(ndst()) + sizeof(PacketId) * i; }
-	inline unsigned int nexthop_off(uint8_t i) const { return pid_off(ndst()) + sizeof(NeighborId) * i; }
-	inline unsigned int nexthop_assign_off(uint8_t i) const { return nexthop_off(nnexthop()) + sizeof(uint8_t) * i; }
+	inline uint8_t* dst_off(uint8_t i) const { return _var + sizeof(NodeId) * i; }
+	inline uint8_t* pid_off(uint8_t i) const { return dst_off(ndst()) + sizeof(PacketId) * i; }
+	inline uint8_t* nexthop_off(uint8_t i) const { return pid_off(ndst()) + sizeof(NeighborId) * i; }
+	inline uint8_t* nexthop_assign_off(uint8_t i) const { return nexthop_off(nnexthop()) + sizeof(uint8_t) * i; }
 
 	void set_internal_pointers(Packet* p) {
 		_p = p;
