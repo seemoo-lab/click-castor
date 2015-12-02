@@ -103,13 +103,14 @@ public:
 
 		uint8_t new_ndst = ndst() - dst_indices.size();
 
-		NodeId   dsts[new_ndst];
-		PacketId pids[new_ndst];
-		for(uint8_t i = 0, j = 0; i < ndst(); i++) {
+		Vector<NodeId> dsts;
+		dsts.reserve(new_ndst);
+		Vector<PacketId> pids;
+		pids.reserve(new_ndst);
+		for(uint8_t i = 0; i < ndst(); i++) {
 			if(dst_indices.count(i) == 0) {
-				dsts[j] = dst(i);
-				pids[j] = pid(i);
-				j++;
+				dsts.push_back(dst(i));
+				pids.push_back(pid(i));
 			}
 		}
 
@@ -132,13 +133,14 @@ public:
 
 		uint8_t new_ndst = dst_indices.size();
 
-		NodeId   dsts[new_ndst];
-		PacketId pids[new_ndst];
-		for(uint8_t i = 0, j = 0; i < ndst(); i++) {
+		Vector<NodeId> dsts;
+		dsts.reserve(new_ndst);
+		Vector<PacketId> pids;
+		pids.reserve(new_ndst);
+		for(uint8_t i = 0; i < ndst(); i++) {
 			if(dst_indices.count(i) == 1) {
-				dsts[j] = dst(i);
-				pids[j] = pid(i);
-				j++;
+				dsts.push_back(dst(i));
+				pids.push_back(pid(i));
 			}
 		}
 
@@ -168,6 +170,7 @@ public:
 		uint8_t off = 0;
 		for(uint8_t i = 0; i < j; i++)
 			off += nexthop_assign(i);
+		destinations.reserve(destinations.size() + nexthop_assign(j));
 		for(uint8_t pos = 0; pos < nexthop_assign(j); pos++)
 			destinations.push_back(pos + off);
 	}
@@ -187,11 +190,13 @@ public:
 	void set_nexthop_assign(const HashTable<NeighborId,Vector<unsigned int> >& map) {
 		set_nnexthop(map.size());
 
-		NodeId   old_dsts[ndst()];
-		PacketId old_pids[ndst()];
+		Vector<NodeId> old_dsts;
+		old_dsts.reserve(ndst());
+		Vector<PacketId> old_pids;
+		old_pids.reserve(ndst());
 		for(uint8_t i = 0; i < ndst(); i++) {
-			old_dsts[i] = dst(i);
-			old_pids[i] = pid(i);
+			old_dsts.push_back(dst(i));
+			old_pids.push_back(pid(i));
 		}
 
 		uint8_t hop = 0, dst_off = 0;
