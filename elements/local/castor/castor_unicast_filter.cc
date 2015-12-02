@@ -32,7 +32,8 @@ Packet* CastorUnicastFilter::simple_action(Packet *p) {
 		}
 
 		if (!isBroadcast) {
-			output(1).push(pkt.getPacket());
+			checked_output_push(1, pkt.getPacket());
+			return 0;
 		} else if (pkt.nexthop_assign(index) == pkt.ndst()) {
 			return pkt.getPacket();
 		} else {
@@ -42,27 +43,28 @@ Packet* CastorUnicastFilter::simple_action(Packet *p) {
 			pkt.nexthop_assigned_dsts(index, destinations);
 
 			HashTable<uint8_t, uint8_t> toRemain;
-			for(int i = 0; i < destinations.size(); i++) {
+			for(int i = 0; i < destinations.size(); i++)
 				toRemain.set(destinations[i], destinations[i]);
-			}
-
-			// Push PKT with broadcast destinations
-			CastorXcastPkt local(pkt.getPacket()->clone()->uniqueify());
-			local.keep(toRemain);
-			local.set_single_nexthop(NeighborId::make_broadcast());
-			output(0).push(local.getPacket());
 
 			// Push PKT with unicast destinations
+			CastorXcastPkt drop(pkt.getPacket()->clone()->uniqueify());
 			pkt.remove(toRemain);
 			pkt.set_single_nexthop(NeighborId());
-			output(1).push(pkt.getPacket());
+			checked_output_push(1, drop.getPacket());
+
+			// Return PKT with broadcast destinations
+			pkt.keep(toRemain);
+			pkt.set_single_nexthop(NeighborId::make_broadcast());
+			return pkt.getPacket();
 		}
 
 	} else {
-		if (CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast())
-			return 0;
-		else
+		if (CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast()) {
+			return p;
+		} else {
 			checked_output_push(1, p);
+			return 0;
+		}
 	}
 }
 

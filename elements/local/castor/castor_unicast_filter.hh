@@ -11,9 +11,11 @@ CLICK_DECLS
  */
 class CastorUnicastFilter: public Element {
 public:
+	CastorUnicastFilter() : active(false) {}
+
 	const char *class_name() const	{ return "CastorUnicastFilter"; }
 	const char *port_count() const	{ return "1/1-2"; }
-	const char *processing() const	{ return "a/ah"; }
+	const char *processing() const	{ return PROCESSING_A_AH; }
 	int configure(Vector<String>&, ErrorHandler*);
 
 	void add_handlers();
