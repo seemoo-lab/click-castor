@@ -26,6 +26,7 @@ stamp-h
 
 *.o
 *.so
+*.dylib
 .cproject
 .project
 .pydevproject
