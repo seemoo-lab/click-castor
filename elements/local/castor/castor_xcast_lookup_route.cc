@@ -1,5 +1,5 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include <click/vector.hh>
 #include <click/hashtable.hh>
 #include "castor_xcast_lookup_route.hh"
@@ -10,11 +10,10 @@
 CLICK_DECLS
 
 int CastorXcastLookupRoute::configure(Vector<String> &conf, ErrorHandler *errh) {
-	Element* tmp = 0;
-    int result = cp_va_kparse(conf, this, errh,
-		"CastorRouteSelector", cpkP+cpkM, cpElement, &tmp,
-        cpEnd);
-    // Have to cast manually; cpElementCast complains about type not matching
+	Element* tmp;
+    int result = Args(conf, this, errh)
+    		.read_mp("ROUTE_SELECTOR", tmp)
+			.complete();
     selector = dynamic_cast<CastorRouteSelector*>(tmp);
     return result;
 }
@@ -66,7 +65,6 @@ void CastorXcastLookupRoute::push(int, Packet *p) {
 #endif
 
 	output(0).push(pkt.getPacket());
-
 }
 
 CLICK_ENDDECLS

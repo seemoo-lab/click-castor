@@ -2,7 +2,6 @@
 #define CLICK_CASTOR_XCAST_SET_FIXED_HEADER_HH
 
 #include <click/element.hh>
-#include "castor.hh"
 #include "flow/castor_flow_manager.hh"
 
 CLICK_DECLS
@@ -13,14 +12,12 @@ CLICK_DECLS
  */
 class CastorXcastSetFixedHeader: public Element {
 public:
-	CastorXcastSetFixedHeader() : flow(NULL) {}
-		
 	const char *class_name() const { return "CastorXcastSetFixedHeader"; }
 	const char *port_count() const { return PORTS_1_1; }
-	const char *processing() const { return PUSH; }
+	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	void push(int, Packet*);
+	Packet* simple_action(Packet*);
 private:
 	CastorFlowManager* flow;
 };

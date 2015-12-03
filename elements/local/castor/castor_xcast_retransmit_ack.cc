@@ -1,5 +1,5 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include <clicknet/ether.h>
 #include "castor_xcast_retransmit_ack.hh"
 #include "castor.hh"
@@ -9,9 +9,9 @@
 CLICK_DECLS
 
 int CastorXcastRetransmitAck::configure(Vector<String> &conf, ErrorHandler *errh) {
-     return cp_va_kparse(conf, this, errh,
-        "CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
-        cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("History", ElementCastArg("CastorHistory"), history)
+			.complete();
 }
 
 void CastorXcastRetransmitAck::push(int, Packet *p) {

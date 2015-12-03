@@ -1,5 +1,5 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 
 #include "castor_xcast_set_fixed_header.hh"
 #include "castor_xcast.hh"
@@ -7,18 +7,14 @@
 CLICK_DECLS
 
 int CastorXcastSetFixedHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
-     return cp_va_kparse(conf, this, errh,
-        "CastorXcastSetHeader", cpkP+cpkM, cpElementCast, "CastorFlowManager", &flow,
-        cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("FLOW_MAN", ElementCastArg("CastorFlowManager"), flow)
+			.complete();
 }
 
-void CastorXcastSetFixedHeader::push(int, Packet *p) {
+Packet* CastorXcastSetFixedHeader::simple_action(Packet *p) {
 	// Make space for Xcastor header
 	CastorXcastPkt pkt = CastorXcastPkt::initialize(p);
-
-	pkt.type() = CastorType::XCAST_PKT;
-	pkt.hash_size() = sizeof(Hash);
-	pkt.flow_size() = CASTOR_FLOWAUTH_ELEM;
 
 	// Extract source and destination from wrapped IP packet
 	NodeId src(reinterpret_cast<const uint8_t*>(&(pkt.getPacket()->ip_header()->ip_src)));
@@ -35,7 +31,7 @@ void CastorXcastSetFixedHeader::push(int, Packet *p) {
 	pkt.kpkt() = label.num;
 	pkt.pkt_auth() = label.aauth;
 
-	output(0).push(pkt.getPacket());
+	return pkt.getPacket();
 }
 
 CLICK_ENDDECLS
