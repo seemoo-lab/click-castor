@@ -1,22 +1,16 @@
 #include <click/config.h>
 #include "castor_merkle_flow.hh"
 
-#define CASTOR_FLOWSIZE (1<<CASTOR_FLOWAUTH_ELEM) // Number of elements in a merkle hash tree
-
 CLICK_DECLS
 
 CastorMerkleFlow::CastorMerkleFlow(NodeId src, NodeId dst, const Crypto* crypto) : CastorFlow(src, dst, crypto), pos(0) {
-	aauths.reserve(CASTOR_FLOWSIZE);
-	pids.reserve(CASTOR_FLOWSIZE);
-
+	Vector<SValue> tmp;
 	for (int i = 0; i < CASTOR_FLOWSIZE; i++) {
-		Hash auth;
-		crypto->random(auth);
-		aauths.push_back(crypto->convert(auth));
-		pids.push_back(crypto->hash(aauths[i]));
+		crypto->random(aauths[i]);
+		pids[i] = crypto->hash(aauths[i]);
+		tmp.push_back(crypto->convert(pids[i]));
 	}
-
-	tree = new MerkleTree(pids, *crypto);
+	tree = new MerkleTree(tmp, *crypto);
 }
 
 CastorMerkleFlow::~CastorMerkleFlow() {
@@ -30,7 +24,7 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 	PacketLabel label;
 	label.num = pos;
 	label.fid = crypto->convert(tree->getRoot());
-	label.pid = crypto->convert(pids[pos]);
+	label.pid = pids[pos];
 
 	// Set flow authenticator
 	Vector<SValue> siblings = tree->getSiblings(pos);
@@ -38,7 +32,7 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 	for (int j = 0; j < siblings.size(); j++)
 		label.fauth[j] = crypto->convert(siblings[j]);
 
-	label.aauth = crypto->convert(aauths[pos]);
+	label.aauth = aauths[pos];
 
 	pos++;
 
@@ -46,8 +40,7 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 }
 
 bool CastorMerkleFlow::isAlive() const {
-	assert(aauths.size() >= 0);
-	return pos < (size_t) aauths.size();
+	return pos < (size_t) CASTOR_FLOWSIZE;
 }
 
 CLICK_ENDDECLS

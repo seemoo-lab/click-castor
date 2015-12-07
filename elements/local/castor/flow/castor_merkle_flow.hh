@@ -5,6 +5,8 @@
 #include "merkle_tree.hh"
 #include "castor_flow.hh"
 
+#define CASTOR_FLOWSIZE (1<<CASTOR_FLOWAUTH_ELEM) // Number of elements in a merkle hash tree
+
 CLICK_DECLS
 
 class CastorMerkleFlow : public CastorFlow {
@@ -16,11 +18,9 @@ public:
 	bool isAlive() const;
 
 private:
-	friend class CastorContinuousMerkleFlow;
-
 	const MerkleTree* tree;
-	Vector<SValue> aauths;
-	Vector<SValue> pids;
+	Hash aauths[CASTOR_FLOWSIZE];
+	Hash pids[CASTOR_FLOWSIZE];
 	size_t pos;
 };
 
