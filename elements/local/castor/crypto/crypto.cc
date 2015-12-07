@@ -1,6 +1,5 @@
 #include <click/config.h>
 #include <click/args.hh>
-#include <click/confparse.hh>
 #include "crypto.hh"
 
 #include <sodium.h>
@@ -15,15 +14,12 @@ Crypto::~Crypto() {
 	delete hashFunction;
 }
 
-/*
- * Configure the Crypto Element
- */
 int Crypto::configure(Vector<String> &conf, ErrorHandler *errh)
 {
-	int res = cp_va_kparse(conf, this, errh,
-		"SAM", cpkP+cpkM, cpElementCast, "SAManagement", &sam,
-		cpEnd);
-	if(res < 0) return res;
+	if (Args(conf, this, errh)
+			.read_mp("SAM", ElementCastArg("SAManagement"), sam)
+			.complete() < 0)
+		return -1;
 
 	algo = "AES-128/CBC/CTS";
 	iv = Botan::InitializationVector("00000000000000000000000000000000");

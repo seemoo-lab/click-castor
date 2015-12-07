@@ -15,7 +15,6 @@ typedef Botan::SymmetricKey SymmetricKey;
 
 class Crypto: public Element {
 public:
-	Crypto() : sam(NULL), hashFunction(NULL) {}
 	~Crypto();
 
 	const char *class_name() const { return "Crypto"; }
