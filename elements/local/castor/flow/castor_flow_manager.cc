@@ -23,25 +23,15 @@ PacketLabel CastorFlowManager::getPacketLabel(NodeId src, NodeId dst) {
 }
 
 CastorFlow* CastorFlowManager::createFlowIfNotExists(NodeId src, NodeId dst) {
-	CastorFlow* flow;
+	CastorFlow*& flow = _flows[src][dst];
 
-	HashTable<NodeId, CastorFlow*> * t = _flows.get_pointer(src);
-	if (!t) {
-		_flows.set(src, HashTable<NodeId, CastorFlow*>());
-		t = _flows.get_pointer(src);
-	}
-	CastorFlow** f = t->get_pointer(dst);
-	if (!f) {
+	if (!flow) {
 		flow = createNewFlow(src, dst);
-		t->set(dst, flow);
-	} else if (!(*f)->isAlive()) {
-		delete *f;
+	} else if (!flow->isAlive()) {
+		delete flow;
 		flow = createNewFlow(src, dst);
-		t->set(dst, flow);
-	} else {
-		flow = *f;
 	}
-	assert(flow != NULL && flow->isAlive());
+	assert(flow && flow->isAlive());
 
 	return flow;
 }
