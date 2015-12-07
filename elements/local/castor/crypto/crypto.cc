@@ -3,6 +3,7 @@
 #include <click/confparse.hh>
 #include "crypto.hh"
 
+#include <sodium.h>
 #include <botan/hash.h>
 #include <botan/auto_rng.h>
 #include <botan/symkey.h>
@@ -31,11 +32,8 @@ int Crypto::configure(Vector<String> &conf, ErrorHandler *errh)
 	return 0;
 }
 
-SValue Crypto::random(int nbytes) const {
-	Botan::AutoSeeded_RNG rng;
-	Botan::byte rbytes[nbytes];
-	rng.randomize(rbytes, nbytes);
-	return SValue(rbytes, nbytes);
+void Crypto::random(uint8_t* buf, unsigned int length) const {
+	randombytes_buf(buf, length);
 }
 
 /**
@@ -94,5 +92,5 @@ Hash Crypto::convert(const SValue& data) const {
 }
 
 CLICK_ENDDECLS
-ELEMENT_LIBS(-L/usr/local/lib -lbotan-1.10)
+ELEMENT_LIBS(-L/usr/local/lib -lsodium -L/usr/local/lib -lbotan-1.10)
 EXPORT_ELEMENT(Crypto)

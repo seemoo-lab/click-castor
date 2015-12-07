@@ -10,7 +10,9 @@ CastorMerkleFlow::CastorMerkleFlow(NodeId src, NodeId dst, const Crypto* crypto)
 	pids.reserve(CASTOR_FLOWSIZE);
 
 	for (int i = 0; i < CASTOR_FLOWSIZE; i++) {
-		aauths.push_back(crypto->random(sizeof(AckAuth)));
+		Hash auth;
+		crypto->random(auth);
+		aauths.push_back(crypto->convert(auth));
 		pids.push_back(crypto->hash(aauths[i]));
 	}
 

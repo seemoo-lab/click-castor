@@ -30,7 +30,9 @@ public:
 	SValue encrypt(const SValue&, const SymmetricKey&) const;
 	SValue decrypt(const SValue&, const SymmetricKey&) const;
 
-	SValue random(int nbytes) const;
+	void random(uint8_t* buf, unsigned int length) const;
+	template<unsigned int S>
+	inline void random(Buffer<S>& buf) const { random(buf.data(), buf.size()); }
 	SValue hash(const SValue& data) const;
 	Hash hash(const Hash& data) const;
 	Hash hashConvert(const SValue& data) const;
