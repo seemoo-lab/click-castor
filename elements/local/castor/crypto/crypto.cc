@@ -28,13 +28,12 @@ const SymmetricKey* Crypto::getSharedKey(NodeId id) const {
 	const SecurityAssociation* sharedKeySA = sam->get(id, SecurityAssociation::sharedsecret);
 	if (!sharedKeySA)
 		return 0;
-	const SymmetricKey* sharedKey = &sharedKeySA->secret;
-	return sharedKey;
+	return &sharedKeySA->secret;
 }
 
 void Crypto::hash(uint8_t* out, const uint8_t* in, unsigned int n) const {
 	/** TODO we are doing a truncated version of SHA-256 */
-	assert(crypto_hash_sha256_BYTES >= sizeof(Hash));
+	static_assert(crypto_hash_sha256_BYTES >= sizeof(Hash), "Hash type must be no larger than 32 bytes");
 	uint8_t tmp[crypto_hash_sha256_BYTES];
 	crypto_hash_sha256(tmp, in, n);
 	memcpy(out, tmp, sizeof(Hash));

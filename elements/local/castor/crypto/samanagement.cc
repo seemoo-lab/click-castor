@@ -1,9 +1,6 @@
 #include <click/config.h>
 #include <click/args.hh>
 #include "samanagement.hh"
-#include <botan/kdf.h>
-#include <botan/lookup.h>
-#include <botan/secmem.h>
 
 CLICK_DECLS
 
@@ -19,17 +16,14 @@ void SAManagement::add(const NodeId& node, const SecurityAssociation& sa) {
 }
 
 const SecurityAssociation* SAManagement::get(const NodeId& node, SecurityAssociation::Type type) {
-	const SecurityAssociation* sa = NULL;
-	SAMap::iterator it = sas.find(node);
-	if (it != sas.end()) {
-		SAs& sas = it.value();
-		for (const auto& sa : sas)
+	if (sas.count(node) > 0) {
+		for (const auto& sa : sas[node])
 			if (sa.type == type)
 				return &sa;
 	}
 
 	// If no entry currently exists, generate one
-	if (sa == NULL && type == SecurityAssociation::sharedsecret) {
+	if (type == SecurityAssociation::sharedsecret) {
 		add(node, genereateSymmetricSA(node));
 		return get(node, type);
 	}
@@ -38,28 +32,23 @@ const SecurityAssociation* SAManagement::get(const NodeId& node, SecurityAssocia
 }
 
 SecurityAssociation SAManagement::genereateSymmetricSA(const NodeId& node) {
-	// Create constant base key
-	Botan::byte rbytes[symmetricKeyLength];
-	for (unsigned int i = 0; i < symmetricKeyLength; i++) {
-		rbytes[i] = i;
-	}
-	// Create salt based on the NodeIds of both parties
-	Botan::byte salt[sizeof(NodeId) * 2];
+	Vector<uint8_t> key;
+	key.reserve(symmetricKeyLength);
 	if (myAddr.addr() < node.addr()) {
-		memcpy(salt, myAddr.data(), sizeof(NodeId));
-		memcpy((salt + sizeof(NodeId)), node.data(), sizeof(NodeId));
+		for (int i = 0; i < sizeof(NodeId); i++)
+			key.push_back(myAddr.data()[i]);
+		for (int i = 0; i < sizeof(NodeId); i++)
+			key.push_back(node.data()[i]);
 	} else {
-		memcpy((salt + sizeof(NodeId)), myAddr.data(), sizeof(NodeId));
-		memcpy(salt, node.data(), sizeof(NodeId));
+		for (int i = 0; i < sizeof(NodeId); i++)
+			key.push_back(node.data()[i]);
+		for (int i = 0; i < sizeof(NodeId); i++)
+			key.push_back(myAddr.data()[i]);
 	}
-	// Derive the shared key
-	Botan::KDF* kdf = Botan::get_kdf("KDF2(SHA-160)");
-	Botan::SecureVector<Botan::byte> key = kdf->derive_key(
-			symmetricKeyLength, rbytes, sizeof(rbytes), salt,
-			sizeof(salt));
+	while (key.size() < symmetricKeyLength)
+		key.push_back(0);
 	return SecurityAssociation(SecurityAssociation::sharedsecret, key);
 }
 
 CLICK_ENDDECLS
-ELEMENT_LIBS(-L/usr/local/lib -lbotan-1.10)
 EXPORT_ELEMENT(SAManagement)

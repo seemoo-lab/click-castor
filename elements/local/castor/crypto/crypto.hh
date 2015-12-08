@@ -4,12 +4,11 @@
 #include "../node_id.hh"
 #include "../hash.hh"
 #include "samanagement.hh"
-#include <botan/botan.h>
 #include <sodium.h>
 
 CLICK_DECLS
 
-typedef Botan::SymmetricKey SymmetricKey;
+typedef Vector<uint8_t> SymmetricKey;
 
 class Crypto: public Element {
 public:
@@ -24,12 +23,13 @@ public:
 	 */
 	const SymmetricKey* getSharedKey(NodeId) const;
 	template<unsigned int S>
-	void encrypt(Buffer<S>& cipher, const Buffer<S>& plain, const SymmetricKey& key) const {
-		assert(key.length() == crypto_stream_aes128ctr_KEYBYTES);
+	inline void encrypt(Buffer<S>& cipher, const Buffer<S>& plain, const SymmetricKey& key) const {
+		assert(key.size() == crypto_stream_aes128ctr_KEYBYTES);
 		crypto_stream_aes128ctr_xor(cipher.data(), plain.data(), plain.size(), nonce, key.begin());
 	}
 	template<unsigned int S>
-	void decrypt(Buffer<S>& plain, const Hash& cipher, const SymmetricKey& key) const {
+	inline void decrypt(Buffer<S>& plain, const Hash& cipher, const SymmetricKey& key) const {
+		// encryption and decryption is the same for a stream cipher
 		encrypt(plain, cipher, key);
 	}
 
