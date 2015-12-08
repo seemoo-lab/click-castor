@@ -8,7 +8,11 @@ class MerkleTree::Node {
 public:
 	Node(const SValue& data, Node* parent = 0, Node* leftChild = 0, Node* rightChild = 0) :
 			data(data), parent(parent), leftChild(leftChild), rightChild(rightChild) {}
-	~Node() { delete leftChild;	delete rightChild; }
+	~Node() {
+		// it is safe to delete NULL pointers, e.g., if this Node is a leaf
+		delete leftChild;
+		delete rightChild;
+	}
 
 	bool isRoot() const { return parent == 0; }
 	bool isLeaf() const { return leftChild == 0 && rightChild == 0; }
