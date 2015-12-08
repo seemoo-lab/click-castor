@@ -2,24 +2,18 @@
 #include <click/args.hh>
 #include "crypto.hh"
 
-#include <sodium.h>
-#include <botan/hash.h>
-#include <botan/auto_rng.h>
-#include <botan/symkey.h>
-#include <botan/pipe.h>
-
 CLICK_DECLS
 
-int Crypto::configure(Vector<String> &conf, ErrorHandler *errh)
-{
-	if (Args(conf, this, errh)
+int Crypto::configure(Vector<String> &conf, ErrorHandler *errh) {
+	return Args(conf, this, errh)
 			.read_mp("SAM", ElementCastArg("SAManagement"), sam)
-			.complete() < 0)
-		return -1;
+			.complete();
+}
 
-	algo = "AES-128/CBC/CTS";
-	iv = Botan::InitializationVector("00000000000000000000000000000000");
-
+int Crypto::initialize(ErrorHandler* errh) {
+	// We believe that since we only encrypt pseudorandom nonces,
+	// we can use the same nonce for all encryptions.
+	memset(nonce, 0, sizeof(nonce));
 	return 0;
 }
 
@@ -39,21 +33,20 @@ const SymmetricKey* Crypto::getSharedKey(NodeId id) const {
 }
 
 /**
- * Encrypt plain using AES-128 in CTS mode.
+ * Encrypt plain using AES-128 in CTR mode.
  */
 Hash Crypto::encrypt(const Hash& plain, const SymmetricKey& key) const {
-	Botan::Pipe encryptor(get_cipher(algo.c_str(), key, iv, Botan::ENCRYPTION));
-	encryptor.process_msg(convert(plain));
-	return convert(encryptor.read_all());
+	assert(key.length() == crypto_stream_aes128ctr_KEYBYTES);
+	Hash out;
+	crypto_stream_aes128ctr_xor(out.data(), plain.data(), plain.size(), nonce, key.begin());
+	return out;
 }
 
 /**
  * Decrypt cipher using the given key.
  */
 Hash Crypto::decrypt(const Hash& cipher, const SymmetricKey& key) const {
-	Botan::Pipe decryptor(get_cipher(algo.c_str(), key, iv, Botan::DECRYPTION));
-	decryptor.process_msg(convert(cipher));
-	return convert(decryptor.read_all());
+	return encrypt(cipher, key);
 }
 
 void Crypto::hash(uint8_t* out, const uint8_t* in, unsigned int n) const {
@@ -64,15 +57,7 @@ void Crypto::hash(uint8_t* out, const uint8_t* in, unsigned int n) const {
 	memcpy(out, tmp, sizeof(Hash));
 }
 
-SValue Crypto::convert(const Hash& data) const {
-	return SValue(data.data(), data.size());
-}
-
-Hash Crypto::convert(const SValue& data) const {
-	return Hash(data.begin());
-}
-
 CLICK_ENDDECLS
 
-ELEMENT_LIBS(-L/usr/local/lib -lsodium -lbotan-1.10)
+ELEMENT_LIBS(-L/usr/local/lib -lsodium)
 EXPORT_ELEMENT(Crypto)

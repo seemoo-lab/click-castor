@@ -1,6 +1,5 @@
 #include <click/config.h>
 #include <click/args.hh>
-#include <click/confparse.hh>
 #include "samanagement.hh"
 #include <botan/kdf.h>
 #include <botan/lookup.h>
@@ -11,19 +10,12 @@ CLICK_DECLS
 int SAManagement::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 			.read_mp("ADDR", myAddr)
-			.read_p("SYM_KEY_LENGTH", symmetricKeyLength)
+			.read_or_set_p("SYM_KEY_LENGTH", symmetricKeyLength, 16)
 			.complete();
 }
 
 void SAManagement::add(const NodeId& node, const SecurityAssociation& sa) {
-	SAMap::iterator it = sas.find(node);
-	if (it != sas.end()) {
-		it.value().push_back(sa);
-	} else {
-		Vector<SecurityAssociation> newentry;
-		newentry.push_back(sa);
-		sas.set(node, newentry);
-	}
+	sas[node].push_back(sa);
 }
 
 const SecurityAssociation* SAManagement::get(const NodeId& node, SecurityAssociation::Type type) {
@@ -31,9 +23,9 @@ const SecurityAssociation* SAManagement::get(const NodeId& node, SecurityAssocia
 	SAMap::iterator it = sas.find(node);
 	if (it != sas.end()) {
 		SAs& sas = it.value();
-		for (SecurityAssociation* sa = sas.begin(); sa != sas.end(); ++sa)
-			if (sa->type == type)
-				return sa;
+		for (const auto& sa : sas)
+			if (sa.type == type)
+				return &sa;
 	}
 
 	// If no entry currently exists, generate one
@@ -43,12 +35,6 @@ const SecurityAssociation* SAManagement::get(const NodeId& node, SecurityAssocia
 	}
 
 	return 0;
-}
-
-void SAManagement::printall() {
-	for (SAMap::iterator i = sas.begin(); i != sas.end(); i++)
-		for (int j = 0; j < i.value().size(); j++)
-			click_chatter("[SAManagement] entry for %s: %s", i.key().unparse().c_str(), (i.value())[j].str().c_str());
 }
 
 SecurityAssociation SAManagement::genereateSymmetricSA(const NodeId& node) {

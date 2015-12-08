@@ -5,12 +5,10 @@
 #include "../hash.hh"
 #include "samanagement.hh"
 #include <botan/botan.h>
+#include <sodium.h>
 
 CLICK_DECLS
 
-typedef Botan::SecureVector<Botan::byte> SValue;
-typedef Botan::Private_Key PrivateKey;
-typedef Botan::Public_Key PublicKey;
 typedef Botan::SymmetricKey SymmetricKey;
 
 class Crypto: public Element {
@@ -19,6 +17,7 @@ public:
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
+	int initialize(ErrorHandler *);
 
 	/**
 	 * Returns a new SymmetricKey instance or NULL if no corresponding key exists
@@ -29,7 +28,9 @@ public:
 
 	void random(uint8_t* buf, unsigned int length) const;
 	template<unsigned int S>
-	inline void random(Buffer<S>& buf) const { random(buf.data(), buf.size()); }
+	inline void random(Buffer<S>& buf) const {
+		random(buf.data(), buf.size());
+	}
 
 	void hash(uint8_t* out, const uint8_t* in, unsigned int n) const;
 	template<unsigned int S>
@@ -37,12 +38,8 @@ public:
 		hash(out.data(), in.data(), in.size());
 	}
 private:
-	SValue convert(const Hash& data) const;
-	Hash convert(const SValue& data) const;
-
 	SAManagement* sam;
-	String algo;
-	Botan::InitializationVector iv;
+	uint8_t nonce[crypto_stream_aes128ctr_NONCEBYTES];
 };
 
 CLICK_ENDDECLS

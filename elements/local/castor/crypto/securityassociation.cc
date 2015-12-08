@@ -1,14 +1,7 @@
 #include <click/config.h>
-#include <click/straccum.hh>
 #include "securityassociation.hh"
 
 CLICK_DECLS
-
-String SecurityAssociation::str() const {
-	StringAccum accum;
-	accum << "SA (type " << typeToStr(type) << "): " << secret.as_string().c_str();
-	return accum.take_string();
-}
 
 String SecurityAssociation::typeToStr(Type type) const {
 	switch (type) {
