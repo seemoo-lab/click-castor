@@ -3,7 +3,6 @@
 
 #include <click/element.hh>
 #include <click/vector.hh>
-#include <botan/symkey.h>
 
 CLICK_DECLS
 
