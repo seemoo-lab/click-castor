@@ -23,7 +23,7 @@ Packet* CastorEncryptAckAuth::simple_action(Packet *p) {
 		checked_output_push(1, q);
 		return 0;
 	}
-	pkt.pauth = crypto->encrypt(pkt.pauth, *sk);
+	crypto->encrypt(pkt.pauth, pkt.pauth, *sk);
 
 	return q;
 }

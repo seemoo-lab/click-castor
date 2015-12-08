@@ -22,7 +22,7 @@ Packet* CastorXcastAnnotateAckAuth::simple_action(Packet *p) {
 		checked_output_push(1, pkt.getPacket());
 		return 0;
 	}
-	CastorAnno::hash_anno(pkt.getPacket()) = crypto->encrypt(pkt.pkt_auth(), *sk);
+	crypto->encrypt(CastorAnno::hash_anno(pkt.getPacket()), pkt.pkt_auth(), *sk);
 
 	return pkt.getPacket();
 }

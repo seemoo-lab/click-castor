@@ -32,23 +32,6 @@ const SymmetricKey* Crypto::getSharedKey(NodeId id) const {
 	return sharedKey;
 }
 
-/**
- * Encrypt plain using AES-128 in CTR mode.
- */
-Hash Crypto::encrypt(const Hash& plain, const SymmetricKey& key) const {
-	assert(key.length() == crypto_stream_aes128ctr_KEYBYTES);
-	Hash out;
-	crypto_stream_aes128ctr_xor(out.data(), plain.data(), plain.size(), nonce, key.begin());
-	return out;
-}
-
-/**
- * Decrypt cipher using the given key.
- */
-Hash Crypto::decrypt(const Hash& cipher, const SymmetricKey& key) const {
-	return encrypt(cipher, key);
-}
-
 void Crypto::hash(uint8_t* out, const uint8_t* in, unsigned int n) const {
 	/** TODO we are doing a truncated version of SHA-256 */
 	assert(crypto_hash_sha256_BYTES >= sizeof(Hash));

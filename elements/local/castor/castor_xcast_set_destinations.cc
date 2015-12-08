@@ -37,7 +37,8 @@ Packet* CastorXcastSetDestinations::simple_action(Packet *p) {
 			click_chatter("!!! No key found for multicast destination %s in multicast group %s", destinations[i].unparse().c_str(), multicastDst.unparse().c_str());
 			break;
 		}
-		Hash encAckAuth = crypto->encrypt(pkt.pkt_auth(), *key);
+		Hash encAckAuth;
+		crypto->encrypt(encAckAuth, pkt.pkt_auth(), *key);
 		crypto->hash(pkt.pid(i), encAckAuth);
 	}
 

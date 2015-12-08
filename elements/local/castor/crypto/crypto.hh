@@ -23,8 +23,15 @@ public:
 	 * Returns a new SymmetricKey instance or NULL if no corresponding key exists
 	 */
 	const SymmetricKey* getSharedKey(NodeId) const;
-	Hash encrypt(const Hash&, const SymmetricKey&) const;
-	Hash decrypt(const Hash&, const SymmetricKey&) const;
+	template<unsigned int S>
+	void encrypt(Buffer<S>& cipher, const Buffer<S>& plain, const SymmetricKey& key) const {
+		assert(key.length() == crypto_stream_aes128ctr_KEYBYTES);
+		crypto_stream_aes128ctr_xor(cipher.data(), plain.data(), plain.size(), nonce, key.begin());
+	}
+	template<unsigned int S>
+	void decrypt(Buffer<S>& plain, const Hash& cipher, const SymmetricKey& key) const {
+		encrypt(plain, cipher, key);
+	}
 
 	void random(uint8_t* buf, unsigned int length) const;
 	template<unsigned int S>

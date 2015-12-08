@@ -12,7 +12,7 @@ int CastorDecryptAckAuth::configure(Vector<String>& conf, ErrorHandler* errh) {
 			.complete();
 }
 
-void CastorDecryptAckAuth::push(int, Packet *p) {
+Packet* CastorDecryptAckAuth::simple_action(Packet *p) {
 	CastorPkt& pkt = (CastorPkt&) *p->data();
 
 	// Get appropriate key and decrypt encrypted ACK authenticator
@@ -20,11 +20,11 @@ void CastorDecryptAckAuth::push(int, Packet *p) {
 	if (!sk) {
 		click_chatter("Could not find shared key for host %s. Discarding PKT...", pkt.dst.unparse().c_str());
 		checked_output_push(1, p);
-		return;
+		return 0;
 	}
-	CastorAnno::hash_anno(p) = crypto->decrypt(pkt.pauth, *sk);
+	crypto->decrypt(CastorAnno::hash_anno(p), pkt.pauth, *sk);
 
-	output(0).push(p);
+	return p;
 }
 
 CLICK_ENDDECLS
