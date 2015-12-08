@@ -7,7 +7,7 @@ CastorMerkleFlow::CastorMerkleFlow(NodeId src, NodeId dst, const Crypto* crypto)
 	Vector<SValue> tmp;
 	for (int i = 0; i < CASTOR_FLOWSIZE; i++) {
 		crypto->random(aauths[i]);
-		pids[i] = crypto->hash(aauths[i]);
+		crypto->hash(pids[i], aauths[i]);
 		tmp.push_back(crypto->convert(pids[i]));
 	}
 	tree = new MerkleTree(tmp, *crypto);

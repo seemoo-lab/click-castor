@@ -10,10 +10,6 @@
 
 CLICK_DECLS
 
-Crypto::~Crypto() {
-	delete hashFunction;
-}
-
 int Crypto::configure(Vector<String> &conf, ErrorHandler *errh)
 {
 	if (Args(conf, this, errh)
@@ -23,7 +19,6 @@ int Crypto::configure(Vector<String> &conf, ErrorHandler *errh)
 
 	algo = "AES-128/CBC/CTS";
 	iv = Botan::InitializationVector("00000000000000000000000000000000");
-	hashFunction = Botan::get_hash("SHA-160");
 
 	return 0;
 }
@@ -62,21 +57,29 @@ SValue Crypto::decrypt(const SValue& cipher, const SymmetricKey& key) const {
 }
 
 SValue Crypto::hash(const SValue& data) const {
-	return hashFunction->process(data);
+	return convert(hash(convert(data)));
 }
 
 Hash Crypto::hash(const Hash& data) const {
-	SValue hash = hashFunction->process(data.data(), data.size());
-	return convert(hash);
+	Hash tmp;
+	hash(tmp, data);
+	return tmp;
+}
+
+void Crypto::hash(uint8_t* out, const uint8_t* in, unsigned int n) const {
+	/** TODO we are doing a truncated version of SHA-256 */
+	assert(crypto_hash_sha256_BYTES >= sizeof(Hash));
+	uint8_t tmp[crypto_hash_sha256_BYTES];
+	crypto_hash_sha256(tmp, in, n);
+	memcpy(out, tmp, sizeof(Hash));
 }
 
 Hash Crypto::hashConvert(const SValue& data) const {
-	SValue hash = hashFunction->process(data);
-	return convert(hash);
+	return hash(convert(data));
 }
 
 SValue Crypto::hashConvert(const Hash& data) const {
-	return hashFunction->process(data.data(), data.size());
+	return convert(hash(data));
 }
 
 SValue Crypto::convert(const Hash& data) const {

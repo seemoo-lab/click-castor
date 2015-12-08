@@ -15,8 +15,6 @@ typedef Botan::SymmetricKey SymmetricKey;
 
 class Crypto: public Element {
 public:
-	~Crypto();
-
 	const char *class_name() const { return "Crypto"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
@@ -32,6 +30,11 @@ public:
 	void random(uint8_t* buf, unsigned int length) const;
 	template<unsigned int S>
 	inline void random(Buffer<S>& buf) const { random(buf.data(), buf.size()); }
+	void hash(uint8_t* out, const uint8_t* in, unsigned int n) const;
+	template<unsigned int S>
+	inline void hash(Hash& out, const Buffer<S>& in) const {
+		hash(out.data(), in.data(), in.size());
+	}
 	SValue hash(const SValue& data) const;
 	Hash hash(const Hash& data) const;
 	Hash hashConvert(const SValue& data) const;
@@ -43,7 +46,6 @@ private:
 	SAManagement* sam;
 	String algo;
 	Botan::InitializationVector iv;
-	Botan::HashFunction* hashFunction;
 };
 
 CLICK_ENDDECLS
