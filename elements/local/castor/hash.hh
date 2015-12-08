@@ -44,6 +44,13 @@ public:
 	inline bool operator!=(const Buffer<S>& x) const {
 		return memcmp(this->array, x.array, S) != 0;
 	}
+	template<unsigned int S2>
+	inline Buffer<(S+S2)> operator+(const Buffer<S2>& x) const {
+		Buffer<S+S2> tmp;
+		memcpy(tmp.data(), this->data(), S);
+		memcpy(tmp.data() + S, x.data(), S2);
+		return tmp;
+	}
 	inline String str() const {
 		char buffer[2 * S + 1];
 		for (size_t i = 0; i < S; i++) {
