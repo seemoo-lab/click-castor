@@ -28,25 +28,66 @@ public:
 		crypto_stream_aes128ctr_xor(cipher.data(), plain.data(), plain.size(), nonce, key.begin());
 	}
 	template<unsigned int S>
-	inline void decrypt(Buffer<S>& plain, const Hash& cipher, const SymmetricKey& key) const {
+	inline Buffer<S> encrypt(const Buffer<S>& plain, const SymmetricKey& key) const {
+		Buffer<S> tmp;
+		encrypt(tmp, plain, key);
+		return tmp;
+	}
+
+	template<unsigned int S>
+	inline void decrypt(Buffer<S>& plain, const Buffer<S>& cipher, const SymmetricKey& key) const {
 		// encryption and decryption is the same for a stream cipher
 		encrypt(plain, cipher, key);
 	}
+	template<unsigned int S>
+	inline Buffer<S> decrypt(const Buffer<S>& cipher, const SymmetricKey& key) const {
+		return encrypt(cipher, key);
+	}
 
-	void random(uint8_t* buf, unsigned int length) const;
 	template<unsigned int S>
 	inline void random(Buffer<S>& buf) const {
 		random(buf.data(), buf.size());
 	}
-
-	void hash(uint8_t* out, const uint8_t* in, unsigned int n) const;
 	template<unsigned int S>
-	inline void hash(Hash& out, const Buffer<S>& in) const {
-		hash(out.data(), in.data(), in.size());
+	inline Buffer<S> random() const {
+		Buffer<S> buf;
+		random(buf);
+		return buf;
+	}
+
+	template<unsigned int S>
+	inline void hash(Buffer<S>& out, const uint8_t* in, unsigned int n) const {
+		truncated_hash(out.data(), out.size(), in, n);
+	}
+	template<unsigned int S>
+	inline Buffer<S> hash(const uint8_t* in, unsigned int n) const {
+		Buffer<S> tmp;
+		hash(tmp, in, n);
+		return tmp;
+	}
+	template<unsigned int S, unsigned int S2>
+	inline void hash(Buffer<S>& out, const Buffer<S2>& in) const {
+		truncated_hash(out.data(), out.size(), in.data(), in.size());
+	}
+	template<unsigned int S, unsigned int S2>
+	inline Buffer<S> hash(const Buffer<S2>& in) const {
+		Buffer<S> tmp;
+		hash(tmp, in);
+		return tmp;
+	}
+	template<unsigned int S>
+	inline Buffer<S> hash(const Buffer<S>& in) const {
+		Buffer<S> tmp;
+		hash(tmp, in);
+		return tmp;
 	}
 private:
 	SAManagement* sam;
 	uint8_t nonce[crypto_stream_aes128ctr_NONCEBYTES];
+
+	void random(uint8_t* buf, unsigned int length) const;
+	void hash(uint8_t* out, const uint8_t* in, unsigned int n) const;
+	void truncated_hash(uint8_t* out, unsigned int outlen, const uint8_t* in, unsigned int n) const;
 };
 
 CLICK_ENDDECLS

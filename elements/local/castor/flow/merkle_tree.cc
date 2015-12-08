@@ -96,25 +96,19 @@ Vector<Hash> MerkleTree::getSiblings(int i) const {
 
 bool MerkleTree::isValidMerkleTree(unsigned int i, const Hash& in, const Vector<Hash>& siblings, const Hash& root, const Crypto& crypto) {
 	// First hash the input
-	Buffer<2*sizeof(Hash)> current;
-	crypto.hash(current.data(), in.data(), in.size());
-
+	Hash current;
+	crypto.hash(current, in);
+	Buffer<2*sizeof(Hash)> concat;
 	for(int s = 0; s < siblings.size(); s++) {
 		const Hash& sibling = siblings[s];
 		if(i & (1 << s)) { // sibling is left child
-			// current = hash(sibling||current)
-			memcpy(&current[sizeof(Hash)], &current[0], sizeof(Hash));
-			memcpy(&current[0], sibling.data(), sibling.size());
+			concat = sibling + current;
 		} else { // sibling is right child
-			// current = hash(current||sibling)
-			memcpy(&current[sizeof(Hash)], sibling.data(), sibling.size());
+			concat = current + sibling;
 		}
-		crypto.hash(&current[0], &current[0], current.size());
+		crypto.hash(current, concat);
 	}
-
-	// verify that computed root and given root are the same
-	int cmp = memcmp(&current[0], root.data(), root.size());
-	return cmp == 0;
+	return current == root;
 }
 
 CLICK_ENDDECLS
