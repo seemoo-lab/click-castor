@@ -5,52 +5,9 @@
 #include <click/hashtable.hh>
 #include "castor.hh"
 #include "../neighbordiscovery/neighbor_id.hh"
+#include "castor_estimator.hh"
 
 CLICK_DECLS
-
-class ExponentialMovingAverage {
-public:
-	ExponentialMovingAverage (double delta) : delta(delta), alpha(0), beta(1) { };
-	double get() const {
-		return alpha / (alpha + beta);
-	}
-	void increase() {
-		alpha = delta * alpha + 1;
-		beta  = delta * beta;
-	}
-	void decrease() {
-		alpha = delta * alpha;
-		beta  = delta * beta  + 1;
-	}
-private:
-	double delta; // update weight
-	double alpha; // running average of packets delivered
-	double beta;  // running average of packets not delivered
-};
-
-class CastorEstimator {
-public:
-	CastorEstimator(double delta) : first(ExponentialMovingAverage(delta)), all(ExponentialMovingAverage(delta)) { };
-
-	double getEstimate() const {
-		return (all.get() + first.get()) / 2;
-	}
-	void increaseFirst() {
-		first.increase();
-	}
-	void increaseAll() {
-		all.increase();
-	}
-	void decreaseFrist() {
-		first.decrease();
-	}
-	void decreaseAll() {
-		all.decrease();
-	}
-private:
-	ExponentialMovingAverage first;
-	ExponentialMovingAverage all;
-};
 
 class CastorRoutingTable : public Element {
 public:
