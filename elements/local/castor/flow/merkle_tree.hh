@@ -14,18 +14,18 @@ public:
 	 * Size of input vector needs to be a power of 2.
 	 * The leave values of this tree will be the hashed values of the input vector.
 	 */
-	MerkleTree(const Vector<SValue>&, const Crypto&);
+	MerkleTree(const Hash[], unsigned int length, const Crypto&);
 	~MerkleTree();
 
 	/**
 	 * The the root of the Merke tree
 	 */
-	const SValue& getRoot() const;
+	const Hash& getRoot() const;
 
 	/**
 	 * Retrieve all sibling values that are necessary to compute the root value from leaf i
 	 */
-	Vector<SValue> getSiblings(int i) const;
+	Vector<Hash> getSiblings(int i) const;
 
 	/**
 	 * Verifies that all elements (in, siblings, and root) belong to a valid Merkle tree, i.e. verifies that
@@ -34,14 +34,13 @@ public:
 	 *
 	 * i is needed to determine whether siblings[i] is right or left sibling
 	 */
-	static bool isValidMerkleTree(unsigned int i, const SValue& in, const Vector<SValue>& siblings, const SValue& root, const Crypto& crypto);
+	static bool isValidMerkleTree(unsigned int i, const Hash& in, const Vector<Hash>& siblings, const Hash& root, const Crypto& crypto);
 
 private:
 	class Node;
 
 	const Node* _root;
 	Vector<Node*> _leaves;
-	const Crypto& crypto;
 };
 
 CLICK_ENDDECLS

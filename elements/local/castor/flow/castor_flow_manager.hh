@@ -27,7 +27,7 @@ private:
 	/**
 	 * Defines the type of CastorFlow to be used.
 	 */
-	CastorFlow* createNewFlow(NodeId src, NodeId dst);
+	CastorFlow* createNewFlow();
 };
 
 CLICK_ENDDECLS

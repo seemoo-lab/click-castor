@@ -15,14 +15,12 @@ void CastorAuthenticateFlow::push(int, Packet *p) {
 
 	CastorPkt& pkt = (CastorPkt&) *p->data();
 
-	SValue fid = crypto->convert(pkt.fid);
-	SValue pid = crypto->convert(pkt.pid);
-	Vector<SValue> fauth;
+	Vector<Hash> fauth;
 	fauth.reserve(pkt.fsize);
 	for (int i = 0; i < pkt.fsize; i++)
-		fauth.push_back(crypto->convert(pkt.fauth[i]));
+		fauth.push_back(pkt.fauth[i]);
 
-	if (MerkleTree::isValidMerkleTree(ntohs(pkt.kpkt), pid, fauth, fid, *crypto))
+	if (MerkleTree::isValidMerkleTree(ntohs(pkt.kpkt), pkt.pid, fauth, pkt.fid, *crypto))
 		output(0).push(p);
 	else
 		output(1).push(p); // Invalid -> discard

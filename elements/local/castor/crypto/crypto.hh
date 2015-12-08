@@ -24,25 +24,22 @@ public:
 	 * Returns a new SymmetricKey instance or NULL if no corresponding key exists
 	 */
 	const SymmetricKey* getSharedKey(NodeId) const;
-	SValue encrypt(const SValue&, const SymmetricKey&) const;
-	SValue decrypt(const SValue&, const SymmetricKey&) const;
+	Hash encrypt(const Hash&, const SymmetricKey&) const;
+	Hash decrypt(const Hash&, const SymmetricKey&) const;
 
 	void random(uint8_t* buf, unsigned int length) const;
 	template<unsigned int S>
 	inline void random(Buffer<S>& buf) const { random(buf.data(), buf.size()); }
+
 	void hash(uint8_t* out, const uint8_t* in, unsigned int n) const;
 	template<unsigned int S>
 	inline void hash(Hash& out, const Buffer<S>& in) const {
 		hash(out.data(), in.data(), in.size());
 	}
-	SValue hash(const SValue& data) const;
-	Hash hash(const Hash& data) const;
-	Hash hashConvert(const SValue& data) const;
-	SValue hashConvert(const Hash& data) const;
-
+private:
 	SValue convert(const Hash& data) const;
 	Hash convert(const SValue& data) const;
-private:
+
 	SAManagement* sam;
 	String algo;
 	Botan::InitializationVector iv;

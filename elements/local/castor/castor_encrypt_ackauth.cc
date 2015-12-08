@@ -12,10 +12,8 @@ int CastorEncryptAckAuth::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void CastorEncryptAckAuth::push(int, Packet *p) {
-
 	WritablePacket* q = p->uniqueify();
 	CastorPkt& pkt = (CastorPkt&) *q->data();
-	SValue auth = crypto->convert(pkt.pauth);
 
 	const SymmetricKey* sk = crypto->getSharedKey(pkt.dst);
 	if (!sk) {
@@ -23,17 +21,9 @@ void CastorEncryptAckAuth::push(int, Packet *p) {
 		q->kill();
 		return;
 	}
-	SValue cipher = crypto->encrypt(auth, *sk);
-	if (cipher.size() != sizeof(PktAuth)) {
-		click_chatter("Cannot create ciphertext: Crypto subsystem returned wrong ciphertext length. Discarding PKT...");
-		q->kill();
-		return;
-	}
-
-	pkt.pauth = crypto->convert(cipher);
+	pkt.pauth = crypto->encrypt(pkt.pauth, *sk);
 
 	output(0).push(q);
-
 }
 
 CLICK_ENDDECLS

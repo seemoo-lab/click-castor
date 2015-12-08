@@ -2,6 +2,7 @@
 #define CLICK_CASTOR_MERKLE_FLOW_HH
 
 #include <click/vector.hh>
+#include "../crypto/crypto.hh"
 #include "merkle_tree.hh"
 #include "castor_flow.hh"
 
@@ -11,12 +12,11 @@ CLICK_DECLS
 
 class CastorMerkleFlow : public CastorFlow {
 public:
-	CastorMerkleFlow(NodeId src, NodeId dst, const Crypto* crypto);
+	CastorMerkleFlow(const Crypto* crypto);
 	~CastorMerkleFlow();
 
 	PacketLabel freshLabel();
 	bool isAlive() const;
-
 private:
 	const MerkleTree* tree;
 	Hash aauths[CASTOR_FLOWSIZE];

@@ -31,18 +31,19 @@ CastorFlow* CastorFlowManager::createFlowIfNotExists(NodeId src, NodeId dst) {
 	CastorFlow*& flow = _flows[src][dst];
 
 	if (!flow) {
-		flow = createNewFlow(src, dst);
+		flow = createNewFlow();
 	} else if (!flow->isAlive()) {
 		delete flow;
-		flow = createNewFlow(src, dst);
+		flow = createNewFlow();
+	} else {
 	}
 	assert(flow && flow->isAlive());
 
 	return flow;
 }
 
-CastorFlow* CastorFlowManager::createNewFlow(NodeId src, NodeId dst) {
-	return new CastorMerkleFlow(src, dst, _crypto);
+CastorFlow* CastorFlowManager::createNewFlow() {
+	return new CastorMerkleFlow(_crypto);
 }
 
 CLICK_ENDDECLS
