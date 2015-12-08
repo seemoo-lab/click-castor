@@ -1,14 +1,19 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include "castor_flow_manager.hh"
 #include "castor_merkle_flow.hh"
 
 CLICK_DECLS
 
+CastorFlowManager::CastorFlowManager() : _crypto(NULL),
+_flows(HashTable<NodeId, HashTable<NodeId, CastorFlow*> >(HashTable<NodeId, CastorFlow*>(NULL)))
+{
+}
+
 int CastorFlowManager::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return cp_va_kparse(conf, this, errh, "CRYPT", cpkP + cpkM, cpElementCast,
-			"Crypto", &_crypto,
-			cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("Crypto", ElementCastArg("Crypto"), _crypto)
+			.complete();
 }
 
 PacketLabel CastorFlowManager::getPacketLabel(NodeId src, NodeId dst) {
