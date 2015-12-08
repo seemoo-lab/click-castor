@@ -26,7 +26,7 @@ Packet* CastorPrint::simple_action(Packet *p) {
 	if (type == CastorType::PKT) {
 
 		if (CastorPacket::isXcast(p)) {
-			sa << (verbose ? "\n" : "") << CastorXcastPkt(p).toString(verbose).c_str();
+			sa << (verbose ? "\n" : "") << CastorXcastPkt(p).unparse(verbose).c_str();
 		} else {
 			CastorPkt& pkt = (CastorPkt&) *p->data();
 			if(verbose) {

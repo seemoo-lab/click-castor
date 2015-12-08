@@ -2,7 +2,6 @@
 #define CLICK_CASTOR_XCAST_ANNOTATE_ACKAUTH_HH
 
 #include <click/element.hh>
-#include "castor.hh"
 #include "crypto/crypto.hh"
 
 CLICK_DECLS
@@ -13,18 +12,14 @@ CLICK_DECLS
 class CastorXcastAnnotateAckAuth: public Element {
 
 public:
-	CastorXcastAnnotateAckAuth() : crypto(NULL) {}
-
 	const char *class_name() const { return "CastorXcastAnnotateAckAuth"; }
-	const char *port_count() const { return PORTS_1_1; }
-	const char *processing() const { return PUSH; }
+	const char *port_count() const { return PORTS_1_1X2; }
+	const char *processing() const { return PROCESSING_A_AH; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	void push(int, Packet*);
-
+	Packet* simple_action(Packet*);
 private:
 	Crypto* crypto;
-
 };
 
 CLICK_ENDDECLS

@@ -16,10 +16,10 @@ void CastorAddXcastPktToHistory::push(int, Packet *p) {
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	unsigned int i = 0;
-	for(unsigned int j = 0; j < pkt.getNNextHops(); j++) {
+	for(unsigned int j = 0; j < pkt.nnexthop(); j++) {
 		unsigned int pos = i;
-		for(; i < pos + pkt.getNextHopNAssign(j); i++) {
-			history->addPkt(pkt.getPid(i), pkt.getFlowId(), CastorAnno::src_id_anno(pkt.getPacket()), pkt.getNextHop(j), pkt.getDestination(i), p->timestamp_anno());
+		for(; i < pos + pkt.nexthop_assign(j); i++) {
+			history->addPkt(pkt.pid(i), pkt.fid(), CastorAnno::src_id_anno(pkt.getPacket()), pkt.nexthop(j), pkt.dst(i), p->timestamp_anno());
 		}
 	}
 

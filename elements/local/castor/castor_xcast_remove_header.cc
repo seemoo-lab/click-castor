@@ -1,22 +1,13 @@
 #include <click/config.h>
-#include <click/confparse.hh>
 #include "castor_xcast_remove_header.hh"
 #include "castor_xcast.hh"
 
 CLICK_DECLS
 
-CastorXcastRemoveHeader::CastorXcastRemoveHeader() {
-}
-
-CastorXcastRemoveHeader::~CastorXcastRemoveHeader() {
-}
-
-void CastorXcastRemoveHeader::push(int, Packet* p) {
-	CastorXcastPkt pkt(p);
-
-	p->pull(pkt.getHeaderLength());
-
-	output(0).push(p);
+Packet* CastorXcastRemoveHeader::simple_action(Packet* p) {
+	auto header_length = CastorXcastPkt(p).header_length();
+	p->pull(header_length);
+	return p;
 }
 
 CLICK_ENDDECLS

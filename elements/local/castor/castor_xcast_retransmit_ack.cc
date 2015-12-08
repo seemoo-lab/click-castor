@@ -1,5 +1,5 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include <clicknet/ether.h>
 #include "castor_xcast_retransmit_ack.hh"
 #include "castor.hh"
@@ -9,9 +9,9 @@
 CLICK_DECLS
 
 int CastorXcastRetransmitAck::configure(Vector<String> &conf, ErrorHandler *errh) {
-     return cp_va_kparse(conf, this, errh,
-        "CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
-        cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("History", ElementCastArg("CastorHistory"), history)
+			.complete();
 }
 
 void CastorXcastRetransmitAck::push(int, Packet *p) {
@@ -20,15 +20,15 @@ void CastorXcastRetransmitAck::push(int, Packet *p) {
 
 	p = pkt.getPacket();
 
-	for (uint8_t i = 0; i < pkt.getNDestinations(); i++) {
-		assert(history->hasAck(pkt.getPid(i)));
+	for (uint8_t i = 0; i < pkt.ndst(); i++) {
+		assert(history->hasAck(pkt.pid(i)));
 
 		// Generate new ACK
 		CastorAck ack;
 		ack.type = CastorType::MERKLE_ACK;
 		ack.hsize = sizeof(PktAuth);
 		ack.len = sizeof(CastorAck);
-		ack.auth = history->getAckAuth(pkt.getPid(i));
+		ack.auth = history->getAckAuth(pkt.pid(i));
 #ifdef DEBUG_ACK_SRCDST
 		ack.src = pkt.getSource();
 		ack.dst = pkt.getDestination(i);
@@ -39,7 +39,7 @@ void CastorXcastRetransmitAck::push(int, Packet *p) {
 		CastorAnno::dst_id_anno(q) = CastorAnno::src_id_anno(p); // Unicast ACK to PKT sender
 		CastorAnno::hop_id_anno(q) = CastorAnno::dst_id_anno(q);
 
-		assert(history->hasPktFrom(pkt.getPid(i), CastorAnno::dst_id_anno(q)));
+		assert(history->hasPktFrom(pkt.pid(i), CastorAnno::dst_id_anno(q)));
 
 		output(0).push(q);
 	}

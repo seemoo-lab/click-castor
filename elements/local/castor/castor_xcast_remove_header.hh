@@ -2,23 +2,19 @@
 #define CLICK_CASTOR_XCAST_REMOVE_HEADER_HH
 
 #include <click/element.hh>
-#include "castor.hh"
 
 CLICK_DECLS
 
 /**
- * Removes the Castor header
+ * Removes the Xcastor header
  */
 class CastorXcastRemoveHeader: public Element {
 public:
-	CastorXcastRemoveHeader();
-	~CastorXcastRemoveHeader();
-		
 	const char *class_name() const { return "CastorXcastRemoveHeader"; }
 	const char *port_count() const { return "1/1"; }
-	const char *processing() const { return PUSH; }
+	const char *processing() const { return AGNOSTIC; }
 
-	void push(int, Packet *);
+	Packet* simple_action(Packet *);
 };
 
 CLICK_ENDDECLS
