@@ -13,14 +13,12 @@ CLICK_DECLS
  */
 class CastorAddHeader: public Element {
 public:
-	CastorAddHeader() : flow(NULL) {}
-		
 	const char *class_name() const { return "CastorAddHeader"; }
 	const char *port_count() const { return PORTS_1_1; }
-	const char *processing() const { return PUSH; }
+	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	void push(int, Packet*);
+	Packet* simple_action(Packet*);
 private:
 	CastorFlowManager* flow;
 };

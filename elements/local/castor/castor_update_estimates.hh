@@ -9,14 +9,12 @@ CLICK_DECLS
 
 class CastorUpdateEstimates: public Element {
 public:
-	inline CastorUpdateEstimates() : table(NULL), history(NULL) {}
-
 	const char *class_name() const { return "CastorUpdateEstimates"; }
-	const char *port_count() const { return "1/2"; }
-	const char *processing() const { return PUSH; }
+	const char *port_count() const { return PORTS_1_1X2; }
+	const char *processing() const { return PROCESSING_A_AH; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	void push(int, Packet *);
+	Packet* simple_action(Packet*);
 private:
 	CastorRoutingTable* table;
 	CastorHistory* history;

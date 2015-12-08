@@ -14,7 +14,7 @@ int CastorXcastSetDestinations::configure(Vector<String> &conf, ErrorHandler *er
 			.complete();
 }
 
-void CastorXcastSetDestinations::push(int, Packet *p) {
+Packet* CastorXcastSetDestinations::simple_action(Packet *p) {
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	GroupId multicastDst = pkt.dst_group();
@@ -22,8 +22,8 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 
 	if(destinations.size() == 0) {
 		click_chatter("!!! No Xcast destination mapping found for multicast address %s, drop packet", multicastDst.unparse().c_str());
-		pkt.getPacket()->kill();
-		return;
+		checked_output_push(1, pkt.getPacket());
+		return 0;
 	}
 
 	// Write destinations to PKT
@@ -44,7 +44,7 @@ void CastorXcastSetDestinations::push(int, Packet *p) {
 	// Set local node as single forwarder
 	pkt.set_single_nexthop(my_id);
 
-	output(0).push(pkt.getPacket());
+	return pkt.getPacket();
 }
 
 CLICK_ENDDECLS
