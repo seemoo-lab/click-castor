@@ -24,9 +24,7 @@ public:
 	bool hasPktFrom (const PacketId&, const NeighborId&) const;
 	bool hasAck(const PacketId&) const;
 	bool hasAckFrom(const PacketId&, const NeighborId&) const;
-	size_t getPkts(const PacketId&) const;
 	const Vector<NeighborId>& getPktSenders(const PacketId&) const;
-	size_t getAcks(const PacketId&) const;
 
 	const FlowId& getFlowId(const PacketId&) const;
 	const NodeId& getDestination(const PacketId&) const;

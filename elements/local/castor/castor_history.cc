@@ -81,19 +81,9 @@ bool CastorHistory::hasAckFrom(const PacketId& pid, const NeighborId& addr) cons
 	return false;
 }
 
-size_t CastorHistory::getPkts(const PacketId& pid) const {
-	const CastorHistoryEntry* entry = getEntry(pid);
-	return entry->prevHops.size();
-}
-
 const Vector<NeighborId>& CastorHistory::getPktSenders(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->prevHops;
-}
-
-size_t CastorHistory::getAcks(const PacketId& pid) const {
-	const CastorHistoryEntry* entry = getEntry(pid);
-	return entry->recievedACKs.size();
 }
 
 const FlowId& CastorHistory::getFlowId(const PacketId& pid) const {
