@@ -7,9 +7,6 @@ CLICK_DECLS
 
 class CastorRateLimitTable;
 
-/**
- * Implements TCP-inspired timeout calculation.
- */
 class CastorRateLimit {
 public:
 	typedef unsigned int rate_t;
