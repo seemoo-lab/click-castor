@@ -20,6 +20,7 @@ define(
 	$initRate  4,
 	$minRate   1,
 	$maxRate 100,
+	$bucketSize 3, // how many packets we queue per neighbor before starting to drop new ones
 
 	/** Neighbor discovery */
 	$neighborsEnable true, // whether or not to use neighbor beacons; if set to false, settings for neighborTimeout and beaconingInterval are irrelevant

@@ -15,7 +15,7 @@ timeouttable :: CastorTimeoutTable(INIT $initTo, MIN $minTo, MAX $maxTo);
 ratelimits :: CastorRateLimitTable(INIT $initRate, MIN $minRate, MAX $maxRate);
 
 castorclassifier :: CastorClassifier(fake, neighbors)
-ratelimiter :: CastorRateLimiter(ratelimits);
+ratelimiter :: CastorRateLimiter(ratelimits, $bucketSize);
 
 fromextdev -> castorclassifier;
 ethout :: OutputEth($broadcastJitter) -> toextdev;

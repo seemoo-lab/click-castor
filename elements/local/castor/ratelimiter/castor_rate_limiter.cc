@@ -6,15 +6,17 @@
 
 CLICK_DECLS
 
-CastorRateLimiter::RingBuffer::index_t CastorRateLimiter::RingBuffer::default_capacity;
-
 int CastorRateLimiter::configure(Vector<String> &conf, ErrorHandler *errh) {
-	if (Args(conf, this, errh)
-			.read_mp    ("RATE_LIMITS", ElementCastArg("CastorRateLimitTable"), rate_limits)
-			.read_or_set("BUCKET_SIZE", CastorRateLimiter::RingBuffer::default_capacity, 3)
-			.complete() < 0)
-		return -1;
+	return Args(conf, this, errh)
+			.read_mp("RATE_LIMITS", ElementCastArg("CastorRateLimitTable"), rate_limits)
+			.read_or_set_p("BUCKET_SIZE", capacity, 3)
+			.complete();
+}
+
+int CastorRateLimiter::initialize(ErrorHandler*) {
 	rate_limits->register_listener(this);
+	// Set 'capacity' as default for new RingBuffers
+	buckets = HashTable<const NeighborId, RingBuffer>(RingBuffer(capacity));
 	return 0;
 }
 
@@ -25,11 +27,9 @@ void CastorRateLimiter::push(int, Packet* p) {
 
 	auto& bucket = buckets[sender];
 	if (!bucket.push(p)) {
-		// Bucket full -> drop
 		drops++;
 		checked_output_push(1, p);
-	}
-	else {
+	} else {
 		emit_packet(sender);
 	}
 }
@@ -45,7 +45,7 @@ void CastorRateLimiter::update(const NeighborId& node) {
 }
 
 void CastorRateLimiter::run_timer(Timer* timer) {
-	run_timer((RateTimer*) timer);
+	run_timer(static_cast<RateTimer*>(timer));
 }
 
 void CastorRateLimiter::run_timer(RateTimer* timer) {
@@ -72,7 +72,7 @@ void CastorRateLimiter::emit_packet(const NeighborId& node) {
 	} else if (!tokens[node].full()) {
 		verify_timer_is_init(node);
 		timers[node].schedule_after(
-				Timestamp::make_jiffies(tokens[node].time_until_contains(CastorRateLimiter::RingBuffer::default_capacity))
+				Timestamp::make_jiffies(tokens[node].time_until_contains(capacity))
 		);
 	}
 }
@@ -90,7 +90,7 @@ void CastorRateLimiter::verify_token_is_init(const NeighborId& node) {
 	if (tokens.count(node) == 0) {
 		tokens.set(node, TokenBucket(
 				rate_limits->lookup(node).value(),
-				CastorRateLimiter::RingBuffer::default_capacity));
+				capacity));
 	}
 }
 
