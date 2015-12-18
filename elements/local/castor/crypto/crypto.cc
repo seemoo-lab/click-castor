@@ -48,5 +48,5 @@ void Crypto::truncated_hash(uint8_t* out, unsigned int outlen, const uint8_t* in
 
 CLICK_ENDDECLS
 
-ELEMENT_LIBS(-L/usr/local/lib -lsodium)
+ELEMENT_LIBS(-lsodium)
 EXPORT_ELEMENT(Crypto)
