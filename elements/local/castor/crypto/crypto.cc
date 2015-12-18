@@ -37,12 +37,13 @@ void Crypto::hash(uint8_t* out, const uint8_t* in, unsigned int n) const {
 
 void Crypto::truncated_hash(uint8_t* out, unsigned int outlen, const uint8_t* in, unsigned int inlen) const {
 	uint8_t tmp[crypto_hash_sha256_BYTES];
+	hash(tmp, in, inlen);
 	if (outlen > sizeof(tmp)) {
 		click_chatter("Warning: wanting more bytes (%u) than we create (%u)", outlen, sizeof(tmp));
-		memset(tmp, 0, sizeof(tmp));
+		memcpy(out, tmp, sizeof(tmp));
+	} else {
+		memcpy(out, tmp, outlen);
 	}
-	hash(tmp, in, inlen);
-	memcpy(out, tmp, outlen);
 }
 
 CLICK_ENDDECLS
