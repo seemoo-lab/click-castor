@@ -24,6 +24,8 @@ int CastorRateLimitTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 	if (CastorRateLimit::init_rate < CastorRateLimit::min_rate ||
 		CastorRateLimit::init_rate > CastorRateLimit::max_rate)
 		return errh->error("INIT: out of bounds: %u", CastorRateLimit::init_rate);
+	_listener = NULL;
+	warn_count = 0;
 	return 0;
 }
 
@@ -32,13 +34,14 @@ CastorRateLimit& CastorRateLimitTable::lookup(const NeighborId& node) {
 }
 
 void CastorRateLimitTable::register_listener(CastorRateLimiter* element) {
-	assert(element);
 	_listener = element;
 }
 
 void CastorRateLimitTable::notify(const NeighborId& node) const {
-	assert(_listener);
-	_listener->update(node);
+	if (_listener)
+		_listener->update(node);
+	else if (warn_count++ < 5)
+		click_chatter("CastorRateLimitTable::notify() called but no listener set.");
 }
 
 CLICK_ENDDECLS

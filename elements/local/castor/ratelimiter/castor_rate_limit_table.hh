@@ -23,6 +23,8 @@ public:
 private:
 	HashTable<const NeighborId, CastorRateLimit> _table;
 
+	mutable unsigned int warn_count;
+
 	CastorRateLimiter* _listener;
 };
 
