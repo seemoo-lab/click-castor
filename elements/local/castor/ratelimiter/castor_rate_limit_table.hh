@@ -12,20 +12,29 @@ class CastorRateLimiter;
 
 class CastorRateLimitTable : public Element {
 public:
+	CastorRateLimitTable();
+	virtual ~CastorRateLimitTable();
+
 	const char *class_name() const { return "CastorRateLimitTable"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
+	int initialize(ErrorHandler*);
 
 	CastorRateLimit& lookup(const NeighborId& node);
 	void register_listener(CastorRateLimiter*);
 	void notify(const NeighborId&) const;
 private:
-	HashTable<const NeighborId, CastorRateLimit> _table;
+	unsigned int init_rate;
+	unsigned int min_rate;
+	unsigned int max_rate;
+	double sigma_decrease;
+	double sigma_increase;
+
+	HashTable<const NeighborId, CastorRateLimit>* _table;
+	CastorRateLimiter* _listener;
 
 	mutable unsigned int warn_count;
-
-	CastorRateLimiter* _listener;
 };
 
 CLICK_ENDDECLS

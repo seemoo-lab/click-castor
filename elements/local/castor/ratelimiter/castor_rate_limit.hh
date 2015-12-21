@@ -1,8 +1,6 @@
 #ifndef CASTOR_RATE_LIMIT_HH
 #define CASTOR_RATE_LIMIT_HH
 
-#include <click/element.hh>
-
 CLICK_DECLS
 
 class CastorRateLimitTable;
@@ -11,7 +9,10 @@ class CastorRateLimit {
 public:
 	typedef unsigned int rate_t;
 
-	CastorRateLimit() : rate(init_rate) { };
+	CastorRateLimit(rate_t init, rate_t min, rate_t max, double decrease, double increase) :
+		min_rate(min), max_rate(max), sigma_decrease(decrease), sigma_increase(increase) {
+		rate = bound(init);
+	};
 
 	void increase();
 	void decrease();
@@ -21,13 +22,12 @@ public:
 private:
 	rate_t rate;
 
-	static rate_t init_rate;
-	static rate_t min_rate;
-	static rate_t max_rate;
-	static double sigma_decrease;
-	static double sigma_increase;
+	rate_t min_rate;
+	rate_t max_rate;
+	double sigma_decrease;
+	double sigma_increase;
 
-	inline rate_t bound(rate_t proposed_rate) const;
+	rate_t bound(rate_t proposed_rate) const;
 };
 
 CLICK_ENDDECLS
