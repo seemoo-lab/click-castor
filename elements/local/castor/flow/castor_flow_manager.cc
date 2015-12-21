@@ -1,14 +1,19 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include "castor_flow_manager.hh"
 #include "castor_merkle_flow.hh"
 
 CLICK_DECLS
 
+CastorFlowManager::CastorFlowManager() : _crypto(NULL),
+_flows(HashTable<NodeId, HashTable<NodeId, CastorFlow*> >(HashTable<NodeId, CastorFlow*>(NULL)))
+{
+}
+
 int CastorFlowManager::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return cp_va_kparse(conf, this, errh, "CRYPT", cpkP + cpkM, cpElementCast,
-			"Crypto", &_crypto,
-			cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("Crypto", ElementCastArg("Crypto"), _crypto)
+			.complete();
 }
 
 PacketLabel CastorFlowManager::getPacketLabel(NodeId src, NodeId dst) {
@@ -23,31 +28,22 @@ PacketLabel CastorFlowManager::getPacketLabel(NodeId src, NodeId dst) {
 }
 
 CastorFlow* CastorFlowManager::createFlowIfNotExists(NodeId src, NodeId dst) {
-	CastorFlow* flow;
+	CastorFlow*& flow = _flows[src][dst];
 
-	HashTable<NodeId, CastorFlow*> * t = _flows.get_pointer(src);
-	if (!t) {
-		_flows.set(src, HashTable<NodeId, CastorFlow*>());
-		t = _flows.get_pointer(src);
-	}
-	CastorFlow** f = t->get_pointer(dst);
-	if (!f) {
-		flow = createNewFlow(src, dst);
-		t->set(dst, flow);
-	} else if (!(*f)->isAlive()) {
-		delete *f;
-		flow = createNewFlow(src, dst);
-		t->set(dst, flow);
+	if (!flow) {
+		flow = createNewFlow();
+	} else if (!flow->isAlive()) {
+		delete flow;
+		flow = createNewFlow();
 	} else {
-		flow = *f;
 	}
-	assert(flow != NULL && flow->isAlive());
+	assert(flow && flow->isAlive());
 
 	return flow;
 }
 
-CastorFlow* CastorFlowManager::createNewFlow(NodeId src, NodeId dst) {
-	return new CastorMerkleFlow(src, dst, _crypto);
+CastorFlow* CastorFlowManager::createNewFlow() {
+	return new CastorMerkleFlow(_crypto);
 }
 
 CLICK_ENDDECLS

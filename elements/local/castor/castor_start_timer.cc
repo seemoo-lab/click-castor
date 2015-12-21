@@ -23,7 +23,7 @@ int CastorStartTimer::configure(Vector<String>& conf, ErrorHandler* errh) {
 			.complete();
 }
 
-void CastorStartTimer::push(int, Packet* p) {
+Packet* CastorStartTimer::simple_action(Packet* p) {
 	// Add timer
 	if(CastorPacket::isXcast(p)) {
 		CastorXcastPkt header = CastorXcastPkt(p);
@@ -39,7 +39,7 @@ void CastorStartTimer::push(int, Packet* p) {
 		new PidTimer(this, header.pid, timeout);
 	}
 
-	output(0).push(p);
+	return p;
 }
 
 void CastorStartTimer::run_timer(Timer* _timer) {

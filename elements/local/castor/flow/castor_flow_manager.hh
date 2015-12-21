@@ -10,7 +10,7 @@ CLICK_DECLS
 
 class CastorFlowManager : public Element {
 public:
-	CastorFlowManager() : _crypto(NULL) {}
+	CastorFlowManager();
 
 	const char *class_name() const { return "CastorFlowManager"; }
 	const char *port_count() const { return PORTS_0_0; }
@@ -19,7 +19,6 @@ public:
 	int configure(Vector<String>&, ErrorHandler*);
 
 	PacketLabel getPacketLabel(NodeId, NodeId);
-
 private:
 	Crypto* _crypto;
 	HashTable<NodeId, HashTable<NodeId, CastorFlow*> > _flows;
@@ -28,7 +27,7 @@ private:
 	/**
 	 * Defines the type of CastorFlow to be used.
 	 */
-	CastorFlow* createNewFlow(NodeId src, NodeId dst);
+	CastorFlow* createNewFlow();
 };
 
 CLICK_ENDDECLS

@@ -1,18 +1,19 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include "castor_set_ack_nexthop.hh"
+#include "castor.hh"
 #include "castor_anno.hh"
 
 CLICK_DECLS
 
 int CastorSetAckNexthop::configure(Vector<String> &conf, ErrorHandler *errh) {
-    return cp_va_kparse(conf, this, errh,
-		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
-		"Neighbors", cpkP+cpkM, cpElementCast, "Neighbors", &neighbors,
-        cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("HISTORY", ElementCastArg("CastorHistory"), history)
+			.read_mp("NEIGHBORS", ElementCastArg("Neighbors"), neighbors)
+			.complete();
 }
 
-void CastorSetAckNexthop::push(int, Packet* p) {
+Packet* CastorSetAckNexthop::simple_action(Packet* p) {
 	const PacketId& pid = CastorAnno::hash_anno(p);
 	NeighborId dst = history->getPktSenders(pid)[0];  // set default ACK destination to initial PKT sender
 
@@ -33,7 +34,7 @@ void CastorSetAckNexthop::push(int, Packet* p) {
 	CastorAnno::dst_id_anno(p) = use_broadcast ? NeighborId::make_broadcast() : dst;
 	CastorAnno::hop_id_anno(p) = dst;
 
-	output(0).push(p);
+	return p;
 }
 
 CLICK_ENDDECLS

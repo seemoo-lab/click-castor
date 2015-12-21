@@ -2,7 +2,7 @@
 #define CLICK_SECURITY_ASSOCIATION_HH
 
 #include <click/element.hh>
-#include <botan/symkey.h>
+#include <click/vector.hh>
 
 CLICK_DECLS
 
@@ -13,9 +13,9 @@ public:
 	};
 
 	const Type type;
-	const Botan::OctetString secret;
+	Vector<uint8_t> secret;
 
-	SecurityAssociation(Type type, const Botan::OctetString& secret) : type(type), secret(secret) {}
+	SecurityAssociation(Type type, const Vector<uint8_t>& secret) : type(type), secret(secret) { }
 	String str() const;
 
 private:

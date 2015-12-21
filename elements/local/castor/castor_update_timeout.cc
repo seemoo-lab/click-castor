@@ -1,20 +1,19 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include "castor_update_timeout.hh"
 #include "castor_anno.hh"
 
 CLICK_DECLS
 
 int CastorUpdateTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
-	int result = cp_va_kparse(conf, this, errh,
-			"CastorTimeoutTable", cpkP + cpkM, cpElementCast, "CastorTimeoutTable", &table,
-			"CastorHistory", cpkP + cpkM, cpElementCast, "CastorHistory", &history,
-			"VERBOSE", cpkN, cpBool, &verbose,
-			cpEnd);
-	return result;
+    return Args(conf, this, errh)
+    		.read_mp("TIMEOUT_TABLE", ElementCastArg("CastorTimeoutTable"), table)
+			.read_mp("HISTORY", ElementCastArg("CastorHistory"), history)
+			.read_or_set("VERBOSE", verbose, false)
+			.complete();
 }
 
-void CastorUpdateTimeout::push(int, Packet* p) {
+Packet* CastorUpdateTimeout::simple_action(Packet* p) {
 	const PacketId& pid = CastorAnno::hash_anno(p);
 
 	// Calculate new round-trip time sample
@@ -34,7 +33,7 @@ void CastorUpdateTimeout::push(int, Packet* p) {
 	// Update timeout
 	timeout.update(new_rtt);
 
-    output(0).push(p);
+	return p;
 }
 
 CLICK_ENDDECLS

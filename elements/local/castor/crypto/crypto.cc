@@ -1,41 +1,24 @@
 #include <click/config.h>
 #include <click/args.hh>
-#include <click/confparse.hh>
 #include "crypto.hh"
-
-#include <botan/hash.h>
-#include <botan/auto_rng.h>
-#include <botan/symkey.h>
-#include <botan/pipe.h>
 
 CLICK_DECLS
 
-Crypto::~Crypto() {
-	delete hashFunction;
+int Crypto::configure(Vector<String> &conf, ErrorHandler *errh) {
+	return Args(conf, this, errh)
+			.read_mp("SAM", ElementCastArg("SAManagement"), sam)
+			.complete();
 }
 
-/*
- * Configure the Crypto Element
- */
-int Crypto::configure(Vector<String> &conf, ErrorHandler *errh)
-{
-	int res = cp_va_kparse(conf, this, errh,
-		"SAM", cpkP+cpkM, cpElementCast, "SAManagement", &sam,
-		cpEnd);
-	if(res < 0) return res;
-
-	algo = "AES-128/CBC/CTS";
-	iv = Botan::InitializationVector("00000000000000000000000000000000");
-	hashFunction = Botan::get_hash("SHA-160");
-
+int Crypto::initialize(ErrorHandler* errh) {
+	// We believe that since we only encrypt pseudorandom nonces,
+	// we can use the same nonce for all encryptions.
+	memset(nonce, 0, sizeof(nonce));
 	return 0;
 }
 
-SValue Crypto::random(int nbytes) const {
-	Botan::AutoSeeded_RNG rng;
-	Botan::byte rbytes[nbytes];
-	rng.randomize(rbytes, nbytes);
-	return SValue(rbytes, nbytes);
+void Crypto::random(uint8_t* buf, unsigned int length) const {
+	randombytes_buf(buf, length);
 }
 
 /**
@@ -45,54 +28,25 @@ const SymmetricKey* Crypto::getSharedKey(NodeId id) const {
 	const SecurityAssociation* sharedKeySA = sam->get(id, SecurityAssociation::sharedsecret);
 	if (!sharedKeySA)
 		return 0;
-	const SymmetricKey* sharedKey = &sharedKeySA->secret;
-	return sharedKey;
+	return &sharedKeySA->secret;
 }
 
-/**
- * Encrypt plain using AES-128 in CTS mode.
- */
-SValue Crypto::encrypt(const SValue& plain, const SymmetricKey& key) const {
-	Botan::Pipe encryptor(get_cipher(algo.c_str(), key, iv, Botan::ENCRYPTION));
-	encryptor.process_msg(plain);
-	return encryptor.read_all();
+void Crypto::hash(uint8_t* out, const uint8_t* in, unsigned int n) const {
+	crypto_hash_sha256(out, in, n);
 }
 
-/**
- * Decrypt cipher using the given key.
- */
-SValue Crypto::decrypt(const SValue& cipher, const SymmetricKey& key) const {
-	Botan::Pipe decryptor(get_cipher(algo.c_str(), key, iv, Botan::DECRYPTION));
-	decryptor.process_msg(cipher);
-	return decryptor.read_all();
-}
-
-SValue Crypto::hash(const SValue& data) const {
-	return hashFunction->process(data);
-}
-
-Hash Crypto::hash(const Hash& data) const {
-	SValue hash = hashFunction->process(data.data(), data.size());
-	return convert(hash);
-}
-
-Hash Crypto::hashConvert(const SValue& data) const {
-	SValue hash = hashFunction->process(data);
-	return convert(hash);
-}
-
-SValue Crypto::hashConvert(const Hash& data) const {
-	return hashFunction->process(data.data(), data.size());
-}
-
-SValue Crypto::convert(const Hash& data) const {
-	return SValue(data.data(), data.size());
-}
-
-Hash Crypto::convert(const SValue& data) const {
-	return Hash(data.begin());
+void Crypto::truncated_hash(uint8_t* out, unsigned int outlen, const uint8_t* in, unsigned int inlen) const {
+	uint8_t tmp[crypto_hash_sha256_BYTES];
+	hash(tmp, in, inlen);
+	if (outlen > sizeof(tmp)) {
+		click_chatter("Warning: wanting more bytes (%u) than we create (%u)", outlen, sizeof(tmp));
+		memcpy(out, tmp, sizeof(tmp));
+	} else {
+		memcpy(out, tmp, outlen);
+	}
 }
 
 CLICK_ENDDECLS
-ELEMENT_LIBS(-L/usr/local/lib -lbotan-1.10)
+
+ELEMENT_LIBS(-lsodium)
 EXPORT_ELEMENT(Crypto)

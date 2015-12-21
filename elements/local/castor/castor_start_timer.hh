@@ -13,15 +13,12 @@ CLICK_DECLS
 
 class CastorStartTimer : public Element {
 public:
-	CastorStartTimer() : table(NULL), toTable(NULL), history(NULL), rate_limits(NULL), verbose(false) {};
-
 	const char *class_name() const { return "CastorStartTimer"; }
 	const char *port_count() const { return PORTS_1_1; }
-	const char *processing() const { return PUSH; }
+	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	void push(int, Packet *);
-
+	Packet* simple_action(Packet *);
 private:
 	void run_timer(Timer*);
 

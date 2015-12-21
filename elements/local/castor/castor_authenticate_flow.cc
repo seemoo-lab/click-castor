@@ -1,32 +1,31 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include "castor_authenticate_flow.hh"
+#include "castor.hh"
 #include "flow/merkle_tree.hh"
 
 CLICK_DECLS
 
 int CastorAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return cp_va_kparse(conf, this, errh,
-			"CRYPT", cpkP + cpkM, cpElementCast, "Crypto", &crypto,
-			cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("Crypto", ElementCastArg("Crypto"), crypto)
+			.complete();
 }
 
-void CastorAuthenticateFlow::push(int, Packet *p) {
-
+Packet* CastorAuthenticateFlow::simple_action(Packet *p) {
 	CastorPkt& pkt = (CastorPkt&) *p->data();
 
-	SValue fid = crypto->convert(pkt.fid);
-	SValue pid = crypto->convert(pkt.pid);
-	Vector<SValue> fauth;
+	Vector<Hash> fauth;
 	fauth.reserve(pkt.fsize);
 	for (int i = 0; i < pkt.fsize; i++)
-		fauth.push_back(crypto->convert(pkt.fauth[i]));
+		fauth.push_back(pkt.fauth[i]);
 
-	if (MerkleTree::isValidMerkleTree(ntohs(pkt.kpkt), pid, fauth, fid, *crypto))
-		output(0).push(p);
-	else
-		output(1).push(p); // Invalid -> discard
-
+	if (MerkleTree::isValidMerkleTree(ntohs(pkt.kpkt), pkt.pid, fauth, pkt.fid, *crypto)) {
+		return p;
+	} else {
+		checked_output_push(1, p);
+		return 0;
+	}
 }
 
 CLICK_ENDDECLS

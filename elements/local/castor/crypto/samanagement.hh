@@ -10,8 +10,6 @@ CLICK_DECLS
 
 class SAManagement: public Element {
 public:
-	SAManagement() : symmetricKeyLength(16) {}
-
 	const char *class_name() const	{ return "SAManagement"; }
 	const char *port_count() const	{ return PORTS_0_0; }
 	const char *processing() const	{ return AGNOSTIC; }
@@ -20,8 +18,6 @@ public:
 
 	void add(const NodeId& node, const SecurityAssociation& sa);
 	const SecurityAssociation* get(const NodeId& node, SecurityAssociation::Type type);
-	void printall();
-
 private:
 	typedef Vector<SecurityAssociation> SAs;
 	typedef HashTable<NodeId, SAs> SAMap;

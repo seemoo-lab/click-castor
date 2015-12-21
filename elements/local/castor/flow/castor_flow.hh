@@ -3,7 +3,6 @@
 
 #include <click/element.hh>
 #include "../castor.hh"
-#include "../crypto/crypto.hh"
 
 CLICK_DECLS
 
@@ -18,7 +17,7 @@ public:
 
 class CastorFlow {
 public:
-	CastorFlow(NodeId src, NodeId dst, const Crypto* crypto) : src(src), dst(dst), crypto(crypto) {}
+	CastorFlow() {}
 	virtual ~CastorFlow() {}
 
 	/**
@@ -30,11 +29,6 @@ public:
 	 * Returns false otherwise.
 	 */
 	virtual bool isAlive() const = 0;
-
-protected:
-	const NodeId src;
-	const NodeId dst;
-	const Crypto* crypto;
 };
 
 CLICK_ENDDECLS

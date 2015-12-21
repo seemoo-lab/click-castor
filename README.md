@@ -4,15 +4,11 @@
 ## Build Instructions
 
 ### Prerequisites
-To compile the Castor `Element`s in Click, the **Botan** crypto library is required. On a Debian/Ubuntu system, install via
-```bash
-sudo apt-get install libbotan1.10-dev
-```
-The `Element`s currently requiring this library are
-- `elements/local/castor/crypto.cc` and
-- `elements/local/protswitch/samanagement.cc`
+To compile Castor, the [libsodium](https://download.libsodium.org/doc/) crypto library is required.
+The only `Element` requiring this library is `elements/local/castor/crypto/crypto.cc`, which performs all relevant crypto operations in Castor.
 
-They do so with a `ELEMENT_LIBS(-L/usr/local/lib -lbotan-1.10)` statement.
+If libsodium is installed in a non-standard path, you need to include an appropriate linker flag such as `LDFLAGS="-L<lib_dir>"` where `<lib_dir>` is where you installed libsodium.
+Up-to-date installation instructions can be found [here](https://download.libsodium.org/doc/installation/index.html).
 
 ### Click with ns-3
 ```bash

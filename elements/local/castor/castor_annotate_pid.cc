@@ -16,8 +16,7 @@ Packet* CastorAnnotatePid::simple_action(Packet* p) {
 	assert(CastorPacket::getType(p) == CastorType::ACK);
 	CastorAck& ack = (CastorAck&) *p->data();
 
-	PacketId pid = crypto->hash(ack.auth);
-	CastorAnno::hash_anno(p) = pid;
+	crypto->hash(CastorAnno::hash_anno(p), ack.auth);
 
 	return p;
 }

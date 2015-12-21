@@ -1,17 +1,16 @@
 #include <click/config.h>
-#include <click/confparse.hh>
-
+#include <click/args.hh>
 #include "castor_add_header.hh"
 
 CLICK_DECLS
 
 int CastorAddHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
-     return cp_va_kparse(conf, this, errh,
-        "CastorAddHeader", cpkP+cpkM, cpElementCast, "CastorFlowManager", &flow,
-        cpEnd);
+     return Args(conf, this, errh)
+    		 .read_mp("FLOW_MANAGER", ElementCastArg("CastorFlowManager"), flow)
+			 .complete();
 }
 
-void CastorAddHeader::push(int, Packet *p) {
+Packet* CastorAddHeader::simple_action(Packet *p) {
 
 	// Extract source and destination from packet
 	NodeId src(reinterpret_cast<const uint8_t*>(&(p->ip_header()->ip_src)));
@@ -21,7 +20,7 @@ void CastorAddHeader::push(int, Packet *p) {
 	uint32_t length = sizeof(CastorPkt);
 	WritablePacket *q = p->push(length);
 	if (!q)
-		return;
+		return 0;
 
 	CastorPkt* header = (CastorPkt*) q->data();
 	header->type = CastorType::MERKLE_PKT;
@@ -45,7 +44,7 @@ void CastorAddHeader::push(int, Packet *p) {
 		header->fauth[i] = label.fauth[i];
 	header->pauth = label.aauth; // not yet encrypted (!)
 
-	output(0).push(q);
+	return q;
 }
 
 CLICK_ENDDECLS

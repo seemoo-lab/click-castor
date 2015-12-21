@@ -12,30 +12,19 @@ int CastorDecryptAckAuth::configure(Vector<String>& conf, ErrorHandler* errh) {
 			.complete();
 }
 
-void CastorDecryptAckAuth::push(int, Packet *p) {
-	p = p->clone();
+Packet* CastorDecryptAckAuth::simple_action(Packet *p) {
 	CastorPkt& pkt = (CastorPkt&) *p->data();
-
-	SValue encAuth = crypto->convert(pkt.pauth);
 
 	// Get appropriate key and decrypt encrypted ACK authenticator
 	const SymmetricKey* sk = crypto->getSharedKey(pkt.src);
 	if (!sk) {
 		click_chatter("Could not find shared key for host %s. Discarding PKT...", pkt.dst.unparse().c_str());
 		checked_output_push(1, p);
-		return;
+		return 0;
 	}
-	SValue auth = crypto->decrypt(encAuth, *sk);
-	if (auth.size() != sizeof(PktAuth)) {
-		click_chatter("Cannot create ciphertext: Crypto subsystem returned wrong plaintext length. Discarding PKT...");
-		checked_output_push(1, p);
-		return;
-	}
+	crypto->decrypt(CastorAnno::hash_anno(p), pkt.pauth, *sk);
 
-	AckAuth& authAnno = CastorAnno::hash_anno(p);
-	authAnno = crypto->convert(auth);
-
-	output(0).push(p);
+	return p;
 }
 
 CLICK_ENDDECLS

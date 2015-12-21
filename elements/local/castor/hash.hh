@@ -5,27 +5,28 @@
 
 CLICK_DECLS
 
-class Hash {
+template<unsigned int S>
+class Buffer {
 public:
 	typedef unsigned long hashcode_t;
 
-	inline Hash() { memset(&array, 0, sizeof(array)); }
-	inline Hash(const uint8_t array[]) { memcpy(this->array, array, sizeof(this->array)); }
+	inline Buffer() { memset(&array, 0, S); }
+	inline Buffer(const uint8_t array[]) { memcpy(this->array, array, S); }
 	inline hashcode_t hashcode() const {
 		hashcode_t x;
 		memcpy(&x, array, sizeof(hashcode_t));
 		return x;
 	}
-	inline Hash& operator=(const Hash& x) {
-		memcpy(&array, &x.array, sizeof(array));
+	inline Buffer<S>& operator=(const Buffer<S>& x) {
+		memcpy(&array, &x.array, S);
 		return *this;
 	}
 	inline const uint8_t& operator[](size_t i) const {
-		assert(i < sizeof(array));
+		assert(i < S);
 		return array[i];
 	}
 	inline uint8_t& operator[](size_t i) {
-		assert(i < sizeof(array));
+		assert(i < S);
 		return array[i];
 	}
 	inline const uint8_t* data() const {
@@ -35,24 +36,33 @@ public:
 	    return array;
 	}
 	inline size_t size() const {
-		return sizeof(array);
+		return S;
 	}
-	inline bool operator==(const Hash& x) const {
-		return memcmp(this->array, x.array, sizeof(array)) == 0;
+	inline bool operator==(const Buffer<S>& x) const {
+		return memcmp(this->array, x.array, S) == 0;
 	}
-	inline bool operator!=(const Hash& x) const {
-		return memcmp(this->array, x.array, sizeof(array)) != 0;
+	inline bool operator!=(const Buffer<S>& x) const {
+		return memcmp(this->array, x.array, S) != 0;
+	}
+	template<unsigned int S2>
+	inline Buffer<(S+S2)> operator+(const Buffer<S2>& x) const {
+		Buffer<S+S2> tmp;
+		memcpy(tmp.data(), this->data(), S);
+		memcpy(tmp.data() + S, x.data(), S2);
+		return tmp;
 	}
 	inline String str() const {
-		char buffer[2 * sizeof(array) + 1];
-		for (size_t i = 0; i < sizeof(array); i++) {
+		char buffer[2 * S + 1];
+		for (size_t i = 0; i < S; i++) {
 			sprintf(buffer + 2 * i, "%02x", array[i]);
 		}
 		return String(buffer);
 	}
 private:
-	uint8_t array[CASTOR_HASH_LENGTH];
+	uint8_t array[S];
 };
+
+typedef Buffer<CASTOR_HASH_LENGTH> Hash;
 
 CLICK_ENDDECLS
 

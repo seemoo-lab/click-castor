@@ -16,16 +16,15 @@ Packet* CastorXcastAuthenticateFlow::simple_action(Packet *p){
 	CastorXcastPkt pkt = CastorXcastPkt(p);
 
 	// Pid is implicitly given by the PktAuth
-	SValue pid = crypto->hashConvert(pkt.pkt_auth());
+	Hash pid;
+	crypto->hash(pid, pkt.pkt_auth());
 
-	SValue fid = crypto->convert(pkt.fid());
-
-	Vector<SValue> fauth;
+	Vector<Hash> fauth;
 	fauth.reserve(pkt.flow_size());
 	for(int i = 0; i < pkt.flow_size(); i++)
-		fauth.push_back(crypto->convert(pkt.flow_auth()[i]));
+		fauth.push_back(pkt.flow_auth()[i]);
 
-	if(MerkleTree::isValidMerkleTree(pkt.kpkt(), pid, fauth, fid, *crypto)) {
+	if(MerkleTree::isValidMerkleTree(pkt.kpkt(), pid, fauth, pkt.fid(), *crypto)) {
 		return pkt.getPacket();
 	} else {
 		checked_output_push(1, pkt.getPacket());
