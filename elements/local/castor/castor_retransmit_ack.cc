@@ -1,6 +1,5 @@
 #include <click/config.h>
 #include <click/args.hh>
-#include <clicknet/ether.h>
 #include "castor_retransmit_ack.hh"
 #include "castor_anno.hh"
 
@@ -29,8 +28,7 @@ void CastorRetransmitAck::push(int, Packet *p) {
 	ack.dst = pkt.src;
 #endif
 
-	// TODO adjust default headroom
-	WritablePacket* q = Packet::make(sizeof(click_ether) + sizeof(click_ip), &ack, sizeof(CastorAck), 0);
+	WritablePacket* q = Packet::make(&ack, sizeof(CastorAck));
 	CastorAnno::dst_id_anno(q) = CastorAnno::src_id_anno(p); // Unicast ACK to PKT sender
 	CastorAnno::hop_id_anno(q) = CastorAnno::dst_id_anno(q);
 
