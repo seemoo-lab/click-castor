@@ -28,8 +28,8 @@ int NeighborBeaconGenerator::initialize(ErrorHandler* errh) {
 }
 
 void NeighborBeaconGenerator::run_timer(Timer* timer) {
-	/** Create dummy ethernet packet */
-	WritablePacket* p = Packet::make(sizeof(click_ether), 0, 0, 0);
+	/** Create ethernet packet containing sender address as ID, to avoid empty packets */
+	WritablePacket* p = Packet::make(sizeof(click_ether), my_id.data(), 6, 0);
 	p = p->push_mac_header(sizeof(click_ether));
 	p->ether_header()->ether_type = htons(ETHERTYPE_BEACON);
 	memset(&p->ether_header()->ether_dhost, 0xff, 6); // Set broadcast address
