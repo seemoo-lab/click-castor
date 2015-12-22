@@ -77,16 +77,13 @@ elementclass CastorHandleAck {
 		//-> CastorPrint("Unknown corresponding PKT", $myIP)
 		-> null;
 	authenticate[2]
-		-> CastorPrint("Too late (SHOULD NO LONGER OCCUR!)", $myIP)
-		-> null;
-	authenticate[3]
 		// Might rarely happen if MAC ACK was lost and Castor ACK is retransmitted
 		//-> CastorPrint("ACK duplicate from same neighbor", $myIP)
 		-> null;
-	authenticate[4]
+	authenticate[3]
 		//-> CastorPrint("ACK from different neighbor than PKT was forwarded to", $myIP)
 		-> null;
-	authenticate[5]
+	authenticate[4]
 		-> CastorPrint("ACK from same neighbor as initial PKT sender", $myIP)
 		//-> CastorAddAckToHistory($history)
 		-> null;

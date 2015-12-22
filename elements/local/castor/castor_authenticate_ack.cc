@@ -30,19 +30,18 @@ void CastorAuthenticateAck::push(int, Packet* p) {
 
 	if (!history->hasPkt(pid)) {
 		port = 1; // never forwarded corresponding PKT -> discard
-	// TODO port 2 unused: we no longer can distinguish late ACKs since expired pids are deleted
 	} else if (history->hasAckFrom(pid, src)) {
-		port = 3; // already received ACK from this neighbor -> discard
+		port = 2; // already received ACK from this neighbor -> discard
 	} else if (version <= 1) {
 		const NeighborId& routedTo = history->routedTo(pid);
 		if (routedTo != src && routedTo != NeighborId::make_broadcast()) {
-			port = 4; // received ACK from a neighbor we never forwarded the PKT to -> discard (standard Castor)
+			port = 3; // received ACK from a neighbor we never forwarded the PKT to -> discard (standard Castor)
 		}
 	} else {
 #if 1
 		const NeighborId& routedTo = history->routedTo(pid);
 		if (routedTo != src && routedTo != NeighborId::make_broadcast()) {
-			port = 4; // received ACK from a neighbor we never forwarded the PKT to -> discard (standard Castor)
+			port = 3; // received ACK from a neighbor we never forwarded the PKT to -> discard (standard Castor)
 		}
 #elif 0
 		// Check whether the ACK was received from one of our PKT senders
@@ -50,7 +49,7 @@ void CastorAuthenticateAck::push(int, Packet* p) {
 			for (size_t i = 1; i < history->getPkts(pid); i++) {
 				const NodeId pktSender = history->getPktSenders(pid)[i];
 				if (src == pktSender) {
-					port = 5; // received ACK from a neighbor that has forwarded us the PKT -> discard (Castor improvement)
+					port = 4; // received ACK from a neighbor that has forwarded us the PKT -> discard (Castor improvement)
 					break;
 				}
 			}
@@ -58,7 +57,7 @@ void CastorAuthenticateAck::push(int, Packet* p) {
 #endif
 		const NeighborId& firstPktSender = history->getPktSenders(pid)[0];
 		if (src == firstPktSender) {
-			port = 5; // received ACK from the neighbor that initially forwarded us the PKT -> discard (Castor improvement)
+			port = 4; // received ACK from the neighbor that initially forwarded us the PKT -> discard (Castor improvement)
 		}
 	}
 
