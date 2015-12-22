@@ -26,7 +26,7 @@ int CastorRateLimitTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 int CastorRateLimitTable::initialize(ErrorHandler*) {
-	_table = new HashTable<const NeighborId, CastorRateLimit>(CastorRateLimit(init_rate, min_rate, max_rate, sigma_increase, sigma_decrease));
+	_table = new HashTable<const NeighborId, CastorRateLimit>(CastorRateLimit(init_rate, min_rate, max_rate, sigma_decrease, sigma_increase));
 	return 0;
 }
 
