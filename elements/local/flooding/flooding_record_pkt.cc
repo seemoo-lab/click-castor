@@ -20,7 +20,7 @@ Packet* FloodingRecordPkt::simple_action(Packet *p) {
 
 	hopcounts.push_back(new UintListNode(Flooding::hopcount(p)));
 
-	// TODO this is a hack so that we can count npids for multicast packets that are flooded
+	// this is a hack so that we can count npids for multicast packets that are flooded
 	GroupId group = IPAddress(p->ip_header()->ip_dst);
 	unsigned int ndestinations = map->get(group).size();
 	nbroadcasts += ndestinations;

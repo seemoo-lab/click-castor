@@ -35,8 +35,6 @@ public:
 
 	const Timestamp& getTimestamp(const PacketId&) const;
 private:
-	// TODO entry should also contain a hash of the packet, so that we can differentiate between
-	//      different versions of a PKT
 	class CastorHistoryEntry {
 	public:
 		Timestamp timestamp;
