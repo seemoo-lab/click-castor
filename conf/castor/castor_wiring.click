@@ -20,3 +20,8 @@ handleack			-> DynamicEtherEncap(fake) -> [1]ethout; // Forward ACK
 
 beacons :: NeighborBeaconGenerator($beaconingInterval, fake, $neighborsEnable)
 	-> [2]ethout;
+
+ratelimiter[1]
+	-> CastorPrint("Rate limiter drop", fake)
+	-> recDrop :: CastorRecordPkt
+	-> Discard;
