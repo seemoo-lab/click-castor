@@ -79,7 +79,7 @@ void CastorStartTimer::adjust_estimator(const PacketId& pid) {
 void CastorStartTimer::adjust_rate_limit(const PacketId& pid) {
 	auto& senders = history->getPktSenders(pid);
 	for (auto& sender : senders) {
-		// TODO should we really check this here?
+		// It does not make sense to rate limit myself
 		if (sender != myId) {
 			rate_limits->lookup(sender).decrease();
 			rate_limits->notify(sender);
