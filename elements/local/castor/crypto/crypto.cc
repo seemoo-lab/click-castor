@@ -34,19 +34,14 @@ const SymmetricKey* Crypto::getSharedKey(NodeId id) const {
 	return &sharedKeySA->secret;
 }
 
-void Crypto::hash(uint8_t* out, const uint8_t* in, unsigned int n) const {
-	crypto_hash_sha256(out, in, n);
+void Crypto::hash(uint8_t* out, unsigned int outlen, const uint8_t* in, unsigned int inlen) const {
+	if (outlen < crypto_generichash_BYTES_MIN || outlen > crypto_generichash_BYTES_MAX) {
+		click_chatter("Cannot produce hash values of size %u", outlen);
+		return;
+	}
+	crypto_generichash(out, outlen, in, inlen, NULL, 0);
 }
 
-void Crypto::truncated_hash(uint8_t* out, unsigned int outlen, const uint8_t* in, unsigned int inlen) const {
-	uint8_t tmp[crypto_hash_sha256_BYTES];
-	hash(tmp, in, inlen);
-	if (outlen > sizeof(tmp)) {
-		click_chatter("Warning: wanting more bytes (%u) than we create (%u)", outlen, sizeof(tmp));
-		memcpy(out, tmp, sizeof(tmp));
-	} else {
-		memcpy(out, tmp, outlen);
-	}
 void Crypto::auth(Buffer<crypto_onetimeauth_BYTES>& out, const uint8_t* in, unsigned int inlen, const uint8_t* nonce, const uint8_t* key) {
 	Buffer<crypto_onetimeauth_KEYBYTES> onetimekey;
 	crypto_stream(onetimekey.data(), sizeof(onetimekey), nonce, key);

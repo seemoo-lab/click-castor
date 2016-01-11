@@ -41,7 +41,7 @@ public:
 
 	template<unsigned int S>
 	inline void hash(Buffer<S>& out, const uint8_t* in, unsigned int n) const {
-		truncated_hash(out.data(), out.size(), in, n);
+		hash(out.data(), out.size(), in, n);
 	}
 	template<unsigned int S>
 	inline Buffer<S> hash(const uint8_t* in, unsigned int n) const {
@@ -51,7 +51,7 @@ public:
 	}
 	template<unsigned int S, unsigned int S2>
 	inline void hash(Buffer<S>& out, const Buffer<S2>& in) const {
-		truncated_hash(out.data(), out.size(), in.data(), in.size());
+		hash(out.data(), out.size(), in.data(), in.size());
 	}
 	template<unsigned int S, unsigned int S2>
 	inline Buffer<S> hash(const Buffer<S2>& in) const {
@@ -78,8 +78,7 @@ private:
 	SAManagement* sam;
 
 	void random(uint8_t* buf, unsigned int length) const;
-	void hash(uint8_t* out, const uint8_t* in, unsigned int n) const;
-	void truncated_hash(uint8_t* out, unsigned int outlen, const uint8_t* in, unsigned int n) const;
+	void hash(uint8_t* out, unsigned int outlen, const uint8_t* in, unsigned int n) const;
 };
 
 CLICK_ENDDECLS
