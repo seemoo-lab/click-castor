@@ -1,5 +1,6 @@
 #include <click/config.h>
 #include <click/args.hh>
+#include <click/error.hh>
 #include "crypto.hh"
 
 CLICK_DECLS
@@ -11,6 +12,10 @@ int Crypto::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 int Crypto::initialize(ErrorHandler* errh) {
+	if (sodium_init() == -1) {
+		errh->fatal("libsodium could not be initialized");
+		return -1;
+	}
 	// We believe that since we only encrypt pseudorandom nonces,
 	// we can use the same nonce for all encryptions.
 	memset(nonce, 0, sizeof(nonce));
