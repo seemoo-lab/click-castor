@@ -38,7 +38,8 @@ Packet* CastorXcastSetDestinations::simple_action(Packet *p) {
 			break;
 		}
 		Hash encAckAuth;
-		crypto->encrypt(encAckAuth, pkt.pkt_auth(), *key);
+		uint8_t insecure[Crypto::nonce_size] = {}; // TODO: should use a secure nonce, e.g., fid + pid
+		crypto->stream_xor(encAckAuth, pkt.pkt_auth(), insecure, *key);
 		crypto->hash(pkt.pid(i), encAckAuth);
 	}
 

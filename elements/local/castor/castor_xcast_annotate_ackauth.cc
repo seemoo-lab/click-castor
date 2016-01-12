@@ -22,7 +22,8 @@ Packet* CastorXcastAnnotateAckAuth::simple_action(Packet *p) {
 		checked_output_push(1, pkt.getPacket());
 		return 0;
 	}
-	crypto->encrypt(CastorAnno::hash_anno(pkt.getPacket()), pkt.pkt_auth(), *sk);
+	uint8_t insecure[Crypto::nonce_size] = {}; // TODO: should use a secure nonce, e.g., fid + pid
+	crypto->stream_xor(CastorAnno::hash_anno(pkt.getPacket()), pkt.pkt_auth(), insecure, *sk);
 
 	return pkt.getPacket();
 }

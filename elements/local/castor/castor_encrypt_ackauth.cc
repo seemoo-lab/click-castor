@@ -23,7 +23,8 @@ Packet* CastorEncryptAckAuth::simple_action(Packet *p) {
 		checked_output_push(1, q);
 		return 0;
 	}
-	crypto->encrypt(pkt.pauth, pkt.pauth, *sk);
+	uint8_t insecure[Crypto::nonce_size] = {}; // TODO: should use a secure nonce, e.g., fid + pid
+	crypto->stream_xor(pkt.pauth, pkt.pauth, insecure, *sk);
 
 	return q;
 }

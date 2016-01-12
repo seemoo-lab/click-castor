@@ -22,7 +22,8 @@ Packet* CastorDecryptAckAuth::simple_action(Packet *p) {
 		checked_output_push(1, p);
 		return 0;
 	}
-	crypto->decrypt(CastorAnno::hash_anno(p), pkt.pauth, *sk);
+	uint8_t insecure[Crypto::nonce_size] = {}; // TODO: should use a secure nonce, e.g., fid + pid
+	crypto->stream_xor(CastorAnno::hash_anno(p), pkt.pauth, insecure, *sk);
 
 	return p;
 }
