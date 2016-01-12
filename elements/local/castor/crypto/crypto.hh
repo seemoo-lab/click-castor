@@ -23,25 +23,9 @@ public:
 	 */
 	const SymmetricKey* getSharedKey(NodeId) const;
 	template<unsigned int S>
-	inline void encrypt(Buffer<S>& cipher, const Buffer<S>& plain, const SymmetricKey& key) const {
+	inline void stream_xor(Buffer<S>& cipher, const Buffer<S>& plain, const uint8_t* nonce, const SymmetricKey& key) const {
 		assert(key.size() == crypto_stream_KEYBYTES);
 		crypto_stream_xor(cipher.data(), plain.data(), plain.size(), nonce, key.data());
-	}
-	template<unsigned int S>
-	inline Buffer<S> encrypt(const Buffer<S>& plain, const SymmetricKey& key) const {
-		Buffer<S> tmp;
-		encrypt(tmp, plain, key);
-		return tmp;
-	}
-
-	template<unsigned int S>
-	inline void decrypt(Buffer<S>& plain, const Buffer<S>& cipher, const SymmetricKey& key) const {
-		// encryption and decryption is the same for a stream cipher
-		encrypt(plain, cipher, key);
-	}
-	template<unsigned int S>
-	inline Buffer<S> decrypt(const Buffer<S>& cipher, const SymmetricKey& key) const {
-		return encrypt(cipher, key);
 	}
 
 	template<unsigned int S>
@@ -88,9 +72,10 @@ public:
 	int auth_verify(const Buffer<crypto_onetimeauth_BYTES>& out,
                     const uint8_t* in, unsigned int inlen,
                     const uint8_t* nonce, const uint8_t* key);
+
+	static const unsigned int nonce_size = crypto_stream_NONCEBYTES;
 private:
 	SAManagement* sam;
-	uint8_t nonce[crypto_stream_NONCEBYTES];
 
 	void random(uint8_t* buf, unsigned int length) const;
 	void hash(uint8_t* out, const uint8_t* in, unsigned int n) const;

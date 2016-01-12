@@ -15,11 +15,9 @@ int Crypto::initialize(ErrorHandler* errh) {
 	if (sodium_init() == -1) {
 		errh->fatal("libsodium could not be initialized");
 		return -1;
+	} else {
+		return 0;
 	}
-	// We believe that since we only encrypt pseudorandom nonces,
-	// we can use the same nonce for all encryptions.
-	memset(nonce, 0, sizeof(nonce));
-	return 0;
 }
 
 void Crypto::random(uint8_t* buf, unsigned int length) const {
