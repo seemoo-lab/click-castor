@@ -7,7 +7,7 @@ CLICK_DECLS
 int SAManagement::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 			.read_mp("ADDR", myAddr)
-			.read_or_set_p("SYM_KEY_LENGTH", symmetricKeyLength, 16)
+			.read_or_set_p("SYM_KEY_LENGTH", symmetricKeyLength, 32)
 			.complete();
 }
 

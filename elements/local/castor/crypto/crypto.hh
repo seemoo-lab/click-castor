@@ -24,8 +24,8 @@ public:
 	const SymmetricKey* getSharedKey(NodeId) const;
 	template<unsigned int S>
 	inline void encrypt(Buffer<S>& cipher, const Buffer<S>& plain, const SymmetricKey& key) const {
-		assert(key.size() == crypto_stream_aes128ctr_KEYBYTES);
-		crypto_stream_aes128ctr_xor(cipher.data(), plain.data(), plain.size(), nonce, key.begin());
+		assert(key.size() == crypto_stream_KEYBYTES);
+		crypto_stream_xor(cipher.data(), plain.data(), plain.size(), nonce, key.data());
 	}
 	template<unsigned int S>
 	inline Buffer<S> encrypt(const Buffer<S>& plain, const SymmetricKey& key) const {
@@ -83,7 +83,7 @@ public:
 	}
 private:
 	SAManagement* sam;
-	uint8_t nonce[crypto_stream_aes128ctr_NONCEBYTES];
+	uint8_t nonce[crypto_stream_NONCEBYTES];
 
 	void random(uint8_t* buf, unsigned int length) const;
 	void hash(uint8_t* out, const uint8_t* in, unsigned int n) const;
