@@ -81,6 +81,13 @@ public:
 		hash(tmp, in);
 		return tmp;
 	}
+
+	void auth(Buffer<crypto_onetimeauth_BYTES>& out,
+              const uint8_t* in, unsigned int inlen,
+              const uint8_t* nonce, const uint8_t* key);
+	int auth_verify(const Buffer<crypto_onetimeauth_BYTES>& out,
+                    const uint8_t* in, unsigned int inlen,
+                    const uint8_t* nonce, const uint8_t* key);
 private:
 	SAManagement* sam;
 	uint8_t nonce[crypto_stream_NONCEBYTES];

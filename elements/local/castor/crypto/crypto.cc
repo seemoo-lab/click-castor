@@ -49,6 +49,16 @@ void Crypto::truncated_hash(uint8_t* out, unsigned int outlen, const uint8_t* in
 	} else {
 		memcpy(out, tmp, outlen);
 	}
+void Crypto::auth(Buffer<crypto_onetimeauth_BYTES>& out, const uint8_t* in, unsigned int inlen, const uint8_t* nonce, const uint8_t* key) {
+	Buffer<crypto_onetimeauth_KEYBYTES> onetimekey;
+	crypto_stream(onetimekey.data(), sizeof(onetimekey), nonce, key);
+	crypto_onetimeauth(out.data(), in, inlen, onetimekey.data());
+}
+
+int Crypto::auth_verify(const Buffer<crypto_onetimeauth_BYTES>& out, const uint8_t* in, unsigned int inlen, const uint8_t* nonce, const uint8_t* key) {
+	Buffer<crypto_onetimeauth_KEYBYTES> onetimekey;
+	crypto_stream(onetimekey.data(), sizeof(onetimekey), nonce, key);
+	return crypto_onetimeauth_verify(out.data(), in, inlen, onetimekey.data());
 }
 
 CLICK_ENDDECLS
