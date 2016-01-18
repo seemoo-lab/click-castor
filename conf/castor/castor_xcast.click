@@ -13,7 +13,7 @@ elementclass CastorHandleMulticastIpPacket {
 }
 
 elementclass CastorLocalXcastPkt {
-	$myIP, $history, $crypto |
+	$myIP, $timeouttable, $history, $crypto |
 
 	input
 		-> CastorXcastAnnotateAckAuth($crypto)
@@ -21,6 +21,7 @@ elementclass CastorLocalXcastPkt {
 		-> rec :: CastorRecordPkt
 		//-> CastorPrint('Arrived at destination', $myIP)
 		-> CastorAddXcastPktToHistory($history)
+		-> CastorStartTimer($timeouttable, $history, ID $myIP, VERBOSE false)
 		-> genAck :: CastorCreateAck
 		-> [0]output;
 
@@ -44,7 +45,7 @@ elementclass CastorForwardXcastPkt {
 	input
 		-> route :: CastorXcastLookupRoute($routeselector)
 		-> CastorAddXcastPktToHistory($history)
-		-> CastorStartTimer($routingtable, $timeouttable, $history, $ratelimits, ID $myIP, VERBOSE false)
+		-> CastorStartTimer($timeouttable, $history, $routingtable, $ratelimits, ID $myIP, VERBOSE false)
 		//-> CastorPrint('Forwarding', $myIP)
 		-> rec :: CastorRecordPkt
 		-> output;
@@ -64,7 +65,6 @@ elementclass CastorHandleXcastPkt {
 	$myIP, $routeselector, $routingtable, $timeouttable, $ratelimits, $history, $crypto |
 
 	input
-		-> blackhole :: CastorBlackhole // inactive by default
 		-> forwarderClassifier :: CastorXcastForwarderClassifier($myIP)
 		-> checkDuplicate :: CastorXcastCheckDuplicate($history, $myIP)
 		-> validate :: CastorXcastAuthenticateFlow($crypto)
@@ -72,7 +72,7 @@ elementclass CastorHandleXcastPkt {
 
  	// PKT arrived at destination
 	destinationClassifier[0]
-		-> handleLocal :: CastorLocalXcastPkt($myIP, $history, $crypto)
+		-> handleLocal :: CastorLocalXcastPkt($myIP, $timeouttable, $history, $crypto)
 		-> [0]output;
 
 	handleLocal[1]
@@ -88,6 +88,7 @@ elementclass CastorHandleXcastPkt {
 
 	// PKT needs to be forwarded
 	destinationClassifier[1]
+		-> blackhole :: CastorBlackhole // inactive by default
 		-> forward :: CastorForwardXcastPkt($myIP, $routeselector, $routingtable, $timeouttable, $ratelimits, $history, $crypto)
 		-> [2]output;
 

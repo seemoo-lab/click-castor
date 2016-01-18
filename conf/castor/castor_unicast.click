@@ -16,13 +16,14 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 }
 
 elementclass CastorLocalPkt {
-	$myIP, $history, $crypto |
+	$myIP, $timeouttable, $history, $crypto |
 
 	input
 		//-> CastorPrint('Packet arrived at destination', $myIP)
 		-> CastorDecryptAckAuth($crypto)
 		-> authPkt :: CastorAuthenticatePkt($crypto)
 		-> CastorAddPktToHistory($history)
+		-> CastorStartTimer($timeouttable, $history, ID $myIP, VERBOSE false)
 		-> rec :: CastorRecordPkt
 		-> genAck :: CastorCreateAck
 		-> [0]output;
@@ -47,7 +48,7 @@ elementclass CastorForwardPkt {
 	input
 		-> route :: CastorLookupRoute($routeselector)
 		-> CastorAddPktToHistory($history)
-		-> CastorStartTimer($routingtable, $timeouttable, $history, $ratelimits, ID fake, VERBOSE false)
+		-> CastorStartTimer($timeouttable, $history, $routingtable, $ratelimits, ID $myIP, VERBOSE false)
 		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> rec :: CastorRecordPkt
 		-> output;
@@ -75,7 +76,7 @@ elementclass CastorHandlePkt {
 
  	// PKT arrived at destination
 	destinationClassifier[0]
-		-> handleLocal :: CastorLocalPkt($myIP, $history, $crypto)
+		-> handleLocal :: CastorLocalPkt($myIP, $timeouttable, $history, $crypto)
 		-> [0]output;
 	
 	// PKT needs to be forwarded
