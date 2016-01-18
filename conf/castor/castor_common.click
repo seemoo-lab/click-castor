@@ -60,6 +60,7 @@ elementclass CastorHandleAck {
 	// Regular ACK flow
 	input
 		-> calcPid :: CastorAnnotatePid($crypto)
+		-> AddReplayAck(replaystore)
 		-> authenticate :: CastorAuthenticateAck($history, $CASTOR_VERSION)
 		-> updateTimeout :: CastorUpdateTimeout($timeouttable, $history, VERBOSE false)
 		-> updateEstimates :: CastorUpdateEstimates($routingtable, $history)

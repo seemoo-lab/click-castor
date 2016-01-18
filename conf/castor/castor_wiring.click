@@ -18,6 +18,8 @@ handlepkt[1]		-> DynamicEtherEncap(fake) -> [1]ethout; // Return ACK
 handlepkt[2]		-> DynamicEtherEncap(fake) -> [0]ethout; // Forward PKT
 handleack			-> DynamicEtherEncap(fake) -> [1]ethout; // Forward ACK
 
+replaystore[0,1] -> DynamicEtherEncap(fake) -> [1]ethout;
+
 beacons :: NeighborBeaconGenerator($beaconingInterval, fake, $neighborsEnable)
 	-> [2]ethout;
 

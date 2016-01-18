@@ -93,7 +93,7 @@ elementclass CastorHandlePkt {
 	$myIP, $routeselector, $routingtable, $flowtable, $timeouttable, $ratelimits, $history, $crypto |
 
 	input
-		-> blackhole :: CastorBlackhole // inactive by default
+		-> AddReplayPkt(replaystore)
 		-> checkDuplicate :: CastorCheckDuplicate($history)
 		-> destinationClassifier :: CastorDestClassifier($myIP);
 
@@ -104,6 +104,7 @@ elementclass CastorHandlePkt {
 
 	// PKT needs to be forwarded
 	destinationClassifier[1]
+		-> blackhole :: CastorBlackhole // inactive by default
 		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $flowtable, $timeouttable, $ratelimits, $history, $crypto)
 		-> [2]output;
 
