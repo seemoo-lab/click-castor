@@ -17,6 +17,8 @@ public:
 
 	void add_pkt(const Hash& id, Packet* p);
 	void add_ack(const Hash& id, Packet* p);
+
+	void add_handlers();
 private:
 	class ReplayTimer : public Timer {
 	public:
@@ -37,6 +39,9 @@ private:
 
 	unsigned int timeout; // After which time (in ms) to issue the retransmission
 	unsigned int replays_max;
+	bool enable;
+
+    static int write_handler(const String &, Element *, void *, ErrorHandler *);
 };
 
 CLICK_ENDDECLS
