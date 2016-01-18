@@ -14,8 +14,13 @@ public:
 	int configure(Vector<String>&, ErrorHandler*);
 
 	Packet* simple_action(Packet *);
+
+	void add_handlers();
 private:
 	NeighborId my_id;
+	bool ignore;
+
+    static int write_handler(const String &, Element *, void *, ErrorHandler *);
 };
 
 CLICK_ENDDECLS
