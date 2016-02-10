@@ -34,7 +34,6 @@ typedef Hash FlowId;
 typedef Hash PacketId;
 typedef struct {
 	Hash& operator[](int i) { return elem[i]; }
-private:
 	Hash elem[CASTOR_FLOWAUTH_ELEM];
 } FlowAuth;
 typedef Hash AckAuth;

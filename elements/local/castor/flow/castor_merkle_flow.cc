@@ -20,15 +20,11 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 		return PacketLabel();
 	PacketLabel label;
 	label.num = pos;
-	label.fid = tree->getRoot();
+	label.fid = tree->root();
 	label.pid = pids[pos];
 
 	// Set flow authenticator
-	Vector<Hash> siblings = tree->getSiblings(pos);
-	assert(siblings.size() == CASTOR_FLOWAUTH_ELEM);
-	for (int j = 0; j < siblings.size(); j++)
-		label.fauth[j] = siblings[j];
-
+	tree->path_to_root(pos, label.fauth.elem);
 	label.aauth = aauths[pos];
 
 	pos++;

@@ -20,12 +20,12 @@ public:
 	/**
 	 * The the root of the Merke tree
 	 */
-	const Hash& getRoot() const;
+	const Hash& root() const;
 
 	/**
-	 * Retrieve all sibling values that are necessary to compute the root value from leaf i
+	 * Retrieve all sibling values that are necessary to compute the root value from leaf 'i'
 	 */
-	Vector<Hash> getSiblings(int i) const;
+	void path_to_root(unsigned int leaf, Hash path[]) const;
 
 	/**
 	 * Verifies that all elements (in, siblings, and root) belong to a valid Merkle tree, i.e. verifies that
@@ -37,10 +37,32 @@ public:
 	static bool isValidMerkleTree(unsigned int i, const Hash& in, const Vector<Hash>& siblings, const Hash& root, const Crypto& crypto);
 
 private:
-	class Node;
+	Hash* _flat; /* flat representation of Merkle tree */
+	unsigned int height;
+	unsigned int leaves;
 
-	const Node* _root;
-	Node** _leaves;
+	/** number of nodes on level 'l' of the tree */
+	inline unsigned int nodes_per_level(unsigned int l) const {
+		return 1 << l;
+	}
+	/** index in the flat Merkle tree for node 'off' on level 'l' */
+	inline unsigned int index(unsigned int l, unsigned int off = 0) const {
+		assert(off < nodes_per_level(l));
+		return (1 << l) - 1 + off;
+	}
+	/** node 'off' on level 'l' */
+	inline Hash& element(unsigned int l, unsigned int off) {
+		return _flat[index(l, off)];
+	}
+
+	/** sibling index of node 'i' */
+	inline unsigned int sibling(unsigned int i) const {
+		return (i & 1) ? i + 1 : i - 1;
+	}
+	/** parent index of node 'i' */
+	inline unsigned int parent(unsigned int i) const {
+		return (i - 1) >> 1;
+	}
 
 	/**
 	 * Find base-2 logarithm of a power-2 integer efficiently.
