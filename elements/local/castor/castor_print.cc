@@ -12,14 +12,18 @@ CLICK_DECLS
 int CastorPrint::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 		.read_mp("LABEL", label)
-		.read_mp("NodeId", myId)
-		.read_p("VERBOSE", verbose)
+		.read_mp("ID", myId)
+		.read_or_set_p("VERBOSE", verbose, false)
+		.read_or_set("DELAY", delay, false)
 		.complete();
 }
 
 Packet* CastorPrint::simple_action(Packet *p) {
 	StringAccum sa;
-	sa << "[" << Timestamp::now() << "@" << myId << "] " << label << " ";
+	sa << "[" << Timestamp::now() << "@" << myId;
+	if (delay)
+		sa << " (" << (Timestamp::now() - p->timestamp_anno()).usec() << ")";
+	sa << "] " << label << " ";
 
 	uint8_t type = CastorPacket::getType(p);
 
