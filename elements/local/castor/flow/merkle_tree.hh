@@ -14,7 +14,7 @@ public:
 	 * Size of input vector needs to be a power of 2.
 	 * The leave values of this tree will be the hashed values of the input vector.
 	 */
-	MerkleTree(const Hash[], unsigned int length, const Crypto&);
+	MerkleTree(const Hash in[], unsigned int length, const Crypto&);
 	~MerkleTree();
 
 	/**
@@ -34,7 +34,7 @@ public:
 	 *
 	 * i is needed to determine whether siblings[i] is right or left sibling
 	 */
-	static bool isValidMerkleTree(unsigned int i, const Hash& in, const Vector<Hash>& siblings, const Hash& root, const Crypto& crypto);
+	static bool validate(unsigned int i, const Hash& in, const Hash siblings[], unsigned int h, const Hash& root, const Crypto& crypto);
 
 private:
 	Hash* _flat; /* flat representation of Merkle tree */

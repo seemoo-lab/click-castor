@@ -15,12 +15,7 @@ int CastorAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) 
 Packet* CastorAuthenticateFlow::simple_action(Packet *p) {
 	CastorPkt& pkt = (CastorPkt&) *p->data();
 
-	Vector<Hash> fauth;
-	fauth.reserve(pkt.fsize);
-	for (int i = 0; i < pkt.fsize; i++)
-		fauth.push_back(pkt.fauth[i]);
-
-	if (MerkleTree::isValidMerkleTree(ntohs(pkt.kpkt), pkt.pid, fauth, pkt.fid, *crypto)) {
+	if (MerkleTree::validate(ntohs(pkt.kpkt), pkt.pid, pkt.fauth.elem, pkt.fsize, pkt.fid, *crypto)) {
 		return p;
 	} else {
 		checked_output_push(1, p);

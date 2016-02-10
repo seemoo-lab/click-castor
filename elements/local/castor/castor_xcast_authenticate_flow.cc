@@ -19,12 +19,7 @@ Packet* CastorXcastAuthenticateFlow::simple_action(Packet *p){
 	Hash pid;
 	crypto->hash(pid, pkt.pkt_auth());
 
-	Vector<Hash> fauth;
-	fauth.reserve(pkt.flow_size());
-	for(int i = 0; i < pkt.flow_size(); i++)
-		fauth.push_back(pkt.flow_auth()[i]);
-
-	if(MerkleTree::isValidMerkleTree(pkt.kpkt(), pid, fauth, pkt.fid(), *crypto)) {
+	if(MerkleTree::validate(ntohs(pkt.kpkt()), pid, pkt.flow_auth().elem, pkt.flow_size(), pkt.fid(), *crypto)) {
 		return pkt.getPacket();
 	} else {
 		checked_output_push(1, pkt.getPacket());

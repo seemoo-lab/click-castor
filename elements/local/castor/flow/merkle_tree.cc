@@ -40,12 +40,12 @@ void MerkleTree::path_to_root(unsigned int leaf, Hash siblings[]) const {
 	}
 }
 
-bool MerkleTree::isValidMerkleTree(unsigned int i, const Hash& in, const Vector<Hash>& siblings, const Hash& root, const Crypto& crypto) {
+bool MerkleTree::validate(unsigned int i, const Hash& in, const Hash siblings[], unsigned int h, const Hash& root, const Crypto& crypto) {
 	// First hash the input
 	Hash current;
 	crypto.hash(current, in);
-	for(int s = 0; s < siblings.size(); s++) {
-		if(i & (1 << s)) { // sibling is left child
+	for(int s = 0; s < h; s++) {
+		if (i & (1 << s)) { // sibling is left child
 			crypto.hash(current, siblings[s] + current);
 		} else { // sibling is right child
 			crypto.hash(current, current + siblings[s]);

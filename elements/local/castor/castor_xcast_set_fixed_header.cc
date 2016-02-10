@@ -28,7 +28,7 @@ Packet* CastorXcastSetFixedHeader::simple_action(Packet *p) {
 	PacketLabel label = flow->getPacketLabel(src, dst);
 	pkt.fid() = label.fid;
 	pkt.flow_auth() = label.fauth;
-	pkt.kpkt() = label.num;
+	pkt.kpkt() = htons(label.num);
 	pkt.pkt_auth() = label.aauth;
 
 	return pkt.getPacket();
