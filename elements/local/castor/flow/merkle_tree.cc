@@ -41,43 +41,33 @@ MerkleTree::MerkleTree(const Hash in[], unsigned int length, const Crypto& crypt
 	}
 
 	// Create the leaves
-	_leaves.reserve(length);
+	_leaves = new Node*[length];
 	for (int i = 0; i < length; i++) {
-		Node* leaf = new Node();
-		crypto.hash(leaf->data, in[i]);
-		_leaves.push_back(leaf);
+		_leaves[i] = new Node();
+		crypto.hash(_leaves[i]->data, in[i]);
 	}
-
 	// Build the tree
-	Vector<Node*> layer = _leaves;
-	while (layer.size() > 1) {
-		Vector<Node*> nextlayer;
-		nextlayer.reserve(layer.size() / 2);
-
-		for (int i = 0; i < layer.size(); i += 2) {
+	Node** layer = new Node*[length];
+	memcpy(layer, _leaves, length * sizeof(Node*));
+	for (unsigned int h = log2(length); h > 0; h--) {
+		for (int i = 0; i < (1 << h); i += 2) {
+			// layer[i/2] = hash(layer[i] || layer[i+1]) is equivalent to
+			// parent = hash(lc || rc)
 			Node* lc = layer[i];
 			Node* rc = layer[i + 1];
-
-			// Compute hash
-			Buffer<2*sizeof(Hash)> concat;
-			memcpy(concat.data(), lc->data.data(), lc->data.size());
-			memcpy(&concat[sizeof(Hash)], rc->data.data(), rc->data.size());
-
-			Node* p = new Node(Hash(), 0, lc, rc);
-			crypto.hash(p->data, concat);
-
-			nextlayer.push_back(p);
+			layer[i >> 1] = new Node(Hash(), 0, lc, rc);
+			crypto.hash(layer[i >> 1]->data,
+					    lc->data + rc->data);
 		}
-
-		// Save new layer
-		layer = nextlayer;
 	}
 	_root = layer[0];
+	delete [] layer;
 }
 
 MerkleTree::~MerkleTree() {
 	// Nodes delete children recursively
 	delete _root;
+	delete [] _leaves;
 }
 
 const Hash& MerkleTree::getRoot() const {
@@ -98,15 +88,12 @@ bool MerkleTree::isValidMerkleTree(unsigned int i, const Hash& in, const Vector<
 	// First hash the input
 	Hash current;
 	crypto.hash(current, in);
-	Buffer<2*sizeof(Hash)> concat;
 	for(int s = 0; s < siblings.size(); s++) {
-		const Hash& sibling = siblings[s];
 		if(i & (1 << s)) { // sibling is left child
-			concat = sibling + current;
+			crypto.hash(current, siblings[s] + current);
 		} else { // sibling is right child
-			concat = current + sibling;
+			crypto.hash(current, current + siblings[s]);
 		}
-		crypto.hash(current, concat);
 	}
 	return current == root;
 }

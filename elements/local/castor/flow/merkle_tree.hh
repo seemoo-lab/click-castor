@@ -40,7 +40,23 @@ private:
 	class Node;
 
 	const Node* _root;
-	Vector<Node*> _leaves;
+	Node** _leaves;
+
+	/**
+	 * Find base-2 logarithm of a power-2 integer efficiently.
+	 *
+	 * Source: https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
+	 */
+	inline unsigned int log2(unsigned int pow2) {
+		static const unsigned int b[] = {0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0,
+		                                 0xFF00FF00, 0xFFFF0000};
+		unsigned int r = (pow2 & b[0]) != 0;
+		r |= ((pow2 & b[4]) != 0) << 4;
+		r |= ((pow2 & b[3]) != 0) << 3;
+		r |= ((pow2 & b[2]) != 0) << 2;
+		r |= ((pow2 & b[1]) != 0) << 1;
+		return r;
+	}
 };
 
 CLICK_ENDDECLS
