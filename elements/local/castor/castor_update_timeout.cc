@@ -19,10 +19,12 @@ Packet* CastorUpdateTimeout::simple_action(Packet* p) {
 	// Calculate new round-trip time sample
 	const Timestamp& time_sent = history->getTimestamp(pid);
 	const Timestamp& time_recv = p->timestamp_anno();
-	unsigned int new_rtt = (time_recv.sec() - time_sent.sec()) * 1000 + (time_recv.msec() - time_sent.msec());
+	assert(time_recv > time_sent);
+	Timestamp diff = time_recv - time_sent;
+	unsigned int new_rtt = diff.sec() * 1000 + diff.msec();
 
 	if (verbose)
-		click_chatter("[CastorUpdateTimeout] new RTT for pid %s: %u ms", pid.str().c_str(), new_rtt);
+		click_chatter("[CastorUpdateTimeout] new RTT for pid %s: %u usec", pid.str().c_str(), diff.sec() * 1000000 + diff.usec());
 
 	// Get flow's timeout object
 	const FlowId& fid = history->getFlowId(pid);
