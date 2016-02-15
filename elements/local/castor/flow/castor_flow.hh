@@ -8,9 +8,10 @@ CLICK_DECLS
 
 class PacketLabel {
 public:
-	size_t num;
+	unsigned int num;
+	unsigned int size;
 	FlowId fid;
-	FlowAuth fauth;
+	Hash* fauth;
 	PacketId pid;
 	AckAuth aauth;
 };

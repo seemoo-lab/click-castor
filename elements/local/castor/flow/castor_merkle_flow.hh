@@ -6,22 +6,22 @@
 #include "merkle_tree.hh"
 #include "castor_flow.hh"
 
-#define CASTOR_FLOWSIZE (1<<CASTOR_FLOWAUTH_ELEM) // Number of elements in a merkle hash tree
-
 CLICK_DECLS
 
 class CastorMerkleFlow : public CastorFlow {
 public:
-	CastorMerkleFlow(const Crypto* crypto);
+	CastorMerkleFlow(size_t size, const Crypto* crypto);
 	~CastorMerkleFlow();
 
 	PacketLabel freshLabel();
 	bool isAlive() const;
 private:
 	const MerkleTree* tree;
-	Hash aauths[CASTOR_FLOWSIZE];
-	Hash pids[CASTOR_FLOWSIZE];
-	size_t pos;
+	Hash* aauths;
+	Hash* pids;
+	const unsigned int size;
+	const unsigned int height;
+	unsigned int pos;
 };
 
 CLICK_ENDDECLS

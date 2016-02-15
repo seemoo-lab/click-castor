@@ -254,7 +254,6 @@ private:
 		FixedSizeHeader() :
 			type(CastorType::XCAST_PKT),
 			hashSize(sizeof(Hash)),
-			nFlowAuthElements(CASTOR_FLOWAUTH_ELEM),
 			contentType(0),
 			length(sizeof(*this)),
 			nDestinations(0), // reasonable value, otherwise set_length() will segfault

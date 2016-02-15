@@ -20,6 +20,7 @@ public:
 
 	PacketLabel getPacketLabel(NodeId, NodeId);
 private:
+	unsigned int _flowsize;
 	Crypto* _crypto;
 	HashTable<NodeId, HashTable<NodeId, CastorFlow*> > _flows;
 

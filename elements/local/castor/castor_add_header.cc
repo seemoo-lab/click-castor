@@ -36,11 +36,11 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 
 	// Access the flow settings
 	PacketLabel label = flow->getPacketLabel(src, dst);
-
+	header->fsize = label.size;
 	header->fid = label.fid;
 	header->pid = label.pid;
 	header->kpkt = htons(label.num);
-	for (int i = 0; i < CASTOR_FLOWAUTH_ELEM; i++)
+	for (int i = 0; i < label.size; i++)
 		header->fauth[i] = label.fauth[i];
 	header->pauth = label.aauth; // not yet encrypted (!)
 

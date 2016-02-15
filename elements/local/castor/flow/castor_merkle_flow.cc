@@ -3,15 +3,19 @@
 
 CLICK_DECLS
 
-CastorMerkleFlow::CastorMerkleFlow(const Crypto* crypto) : pos(0) {
-	for (int i = 0; i < CASTOR_FLOWSIZE; i++) {
+CastorMerkleFlow::CastorMerkleFlow(size_t size, const Crypto* crypto) : size(size), height(MerkleTree::log2(size)), pos(0) {
+	aauths = new Hash[size];
+	pids = new Hash[size];
+	for (int i = 0; i < size; i++) {
 		crypto->random(aauths[i]);
 		crypto->hash(pids[i], aauths[i]);
 	}
-	tree = new MerkleTree(pids, CASTOR_FLOWSIZE, *crypto);
+	tree = new MerkleTree(pids, size, *crypto);
 }
 
 CastorMerkleFlow::~CastorMerkleFlow() {
+	delete [] aauths;
+	delete [] pids;
 	delete tree;
 }
 
@@ -20,11 +24,12 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 		return PacketLabel();
 	PacketLabel label;
 	label.num = pos;
+	label.size = height;
 	label.fid = tree->root();
 	label.pid = pids[pos];
-
+	label.fauth = new Hash[height];
 	// Set flow authenticator
-	tree->path_to_root(pos, label.fauth.elem);
+	tree->path_to_root(pos, label.fauth);
 	label.aauth = aauths[pos];
 
 	pos++;
@@ -33,7 +38,7 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 }
 
 bool CastorMerkleFlow::isAlive() const {
-	return pos < (size_t) CASTOR_FLOWSIZE;
+	return pos < size;
 }
 
 CLICK_ENDDECLS

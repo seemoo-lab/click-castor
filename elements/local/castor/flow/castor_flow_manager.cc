@@ -12,6 +12,7 @@ _flows(HashTable<NodeId, HashTable<NodeId, CastorFlow*> >(HashTable<NodeId, Cast
 
 int CastorFlowManager::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
+			.read_mp("SIZE", _flowsize)
 			.read_mp("Crypto", ElementCastArg("Crypto"), _crypto)
 			.complete();
 }
@@ -43,7 +44,7 @@ CastorFlow* CastorFlowManager::createFlowIfNotExists(NodeId src, NodeId dst) {
 }
 
 CastorFlow* CastorFlowManager::createNewFlow() {
-	return new CastorMerkleFlow(_crypto);
+	return new CastorMerkleFlow(_flowsize, _crypto);
 }
 
 CLICK_ENDDECLS

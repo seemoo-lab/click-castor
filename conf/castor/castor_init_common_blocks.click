@@ -4,7 +4,7 @@
 
 sam::SAManagement(fake);
 crypto::Crypto(sam);
-flowmanager :: CastorFlowManager(crypto);
+flowmanager :: CastorFlowManager($flowSize, crypto);
 
 groupmap :: CastorXcastDestinationMap;
 
