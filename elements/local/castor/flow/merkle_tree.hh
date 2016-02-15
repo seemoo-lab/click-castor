@@ -29,7 +29,7 @@ public:
 	/**
 	 * Retrieve all sibling values that are necessary to compute the root value from leaf 'k'
 	 */
-	void path_to_root(unsigned int k, Hash path[]) const;
+	void path_to_root(unsigned int k, Hash path[], unsigned int max = UINT_MAX) const;
 
 	bool valid_leaf(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n) const;
 

@@ -44,8 +44,8 @@ const Hash& MerkleTree::root() const {
 	return _flat[0];
 }
 
-void MerkleTree::path_to_root(unsigned int k, Hash siblings[]) const {
-	for (unsigned int i = index(height - 1, k), si = 0; i > 0; i = parent(i), si++) {
+void MerkleTree::path_to_root(unsigned int k, Hash siblings[], unsigned int max) const {
+	for (unsigned int i = index(height - 1, k), si = 0; i > 0 && si < max; i = parent(i), si++) {
 		siblings[si] = _flat[sibling(i)];
 	}
 }
