@@ -14,8 +14,9 @@ int CastorAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) 
 
 Packet* CastorAuthenticateFlow::simple_action(Packet *p) {
 	CastorPkt& pkt = (CastorPkt&) *p->data();
+	const Hash* fauth = reinterpret_cast<const Hash*>(p->data() + sizeof(CastorPkt));
 
-	if (MerkleTree::validate(ntohs(pkt.kpkt), pkt.pid, pkt.fauth.elem, pkt.fsize, pkt.fid, *crypto)) {
+	if (MerkleTree::validate(ntohs(pkt.kpkt), pkt.pid, fauth, pkt.fsize, pkt.fid, *crypto)) {
 		return p;
 	} else {
 		checked_output_push(1, p);

@@ -5,7 +5,8 @@
 CLICK_DECLS
 
 Packet* CastorRemoveHeader::simple_action(Packet* p){
-	p->pull(sizeof(CastorPkt));
+	CastorPkt& pkt = (CastorPkt&) *p->data();
+	p->pull(ntohs(pkt.len));
 	return p;
 }
 

@@ -15,9 +15,13 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	// Extract source and destination from packet
 	NodeId src(reinterpret_cast<const uint8_t*>(&(p->ip_header()->ip_src)));
 	NodeId dst(reinterpret_cast<const uint8_t*>(&(p->ip_header()->ip_dst)));
+	uint8_t ctype = p->ip_header()->ip_p;
+
+	// Access the flow settings
+	PacketLabel label = flow->getPacketLabel(src, dst);
 
 	// Add Space for the new Header
-	uint32_t length = sizeof(CastorPkt);
+	uint32_t length = sizeof(CastorPkt) + label.size * sizeof(Hash);
 	WritablePacket *q = p->push(length);
 	if (!q)
 		return 0;
@@ -25,24 +29,21 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	CastorPkt* header = (CastorPkt*) q->data();
 	header->type = CastorType::MERKLE_PKT;
 	header->hsize = sizeof(Hash);
-	header->fsize = CASTOR_FLOWAUTH_ELEM;
-	header->len = htons(sizeof(CastorPkt));
+	header->fsize = label.size;
+	header->len = htons(length);
 #ifdef DEBUG_HOPCOUNT
 	header->hopcount = 0;
 #endif
-	header->ctype = p->ip_header()->ip_p;
+	header->ctype = ctype;
 	header->src = src;
 	header->dst = dst;
 
-	// Access the flow settings
-	PacketLabel label = flow->getPacketLabel(src, dst);
-	header->fsize = label.size;
 	header->fid = label.fid;
 	header->pid = label.pid;
 	header->kpkt = htons(label.num);
-	for (int i = 0; i < label.size; i++)
-		header->fauth[i] = label.fauth[i];
 	header->pauth = label.aauth; // not yet encrypted (!)
+	// Copy flow authenticator to end
+	memcpy(q->data() + sizeof(CastorPkt), label.fauth, label.size * sizeof(Hash));
 
 	return q;
 }
