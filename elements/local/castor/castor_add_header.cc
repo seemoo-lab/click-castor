@@ -15,14 +15,13 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	// Extract source and destination from packet
 	NodeId src(reinterpret_cast<const uint8_t*>(&(p->ip_header()->ip_src)));
 	NodeId dst(reinterpret_cast<const uint8_t*>(&(p->ip_header()->ip_dst)));
-	uint8_t ctype = p->ip_header()->ip_p;
 
 	// Access the flow settings
 	PacketLabel label = flow->getPacketLabel(src, dst);
-	unsigned int fasize = fauth_size(label.num, label.size);
+	unsigned int fasize = label.size; // set full authenticator
 
 	// Add Space for the new Header
-	uint32_t length = sizeof(CastorPkt) + fasize * sizeof(Hash);
+	unsigned int length = sizeof(CastorPkt) + fasize * sizeof(Hash);
 	WritablePacket *q = p->push(length);
 	if (!q)
 		return 0;

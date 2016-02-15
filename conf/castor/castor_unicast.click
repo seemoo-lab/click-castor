@@ -82,6 +82,7 @@ elementclass CastorHandlePkt {
 	// PKT needs to be forwarded
 	destinationClassifier[1]
 		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $timeouttable, $ratelimits, $history, $crypto)
+		-> addFlowAuthenticator :: CastorAddFlowAuthenticator($flowtable)
 		-> [2]output;
 
 	handleLocal[1]
