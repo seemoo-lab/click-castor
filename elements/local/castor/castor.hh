@@ -48,7 +48,7 @@ public:
 	uint8_t 	hsize;
 	uint16_t 	len;
 	uint8_t 	fsize; // = Merkle tree height = log2(number of leaves)
-	uint8_t 	ctype;
+	uint8_t 	fasize; // = number of flow authentication elements
 	uint16_t	kpkt; // the k-th packet of the current flow, necessary for flow validation (determines whether fauth[i] is left or right sibling in the Merkle tree)
 	NodeId		src;
 	NodeId		dst;
@@ -58,6 +58,9 @@ public:
 #ifdef DEBUG_HOPCOUNT
 	uint8_t		hopcount;
 #endif
+	/*
+	 * Hash fauth[fasize];
+	 */
 };
 
 /**

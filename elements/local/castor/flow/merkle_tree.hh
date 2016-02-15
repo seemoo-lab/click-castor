@@ -15,6 +15,10 @@ public:
 	 * The leave values of this tree will be the hashed values of the input vector.
 	 */
 	MerkleTree(const Hash in[], unsigned int length, const Crypto&);
+	/**
+	 * Construct a partial Merkle tree
+	 */
+	MerkleTree(const Hash& root, unsigned int length, const Crypto&);
 	~MerkleTree();
 
 	/**
@@ -23,23 +27,43 @@ public:
 	const Hash& root() const;
 
 	/**
-	 * Retrieve all sibling values that are necessary to compute the root value from leaf 'i'
+	 * Retrieve all sibling values that are necessary to compute the root value from leaf 'k'
 	 */
-	void path_to_root(unsigned int leaf, Hash path[]) const;
+	void path_to_root(unsigned int k, Hash path[]) const;
+
+	bool valid_leaf(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n) const;
+
+	void add(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n);
 
 	/**
 	 * Verifies that all elements (in, siblings, and root) belong to a valid Merkle tree, i.e. verifies that
 	 *
 	 *      hash( ... hash(hash(in)||siblings[0])||siblings[1] ...) == root
 	 *
-	 * i is needed to determine whether siblings[i] is right or left sibling
+	 * 'k' is needed to determine whether siblings[k] is right or left sibling
 	 */
-	static bool validate(unsigned int i, const Hash& in, const Hash siblings[], unsigned int h, const Hash& root, const Crypto& crypto);
+	static bool validate(unsigned int k, const Hash& in, const Hash siblings[], unsigned int h, const Hash& root, const Crypto& crypto);
 
+	/**
+	 * Find base-2 logarithm of a power-2 integer efficiently.
+	 *
+	 * Source: https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
+	 */
+	static unsigned int log2(unsigned int pow2) {
+		static const unsigned int b[] = {0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0,
+		                                 0xFF00FF00, 0xFFFF0000};
+		unsigned int r = (pow2 & b[0]) != 0;
+		r |= ((pow2 & b[4]) != 0) << 4;
+		r |= ((pow2 & b[3]) != 0) << 3;
+		r |= ((pow2 & b[2]) != 0) << 2;
+		r |= ((pow2 & b[1]) != 0) << 1;
+		return r;
+	}
 private:
 	Hash* _flat; /* flat representation of Merkle tree */
 	unsigned int height;
 	unsigned int leaves;
+	const Crypto& crypto;
 
 	/** number of nodes on level 'l' of the tree */
 	inline unsigned int nodes_per_level(unsigned int l) const {
@@ -62,22 +86,6 @@ private:
 	/** parent index of node 'i' */
 	inline unsigned int parent(unsigned int i) const {
 		return (i - 1) >> 1;
-	}
-
-	/**
-	 * Find base-2 logarithm of a power-2 integer efficiently.
-	 *
-	 * Source: https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
-	 */
-	inline unsigned int log2(unsigned int pow2) {
-		static const unsigned int b[] = {0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0,
-		                                 0xFF00FF00, 0xFFFF0000};
-		unsigned int r = (pow2 & b[0]) != 0;
-		r |= ((pow2 & b[4]) != 0) << 4;
-		r |= ((pow2 & b[3]) != 0) << 3;
-		r |= ((pow2 & b[2]) != 0) << 2;
-		r |= ((pow2 & b[1]) != 0) << 1;
-		return r;
 	}
 };
 

@@ -19,9 +19,10 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 
 	// Access the flow settings
 	PacketLabel label = flow->getPacketLabel(src, dst);
+	unsigned int fasize = fauth_size(label.num, label.size);
 
 	// Add Space for the new Header
-	uint32_t length = sizeof(CastorPkt) + label.size * sizeof(Hash);
+	uint32_t length = sizeof(CastorPkt) + fasize * sizeof(Hash);
 	WritablePacket *q = p->push(length);
 	if (!q)
 		return 0;
@@ -34,7 +35,7 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 #ifdef DEBUG_HOPCOUNT
 	header->hopcount = 0;
 #endif
-	header->ctype = ctype;
+	header->fasize = fasize;
 	header->src = src;
 	header->dst = dst;
 
@@ -43,7 +44,7 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	header->kpkt = htons(label.num);
 	header->pauth = label.aauth; // not yet encrypted (!)
 	// Copy flow authenticator to end
-	memcpy(q->data() + sizeof(CastorPkt), label.fauth, label.size * sizeof(Hash));
+	memcpy(q->data() + sizeof(CastorPkt), label.fauth, header->fasize * sizeof(Hash));
 
 	return q;
 }

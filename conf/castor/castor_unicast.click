@@ -66,12 +66,12 @@ elementclass CastorForwardPkt {
  * Output(2):	Forwarded PKT
  */
 elementclass CastorHandlePkt {
-	$myIP, $routeselector, $routingtable, $timeouttable, $ratelimits, $history, $crypto |
+	$myIP, $routeselector, $routingtable, $flowtable, $timeouttable, $ratelimits, $history, $crypto |
 
 	input
 		-> blackhole :: CastorBlackhole // inactive by default
 		-> checkDuplicate :: CastorCheckDuplicate($history)
-		-> authenticate :: CastorAuthenticateFlow($crypto)
+		-> authenticate :: CastorAuthenticateFlow($flowtable, $crypto)
 		-> destinationClassifier :: CastorDestClassifier($myIP);
 
  	// PKT arrived at destination

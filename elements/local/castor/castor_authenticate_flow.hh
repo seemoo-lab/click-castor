@@ -2,6 +2,7 @@
 #define CLICK_CASTOR_AUTHENTICATE_FLOW_HH
 
 #include <click/element.hh>
+#include "castor_flow_table.hh"
 #include "crypto/crypto.hh"
 
 CLICK_DECLS
@@ -18,6 +19,7 @@ public:
 
 	Packet* simple_action(Packet *);
 private:
+	CastorFlowTable* flowtable;
 	Crypto* crypto;
 };
 
