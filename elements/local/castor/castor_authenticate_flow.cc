@@ -18,7 +18,8 @@ Packet* CastorAuthenticateFlow::simple_action(Packet *p) {
 	const Hash* fauth = reinterpret_cast<const Hash*>(p->data() + sizeof(CastorPkt));
 	MerkleTree* tree = flowtable->get(pkt.fid, pkt.fsize);
 	if (tree->valid_leaf(ntohs(pkt.kpkt), pkt.pid, fauth, pkt.fasize)) {
-		flowtable->add(pkt.fid, pkt.fsize, ntohs(pkt.kpkt), pkt.pid, fauth, pkt.fasize);
+		// TODO add valid leafs and intermediate nodes to the tree while checking. flowtable->add(.) will compute all hashes again
+		tree->add(ntohs(pkt.kpkt), pkt.pid, fauth, pkt.fasize);
 		return p;
 	} else {
 		checked_output_push(1, p);
