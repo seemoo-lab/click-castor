@@ -19,6 +19,7 @@ public:
 	Packet* simple_action(Packet *);
 private:
 	CastorFlowTable* flowtable;
+	bool force_full_auth;
 
 	inline unsigned int fauth_size(unsigned int k, unsigned int max) {
 		unsigned int c;  // output: c will count k's trailing zero bits,

@@ -37,8 +37,10 @@ Packet* CastorStartTimer::simple_action(Packet* p) {
 		}
 	} else {
 		CastorPkt& header = (CastorPkt&) *p->data();
-		unsigned int timeout = toTable->getTimeout(header.fid, header.dst, history->routedTo(header.pid)).value();
-		new PidTimer(this, header.pid, timeout);
+		if (!header.arq) {
+			unsigned int timeout = toTable->getTimeout(header.fid, header.dst, history->routedTo(header.pid)).value();
+			new PidTimer(this, header.pid, timeout);
+		}
 	}
 
 	return p;

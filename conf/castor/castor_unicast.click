@@ -39,7 +39,6 @@ elementclass CastorLocalPkt {
 	authPkt[1]
 		-> CastorPrint("Packet authentication failed", $myIP)
 		-> null;
-
 }
 
 elementclass CastorForwardPkt {
@@ -74,6 +73,8 @@ elementclass CastorHandlePkt {
 		-> authenticate :: CastorAuthenticateFlow($flowtable, $crypto)
 		-> destinationClassifier :: CastorDestClassifier($myIP);
 
+	checkDuplicate[4] -> CastorPrint("Retransmit", $myIP) -> authenticate;
+
  	// PKT arrived at destination
 	destinationClassifier[0]
 		-> handleLocal :: CastorLocalPkt($myIP, $timeouttable, $history, $crypto)
@@ -82,7 +83,7 @@ elementclass CastorHandlePkt {
 	// PKT needs to be forwarded
 	destinationClassifier[1]
 		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $timeouttable, $ratelimits, $history, $crypto)
-		-> addFlowAuthenticator :: CastorAddFlowAuthenticator($flowtable)
+		-> addFlowAuthenticator :: CastorAddFlowAuthenticator($flowtable, $fullFlowAuth)
 		-> [2]output;
 
 	handleLocal[1]
@@ -96,6 +97,12 @@ elementclass CastorHandlePkt {
 		-> CastorRetransmitAck($history)
 		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
 		-> recAck;
+
+	// Bounce back to sender
+	authenticate[2]
+		-> CastorPrint("Flow authentication failed (insufficient flow auth elements)", $myIP)
+		-> CastorMirror($myIP)
+		-> [2]output;
 
 	// If invalid or duplicate -> discard
 	null :: Discard;

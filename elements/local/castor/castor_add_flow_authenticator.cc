@@ -10,6 +10,7 @@ CLICK_DECLS
 int CastorAddFlowAuthenticator::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 			.read_mp("Flows", ElementCastArg("CastorFlowTable"), flowtable)
+			.read_or_set_p("FORCE_FULL", force_full_auth, false)
 			.complete();
 }
 
@@ -17,8 +18,10 @@ Packet* CastorAddFlowAuthenticator::simple_action(Packet *p) {
 	const CastorPkt& pkt = *reinterpret_cast<const CastorPkt*>(p->data());
 
 	// Send full-sized flow authenticator if we broadcast
-	bool full_auth = CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast() ||
+	bool full_auth = force_full_auth || pkt.arq ||
+					 CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast() ||
 					 CastorAnno::dst_id_anno(p) != flowtable->last(pkt.fid);
+
 	// update last routing decision
 	flowtable->last(pkt.fid) = CastorAnno::dst_id_anno(p);
 
@@ -33,6 +36,7 @@ Packet* CastorAddFlowAuthenticator::simple_action(Packet *p) {
 	CastorPkt header = pkt;
 	header.fasize = new_fasize;
 	header.len = htons(sizeof(CastorPkt) + (unsigned int) header.fasize * header.hsize);
+	header.arq = 0;
 
 	// Resize Packet
 	WritablePacket* q = p->uniqueify();

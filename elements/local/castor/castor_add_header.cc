@@ -30,6 +30,7 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	header->type = CastorType::MERKLE_PKT;
 	header->hsize = sizeof(Hash);
 	header->fsize = label.size;
+	header->arq = 0;
 	header->len = htons(length);
 #ifdef DEBUG_HOPCOUNT
 	header->hopcount = 0;

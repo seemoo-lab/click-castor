@@ -55,6 +55,7 @@ public:
 	FlowId	 	fid;
 	PacketId 	pid;
 	PktAuth 	pauth;
+	uint8_t		arq; // request retransmission of PKT
 #ifdef DEBUG_HOPCOUNT
 	uint8_t		hopcount;
 #endif
