@@ -68,8 +68,9 @@ bool MerkleTree::valid_leaf(unsigned int k, const Hash& in, const Hash siblings[
 void MerkleTree::add(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n) {
 	Hash current;
 	crypto.hash(current, in);
-	for (unsigned int i = index(height - 1, k), l = 0; i > 0 && l < n; i = parent(i), l++) {
-		_flat[i] = current;
+	unsigned int i = index(height - 1, k);
+	_flat[i] = current;
+	for (unsigned int l = 0; i > 0 && l < n; i = parent(i), l++) {
 		_flat[sibling(i)] = siblings[l];
 		if (_flat[parent(i)] == Hash()) {
 			if (k & (1 << l)) { // sibling is left child
