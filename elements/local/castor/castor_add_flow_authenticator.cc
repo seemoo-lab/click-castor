@@ -17,9 +17,12 @@ Packet* CastorAddFlowAuthenticator::simple_action(Packet *p) {
 	const CastorPkt& pkt = *reinterpret_cast<const CastorPkt*>(p->data());
 
 	// Send full-sized flow authenticator if we broadcast
-	// FIXME or if a route change occured
-	unsigned int new_fasize = (CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast()) ?
-							  pkt.fsize : fauth_size(ntohs(pkt.kpkt), pkt.fsize);
+	bool full_auth = CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast() ||
+					 CastorAnno::dst_id_anno(p) != flowtable->last(pkt.fid);
+	// update last routing decision
+	flowtable->last(pkt.fid) = CastorAnno::dst_id_anno(p);
+
+	unsigned int new_fasize = full_auth ? pkt.fsize : fauth_size(ntohs(pkt.kpkt), pkt.fsize);
 	unsigned int old_fasize = pkt.fasize;
 
 	if (new_fasize == old_fasize) {
@@ -28,8 +31,8 @@ Packet* CastorAddFlowAuthenticator::simple_action(Packet *p) {
 
 	// Save header
 	CastorPkt header = pkt;
-	header.len = ntohs(sizeof(CastorPkt) + header.hsize * new_fasize);
 	header.fasize = new_fasize;
+	header.len = htons(sizeof(CastorPkt) + (unsigned int) header.fasize * header.hsize);
 
 	// Resize Packet
 	WritablePacket* q = p->uniqueify();

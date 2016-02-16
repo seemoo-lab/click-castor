@@ -11,18 +11,14 @@ int CastorFlowTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 MerkleTree* CastorFlowTable::get(const FlowId& fid, unsigned int h) {
-	if (!flows.count(fid)) {
+	if (flows.count(fid) == 0) {
 		flows.set(fid, new MerkleTree(fid, 1 << h, *crypto));
 	}
 	return flows[fid];
 }
 
-void CastorFlowTable::add(const FlowId& fid, unsigned int h, unsigned int k, const Hash& in, const Hash fauth[], unsigned int n) {
-	if (!flows.count(fid)) {
-		flows.set(fid, new MerkleTree(fid, 1 << h, *crypto));
-	}
-	MerkleTree* tree = flows[fid];
-	tree->add(k, in, fauth, n);
+NeighborId& CastorFlowTable::last(const FlowId& fid) {
+	return last_neighbor[fid];
 }
 
 CLICK_ENDDECLS

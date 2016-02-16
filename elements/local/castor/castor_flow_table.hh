@@ -6,6 +6,7 @@
 #include "castor.hh"
 #include "crypto/crypto.hh"
 #include "flow/merkle_tree.hh"
+#include "../neighbordiscovery/neighbor_id.hh"
 
 CLICK_DECLS
 
@@ -17,11 +18,11 @@ public:
 	int configure(Vector<String>&, ErrorHandler*);
 
 	MerkleTree* get(const FlowId& fid, unsigned int h);
-
-	void add(const FlowId& fid, unsigned int h, unsigned int k, const Hash& in, const Hash fauth[], unsigned int n);
+	NeighborId& last(const FlowId& fid);
 private:
 	Crypto* crypto;
 	HashTable<FlowId, MerkleTree*> flows;
+	HashTable<FlowId, NeighborId> last_neighbor;
 };
 
 CLICK_ENDDECLS
