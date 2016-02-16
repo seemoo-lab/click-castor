@@ -50,7 +50,7 @@ void MerkleTree::path_to_root(unsigned int k, Hash siblings[], unsigned int max)
 	}
 }
 
-bool MerkleTree::valid_leaf(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n) const {
+int MerkleTree::valid_leaf(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n) const {
 	// First hash the input
 	Hash current;
 	crypto.hash(current, in);
@@ -62,7 +62,9 @@ bool MerkleTree::valid_leaf(unsigned int k, const Hash& in, const Hash siblings[
 			crypto.hash(current, current + siblings[l]);
 		}
 	}
-	return _flat[i] == current;
+	if (_flat[i] == Hash())
+		return -2;
+	return (_flat[i] == current) ? 0 : -1;
 }
 
 void MerkleTree::add(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n) {

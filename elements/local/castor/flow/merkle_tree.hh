@@ -31,7 +31,15 @@ public:
 	 */
 	void path_to_root(unsigned int k, Hash path[], unsigned int max = UINT_MAX) const;
 
-	bool valid_leaf(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n) const;
+	/**
+	 * Check if 'in' is a valid leaf pre-image.
+	 *
+	 * Returns:
+	 * 	0 if 'in' and 'siblings' are valid
+	 * -1 if 'in' and 'siblings' are invalid
+	 * -2 if unsure since this tree is incomplete and insufficient number of siblings were supplied
+	 */
+	int valid_leaf(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n) const;
 
 	void add(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n);
 
