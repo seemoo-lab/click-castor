@@ -3,10 +3,10 @@
 
 #include <click/element.hh>
 #include <click/hashtable.hh>
-#include "castor.hh"
-#include "crypto/crypto.hh"
-#include "flow/merkle_tree.hh"
-#include "../neighbordiscovery/neighbor_id.hh"
+#include "../castor.hh"
+#include "../crypto/crypto.hh"
+#include "merkle_tree.hh"
+#include "../../neighbordiscovery/neighbor_id.hh"
 
 CLICK_DECLS
 
@@ -17,6 +17,10 @@ public:
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
+	/**
+	 * Insert a new Merkle tree in the flow table
+	 */
+	bool insert(MerkleTree* tree);
 	MerkleTree* get(const FlowId& fid, unsigned int h);
 	NeighborId& last(const FlowId& fid);
 private:

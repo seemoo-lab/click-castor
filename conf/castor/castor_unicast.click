@@ -10,7 +10,8 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 	    input[1] -> SetIPChecksum -> output;)
 	-> CastorAddHeader($flowmanager)
 	-> CastorEncryptAckAuth($crypto)
-	//-> CastorPrint('Send', $myIP, $fullSend)
+	-> CastorCalcICV($crypto)
+	//-> CastorPrint('Send', $myAddrInfo, $fullSend)
 	-> rec :: CastorRecordPkt
 	-> output;
 }
@@ -20,6 +21,8 @@ elementclass CastorLocalPkt {
 
 	input
 		//-> CastorPrint('Packet arrived at destination', $myIP)
+		-> CastorStripFlowAuthenticator
+		-> auth :: CastorCheckICV($crypto)
 		-> CastorDecryptAckAuth($crypto)
 		-> authPkt :: CastorAuthenticatePkt($crypto)
 		-> CastorAddPktToHistory($history)
@@ -36,6 +39,9 @@ elementclass CastorLocalPkt {
 
 	// If invalid -> discard
 	null :: Discard;
+	auth[1]
+		-> CastorPrint("Invalid ICV", $myIP)
+		-> null;
 	authPkt[1]
 		-> CastorPrint("Packet authentication failed", $myIP)
 		-> null;

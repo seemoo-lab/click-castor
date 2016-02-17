@@ -3,6 +3,7 @@
 
 #include <click/element.hh>
 #include "castor_flow.hh"
+#include "castor_flow_table.hh"
 #include "../node_id.hh"
 #include "../crypto/crypto.hh"
 
@@ -21,6 +22,7 @@ public:
 	PacketLabel getPacketLabel(NodeId, NodeId);
 private:
 	unsigned int _flowsize;
+	CastorFlowTable* _flowtable;
 	Crypto* _crypto;
 	HashTable<NodeId, HashTable<NodeId, CastorFlow*> > _flows;
 

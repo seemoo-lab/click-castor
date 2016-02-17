@@ -10,6 +10,8 @@
 
 #define CASTOR_FLOWAUTH_ELEM                         8  // Number of flow auth elements
 
+#define icv_BYTES 8U
+
 CLICK_DECLS
 
 namespace CastorType { // C++11's strongly typed 'enum class' does not work, so create artificial namespace
@@ -38,6 +40,7 @@ typedef struct {
 } FlowAuth;
 typedef Hash AckAuth;
 typedef Hash PktAuth;
+typedef Buffer<icv_BYTES> ICV;
 
 /**
  * The Castor data packet header (PKT)
@@ -59,6 +62,7 @@ public:
 #ifdef DEBUG_HOPCOUNT
 	uint8_t		hopcount;
 #endif
+	ICV			icv;
 	/*
 	 * Hash fauth[fasize];
 	 */

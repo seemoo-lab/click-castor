@@ -10,6 +10,12 @@ int CastorFlowTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 			.complete();
 }
 
+bool CastorFlowTable::insert(MerkleTree* tree) {
+	if (flows.count(tree->root()) != 0)
+		return false;
+	return flows.set(tree->root(), tree);
+}
+
 MerkleTree* CastorFlowTable::get(const FlowId& fid, unsigned int h) {
 	if (flows.count(fid) == 0) {
 		flows.set(fid, new MerkleTree(fid, 1 << h, *crypto));

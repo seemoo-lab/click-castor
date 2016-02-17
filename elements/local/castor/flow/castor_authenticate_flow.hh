@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include "castor_flow_table.hh"
-#include "crypto/crypto.hh"
+#include "../crypto/crypto.hh"
 
 CLICK_DECLS
 

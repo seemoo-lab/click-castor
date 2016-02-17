@@ -5,18 +5,20 @@
 #include "../crypto/crypto.hh"
 #include "merkle_tree.hh"
 #include "castor_flow.hh"
+#include "castor_flow_table.hh"
 
 CLICK_DECLS
 
 class CastorMerkleFlow : public CastorFlow {
 public:
-	CastorMerkleFlow(size_t size, const Crypto* crypto);
+	CastorMerkleFlow(size_t size, CastorFlowTable* flowtable, const Crypto* crypto);
 	~CastorMerkleFlow();
 
 	PacketLabel freshLabel();
 	bool isAlive() const;
 private:
-	const MerkleTree* tree;
+	MerkleTree* tree;
+	Hash  fid;
 	Hash* aauths;
 	Hash* pids;
 	const unsigned int size;

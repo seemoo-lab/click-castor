@@ -1,9 +1,8 @@
 #include <click/config.h>
 #include <click/args.hh>
 #include "castor_add_flow_authenticator.hh"
-#include "castor.hh"
-#include "castor_anno.hh"
-#include "flow/merkle_tree.hh"
+#include "../castor.hh"
+#include "../castor_anno.hh"
 
 CLICK_DECLS
 

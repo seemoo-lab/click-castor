@@ -66,12 +66,12 @@ public:
 		return tmp;
 	}
 
-	void auth(Buffer<crypto_onetimeauth_BYTES>& out,
+	/**
+	 * Expects keys of length crypto_shorthash_KEYBYTES.
+	 */
+	void auth(Buffer<crypto_shorthash_BYTES>& out,
               const uint8_t* in, unsigned int inlen,
-              const uint8_t* nonce, const uint8_t* key);
-	int auth_verify(const Buffer<crypto_onetimeauth_BYTES>& out,
-                    const uint8_t* in, unsigned int inlen,
-                    const uint8_t* nonce, const uint8_t* key);
+              const uint8_t* key);
 
 	static const unsigned int nonce_size = crypto_stream_NONCEBYTES;
 private:

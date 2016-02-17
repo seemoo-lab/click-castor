@@ -3,7 +3,7 @@
 
 CLICK_DECLS
 
-CastorMerkleFlow::CastorMerkleFlow(size_t size, const Crypto* crypto) : size(size), height(MerkleTree::log2(size)), pos(0) {
+CastorMerkleFlow::CastorMerkleFlow(size_t size, CastorFlowTable* flowtable, const Crypto* crypto) : size(size), height(MerkleTree::log2(size)), pos(0) {
 	aauths = new Hash[size];
 	pids = new Hash[size];
 	for (int i = 0; i < size; i++) {
@@ -11,12 +11,14 @@ CastorMerkleFlow::CastorMerkleFlow(size_t size, const Crypto* crypto) : size(siz
 		crypto->hash(pids[i], aauths[i]);
 	}
 	tree = new MerkleTree(pids, size, *crypto);
+	fid = tree->root();
+	if (!flowtable->insert(tree))
+		click_chatter("Could not add tree to flow table");
 }
 
 CastorMerkleFlow::~CastorMerkleFlow() {
 	delete [] aauths;
 	delete [] pids;
-	delete tree;
 }
 
 PacketLabel CastorMerkleFlow::freshLabel() {
@@ -25,8 +27,10 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 	PacketLabel label;
 	label.num = pos;
 	label.size = height;
-	label.fid = tree->root();
+	label.fid = fid;
 	label.pid = pids[pos];
+
+	/* TODO legacy to not break Xcastor */
 	label.fauth = new Hash[height];
 	// Set flow authenticator
 	tree->path_to_root(pos, label.fauth);

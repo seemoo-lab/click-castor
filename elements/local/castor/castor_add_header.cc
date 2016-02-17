@@ -18,7 +18,7 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 
 	// Access the flow settings
 	PacketLabel label = flow->getPacketLabel(src, dst);
-	unsigned int fasize = label.size; // set full authenticator
+	unsigned int fasize = 0;
 
 	// Add Space for the new Header
 	unsigned int length = sizeof(CastorPkt) + fasize * sizeof(Hash);
@@ -43,8 +43,7 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	header->pid = label.pid;
 	header->kpkt = htons(label.num);
 	header->pauth = label.aauth; // not yet encrypted (!)
-	// Copy flow authenticator to end
-	memcpy(q->data() + sizeof(CastorPkt), label.fauth, header->fasize * sizeof(Hash));
+	header->icv = ICV();
 
 	return q;
 }
