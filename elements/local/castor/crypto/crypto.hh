@@ -32,38 +32,14 @@ public:
 	inline void random(Buffer<S>& buf) const {
 		random(buf.data(), buf.size());
 	}
-	template<unsigned int S>
-	inline Buffer<S> random() const {
-		Buffer<S> buf;
-		random(buf);
-		return buf;
-	}
 
 	template<unsigned int S>
 	inline void hash(Buffer<S>& out, const uint8_t* in, unsigned int n) const {
 		hash(out.data(), out.size(), in, n);
 	}
-	template<unsigned int S>
-	inline Buffer<S> hash(const uint8_t* in, unsigned int n) const {
-		Buffer<S> tmp;
-		hash(tmp, in, n);
-		return tmp;
-	}
 	template<unsigned int S, unsigned int S2>
 	inline void hash(Buffer<S>& out, const Buffer<S2>& in) const {
 		hash(out.data(), out.size(), in.data(), in.size());
-	}
-	template<unsigned int S, unsigned int S2>
-	inline Buffer<S> hash(const Buffer<S2>& in) const {
-		Buffer<S> tmp;
-		hash(tmp, in);
-		return tmp;
-	}
-	template<unsigned int S>
-	inline Buffer<S> hash(const Buffer<S>& in) const {
-		Buffer<S> tmp;
-		hash(tmp, in);
-		return tmp;
 	}
 
 	/**
