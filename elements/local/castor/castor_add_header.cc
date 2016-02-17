@@ -21,7 +21,7 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	unsigned int fasize = 0;
 
 	// Add Space for the new Header
-	unsigned int length = sizeof(CastorPkt) + fasize * sizeof(Hash);
+	unsigned int length = sizeof(CastorPkt) + fasize * sizeof(Hash) + p->length();
 	WritablePacket *q = p->push(length);
 	if (!q)
 		return 0;
