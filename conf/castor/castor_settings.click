@@ -11,7 +11,7 @@ define(
 	$broadcastAdjust 8.0, // bandwidth investment for route discovery (larger values reduce the broadcast probability)
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 
-	$flowSize 1024, // number of pids per flow
+	$flowSize 256, // number of pids per flow
 
 	/** Timeout boundaries */
 	$initTo 1000, // 1 second
@@ -25,7 +25,7 @@ define(
 	$bucketSize 3, // how many packets we queue per neighbor before starting to drop new ones
 
 	/** Neighbor discovery */
-	$neighborsEnable false, // whether or not to use neighbor beacons; if set to false, settings for neighborTimeout and beaconingInterval are irrelevant
+	$neighborsEnable true, // whether or not to use neighbor beacons; if set to false, settings for neighborTimeout and beaconingInterval are irrelevant
 
 	$neighborTimeout  1000, // in milliseconds (4 * beaconingInterval)
 	$beaconingInterval 250, // in milliseconds
