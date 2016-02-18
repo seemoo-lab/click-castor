@@ -11,7 +11,6 @@ int CastorAddHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 Packet* CastorAddHeader::simple_action(Packet *p) {
-
 	// Extract source and destination from packet
 	NodeId src(reinterpret_cast<const uint8_t*>(&(p->ip_header()->ip_src)));
 	NodeId dst(reinterpret_cast<const uint8_t*>(&(p->ip_header()->ip_dst)));
@@ -31,6 +30,7 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	header->hsize = sizeof(Hash);
 	header->fsize = label.size;
 	header->arq = 0;
+	header->syn = 1;
 	header->len = htons(length);
 #ifdef DEBUG_HOPCOUNT
 	header->hopcount = 0;
@@ -39,10 +39,10 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	header->src = src;
 	header->dst = dst;
 
+	header->n = label.n;
 	header->fid = label.fid;
 	header->pid = label.pid;
 	header->kpkt = htons(label.num);
-	header->pauth = label.aauth; // not yet encrypted (!)
 	header->icv = ICV();
 
 	return q;

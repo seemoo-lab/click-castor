@@ -6,8 +6,12 @@ CLICK_DECLS
 CastorMerkleFlow::CastorMerkleFlow(size_t size, CastorFlowTable* flowtable, const Crypto* crypto) : size(size), height(MerkleTree::log2(size)), pos(0) {
 	aauths = new Hash[size];
 	pids = new Hash[size];
+	crypto->random(n);
+	// FIXME use actual end-to-end key
+	Buffer<32> key;
+	// Generate aauths from n
+	crypto->stream(aauths->data(), size * sizeof(Hash), n.data(), key.data());
 	for (int i = 0; i < size; i++) {
-		crypto->random(aauths[i]);
 		crypto->hash(pids[i], aauths[i]);
 	}
 	tree = new MerkleTree(pids, size, *crypto);
@@ -27,6 +31,7 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 	PacketLabel label;
 	label.num = pos;
 	label.size = height;
+	label.n = n;
 	label.fid = fid;
 	label.pid = pids[pos];
 

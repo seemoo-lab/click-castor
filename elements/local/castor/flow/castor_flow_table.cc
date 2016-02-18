@@ -13,18 +13,23 @@ int CastorFlowTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 bool CastorFlowTable::insert(MerkleTree* tree) {
 	if (flows.count(tree->root()) != 0)
 		return false;
-	return flows.set(tree->root(), tree);
+	flows[tree->root()].tree = tree;
+	return true;
 }
 
 MerkleTree* CastorFlowTable::get(const FlowId& fid, unsigned int h) {
 	if (flows.count(fid) == 0) {
-		flows.set(fid, new MerkleTree(fid, 1 << h, *crypto));
+		flows[fid].tree = new MerkleTree(fid, 1 << h, *crypto);
 	}
+	return flows[fid].tree;
+}
+
+CastorFlowEntry& CastorFlowTable::get(const FlowId& fid) {
 	return flows[fid];
 }
 
 NeighborId& CastorFlowTable::last(const FlowId& fid) {
-	return last_neighbor[fid];
+	return flows[fid].last;
 }
 
 CLICK_ENDDECLS

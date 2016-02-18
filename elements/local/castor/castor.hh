@@ -11,6 +11,7 @@
 #define CASTOR_FLOWAUTH_ELEM                         8  // Number of flow auth elements
 
 #define icv_BYTES 8U
+#define nonce_BYTES 24U
 
 CLICK_DECLS
 
@@ -41,15 +42,25 @@ typedef struct {
 typedef Hash AckAuth;
 typedef Hash PktAuth;
 typedef Buffer<icv_BYTES> ICV;
+typedef Buffer<nonce_BYTES> Nonce;
 
 /**
  * The Castor data packet header (PKT)
  */
 class CastorPkt {
 public:
-	uint8_t 	type;
-	uint8_t 	hsize;
-	uint16_t 	len;
+	uint8_t 	type;    // = MERKLE_PKT
+	uint8_t 	hsize;   // size of the hash values in this header
+	uint16_t 	len;     // total length of the PKT (incl. payload)
+	uint8_t		arq : 1; // request retransmission of PKT
+	uint8_t		syn : 1; // first PKT(s) of flow
+						 // 'syn' is set until the first ACK for the flow is received
+#ifdef DEBUG_HOPCOUNT
+	uint8_t		hopcount;
+	uint8_t		_[2]; // padding
+#elif
+	uint8_t		_[3]; // padding
+#endif
 	uint8_t 	fsize; // = Merkle tree height = log2(number of leaves)
 	uint8_t 	fasize; // = number of flow authentication elements
 	uint16_t	kpkt; // the k-th packet of the current flow, necessary for flow validation (determines whether fauth[i] is left or right sibling in the Merkle tree)
@@ -57,15 +68,11 @@ public:
 	NodeId		dst;
 	FlowId	 	fid;
 	PacketId 	pid;
-	PktAuth 	pauth;
-	uint8_t		arq; // request retransmission of PKT
-#ifdef DEBUG_HOPCOUNT
-	uint8_t		hopcount;
-#endif
 	ICV			icv;
-	/*
-	 * Hash fauth[fasize];
-	 */
+	/* included if SYN = 1 */
+	Nonce	    n;
+	/* variable size 0..fsize */
+	// Hash fauth[fasize];
 };
 
 /**

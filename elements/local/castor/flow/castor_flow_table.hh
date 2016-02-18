@@ -10,6 +10,26 @@
 
 CLICK_DECLS
 
+class CastorFlowEntry {
+public:
+	CastorFlowEntry() : local(false), acked(false), height(0), tree(NULL), aauths(NULL), pids(NULL) {}
+
+	bool local; // am I the creator of the flow?
+	bool acked; // did I receive at least one ACK for this flow?
+	NeighborId last;
+
+	inline bool complete() const { return tree != NULL && aauths != NULL && pids != NULL; }
+
+	/* Merkle tree information */
+	unsigned int height;
+	inline unsigned int size() const { return 1 << height; }
+	Nonce n;      // values were created from this
+	Hash* aauths; // only allocated if we are an end node
+	Hash* pids;   // only allocated if we are an end node
+	MerkleTree* tree; // (partial) Merkle tree
+	inline const Hash& fid() const { return tree->root(); }
+};
+
 class CastorFlowTable : public Element {
 public:
 	const char *class_name() const { return "CastorFlowTable"; }
@@ -21,12 +41,12 @@ public:
 	 * Insert a new Merkle tree in the flow table
 	 */
 	bool insert(MerkleTree* tree);
+	CastorFlowEntry& get(const FlowId& fid);
 	MerkleTree* get(const FlowId& fid, unsigned int h);
 	NeighborId& last(const FlowId& fid);
 private:
 	Crypto* crypto;
-	HashTable<FlowId, MerkleTree*> flows;
-	HashTable<FlowId, NeighborId> last_neighbor;
+	HashTable<FlowId, CastorFlowEntry> flows;
 };
 
 CLICK_ENDDECLS

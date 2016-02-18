@@ -28,6 +28,10 @@ public:
 		crypto_stream_xor(cipher.data(), plain.data(), plain.size(), nonce, key.data());
 	}
 
+	inline void stream(uint8_t* out, unsigned int outlen, const uint8_t* nonce, uint8_t* key) const {
+		crypto_stream(out, outlen, nonce, key);
+	}
+
 	template<unsigned int S>
 	inline void random(Buffer<S>& buf) const {
 		random(buf.data(), buf.size());

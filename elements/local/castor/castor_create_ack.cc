@@ -1,16 +1,25 @@
 #include <click/config.h>
+#include <click/args.hh>
 #include "castor_create_ack.hh"
 #include "castor.hh"
 #include "castor_anno.hh"
 
 CLICK_DECLS
 
+int CastorCreateAck::configure(Vector<String> &conf, ErrorHandler *errh) {
+	return Args(conf, this, errh)
+		.read_mp("FlowTable", ElementCastArg("CastorFlowTable"), flowtable)
+		.complete();
+}
+
 void CastorCreateAck::push(int, Packet* p) {
+	const CastorPkt& pkt = *reinterpret_cast<const CastorPkt*>(p->data());
+
 	CastorAck ack;
 	ack.type = CastorType::MERKLE_ACK;
 	ack.hsize = sizeof(AckAuth);
 	ack.len = sizeof(CastorAck);
-	ack.auth = CastorAnno::hash_anno(p);
+	ack.auth = flowtable->get(pkt.fid).aauths[ntohs(pkt.kpkt)];
 
 	WritablePacket* q = Packet::make(&ack, sizeof(CastorAck));
 	CastorAnno::dst_id_anno(q) = CastorAnno::src_id_anno(p); // Set DST_ANNO to source of PKT

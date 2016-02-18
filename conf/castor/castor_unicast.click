@@ -9,7 +9,6 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 	=> (input[0] -> output;
 	    input[1] -> SetIPChecksum -> output;)
 	-> CastorAddHeader($flowmanager)
-	-> CastorEncryptAckAuth($crypto)
 	-> CastorCalcICV($crypto)
 	//-> CastorPrint('Send', $myAddrInfo, $fullSend)
 	-> rec :: CastorRecordPkt
@@ -17,18 +16,23 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 }
 
 elementclass CastorLocalPkt {
-	$myIP, $timeouttable, $history, $crypto |
+	$myIP, $flowtable, $timeouttable, $history, $crypto |
 
 	input
 		//-> CastorPrint('Packet arrived at destination', $myIP)
+		-> CastorIsSync[0,1] => {
+			input[0] -> CastorHasCompleteFlow($flowtable)[0,1] => { 
+				input[0] -> output;
+				input[1] -> CastorPrint("SYN missing", $myIP) -> output; } -> output;
+			input[1] -> CastorReconstructFlow($flowtable, $crypto) -> output;
+		}
+		-> CastorAuthenticateFlow($flowtable, $crypto)
 		-> CastorStripFlowAuthenticator
 		-> auth :: CastorCheckICV($crypto)
-		-> CastorDecryptAckAuth($crypto)
-		-> authPkt :: CastorAuthenticatePkt($crypto)
 		-> CastorAddPktToHistory($history)
 		-> CastorStartTimer($timeouttable, $history, ID $myIP, VERBOSE false)
 		-> rec :: CastorRecordPkt
-		-> genAck :: CastorCreateAck
+		-> genAck :: CastorCreateAck($flowtable)
 		-> [0]output;
 
 	genAck[1] // Generate ACK for received PKT
@@ -41,9 +45,6 @@ elementclass CastorLocalPkt {
 	null :: Discard;
 	auth[1]
 		-> CastorPrint("Invalid ICV", $myIP)
-		-> null;
-	authPkt[1]
-		-> CastorPrint("Packet authentication failed", $myIP)
 		-> null;
 }
 
@@ -76,21 +77,21 @@ elementclass CastorHandlePkt {
 	input
 		-> blackhole :: CastorBlackhole // inactive by default
 		-> checkDuplicate :: CastorCheckDuplicate($history)
-		-> authenticate :: CastorAuthenticateFlow($flowtable, $crypto)
 		-> destinationClassifier :: CastorDestClassifier($myIP);
-
-	checkDuplicate[4] -> CastorPrint("Retransmit", $myIP) -> authenticate;
 
  	// PKT arrived at destination
 	destinationClassifier[0]
-		-> handleLocal :: CastorLocalPkt($myIP, $timeouttable, $history, $crypto)
+		-> handleLocal :: CastorLocalPkt($myIP, $flowtable, $timeouttable, $history, $crypto)
 		-> [0]output;
 	
 	// PKT needs to be forwarded
 	destinationClassifier[1]
+		-> authenticate :: CastorAuthenticateFlow($flowtable, $crypto)
 		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $timeouttable, $ratelimits, $history, $crypto)
 		-> addFlowAuthenticator :: CastorAddFlowAuthenticator($flowtable, $fullFlowAuth)
 		-> [2]output;
+
+	checkDuplicate[4] -> CastorPrint("Retransmit", $myIP) -> authenticate;
 
 	handleLocal[1]
 		-> recAck :: CastorRecordPkt

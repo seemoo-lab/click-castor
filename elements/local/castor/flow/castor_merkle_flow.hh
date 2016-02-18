@@ -18,6 +18,7 @@ public:
 	bool isAlive() const;
 private:
 	MerkleTree* tree;
+	Nonce n;
 	Hash  fid;
 	Hash* aauths;
 	Hash* pids;

@@ -14,6 +14,7 @@ public:
 	Hash* fauth;
 	PacketId pid;
 	AckAuth aauth;
+	Nonce n;
 };
 
 class CastorFlow {
