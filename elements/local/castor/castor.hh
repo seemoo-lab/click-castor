@@ -52,17 +52,16 @@ public:
 	uint8_t 	type;    // = MERKLE_PKT
 	uint8_t 	hsize;   // size of the hash values in this header
 	uint16_t 	len;     // total length of the PKT (incl. payload)
-	uint8_t		arq : 1; // request retransmission of PKT
 	uint8_t		syn : 1; // first PKT(s) of flow
 						 // 'syn' is set until the first ACK for the flow is received
+	uint8_t		arq : 1; // request retransmission of PKT
 #ifdef DEBUG_HOPCOUNT
-	uint8_t		hopcount;
-	uint8_t		_[2]; // padding
+	uint8_t		hopcount : 6;
 #else
-	uint8_t		_[3]; // padding
+	uint8_t		_        : 6; // padding
 #endif
-	uint8_t 	fsize; // = Merkle tree height = log2(number of leaves)
-	uint8_t 	fasize; // = number of flow authentication elements
+	uint8_t 	fsize  : 4; // = Merkle tree height = log2(number of leaves)
+	uint8_t 	fasize : 4; // = number of flow authentication elements in [0..fsize]
 	uint16_t	kpkt; // the k-th packet of the current flow, necessary for flow validation (determines whether fauth[i] is left or right sibling in the Merkle tree)
 	NodeId		src;
 	NodeId		dst;
