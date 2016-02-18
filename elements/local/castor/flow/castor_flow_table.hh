@@ -13,7 +13,11 @@ CLICK_DECLS
 class CastorFlowEntry {
 public:
 	CastorFlowEntry() : local(false), acked(false), height(0), tree(NULL), aauths(NULL), pids(NULL) {}
-
+	~CastorFlowEntry() {
+		delete [] aauths;
+		delete [] pids;
+		delete tree;
+	}
 	bool local; // am I the creator of the flow?
 	bool acked; // did I receive at least one ACK for this flow?
 	NeighborId last;
