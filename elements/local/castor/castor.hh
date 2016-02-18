@@ -58,7 +58,7 @@ public:
 #ifdef DEBUG_HOPCOUNT
 	uint8_t		hopcount;
 	uint8_t		_[2]; // padding
-#elif
+#else
 	uint8_t		_[3]; // padding
 #endif
 	uint8_t 	fsize; // = Merkle tree height = log2(number of leaves)
