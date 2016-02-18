@@ -13,12 +13,14 @@ int CastorMirror::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 Packet* CastorMirror::simple_action(Packet* p) {
 	WritablePacket* q = p->uniqueify();
-	CastorPkt& pkt = (CastorPkt&) *q->data();
+	if (!q)
+		return 0;
+	CastorPkt& pkt = *reinterpret_cast<CastorPkt*>(q->data());
 	pkt.arq = 1;
-	CastorAnno::dst_id_anno(p) = CastorAnno::src_id_anno(p);
-	CastorAnno::hop_id_anno(p) = CastorAnno::src_id_anno(p);
-	CastorAnno::src_id_anno(p) = id;
-	return p;
+	CastorAnno::dst_id_anno(q) = CastorAnno::src_id_anno(p);
+	CastorAnno::hop_id_anno(q) = CastorAnno::src_id_anno(p);
+	CastorAnno::src_id_anno(q) = id;
+	return q;
 }
 
 CLICK_ENDDECLS
