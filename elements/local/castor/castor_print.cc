@@ -37,7 +37,7 @@ Packet* CastorPrint::simple_action(Packet *p) {
 				sa << "\n";
 				sa << "   | From: \t" << CastorAnno::src_id_anno(p) << "\n";
 				sa << "   | To: \t" << CastorAnno::dst_id_anno(p) << "\n";
-				sa << "   | Type: \tPKT (header " <<  ntohs(pkt.len) << " / payload " << (p->length() - ntohs(pkt.len)) << " bytes)\n";
+				sa << "   | Type: \tPKT (header " <<  pkt.header_len() << " / payload " << pkt.payload_len() << " bytes)\n";
 				sa << "   | Flow: \t" << pkt.src << " -> " << pkt.dst << "\n";
 				sa << "   | Flow ID: \t" << pkt.fid.str() << "\n";
 				sa << "   | PKT ID: \t" << pkt.pid.str() << " (" << (ntohs(pkt.kpkt) + 1) << "/" << (1 << pkt.fsize) << ")\n";

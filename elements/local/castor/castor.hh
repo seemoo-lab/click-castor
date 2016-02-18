@@ -77,6 +77,13 @@ public:
 	// Hash fauth[fasize];
 	inline const Hash* fauth() const { return reinterpret_cast<const Hash*>((uint8_t*) this + sizeof(*this) + ((syn) ? sizeof(Nonce) : 0)); }
 	inline Hash* fauth() { return reinterpret_cast<Hash*>((uint8_t*) this + sizeof(*this) + ((syn) ? sizeof(Nonce) : 0)); }
+
+	inline unsigned int header_len() const {
+		return sizeof(*this) + (syn ? sizeof(Nonce) : 0) + fasize * hsize;
+	}
+	inline unsigned int payload_len() const {
+		return ntohs(len) - header_len();
+	}
 };
 
 /**
