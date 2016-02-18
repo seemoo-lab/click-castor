@@ -32,6 +32,7 @@ define(
 
 	/** Optimizations */
 	$fullFlowAuth false,
+	$forceNonce   false,
 
 	$broadcastJitter 1000, // jitter in microseconds to avoid collisions for broadcast traffic, only relevant when running under ns-3
 	

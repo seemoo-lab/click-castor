@@ -23,6 +23,7 @@ public:
 private:
 	CastorFlowManager* flow;
 	CastorFlowTable* flowtable;
+	bool force_nonce;
 };
 
 CLICK_ENDDECLS

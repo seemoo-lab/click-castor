@@ -8,7 +8,7 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 	-> CastorXcastToUnicast($map)
 	=> (input[0] -> output;
 	    input[1] -> SetIPChecksum -> output;)
-	-> CastorAddHeader($flowmanager, $flowtable)
+	-> CastorAddHeader($flowmanager, $flowtable, $forceNonce)
 	-> CastorCalcICV($crypto)
 	//-> CastorPrint('Send', $myAddrInfo)
 	-> rec :: CastorRecordPkt

@@ -8,6 +8,7 @@ int CastorAddHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
      return Args(conf, this, errh)
     		 .read_mp("FLOW_MANAGER", ElementCastArg("CastorFlowManager"), flow)
 			 .read_mp("FlowTable", ElementCastArg("CastorFlowTable"), flowtable)
+			 .read_or_set_p("FORCE_NONCE", force_nonce, false)
 			 .complete();
 }
 
@@ -21,7 +22,7 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	unsigned int fasize = 0;
 
 	// Whether to include the nonce
-	bool include_n = !flowtable->get(label.fid).acked;
+	bool include_n = force_nonce || !flowtable->get(label.fid).acked;
 
 	// Add Space for the new Header
 	unsigned int length = sizeof(CastorPkt)
