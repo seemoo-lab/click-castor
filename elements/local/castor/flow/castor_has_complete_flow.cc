@@ -14,7 +14,7 @@ int CastorHasCompleteFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 Packet* CastorHasCompleteFlow::simple_action(Packet* p) {
 	const CastorPkt& pkt = *reinterpret_cast<const CastorPkt*>(p->data());
 
-	if (flowtable->get(pkt.fid).complete()) {
+	if (!flowtable->get(pkt.fid).complete()) {
 		checked_output_push(1, p);
 		return 0;
 	}
