@@ -4,6 +4,7 @@
 #include <click/element.hh>
 #include "castor.hh"
 #include "flow/castor_flow_manager.hh"
+#include "flow/castor_flow_table.hh"
 
 CLICK_DECLS
 
@@ -21,6 +22,7 @@ public:
 	Packet* simple_action(Packet*);
 private:
 	CastorFlowManager* flow;
+	CastorFlowTable* flowtable;
 };
 
 CLICK_ENDDECLS

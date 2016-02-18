@@ -70,9 +70,13 @@ public:
 	PacketId 	pid;
 	ICV			icv;
 	/* included if SYN = 1 */
-	Nonce	    n;
+	// Nonce	    n;
+	inline const Nonce* n() const { return reinterpret_cast<const Nonce*>((uint8_t*) this + sizeof(*this)); }
+	inline Nonce* n() { return reinterpret_cast<Nonce*>((uint8_t*) this + sizeof(*this)); }
 	/* variable size 0..fsize */
 	// Hash fauth[fasize];
+	inline const Hash* fauth() const { return reinterpret_cast<const Hash*>((uint8_t*) this + sizeof(*this) + ((syn) ? sizeof(Nonce) : 0)); }
+	inline Hash* fauth() { return reinterpret_cast<Hash*>((uint8_t*) this + sizeof(*this) + ((syn) ? sizeof(Nonce) : 0)); }
 };
 
 /**

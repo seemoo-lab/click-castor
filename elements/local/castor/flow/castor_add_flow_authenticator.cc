@@ -36,6 +36,7 @@ Packet* CastorAddFlowAuthenticator::simple_action(Packet *p) {
 	header.fasize = new_fasize;
 	header.len = htons(ntohs(header.len) + (unsigned int) (new_fasize - old_fasize) * header.hsize);
 	header.arq = 0;
+	Nonce n = pkt.syn ? *pkt.n() : Nonce();
 
 	// Resize Packet
 	WritablePacket* q = p->uniqueify();
@@ -46,9 +47,11 @@ Packet* CastorAddFlowAuthenticator::simple_action(Packet *p) {
 	}
 
 	memcpy(q->data(), &header, sizeof(CastorPkt));
-
+	CastorPkt& newPkt = *reinterpret_cast<CastorPkt*>(q->data());
+	if (header.syn)
+		*newPkt.n() = n;
 	MerkleTree* tree = flowtable->get(header.fid, header.fsize);
-	tree->path_to_root(ntohs(header.kpkt), reinterpret_cast<Hash*>(q->data() + sizeof(CastorPkt)), header.fasize);
+	tree->path_to_root(ntohs(header.kpkt), newPkt.fauth(), header.fasize);
 
 	return q;
 }

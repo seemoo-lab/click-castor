@@ -55,7 +55,7 @@ elementclass DynamicEtherEncap {
 }
 
 elementclass CastorHandleAck {
-	$myIP, $routingtable, $timeouttable, $ratelimits, $history, $neighbors, $crypto |
+	$myIP, $routingtable, $flowtable, $timeouttable, $ratelimits, $history, $neighbors, $crypto |
 
 	// Regular ACK flow
 	input
@@ -63,6 +63,7 @@ elementclass CastorHandleAck {
 		-> authenticate :: CastorAuthenticateAck($history, $CASTOR_VERSION)
 		-> updateTimeout :: CastorUpdateTimeout($timeouttable, $history, VERBOSE false)
 		-> updateEstimates :: CastorUpdateEstimates($routingtable, $history)
+		-> updateFlowTable :: CastorUpdateFlowTable($flowtable, $history)
 		-> CastorAddAckToHistory($history)
 		//-> CastorPrint('Received valid', $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP)

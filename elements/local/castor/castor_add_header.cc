@@ -7,6 +7,7 @@ CLICK_DECLS
 int CastorAddHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
      return Args(conf, this, errh)
     		 .read_mp("FLOW_MANAGER", ElementCastArg("CastorFlowManager"), flow)
+			 .read_mp("FlowTable", ElementCastArg("CastorFlowTable"), flowtable)
 			 .complete();
 }
 
@@ -19,18 +20,23 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	PacketLabel label = flow->getPacketLabel(src, dst);
 	unsigned int fasize = 0;
 
+	// Whether to include the nonce
+	bool include_n = !flowtable->get(label.fid).acked;
+
 	// Add Space for the new Header
-	unsigned int length = sizeof(CastorPkt) + fasize * sizeof(Hash) + p->length();
+	unsigned int length = sizeof(CastorPkt)
+			              + p->length()
+			              + ((include_n) ? sizeof(Nonce) : 0);
 	WritablePacket *q = p->push(length);
 	if (!q)
 		return 0;
 
-	CastorPkt* header = (CastorPkt*) q->data();
+	CastorPkt* header = reinterpret_cast<CastorPkt*>(q->data());
 	header->type = CastorType::MERKLE_PKT;
 	header->hsize = sizeof(Hash);
 	header->fsize = label.size;
 	header->arq = 0;
-	header->syn = 1;
+	header->syn = include_n;
 	header->len = htons(length);
 #ifdef DEBUG_HOPCOUNT
 	header->hopcount = 0;
@@ -39,12 +45,13 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	header->src = src;
 	header->dst = dst;
 
-	header->n = label.n;
 	header->fid = label.fid;
 	header->pid = label.pid;
 	header->kpkt = htons(label.num);
 	header->icv = ICV();
 
+	if (include_n)
+		*header->n() = label.n;
 	return q;
 }
 

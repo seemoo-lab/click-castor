@@ -30,7 +30,7 @@ Packet* CastorReconstructFlow::simple_action(Packet *p) {
 	// FIXME use actual end-to-end key
 	Buffer<32> key;
 	// Generate aauths from n
-	crypto->stream(e.aauths->data(), e.size() * sizeof(Hash), pkt.n.data(), key.data());
+	crypto->stream(e.aauths->data(), e.size() * sizeof(Hash), pkt.n()->data(), key.data());
 	for (int i = 0; i < e.size(); i++) {
 		crypto->hash(e.pids[i], e.aauths[i]);
 	}

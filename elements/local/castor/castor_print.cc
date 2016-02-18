@@ -41,6 +41,8 @@ Packet* CastorPrint::simple_action(Packet *p) {
 				sa << "   | Flow: \t" << pkt.src << " -> " << pkt.dst << "\n";
 				sa << "   | Flow ID: \t" << pkt.fid.str() << "\n";
 				sa << "   | PKT ID: \t" << pkt.pid.str() << " (" << (ntohs(pkt.kpkt) + 1) << "/" << (1 << pkt.fsize) << ")\n";
+				if (pkt.syn)
+				sa << "   | Nonce: \t" << pkt.n()->str() << "\n";
 			} else {
 				sa << "PKT (from " << CastorAnno::src_id_anno(p) << " to " << CastorAnno::dst_id_anno(p) << ", flow " << pkt.src << " -> " << pkt.dst << "): " << pkt.pid.str();
 			}
