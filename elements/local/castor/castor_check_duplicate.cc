@@ -8,16 +8,18 @@ CLICK_DECLS
 
 int CastorCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
-			.read_mp("CastorHistory", ElementCastArg("CastorHistory"), history)
+			.read_mp("History", ElementCastArg("CastorHistory"), history)
+			.read_mp("FlowTable", ElementCastArg("CastorFlowTable"), flowtable)
 			.complete();
 }
 
-void CastorCheckDuplicate::push(int, Packet *p) {
+Packet* CastorCheckDuplicate::simple_action(Packet *p) {
 	CastorPkt& pkt = (CastorPkt&) *p->data();
 
 	int port = 0; // default behavior: have never seen pid -> forward PKT (output port 0)
 
-	if (history->hasPkt(pkt.pid)) {
+
+	if (history->hasPkt(pkt.pid)) { // 1. check 'active' history, i.e., PKTs that have not yet timed out
 		/**
 		 * XXX: According to Castor technical paper: If a packet with same pid, but different eauth or payload is received, it should not be considered a duplicate.
 		 * In that case, however, the timer should not be restarted.
@@ -31,9 +33,15 @@ void CastorCheckDuplicate::push(int, Packet *p) {
 		} else {
 			port = 2; // have received pid from different neighbor AND do NOT already know corresponding ACK -> add PKT to history and discard
 		}
+	} else if (flowtable->get(pkt.fid).has_ack(ntohs(pkt.kpkt))) { // 2. check if this is a late PKT duplicate
+		port = 3; // have already received ACK for this PKT and entry for PKT has timed out -> discard
 	}
 
-	output(port).push(p);
+	if (port > 0) {
+		output(port).push(p);
+		return 0;
+	}
+	return p;
 }
 
 CLICK_ENDDECLS

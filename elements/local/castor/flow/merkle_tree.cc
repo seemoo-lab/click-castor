@@ -8,13 +8,13 @@ MerkleTree::MerkleTree(const Hash in[], unsigned int length, const Crypto& crypt
 		click_chatter("Input vector size must be a power of 2, but was %d", length);
 		return;
 	}
-	leaves = length;
-	height = log2(leaves) + 1;
-	_flat = new Hash[index(height)];
+	_leaves = length;
+	_height = log2(_leaves) + 1;
+	_flat = new Hash[index(_height)];
 
-	unsigned int l = height - 1;
+	unsigned int l = _height - 1;
 	// hash input values
-	for (int k = 0; k < leaves; k++) {
+	for (int k = 0; k < _leaves; k++) {
 		crypto.hash(element(l, k), in[k]);
 	}
 	// create intermediate nodes up to the root
@@ -31,9 +31,9 @@ MerkleTree::MerkleTree(const Hash& root, unsigned int length, const Crypto& cryp
 		click_chatter("Input vector size must be a power of 2, but was %d", length);
 		return;
 	}
-	leaves = length;
-	height = log2(leaves) + 1;
-	_flat = new Hash[index(height)] { root }; // set first element to 'root' rest to zero
+	_leaves = length;
+	_height = log2(_leaves) + 1;
+	_flat = new Hash[index(_height)] { root }; // set first element to 'root' rest to zero
 }
 
 MerkleTree::~MerkleTree() {
@@ -45,7 +45,7 @@ const Hash& MerkleTree::root() const {
 }
 
 void MerkleTree::path_to_root(unsigned int k, Hash siblings[], unsigned int max) const {
-	for (unsigned int i = index(height - 1, k), si = 0; i > 0 && si < max; i = parent(i), si++) {
+	for (unsigned int i = index(_height - 1, k), si = 0; i > 0 && si < max; i = parent(i), si++) {
 		siblings[si] = _flat[sibling(i)];
 	}
 }
@@ -54,7 +54,7 @@ int MerkleTree::valid_leaf(unsigned int k, const Hash& in, const Hash siblings[]
 	// First hash the input
 	Hash current;
 	crypto.hash(current, in);
-	unsigned int i = index(height - 1, k);
+	unsigned int i = index(_height - 1, k);
 	for (unsigned int l = 0; i > 0 && l < n; i = parent(i), l++) {
 		if (k & (1 << l)) { // sibling is left child
 			crypto.hash(current, siblings[l] + current);
@@ -70,7 +70,7 @@ int MerkleTree::valid_leaf(unsigned int k, const Hash& in, const Hash siblings[]
 void MerkleTree::add(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n) {
 	Hash current;
 	crypto.hash(current, in);
-	unsigned int i = index(height - 1, k);
+	unsigned int i = index(_height - 1, k);
 	_flat[i] = current;
 	for (unsigned int l = 0; i > 0 && l < n; i = parent(i), l++) {
 		_flat[sibling(i)] = siblings[l];

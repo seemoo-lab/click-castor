@@ -67,10 +67,17 @@ public:
 		r |= ((pow2 & b[1]) != 0) << 1;
 		return r;
 	}
+
+	unsigned int height() const {
+		return _height;
+	}
+	unsigned int size() const {
+		return _leaves;
+	}
 private:
 	Hash* _flat; /* flat representation of Merkle tree */
-	unsigned int height;
-	unsigned int leaves;
+	unsigned int _height;
+	unsigned int _leaves;
 	const Crypto& crypto;
 
 	/** number of nodes on level 'l' of the tree */

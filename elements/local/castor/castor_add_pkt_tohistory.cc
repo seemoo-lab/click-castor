@@ -15,7 +15,7 @@ int CastorAddPktToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorAddPktToHistory::push(int, Packet *p){
 	CastorPkt& pkt = (CastorPkt&) *p->data();
 
-	history->addPkt(pkt.pid, pkt.fid, CastorAnno::src_id_anno(p), CastorAnno::dst_id_anno(p), pkt.dst, p->timestamp_anno());
+	history->addPkt(pkt.pid, ntohs(pkt.kpkt), pkt.fid, CastorAnno::src_id_anno(p), CastorAnno::dst_id_anno(p), pkt.dst, p->timestamp_anno());
 
 	output(0).push(p);
 }

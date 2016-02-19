@@ -7,20 +7,21 @@ CLICK_DECLS
 
 int CastorAddAckToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
-			.read_mp("CastorHistory", ElementCastArg("CastorHistory"), history)
+			.read_mp("History", ElementCastArg("CastorHistory"), history)
+			.read_mp("FlowTable", ElementCastArg("CastorFlowTable"), flowtable)
 			.complete();
 }
 
-void CastorAddAckToHistory::push(int, Packet *p) {
+Packet* CastorAddAckToHistory::simple_action(Packet *p) {
 	CastorAck& ack = (CastorAck&) *p->data();
 	const PacketId& pid = CastorAnno::hash_anno(p);
 	if (history->hasAck(pid)) {
 		history->addAckFor(pid, CastorAnno::src_id_anno(p));
 	} else {
 		history->addFirstAckFor(pid, CastorAnno::src_id_anno(p), ack.auth);
+		flowtable->get(history->getFlowId(pid)).set_ack(history->k(pid));
 	}
-
-	output(0).push(p);
+	return p;
 }
 
 CLICK_ENDDECLS

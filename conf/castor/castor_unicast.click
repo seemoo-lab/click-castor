@@ -41,7 +41,7 @@ elementclass CastorLocalPkt {
 	genAck[1] // Generate ACK for received PKT
 		//-> CastorPrint('Generated', $myIP)
 		-> calcPid :: CastorAnnotatePid($crypto)
-		-> CastorAddAckToHistory($history)
+		-> CastorAddAckToHistory($history, $flowtable)
 		-> [1]output; // Push ACKs to output 1
 
 	// If invalid -> discard
@@ -94,7 +94,7 @@ elementclass CastorHandlePkt {
 
 	input
 		-> AddReplayPkt(replaystore)
-		-> checkDuplicate :: CastorCheckDuplicate($history)
+		-> checkDuplicate :: CastorCheckDuplicate($history, $flowtable)
 		-> destinationClassifier :: CastorDestClassifier($myIP);
 
  	// PKT arrived at destination

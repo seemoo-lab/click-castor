@@ -24,17 +24,17 @@ Packet* CastorReconstructFlow::simple_action(Packet *p) {
 		return p;
 	}
 
-	e.height = pkt.fsize;
-	e.aauths = new Hash[e.size()];
-	e.pids =   new Hash[e.size()];
+	unsigned int size = 1 << pkt.fsize;
+	e.aauths = new Hash[size];
+	e.pids =   new Hash[size];
 	// FIXME use actual end-to-end key
 	Buffer<32> key;
 	// Generate aauths from n
-	crypto->stream(e.aauths->data(), e.size() * sizeof(Hash), pkt.n()->data(), key.data());
-	for (int i = 0; i < e.size(); i++) {
+	crypto->stream(e.aauths->data(), size * pkt.hsize, pkt.n()->data(), key.data());
+	for (int i = 0; i < size; i++) {
 		crypto->hash(e.pids[i], e.aauths[i]);
 	}
-	e.tree = new MerkleTree(e.pids, e.size(), *crypto);
+	e.tree = new MerkleTree(e.pids, size, *crypto);
 
 	return p;
 }

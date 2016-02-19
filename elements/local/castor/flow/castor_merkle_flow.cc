@@ -16,7 +16,9 @@ CastorMerkleFlow::CastorMerkleFlow(size_t size, CastorFlowTable* flowtable, cons
 	}
 	tree = new MerkleTree(pids, size, *crypto);
 	fid = tree->root();
-	if (!flowtable->insert(tree))
+	if (flowtable->get(fid).tree == NULL)
+		flowtable->get(fid).tree = tree;
+	else
 		click_chatter("Could not add tree to flow table");
 }
 

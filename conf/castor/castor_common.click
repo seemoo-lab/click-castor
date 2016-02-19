@@ -65,7 +65,7 @@ elementclass CastorHandleAck {
 		-> updateTimeout :: CastorUpdateTimeout($timeouttable, $history, VERBOSE false)
 		-> updateEstimates :: CastorUpdateEstimates($routingtable, $history)
 		-> updateFlowTable :: CastorUpdateFlowTable($flowtable, $history)
-		-> CastorAddAckToHistory($history)
+		-> CastorAddAckToHistory($history, $flowtable)
 		//-> CastorPrint('Received valid', $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
 		// It does not make sense to update the rate limit packets that I sent myself
@@ -92,7 +92,7 @@ elementclass CastorHandleAck {
 		-> null;
 	updateEstimates[1]
 		//-> CastorPrint("Duplicate, add to history", $myIP)
-		-> CastorAddAckToHistory($history)
+		-> CastorAddAckToHistory($history, $flowtable)
 		-> null;
 	noLoopback[1]
 		//-> CastorPrint("Don't send to myself", $myIP)
