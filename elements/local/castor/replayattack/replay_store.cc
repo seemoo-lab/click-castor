@@ -14,18 +14,19 @@ int ReplayStore::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 void ReplayStore::add_pkt(const Hash& id, Packet* p) {
-	if (!enable)
-		return;
-	if (table.count(id) > 0)
-		return;
-	table[id] = new ReplayTimer(this, id, p, replays_max, timeout);
+	if (!enable || table.count(id) > 0) {
+		p->kill();
+	} else {
+		table[id] = new ReplayTimer(this, id, p, replays_max, timeout);
+	}
 }
 
 void ReplayStore::add_ack(const Hash& id, Packet* p) {
-	if (!enable)
-		return;
-	if (table.count(id) > 0)
+	if (!enable) {
+		p->kill();
+	} if (table.count(id) > 0) {
 		table[id]->ack = p;
+	}
 }
 
 void ReplayStore::run_timer(Timer* _timer) {
