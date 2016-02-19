@@ -24,7 +24,7 @@ elementclass CastorClassifier {
 		-> BroadcastPainter
 		-> ethclassifier :: Classifier(12/88B6, 12/88B5, -) // (0) Castor PKT/ACK; (1) beacon; (2) other
 		-> removeEthernetHeader :: Strip(14)
-		-> forwaderFilter :: ForwarderFilter($myAddr)
+		-> forwarderFilter :: ForwarderFilter($myAddr)
 		-> removeForwarderList :: RemoveForwarderList
 		-> cclassifier :: Classifier(0/c?, 0/a?, -);
 
