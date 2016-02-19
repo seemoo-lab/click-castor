@@ -59,6 +59,7 @@ elementclass CastorForwardPkt {
 
 	input
 		-> auth :: CastorAuthenticateFlow($flowtable, $crypto)
+		-> blackhole :: CastorBlackhole // inactive by default
 		-> route :: CastorLookupRoute($routeselector)
 		-> CastorAddPktToHistory($history)
 		-> CastorStartTimer($timeouttable, $history, $routingtable, $ratelimits, ID $myIP, VERBOSE false)
@@ -104,7 +105,6 @@ elementclass CastorHandlePkt {
 
 	// PKT needs to be forwarded
 	destinationClassifier[1]
-		-> blackhole :: CastorBlackhole // inactive by default
 		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $flowtable, $timeouttable, $ratelimits, $history, $crypto)
 		-> [2]output;
 
