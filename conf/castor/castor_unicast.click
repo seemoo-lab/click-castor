@@ -23,13 +23,14 @@ elementclass CastorLocalPkt {
 		-> CastorStripFlowAuthenticator
 		// Check ICV before trying to authenticate flow
 		-> auth :: CastorCheckICV($crypto)
-		-> CastorIsSync[0,1] => {
-			input[0] -> CastorHasCompleteFlow($flowtable)[0,1] => { 
-				input[0] -> output;
-				input[1] -> CastorPrint("SYN missing", $myIP) -> output; } -> output;
+		-> CastorIsSync[0,1]
+		=> (input[0]
+				-> CastorHasCompleteFlow($flowtable)[0,1]
+				=> (input[0] -> output;
+					input[1] -> CastorPrint("SYN missing", $myIP) -> Discard;)
+				-> output;
 			// this is only done once per flow
-			input[1] -> CastorReconstructFlow($flowtable, $crypto) -> output;
-		}
+			input[1] -> CastorReconstructFlow($flowtable, $crypto) -> output;)
 		-> authFlow :: CastorAuthenticateFlow($flowtable, $crypto)
 		-> CastorAddPktToHistory($history)
 		-> CastorStartTimer($timeouttable, $history, ID $myIP, VERBOSE false)
