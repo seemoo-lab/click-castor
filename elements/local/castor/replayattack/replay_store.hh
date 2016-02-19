@@ -37,11 +37,11 @@ private:
 
 	void run_timer(Timer*);
 
-	unsigned int timeout; // After which time (in ms) to issue the retransmission
+	unsigned int interval; // After which time (in ms) to issue the retransmission
 	unsigned int replays_max;
 	bool enable;
 
-    static int write_handler(const String &, Element *, void *, ErrorHandler *);
+	static int write_handler(const String &, Element *, void *, ErrorHandler *);
 };
 
 CLICK_ENDDECLS
