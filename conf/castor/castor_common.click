@@ -102,7 +102,7 @@ elementclass CastorBlackhole {
 	input
 		-> filter :: CastorUnicastFilter
 		-> output;
-		
+
 	filter[1]
 		-> rec :: CastorRecordPkt
 		-> Discard;

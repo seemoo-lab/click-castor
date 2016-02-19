@@ -34,7 +34,7 @@ public:
 	 */
 	inline unsigned int size() const { return neighbors.size(); }
 
-	void add_handlers();
+    void add_handlers();
 
 private:
 	struct ListNode {

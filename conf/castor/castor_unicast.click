@@ -3,11 +3,11 @@
  */
 elementclass CastorHandleMulticastToUnicastIpPacket {
 	$myAddrInfo, $flowmanager, $flowtable, $crypto, $map |
-	
+
 	input
 	-> CastorXcastToUnicast($map)
 	=> (input[0] -> output;
-	    input[1] -> SetIPChecksum -> output;)
+		input[1] -> SetIPChecksum -> output;)
 	-> CastorAddHeader($flowmanager, $flowtable, $forceNonce)
 	-> CastorCalcICV($crypto)
 	//-> CastorPrint('Send', $myAddrInfo)
@@ -101,7 +101,7 @@ elementclass CastorHandlePkt {
 	destinationClassifier[0]
 		-> handleLocal :: CastorLocalPkt($myIP, $flowtable, $timeouttable, $history, $crypto)
 		-> [0]output;
-	
+
 	// PKT needs to be forwarded
 	destinationClassifier[1]
 		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $flowtable, $timeouttable, $ratelimits, $history, $crypto)
@@ -112,7 +112,7 @@ elementclass CastorHandlePkt {
 	handleLocal[1]
 		-> recAck :: CastorRecordPkt
 		-> [1]output;
-	
+
 	// Need to retransmit ACK
 	checkDuplicate[1]
 		//-> CastorPrint("Duplicate pid, retransmit ACK", $myIP)

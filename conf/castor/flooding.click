@@ -5,7 +5,7 @@ require(
 
 elementclass RecordPkt {
 	$map |
-	
+
 	input
 		-> rec :: FloodingRecordPkt($map)
 		-> output;
@@ -13,11 +13,11 @@ elementclass RecordPkt {
 
 elementclass FloodingBlackhole {
 	$map |
-	
+
 	input
 		-> filter :: FloodingBlackholeFilter
 		-> output;
-		
+
 	filter[1]
 		-> rec :: FloodingRecordPkt($map)
 		-> Discard;
@@ -26,7 +26,7 @@ elementclass FloodingBlackhole {
 
 elementclass HandleIPPacket {
 	$map |
-	
+
 	input
 		-> FloodingSetPktId
 		-> rec :: FloodingRecordPkt($map)
@@ -42,7 +42,7 @@ elementclass FloodingHandlePkt {
 		-> destinationClassifier :: FloodingDestinationClassifier($myIP, $map)
 		-> handleLocal :: RecordPkt($map)
 		-> [0]output;
-		
+
 	destinationClassifier[1]
 		-> forward :: RecordPkt($map)
 		-> [1]output; // Forward the message

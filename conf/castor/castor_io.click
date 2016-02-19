@@ -32,7 +32,7 @@ elementclass OutputEth {
  * Input(1): Other packet
  */
 elementclass ToHost {
-	
+
 	input[0]
 		-> CheckIPHeader
 		-> output;
@@ -52,5 +52,5 @@ elementclass FromHost {
 		-> CheckIPHeader
 		-> SetIPSrc($myIP) // Packets coming from ns-3 tun0 (host) device have 127.0.0.1 set as source address
 		-> output;
-		
+
 }

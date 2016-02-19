@@ -49,7 +49,7 @@ elementclass CastorForwardXcastPkt {
 		//-> CastorPrint('Forwarding', $myIP)
 		-> rec :: CastorRecordPkt
 		-> output;
-		
+
 	route[1]
 		-> CastorPrint("No suitable PKT forwarding contact", $myIP)
 		-> Discard;
