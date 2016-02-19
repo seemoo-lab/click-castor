@@ -94,7 +94,7 @@ elementclass CastorHandlePkt {
 
 	input
 		-> AddReplayPkt(replaystore)
-		-> checkDuplicate :: CastorCheckDuplicate($history, $flowtable)
+		-> checkDuplicate :: CastorCheckDuplicate($history, $flowtable, $replayProtect)
 		-> destinationClassifier :: CastorDestClassifier($myIP);
 
  	// PKT arrived at destination

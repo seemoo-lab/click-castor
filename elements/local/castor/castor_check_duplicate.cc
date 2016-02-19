@@ -10,6 +10,7 @@ int CastorCheckDuplicate::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 			.read_mp("History", ElementCastArg("CastorHistory"), history)
 			.read_mp("FlowTable", ElementCastArg("CastorFlowTable"), flowtable)
+			.read_or_set_p("ReplayProtection", replayprotect, true)
 			.complete();
 }
 
@@ -33,7 +34,7 @@ Packet* CastorCheckDuplicate::simple_action(Packet *p) {
 		} else {
 			port = 2; // have received pid from different neighbor AND do NOT already know corresponding ACK -> add PKT to history and discard
 		}
-	} else if (flowtable->get(pkt.fid).has_ack(ntohs(pkt.kpkt))) { // 2. check if this is a late PKT duplicate
+	} else if (replayprotect && flowtable->get(pkt.fid).has_ack(ntohs(pkt.kpkt))) { // 2. check if this is a late PKT duplicate
 		port = 3; // have already received ACK for this PKT and entry for PKT has timed out -> discard
 	}
 

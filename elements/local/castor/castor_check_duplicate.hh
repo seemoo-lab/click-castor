@@ -18,6 +18,7 @@ public:
 private:
 	CastorHistory* history;
 	CastorFlowTable* flowtable;
+	bool replayprotect;
 };
 
 CLICK_ENDDECLS
