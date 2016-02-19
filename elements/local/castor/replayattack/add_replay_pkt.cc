@@ -15,8 +15,9 @@ int AddReplayPkt::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 Packet* AddReplayPkt::simple_action(Packet *p) {
 	CastorPkt& pkt = (CastorPkt&) *p->data();
-	Packet* clone = p->clone();
-	clone->take(clone->length() - sizeof(CastorPkt));
+	WritablePacket* clone = p->clone()->uniqueify();
+	clone->take(pkt.payload_len());
+	reinterpret_cast<CastorPkt&>(*clone->data()).len = htons(pkt.header_len());
 	CastorAnno::dst_id_anno(clone) = NeighborId::make_broadcast();
 	CastorAnno::hop_id_anno(clone) = NeighborId::make_broadcast();
 	store->add_pkt(pkt.pid, clone);
