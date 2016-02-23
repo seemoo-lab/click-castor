@@ -25,10 +25,8 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	bool include_n = force_nonce || !flowtable->get(label.fid).acked;
 
 	// Add Space for the new Header
-	unsigned int length = sizeof(CastorPkt)
-			              + p->length()
-			              + ((include_n) ? sizeof(Nonce) : 0);
-	WritablePacket *q = p->push(length);
+	unsigned int diff = sizeof(CastorPkt) + ((include_n) ? sizeof(Nonce) : 0);
+	WritablePacket *q = p->push(diff);
 	if (!q)
 		return 0;
 
@@ -38,7 +36,7 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	header->fsize = label.size;
 	header->arq = 0;
 	header->syn = include_n;
-	header->len = htons(length);
+	header->len = htons(p->length());
 #ifdef DEBUG_HOPCOUNT
 	header->hopcount = 0;
 #endif
