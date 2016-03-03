@@ -1,11 +1,5 @@
-/*
- * castor_validateACK.cc
- *
- *  Created on: Jun 23, 2014
- *      Author: milan
- */
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include "castor_authenticate_ack.hh"
 #include "castor.hh"
 #include "castor_anno.hh"
@@ -13,13 +7,10 @@
 CLICK_DECLS
 
 int CastorAuthenticateAck::configure(Vector<String>& conf, ErrorHandler* errh) {
-	String arg;
-    int result = cp_va_kparse(conf, this, errh,
-		"CastorHistory", cpkP+cpkM, cpElementCast, "CastorHistory", &history,
-		"Version", cpkP, cpArgument, &arg,
-        cpEnd);
-	cp_integer(arg, 10, &version);
-	return result;
+	return Args(conf, this, errh)
+		.read_mp("History", ElementCastArg("CastorHistory"), history)
+		.read_or_set_p("Version", version, 1)
+		.complete();
 }
 
 void CastorAuthenticateAck::push(int, Packet* p) {

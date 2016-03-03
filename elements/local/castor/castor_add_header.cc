@@ -5,11 +5,11 @@
 CLICK_DECLS
 
 int CastorAddHeader::configure(Vector<String> &conf, ErrorHandler *errh) {
-     return Args(conf, this, errh)
-    		 .read_mp("FLOW_MANAGER", ElementCastArg("CastorFlowManager"), flow)
-			 .read_mp("FlowTable", ElementCastArg("CastorFlowTable"), flowtable)
-			 .read_or_set_p("FORCE_NONCE", force_nonce, false)
-			 .complete();
+	return Args(conf, this, errh)
+			.read_mp("FLOW_MANAGER", ElementCastArg("CastorFlowManager"), flow)
+			.read_mp("FlowTable", ElementCastArg("CastorFlowTable"), flowtable)
+			.read_or_set_p("FORCE_NONCE", force_nonce, false)
+			.complete();
 }
 
 Packet* CastorAddHeader::simple_action(Packet *p) {

@@ -1,3 +1,7 @@
+define (
+	$CASTOR_VERSION 1,
+);
+
 require(
 	library castor_settings.click,
 	library castor_io.click,

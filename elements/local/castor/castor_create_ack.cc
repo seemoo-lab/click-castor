@@ -12,21 +12,21 @@ int CastorCreateAck::configure(Vector<String> &conf, ErrorHandler *errh) {
 		.complete();
 }
 
-void CastorCreateAck::push(int, Packet* p) {
+Packet* CastorCreateAck::simple_action(Packet* p) {
 	const CastorPkt& pkt = *reinterpret_cast<const CastorPkt*>(p->data());
 
 	CastorAck ack;
 	ack.type = CastorType::MERKLE_ACK;
 	ack.hsize = sizeof(AckAuth);
-	ack.len = sizeof(CastorAck);
+	ack.len = htons(sizeof(CastorAck));
 	ack.auth = flowtable->get(pkt.fid).aauths[ntohs(pkt.kpkt)];
 
 	WritablePacket* q = Packet::make(&ack, sizeof(CastorAck));
 	CastorAnno::dst_id_anno(q) = CastorAnno::src_id_anno(p); // Set DST_ANNO to source of PKT
 	CastorAnno::hop_id_anno(q) = CastorAnno::dst_id_anno(q);
 
-	output(0).push(p); // PKT -> output 0
 	output(1).push(q); // ACK -> output 1
+	return p;          // PKT -> output 0
 }
 
 CLICK_ENDDECLS

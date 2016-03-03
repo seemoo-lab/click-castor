@@ -10,10 +10,10 @@ class CastorCreateAck: public Element {
 public:
 	const char *class_name() const { return "CastorCreateAck"; }
 	const char *port_count() const { return "1/2"; }
-	const char *processing() const { return PUSH; }
+	const char *processing() const { return PROCESSING_A_AH; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	void push(int, Packet *);
+	Packet* simple_action(Packet *);
 private:
 	CastorFlowTable* flowtable;
 };

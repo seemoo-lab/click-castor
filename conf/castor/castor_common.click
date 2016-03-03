@@ -1,7 +1,3 @@
-define(
-	$fullSend false,
-);
-
 /**
  * Paint frames that were broadcasted by the sender
  */
@@ -87,8 +83,7 @@ elementclass CastorHandleAck {
 		//-> CastorPrint("ACK from different neighbor than PKT was forwarded to", $myIP)
 		-> null;
 	authenticate[4]
-		-> CastorPrint("ACK from same neighbor as initial PKT sender", $myIP)
-		//-> CastorAddAckToHistory($history)
+		//-> CastorPrint("ACK from same neighbor as initial PKT sender", $myIP)
 		-> null;
 	updateEstimates[1]
 		//-> CastorPrint("Duplicate, add to history", $myIP)

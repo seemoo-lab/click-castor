@@ -7,8 +7,8 @@
 CLICK_DECLS
 
 int CastorUpdateFlowTable::configure(Vector<String> &conf, ErrorHandler *errh) {
-    return Args(conf, this, errh)
-    		.read_mp("FlowTable", ElementCastArg("CastorFlowTable"), flowtable)
+	return Args(conf, this, errh)
+			.read_mp("FlowTable", ElementCastArg("CastorFlowTable"), flowtable)
 			.read_mp("History", ElementCastArg("CastorHistory"), history)
 			.complete();
 }

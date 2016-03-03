@@ -8,14 +8,12 @@ CLICK_DECLS
 
 class CastorAddPktToHistory: public Element {
 public:
-	CastorAddPktToHistory() : history(NULL) {}
-
 	const char *class_name() const { return "CastorAddPktToHistory"; }
 	const char *port_count() const { return PORTS_1_1; }
-	const char *processing() const { return PUSH; }
+	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	void push(int, Packet *);
+	Packet* simple_action(Packet*);
 private:
 	CastorHistory* history;
 };
