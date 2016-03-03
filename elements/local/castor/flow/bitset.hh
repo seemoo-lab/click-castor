@@ -1,7 +1,7 @@
 #ifndef CLICK_BITSET_HH
 #define CLICK_BITSET_HH
 
-#import <click/straccum.hh>
+#include <click/straccum.hh>
 
 CLICK_DECLS
 
