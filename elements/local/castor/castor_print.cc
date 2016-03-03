@@ -44,7 +44,7 @@ Packet* CastorPrint::simple_action(Packet *p) {
 				if (pkt.syn)
 				sa << "   | Nonce: \t" << pkt.n()->str() << "\n";
 			} else {
-				sa << "PKT (from " << CastorAnno::src_id_anno(p) << " to " << CastorAnno::dst_id_anno(p) << ", flow " << pkt.src << " -> " << pkt.dst << "): " << pkt.pid.str();
+				sa << "PKT (from " << CastorAnno::src_id_anno(p) << " to " << CastorAnno::dst_id_anno(p) << ", flow " << pkt.src << " -> " << pkt.dst << "): " << pkt.pid.str() << " (" << (ntohs(pkt.kpkt) + 1) << "/" << (1 << pkt.fsize) << ")";
 			}
 		}
 
