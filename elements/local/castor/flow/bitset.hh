@@ -11,7 +11,8 @@ private:
 #define WORD_BITS (8 * sizeof(rep_t))
 public:
 	inline BitSet(size_t size) : size(size) {
-		array = new rep_t[size / WORD_BITS + 1] { 0 };
+		array = new rep_t[size / WORD_BITS + 1];
+		memset(array, 0, size / WORD_BITS + 1);
 	}
 	~BitSet() { delete [] array; }
 	inline void set(size_t i) {
