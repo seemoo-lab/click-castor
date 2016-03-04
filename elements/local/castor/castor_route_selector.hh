@@ -16,7 +16,7 @@ public:
 	/**
 	 * Select the best next hop for a given flow/subflow
 	 */
-	virtual NeighborId select(const FlowId& flow, const NodeId& subflow, const Vector<NodeId>* others, const PacketId& pid) = 0;
+	virtual NeighborId select(const Hash& flow, const NodeId& src, const NodeId& dst) = 0;
 };
 
 CLICK_ENDDECLS

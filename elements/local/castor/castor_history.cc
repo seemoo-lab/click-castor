@@ -3,11 +3,12 @@
 
 CLICK_DECLS
 
-void CastorHistory::addPkt(const PacketId& pid, unsigned int k, const FlowId& fid, const NeighborId& prevHop, const NeighborId& nextHop, const NodeId& destination, Timestamp timestamp) {
+void CastorHistory::addPkt(const PacketId& pid, unsigned int k, const FlowId& fid, const NeighborId& prevHop, const NeighborId& nextHop, const NodeId& source, const NodeId& destination, Timestamp timestamp) {
 	CastorHistoryEntry* entry = getEntry(pid);
 	if(!entry) {
 		CastorHistoryEntry entry;
 		entry.k = k;
+		entry.source = source;
 		entry.destination = destination;
 		entry.prevHops.push_back(prevHop);
 		entry.nextHop = nextHop;
@@ -100,6 +101,11 @@ const FlowId& CastorHistory::getFlowId(const PacketId& pid) const {
 const AckAuth& CastorHistory::getAckAuth(const PacketId& pid) const {
 	const CastorHistoryEntry* entry = getEntry(pid);
 	return entry->auth;
+}
+
+const NodeId& CastorHistory::getSource(const PacketId& pid) const {
+	const CastorHistoryEntry* entry = getEntry(pid);
+	return entry->source;
 }
 
 const NodeId& CastorHistory::getDestination(const PacketId& pid) const {

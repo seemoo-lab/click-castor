@@ -1,78 +1,67 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include <click/hashtable.hh>
 #include "castor_route_selector_original.hh"
 
 CLICK_DECLS
 
 int CastorRouteSelectorOriginal::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return cp_va_kparse(conf, this, errh,
-			"CastorRoutingTable", cpkP+cpkM, cpElementCast, "CastorRoutingTable", &routingtable,
-			"Neighbors", cpkP+cpkM, cpElementCast, "Neighbors", &neighbors,
-			"BroadcastAdjust", cpkP, cpDouble, &broadcastAdjust,
-			cpEnd);
+	return Args(conf, this, errh)
+			.read_mp("RT", ElementCastArg("CastorRoutingTable"), routingtable)
+			.read_mp("NEIGHBORS", ElementCastArg("Neighbors"), neighbors)
+			.read_or_set_p("BROADCAST_ADJUST", broadcastAdjust, 8)
+			.complete();
 }
 
-NeighborId CastorRouteSelectorOriginal::select(const FlowId& flow, const NodeId& subflow, const Vector<NodeId>*, const PacketId &pid) {
-
-	// Search for the neighbors with the highest estimates
-	Vector<NeighborId> bestNeighbors;
-	double best = findBest(routingtable->getFlowEntry(flow, subflow), bestNeighbors, pid);
-
-	// Choose a subset (typically one or all) of the selected neighbors for PKT forwarding
-	return chooseNeighbor(bestNeighbors, best, pid);
+NeighborId CastorRouteSelectorOriginal::select(const Hash& flow, const NodeId& src, const NodeId& dst) {
+	// Search for the neighbor with the highest estimate
+	Vector<NeighborId> best_candidates;
+	double best_estimate = select(routingtable->entry_copy(flow, src, dst), best_candidates);
+	// Depending on the best estimate, we decide whether to broadcast anyway
+	if (should_broadcast(best_estimate))
+		return broadcast();
+	else
+		return select_random(best_candidates);
 }
 
-double CastorRouteSelectorOriginal::findBest(HashTable<NeighborId, CastorEstimator>& entry, Vector<NeighborId>& bestNeighbors, const PacketId& pid) {
-	double bestEstimate = 0;
-	for (HashTable<NeighborId, CastorEstimator>::iterator neighborIterator = entry.begin(); neighborIterator != entry.end();  /* increment in loop */) {
-		if(neighbors->contains(neighborIterator.key())) {
-			double estimate = neighborIterator.value().getEstimate();
-			selectNeighbor(neighborIterator.key(), estimate, bestNeighbors, bestEstimate, pid);
-			neighborIterator++;
-		} else {
-			// Entry timed out
-			HashTable<NeighborId, CastorEstimator>::iterator old = neighborIterator;
-			neighborIterator++; // save old position and increment, otherwise it might be invalid after erase
-			entry.erase(old.key());
+double CastorRouteSelectorOriginal::select(HashTable<NeighborId, CastorEstimator>& entry, Vector<NeighborId>& best_candidates) {
+	double best_estimate = 0;
+	for (HashTable<NeighborId, CastorEstimator>::iterator candidate_it = entry.begin(); candidate_it != entry.end(); /* increment in loop */) {
+		if (neighbors->contains(candidate_it.key())) {
+			const NeighborId& candidate = candidate_it.key();
+			double candidate_estimate = candidate_it.value().getEstimate();
+			update_candidates(candidate, candidate_estimate, best_candidates, best_estimate);
+			candidate_it++;
+		} else { // This is no longer our neighbor; erase entry for this neighbor
+			candidate_it = entry.erase(candidate_it);
 		}
 	}
-	return bestEstimate;
+	return best_estimate;
 }
 
-bool CastorRouteSelectorOriginal::selectNeighbor(const NeighborId &entry, double entryEstimate, Vector<NeighborId> &bestEntries, double &bestEstimate, const PacketId &pid)
-{
-	(void)pid;  // we do not make use of the packet identifier in selecting neighbors, but other selector classes may
-
-	if (entryEstimate > bestEstimate) {
-		bestEntries.clear();
-		bestEntries.push_back(entry);
-		bestEstimate = entryEstimate;
-	} else if (entryEstimate >= bestEstimate && entryEstimate > 0) {
-		bestEntries.push_back(entry);
+void CastorRouteSelectorOriginal::update_candidates(const NeighborId& candidate, double cansidate_estimate,
+		Vector<NeighborId>& best_candidates, double& best_estimate) const {
+	if (cansidate_estimate > best_estimate) {
+		best_candidates.clear();
+		best_candidates.push_back(candidate);
+		best_estimate = cansidate_estimate;
+	} else if (cansidate_estimate == best_estimate && cansidate_estimate > 0) {
+		best_candidates.push_back(candidate);
+	} else {
+		/* nothing changed */
 	}
-	return true;
 }
 
-NeighborId CastorRouteSelectorOriginal::chooseNeighbor(Vector<NeighborId> &bestNeighbors, double best, const PacketId &)
-{
-	if (best == 0)
-		return selectDefault();
-
-	// Determine the probability of broadcasting
-	double broadcastProb = exp(-1 * broadcastAdjust * best);
+bool CastorRouteSelectorOriginal::should_broadcast(double best_estimate) const {
+	double p = exp(-1 * broadcastAdjust * best_estimate);
 	double rand = ((double) click_random()) / CLICK_RAND_MAX;
+	return rand <= p;
+}
 
-	if (rand <= broadcastProb /*&& neighbors->neighborCount() > 2*/) {
-		// Case a: Broadcast
-		//click_chatter("Broadcasting probability %f -> deciding to broadcast", broadcastProb);
-		return selectDefault();
-	}
-
-	// Case b: Unicast (break ties at random)
-	//click_chatter("Broadcasting probability %f -> deciding to unicast to %s", broadcastProb, bestEntry.nextHop.unparse().c_str());
-	int randIndex = click_random() % bestNeighbors.size();
-	return bestNeighbors[randIndex];
+const NeighborId& CastorRouteSelectorOriginal::select_random(const Vector<NeighborId>& list) const {
+	assert(list.size() > 0);
+	int rand = click_random() % list.size();
+	return list[rand];
 }
 
 CLICK_ENDDECLS

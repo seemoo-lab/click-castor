@@ -34,6 +34,7 @@ define(
 	$fullFlowAuth false,
 	$forceNonce   false,
 	$replayProtect true,
+	$copyEstimators true,
 
 	$broadcastJitter 1000, // jitter in microseconds to avoid collisions for broadcast traffic, only relevant when running under ns-3
 

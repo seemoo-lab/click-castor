@@ -20,16 +20,10 @@ public:
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	HashTable<NeighborId, CastorEstimator>& getFlowEntry(const FlowId& flow, const SubflowId& subflow);
-
-	CastorEstimator& getEstimator(const FlowId& flow, const SubflowId& subflow, const NeighborId& forwarder);
-
-	/**
-	 * Copies the forwarder entry of one flow to another.
-	 * If an entry for (newFlow, subflow) already exists, that entry is not overwritten.
-	 * Returns true if entry was copied, false otherwise.
-	 */
-	bool copyFlowEntry(const FlowId& newFlow, const FlowId& oldFlow, const SubflowId& subflow);
+	HashTable<NeighborId, CastorEstimator>& entry(const Hash& flow, const SubflowId& subflow);
+	HashTable<NeighborId, CastorEstimator>& entry_copy(const Hash& flow, const NodeId& src, const NodeId& dst);
+	CastorEstimator& estimator(const Hash& flow, const SubflowId& subflow, const NeighborId& forwarder);
+	void update(const Hash& flow, const NodeId& src, const NodeId& dst);
 
 	void add_handlers();
 private:
@@ -39,8 +33,11 @@ private:
 
 	FlowEntry flows;
 
-	String str(const FlowId&, const SubflowId&);
-	void print(const FlowId&, const SubflowId&);
+	HashTable<Pair<NodeId, NodeId>, Hash> srcdstmap;
+	HashTable<             NodeId , Hash>    dstmap;
+
+	String unparse(const FlowId&, const SubflowId&) const;
+	void print(const FlowId&, const SubflowId&) const;
 
 	static String read_table_handler(Element *e, void *);
 };

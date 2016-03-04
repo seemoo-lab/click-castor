@@ -1,5 +1,5 @@
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include <click/straccum.hh>
 #include <click/error.hh>
 #include "castor_routing_table.hh"
@@ -8,9 +8,9 @@ CLICK_DECLS
 
 int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 	double updateDelta;
-	if (cp_va_kparse(conf, this, errh,
-			"UpdateDelta", cpkP + cpkM, cpDouble, &updateDelta,
-			cpEnd) < 0)
+	if (Args(conf, this, errh)
+			.read_mp("UpdateDelta", updateDelta)
+			.complete() < 0)
 		return -1;
 	if (updateDelta < 0 || updateDelta > 1) {
 		errh->error("Invalid updateDelta value: %f (should be between 0 and 1)", updateDelta);
@@ -28,31 +28,37 @@ int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return 0;
 }
 
-HashTable<NeighborId, CastorEstimator>& CastorRoutingTable::getFlowEntry(const FlowId& flow, const SubflowId& subflow) {
+HashTable<NeighborId, CastorEstimator>& CastorRoutingTable::entry(const Hash& flow, const SubflowId& subflow) {
 	// HashTable's [] operator adds a default element if it does not exist
 	return flows[flow][subflow];
 }
 
-CastorEstimator& CastorRoutingTable::getEstimator(const FlowId& flow, const SubflowId& subflow, const NeighborId& forwarder) {
+CastorEstimator& CastorRoutingTable::estimator(const Hash& flow, const SubflowId& subflow, const NeighborId& forwarder) {
 	// HashTable's [] operator adds a default element if it does not exist
 	return flows[flow][subflow][forwarder];
 }
 
-bool CastorRoutingTable::copyFlowEntry(const FlowId& newFlow, const FlowId& oldFlow, const SubflowId& subflow) {
-	// This method might be broken for the CONTINUOUS_FLOW
-	if (!flows.get(newFlow).get(subflow).empty() ||
-		!flows.get(oldFlow).get(subflow).empty()) {
-		return false;
+HashTable<NeighborId, CastorEstimator>& CastorRoutingTable::entry_copy(const Hash& flow, const NodeId& src, const NodeId& dst) {
+	Pair<NodeId,NodeId> pair(src, dst);
+	if (flows.count(flow) > 0 && flows[flow].count(dst) > 0) {
+		/* do nothing */;
+	} else if (srcdstmap.count(pair) > 0) {
+		flows[flow][dst] = flows[srcdstmap[pair]][dst];
+	} else if (dstmap.count(dst) > 0) {
+		flows[flow][dst] = flows[dstmap[dst]][dst];
 	}
-
-	flows[newFlow][subflow] = flows[oldFlow][subflow];
-
-	return true;
+	return flows[flow][dst];
 }
 
-String CastorRoutingTable::str(const FlowId& flow, const SubflowId& subflow) {
+void CastorRoutingTable::update(const Hash& flow, const NodeId& src, const NodeId& dst) {
+	Pair<NodeId,NodeId> pair(src, dst);
+	srcdstmap[pair] = flow;
+	dstmap[dst] = flow;
+}
+
+String CastorRoutingTable::unparse(const Hash& flow, const SubflowId& subflow) const {
 	StringAccum sa;
-	sa << "Routing entry for flow " << flow.str() << " (subflow " << subflow << "):\n";
+	sa << "Routing entry for flow " << flow.str() << ":\n";
 	const auto& fe = flows[flow][subflow];
 	if(fe.size() == 0)
 		sa << " - EMPTY \n";
@@ -62,8 +68,8 @@ String CastorRoutingTable::str(const FlowId& flow, const SubflowId& subflow) {
 	return String(sa.c_str());
 }
 
-void CastorRoutingTable::print(const FlowId& flow, const SubflowId& subflow) {
-	click_chatter(str(flow, subflow).c_str());
+void CastorRoutingTable::print(const Hash& flow, const SubflowId& subflow) const {
+	click_chatter(unparse(flow, subflow).c_str());
 }
 
 void CastorRoutingTable::add_handlers() {
@@ -72,13 +78,10 @@ void CastorRoutingTable::add_handlers() {
 
 String CastorRoutingTable::read_table_handler(Element *e, void *) {
 	CastorRoutingTable* rt = (CastorRoutingTable*) e;
-	const FlowEntry& flows = rt->flows;
 	StringAccum sa;
-	for (const auto& sfe : flows) {
-		for (const auto& fe : sfe.second) {
-			sa << rt->str(sfe.first, fe.first);
-		}
-	}
+	for (const auto& fe : rt->flows)
+		for (const auto& sfe : fe.second)
+			sa << rt->unparse(fe.first, sfe.first);
 	return String(sa.c_str());
 }
 

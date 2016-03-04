@@ -19,7 +19,7 @@ void CastorAddXcastPktToHistory::push(int, Packet *p) {
 	for(unsigned int j = 0; j < pkt.nnexthop(); j++) {
 		unsigned int pos = i;
 		for(; i < pos + pkt.nexthop_assign(j); i++) {
-			history->addPkt(pkt.pid(i), ntohs(pkt.kpkt()), pkt.fid(), CastorAnno::src_id_anno(pkt.getPacket()), pkt.nexthop(j), pkt.dst(i), p->timestamp_anno());
+			history->addPkt(pkt.pid(i), ntohs(pkt.kpkt()), pkt.fid(), CastorAnno::src_id_anno(pkt.getPacket()), pkt.nexthop(j), pkt.src(), pkt.dst(i), p->timestamp_anno());
 		}
 	}
 

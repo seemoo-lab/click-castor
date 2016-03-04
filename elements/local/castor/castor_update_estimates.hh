@@ -18,6 +18,7 @@ public:
 private:
 	CastorRoutingTable* table;
 	CastorHistory* history;
+	bool enableCopyEstimators;
 };
 
 CLICK_ENDDECLS

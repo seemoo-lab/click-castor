@@ -11,11 +11,11 @@ CLICK_DECLS
 
 int CastorXcastLookupRoute::configure(Vector<String> &conf, ErrorHandler *errh) {
 	Element* tmp;
-    int result = Args(conf, this, errh)
-    		.read_mp("ROUTE_SELECTOR", tmp)
+	int result = Args(conf, this, errh)
+			.read_mp("ROUTE_SELECTOR", tmp)
 			.complete();
-    selector = dynamic_cast<CastorRouteSelector*>(tmp);
-    return result;
+	selector = dynamic_cast<CastorRouteSelector*>(tmp);
+	return result;
 }
 
 void CastorXcastLookupRoute::push(int, Packet *p) {
@@ -25,13 +25,9 @@ void CastorXcastLookupRoute::push(int, Packet *p) {
 
 	size_t nDestinations = pkt.ndst();
 
-	Vector<NodeId> allDestinations;
-	for(unsigned int i = 0; i < nDestinations; i++)
-		allDestinations.push_back(pkt.dst(i));
-
 	// Lookup routes
 	for(unsigned int i = 0; i < nDestinations; i++) {
-		NeighborId nextHop = selector->select(pkt.fid(), pkt.dst(i), &allDestinations, pkt.pid(i));
+		NeighborId nextHop = selector->select(pkt.fid(), pkt.src(), pkt.dst(i));
 		map[nextHop].push_back(i);
 	}
 

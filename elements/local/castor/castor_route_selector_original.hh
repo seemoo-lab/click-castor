@@ -13,16 +13,13 @@ CLICK_DECLS
  */
 class CastorRouteSelectorOriginal: public CastorRouteSelector {
 public:
-	CastorRouteSelectorOriginal() : broadcastAdjust(8), routingtable(NULL), neighbors(NULL) {}
-
 	const char *class_name() const { return "CastorRouteSelectorOriginal"; }
 	int configure(Vector<String>&, ErrorHandler*);
 
 	/**
-	 * Select the best next hop for a given flow/subflow
+	 * Select the best next hop for a given flow
 	 */
-	NeighborId select(const FlowId& flow, const NodeId& subflow, const Vector<NodeId>* others, const PacketId &pid);
-
+	NeighborId select(const Hash& flow, const NodeId& src, const NodeId& dst);
 protected:
 	/**
 	 * Bandwidth investment for route discovery (larger values reduce the broadcast probability)
@@ -32,11 +29,11 @@ protected:
 	CastorRoutingTable* routingtable;
 	Neighbors* neighbors;
 
-	virtual bool selectNeighbor(const NeighborId &entry, double entryEstimate, Vector<NeighborId> &bestEntries, double &bestEstimate, const PacketId &pid);
-	virtual NeighborId chooseNeighbor(Vector<NeighborId> &bestNeighbors, double best, const PacketId &pid);
-
-	double findBest(HashTable<NeighborId, CastorEstimator>& entry, Vector<NeighborId>& bestNeighbors, const PacketId& pid);
-	inline NeighborId selectDefault() const { return NeighborId::make_broadcast(); }
+	virtual double select(HashTable<NeighborId, CastorEstimator>& entry, Vector<NeighborId>& best_candidates);
+	virtual void update_candidates(const NeighborId&, double, Vector<NeighborId>&, double&) const;
+	bool should_broadcast(double best_estimate) const;
+	const NeighborId& select_random(const Vector<NeighborId>&) const;
+	inline NeighborId broadcast() const { return NeighborId::make_broadcast(); }
 };
 
 CLICK_ENDDECLS

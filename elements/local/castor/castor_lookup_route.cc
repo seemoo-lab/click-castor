@@ -8,17 +8,17 @@ CLICK_DECLS
 
 int CastorLookupRoute::configure(Vector<String> &conf, ErrorHandler *errh) {
 	Element* tmp;
-    int result = Args(conf, this, errh)
-    		.read_mp("ROUTE_SELECTOR", tmp)
+	int result = Args(conf, this, errh)
+			.read_mp("ROUTE_SELECTOR", tmp)
 			.complete();
-    selector = dynamic_cast<CastorRouteSelector*>(tmp);
-    return result;
+	selector = dynamic_cast<CastorRouteSelector*>(tmp);
+	return result;
 }
 
 Packet* CastorLookupRoute::simple_action(Packet *p){
 	CastorPkt& header = (CastorPkt&) *p->data();
 
-	NeighborId nextHop = selector->select(header.fid, header.dst, 0, header.pid);
+	NeighborId nextHop = selector->select(header.fid, header.src, header.dst);
 
 	if (nextHop.empty()) {
 		checked_output_push(1, p);
