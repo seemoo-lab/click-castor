@@ -19,10 +19,10 @@ define(
 	$maxTo 60000, // 1 minute
 
 	/** Rate limit boundaries (in PKTs/sec) */
-	$initRate  4,
-	$minRate   1,
-	$maxRate 100,
-	$bucketSize 3, // how many packets we queue per neighbor before starting to drop new ones
+	$initRate   4,
+	$minRate    1,
+	$maxRate 1024,
+	$bucketSize 4, // how many packets we queue per neighbor before starting to drop new ones
 
 	/** Neighbor discovery */
 	$neighborsEnable true, // whether or not to use neighbor beacons; if set to false, settings for neighborTimeout and beaconingInterval are irrelevant
@@ -42,7 +42,7 @@ define(
 );
 
 require(
-	//library castor_io_ns3.click,
-	library castor_io_userlevel.click,
+	library castor_io_ns3.click,
+	//library castor_io_userlevel.click,
 	//library castor_io_benchmark.click,
 );

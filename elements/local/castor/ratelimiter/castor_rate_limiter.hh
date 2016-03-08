@@ -36,16 +36,20 @@ private:
 
 	void emit_packet(const NeighborId&);
 
-	/** Make sure that a timer for node exists and is initialized */
-	void verify_timer_is_init(const NeighborId&);
-	/** Make sure a TokenBucket for node exists and is initialized */
-	void verify_token_is_init(const NeighborId&);
+	void verify_entry_is_init(const NeighborId&);
 
 	atomic_uint32_t drops;
 
-	HashTable<const NeighborId, RingBuffer> buckets;
-	HashTable<const NeighborId, TokenBucket> tokens;
-	HashTable<const NeighborId, RateTimer> timers;
+	class RateLimitEntry {
+	public:
+		~RateLimitEntry() {
+			timer.clear();
+		}
+		RingBuffer bucket;
+		TokenBucket tokens;
+		RateTimer timer;
+	};
+	HashTable<const NeighborId, RateLimitEntry> entries;
 
 	CastorRateLimitTable* rate_limits;
 	size_t capacity;

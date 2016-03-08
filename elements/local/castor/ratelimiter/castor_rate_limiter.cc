@@ -9,23 +9,20 @@ CLICK_DECLS
 int CastorRateLimiter::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 			.read_mp("RATE_LIMITS", ElementCastArg("CastorRateLimitTable"), rate_limits)
-			.read_or_set_p("BUCKET_SIZE", capacity, 3)
+			.read_or_set_p("BUCKET_SIZE", capacity, 4)
 			.complete();
 }
 
 int CastorRateLimiter::initialize(ErrorHandler*) {
 	rate_limits->register_listener(this);
-	// Set 'capacity' as default for new RingBuffers
-	buckets = HashTable<const NeighborId, RingBuffer>(RingBuffer(capacity));
 	return 0;
 }
 
 void CastorRateLimiter::push(int, Packet* p) {
 	const auto& sender = CastorAnno::src_id_anno(p);
 
-	verify_token_is_init(sender);
-
-	auto& bucket = buckets[sender];
+	verify_entry_is_init(sender);
+	auto& bucket = entries[sender].bucket;
 	if (!bucket.push(p)) {
 		drops++;
 		checked_output_push(1, p);
@@ -35,11 +32,11 @@ void CastorRateLimiter::push(int, Packet* p) {
 }
 
 void CastorRateLimiter::update(const NeighborId& node) {
-	verify_token_is_init(node);
+	verify_entry_is_init(node);
 	auto new_rate = rate_limits->lookup(node).value();
-	auto& current = tokens[node];
+	auto& current = entries[node].tokens;
 	if (new_rate != current.rate()) {
-		current.assign_adjust(new_rate, current.capacity());
+		current.assign_adjust(new_rate, capacity);
 		emit_packet(node); // node might now be allowed to send packet
 	}
 }
@@ -49,48 +46,42 @@ void CastorRateLimiter::run_timer(Timer* timer) {
 }
 
 void CastorRateLimiter::run_timer(RateTimer* timer) {
+	verify_entry_is_init(timer->node());
 	emit_packet(timer->node());
 }
 
 void CastorRateLimiter::emit_packet(const NeighborId& node) {
-	tokens[node].refill();
-	auto& bucket = buckets[node];
-	while (!bucket.empty() && tokens[node].contains(1)) {
-		tokens[node].remove(1);
-		Packet* p = bucket.pop();
+	auto& entry = entries[node];
+	entry.tokens.refill();
+	while (!entry.bucket.empty() && entry.tokens.contains(1)) {
+		entry.tokens.remove(1);
+		Packet* p = entry.bucket.pop();
 		output(0).push(p);
 	}
-	if (bucket.empty() && tokens[node].full()) {
-		tokens.erase(node);
-		buckets.erase(node);
-		timers.erase(node);
-	} else if (!bucket.empty()) {
-		verify_timer_is_init(node);
-		timers[node].schedule_after(
-				Timestamp::make_jiffies(tokens[node].time_until_contains(1))
+	if (entry.bucket.empty() && entry.tokens.full()) {
+		entries.erase(node);
+	} else if (!entry.bucket.empty()) {
+		entry.timer.schedule_at_steady(
+				Timestamp::now_steady() + Timestamp::make_jiffies(entry.tokens.time_until_contains(1))
 		);
-	} else if (!tokens[node].full()) {
-		verify_timer_is_init(node);
-		timers[node].schedule_after(
-				Timestamp::make_jiffies(tokens[node].time_until_contains(capacity))
+	} else if (!entry.tokens.full()) {
+		//click_chatter("[%s] tokens not full (%d of %d): %s", Timestamp::now_steady().unparse().c_str(),
+		//		entry.tokens.size(), entry.tokens.capacity(),
+		//		(Timestamp::now_steady() + Timestamp::make_jiffies(entry.tokens.time_until_contains(capacity))).unparse().c_str());
+		entry.timer.schedule_at_steady(
+				Timestamp::now_steady() + Timestamp::make_jiffies(entry.tokens.time_until_contains(capacity))
 		);
 	}
 }
 
-void CastorRateLimiter::verify_timer_is_init(const NeighborId& node) {
-	auto& timer = timers[node];
-	if (!timer.initialized()) {
-		timer.set_node(node);
-		timer.assign(this);
-		timer.initialize(this);
-	}
-}
-
-void CastorRateLimiter::verify_token_is_init(const NeighborId& node) {
-	if (tokens.count(node) == 0) {
-		tokens.set(node, TokenBucket(
-				rate_limits->lookup(node).value(),
-				capacity));
+void CastorRateLimiter::verify_entry_is_init(const NeighborId& node) {
+	auto& entry = entries[node];
+	if (!entry.timer.initialized()) {
+		entry.timer.set_node(node);
+		entry.timer.assign(this);
+		entry.timer.initialize(this);
+		entry.tokens.assign_adjust(rate_limits->lookup(node).value(), capacity);
+		entry.bucket = RingBuffer(capacity);
 	}
 }
 

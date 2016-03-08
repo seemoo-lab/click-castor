@@ -5,12 +5,12 @@ CLICK_DECLS
 
 class RingBuffer {
 public:
-	RingBuffer(unsigned int capacity = 0) : capacity(capacity), count(0), start(0) {
+	RingBuffer(unsigned int capacity = 0) : _capacity(capacity), count(0), start(0) {
 		store = new Packet*[capacity];
 	};
-	RingBuffer(const RingBuffer& x) : capacity(x.capacity), count(x.count), start(x.start) {
-		store = new Packet*[capacity];
-		memcpy(store, x.store, capacity * sizeof(Packet*));
+	RingBuffer(const RingBuffer& x) : _capacity(x._capacity), count(x.count), start(x.start) {
+		store = new Packet*[_capacity];
+		memcpy(store, x.store, _capacity * sizeof(Packet*));
 	}
 	~RingBuffer() {
 		delete [] store;
@@ -18,12 +18,12 @@ public:
 	RingBuffer& operator=(const RingBuffer& x) {
 		if (this == &x)
 			return *this;
-		if (capacity != x.capacity) {
+		if (_capacity != x._capacity) {
 			delete [] store;
-			capacity = x.capacity;
-			store = new Packet*[capacity];
+			_capacity = x._capacity;
+			store = new Packet*[_capacity];
 		}
-		memcpy(store, x.store, capacity);
+		memcpy(store, x.store, _capacity);
 		start = x.start;
 		count = x.count;
 		return *this;
@@ -31,11 +31,14 @@ public:
 	unsigned int size() const {
 		return count;
 	}
+	unsigned int capacity() const {
+		return _capacity;
+	}
 	bool empty() const {
 		return count == 0;
 	}
 	bool full() const {
-		return count == capacity;
+		return count == _capacity;
 	}
 	bool push(Packet* p) {
 		assert(p != NULL);
@@ -58,11 +61,11 @@ private:
 	typedef unsigned int index_t;
 	index_t start;
 	index_t count;
-	index_t capacity;
+	index_t _capacity;
 
 	Packet** store;
 
-	inline index_t add(index_t a, index_t b) const { return (a + b) % capacity; }
+	inline index_t add(index_t a, index_t b) const { return (a + b) % _capacity; }
 };
 
 CLICK_ENDDECLS
