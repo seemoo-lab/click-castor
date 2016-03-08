@@ -10,19 +10,16 @@ CLICK_DECLS
 
 class CastorRecordPkt: public Element {
 public:
-	CastorRecordPkt() : npackets(0), npids(0), size(0), size_broadcast(0), size_unicast(0), size_noreset(0), nbroadcasts(0), nunicasts(0) {
-#ifndef DEBUG_HOPCOUNT
-		click_chatter("Warning: recording packets without hopcount");
-#endif
-	}
-		
 	const char *class_name() const { return "CastorRecordPkt"; }
 	const char *port_count() const { return PORTS_1_1; }
 	const char *processing() const { return AGNOSTIC; }
+	int configure(Vector<String>&, ErrorHandler*);
+	int initialize(ErrorHandler*);
 
 	virtual Packet* simple_action(Packet *);
+	void reset();
 
-    void add_handlers();
+	void add_handlers();
 protected:
 	struct PidTime {
 		PidTime(const PacketId& pid, const Timestamp time = Timestamp::now_steady()) : pid(pid), time(time) {};
@@ -44,10 +41,15 @@ protected:
 	size_t size;
 	size_t size_broadcast;
 	size_t size_unicast;
+	size_t size_payload;
 	size_t size_noreset;
 	size_t nbroadcasts;
 	size_t nunicasts;
+	Timestamp start;
+	Timestamp last;
 
+	bool active;
+	bool verbose;
 private:
 	static String read_handler(Element*, void*);
 

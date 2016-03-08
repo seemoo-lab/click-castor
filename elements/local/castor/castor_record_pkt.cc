@@ -1,4 +1,5 @@
 #include <click/config.h>
+#include <click/args.hh>
 #include <click/straccum.hh>
 #include "castor_record_pkt.hh"
 #include "castor_xcast.hh"
@@ -6,7 +7,26 @@
 
 CLICK_DECLS
 
+int CastorRecordPkt::configure(Vector<String> &conf, ErrorHandler *errh) {
+	return Args(conf, this, errh)
+			.read_or_set_p("ACTIVE", active, true)
+			.read_or_set_p("VERBOSE", verbose, false)
+			.complete();
+}
+
+int CastorRecordPkt::initialize(ErrorHandler*) {
+	reset();
+	return 0;
+}
+
 Packet* CastorRecordPkt::simple_action(Packet *p) {
+	if (!active)
+		return p;
+
+	if (start == Timestamp())
+		start = Timestamp::now_steady();
+	last = Timestamp::now_steady();
+
 	if(CastorPacket::getType(p) == CastorType::PKT) {
 		if(CastorPacket::isXcast(p)) {
 			CastorXcastPkt pkt = CastorXcastPkt(p);
@@ -45,6 +65,7 @@ Packet* CastorRecordPkt::simple_action(Packet *p) {
 				size_unicast += p->length();
 				nunicasts++;
 			}
+			size_payload += pkt.payload_len();
 #ifdef DEBUG_HOPCOUNT
 			hopcounts.push_back(new UintListNode(pkt.hopcount));
 #endif
@@ -62,7 +83,28 @@ Packet* CastorRecordPkt::simple_action(Packet *p) {
 	size += p->length();
 	size_noreset += p->length();
 
-    return p;
+	if (verbose && npackets % 100000 == 0) {
+		unsigned int diff = (last - start).sec(); // * 1000 + (last - start).msec();
+		double rate = (double) size_payload / diff / (1024 * 1024);
+		double pkt_rate = (double) npackets / diff;
+		click_chatter("Throughput: %.2f MB/s, PKT rate: %.2f/s", rate, pkt_rate);
+	}
+
+	return p;
+}
+
+void CastorRecordPkt::reset() {
+	npackets = 0;
+	npids = 0;
+	size = 0;
+	size_broadcast = 0;
+	size_unicast = 0;
+	size_noreset = 0;
+	size_payload = 0;
+	nbroadcasts = 0;
+	nunicasts = 0;
+	hopcounts.clear();
+	records.clear();
 }
 
 String CastorRecordPkt::read_handler(Element *e, void *thunk) {
