@@ -16,6 +16,7 @@ public:
 
 	Packet* simple_action(Packet *);
 private:
+	bool enable;
 	CastorRateLimitTable* rate_limits;
 	CastorHistory* history;
 };

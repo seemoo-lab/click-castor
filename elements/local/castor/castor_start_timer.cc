@@ -60,8 +60,6 @@ void CastorStartTimer::run_timer(Timer* _timer) {
 }
 
 void CastorStartTimer::adjust_estimator(const PacketId& pid) {
-	assert(table);
-
 	NeighborId routedTo = history->routedTo(pid);
 
 	// Check whether PKT was broadcast, if yes, do nothing as we don't know who might have received it
@@ -83,8 +81,6 @@ void CastorStartTimer::adjust_estimator(const PacketId& pid) {
 }
 
 void CastorStartTimer::adjust_rate_limit(const PacketId& pid) {
-	assert(rate_limits);
-
 	auto& senders = history->getPktSenders(pid);
 	for (auto& sender : senders) {
 		rate_limits->lookup(sender).decrease();

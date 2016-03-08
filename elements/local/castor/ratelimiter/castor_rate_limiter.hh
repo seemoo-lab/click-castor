@@ -51,6 +51,7 @@ private:
 	};
 	HashTable<const NeighborId, RateLimitEntry> entries;
 
+	bool enable;
 	CastorRateLimitTable* rate_limits;
 	size_t capacity;
 };

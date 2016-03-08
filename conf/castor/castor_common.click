@@ -65,7 +65,7 @@ elementclass CastorHandleAck {
 		//-> CastorPrint('Received valid', $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
 		// It does not make sense to update the rate limit packets that I sent myself
-		-> updateRate :: CastorUpdateRateLimit($ratelimits, $history)
+		-> updateRate :: CastorUpdateRateLimit($ratelimitEnable, $ratelimits, $history)
 		-> CastorSetAckNexthop($history, $neighbors)
 		-> recAck :: CastorRecordPkt
 		-> output;

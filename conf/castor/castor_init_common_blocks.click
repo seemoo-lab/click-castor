@@ -16,7 +16,7 @@ timeouttable :: CastorTimeoutTable(INIT $initTo, MIN $minTo, MAX $maxTo);
 ratelimits :: CastorRateLimitTable(INIT $initRate, MIN $minRate, MAX $maxRate);
 
 castorclassifier :: CastorClassifier(fake, neighbors)
-ratelimiter :: CastorRateLimiter(ratelimits, $bucketSize);
+ratelimiter :: CastorRateLimiter($ratelimitEnable, ratelimits, $bucketSize);
 
 replaystore :: ReplayStore(500, 5);
 

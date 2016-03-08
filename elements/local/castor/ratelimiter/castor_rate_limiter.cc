@@ -1,4 +1,5 @@
 #include <click/config.h>
+#include <click/error.hh>
 #include <click/args.hh>
 #include "castor_rate_limiter.hh"
 #include "../castor.hh"
@@ -7,18 +8,26 @@
 CLICK_DECLS
 
 int CastorRateLimiter::configure(Vector<String> &conf, ErrorHandler *errh) {
-	return Args(conf, this, errh)
-			.read_mp("RATE_LIMITS", ElementCastArg("CastorRateLimitTable"), rate_limits)
+	int result = Args(conf, this, errh)
+			.read_mp("ENABLE", enable)
+			.read_p("RATE_LIMITS", ElementCastArg("CastorRateLimitTable"), rate_limits)
 			.read_or_set_p("BUCKET_SIZE", capacity, 4)
 			.complete();
+	if (enable && rate_limits == NULL)
+		return errh->error("Need rate limit table if rate limiter is enabled");
+	return result;
 }
 
 int CastorRateLimiter::initialize(ErrorHandler*) {
-	rate_limits->register_listener(this);
+	if (enable)
+		rate_limits->register_listener(this);
 	return 0;
 }
 
 void CastorRateLimiter::push(int, Packet* p) {
+	if (!enable) {
+		output(0).push(p);
+	} else {
 	const auto& sender = CastorAnno::src_id_anno(p);
 
 	verify_entry_is_init(sender);
@@ -29,9 +38,13 @@ void CastorRateLimiter::push(int, Packet* p) {
 	} else {
 		emit_packet(sender);
 	}
+	}
 }
 
 void CastorRateLimiter::update(const NeighborId& node) {
+	if (!enable)
+		return;
+
 	verify_entry_is_init(node);
 	auto new_rate = rate_limits->lookup(node).value();
 	auto& current = entries[node].tokens;
