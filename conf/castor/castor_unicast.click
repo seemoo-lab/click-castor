@@ -64,6 +64,7 @@ elementclass CastorForwardPkt {
 		-> CastorAddPktToHistory($history)
 		-> CastorStartTimer($timeouttable, $history, $routingtable, $ratelimits, ID $myIP, VERBOSE false)
 		-> addFlowAuthenticator :: CastorAddFlowAuthenticator($flowtable, $fullFlowAuth)
+		-> CastorSetARQ(false)
 		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> rec :: CastorRecordPkt
 		-> output;
@@ -72,6 +73,7 @@ elementclass CastorForwardPkt {
 	auth[2]
 		-> CastorPrint("Flow authentication failed (insufficient flow auth elements)", $myIP)
 		-> CastorMirror($myIP)
+		-> CastorSetARQ(true)
 		-> output;
 
 	null :: Discard;
@@ -95,6 +97,7 @@ elementclass CastorHandlePkt {
 
 	input
 		-> AddReplayPkt(replaystore)
+		-> isARQ :: CastorIsARQ
 		-> checkDuplicate :: CastorCheckDuplicate($history, $flowtable, $replayProtect)
 		-> destinationClassifier :: CastorDestClassifier($myIP);
 
@@ -108,7 +111,7 @@ elementclass CastorHandlePkt {
 		-> forward :: CastorForwardPkt($myIP, $routeselector, $routingtable, $flowtable, $timeouttable, $ratelimits, $history, $crypto)
 		-> [2]output;
 
-	checkDuplicate[4] -> CastorPrint("Retransmit", $myIP) -> destinationClassifier;
+	isARQ[1] -> CastorPrint("Retransmit", $myIP) -> destinationClassifier;
 
 	handleLocal[1]
 		-> recAck :: CastorRecordPkt

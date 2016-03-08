@@ -1,21 +1,23 @@
-#ifndef CLICK_CASTOR_MIRROR_HH
-#define CLICK_CASTOR_MIRROR_HH
+#ifndef CLICK_CASTOR_SET_ARQ_HH
+#define CLICK_CASTOR_SET_ARQ_HH
 
 #include <click/element.hh>
-#include "../neighbordiscovery/neighbor_id.hh"
 
 CLICK_DECLS
 
-class CastorMirror: public Element {
+/**
+ * Sets or unsets the Castor v2 ARQ flag
+ */
+class CastorSetARQ : public Element {
 public:
-	const char *class_name() const { return "CastorMirror"; }
+	const char *class_name() const { return "CastorSetARQ"; }
 	const char *port_count() const { return PORTS_1_1; }
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
 	Packet* simple_action(Packet *);
 private:
-	NeighborId id;
+	bool _arq;
 };
 
 CLICK_ENDDECLS

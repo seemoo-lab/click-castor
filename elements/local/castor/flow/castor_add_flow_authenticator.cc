@@ -35,7 +35,6 @@ Packet* CastorAddFlowAuthenticator::simple_action(Packet *p) {
 	CastorPkt header = pkt;
 	header.fasize = new_fasize;
 	header.len = htons(ntohs(header.len) + (unsigned int) (new_fasize - old_fasize) * header.hsize);
-	header.arq = 0;
 	Nonce n = pkt.syn ? *pkt.n() : Nonce();
 
 	// Resize Packet
