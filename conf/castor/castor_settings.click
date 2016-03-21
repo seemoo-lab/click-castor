@@ -30,7 +30,7 @@ define(
 	$neighborTimeout  1000, // in milliseconds (4 * beaconingInterval)
 	$beaconingInterval 250, // in milliseconds
 
-	/** Optimizations */
+	/** v2 optimizations */
 	$fullFlowAuth false,
 	$forceNonce   false,
 	$replayProtect true,
