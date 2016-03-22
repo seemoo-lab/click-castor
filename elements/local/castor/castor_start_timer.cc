@@ -2,7 +2,6 @@
 #include <click/args.hh>
 #include <click/straccum.hh>
 #include "castor_start_timer.hh"
-#include "castor_xcast.hh"
 
 CLICK_DECLS
 
@@ -27,20 +26,10 @@ int CastorStartTimer::configure(Vector<String>& conf, ErrorHandler* errh) {
 
 Packet* CastorStartTimer::simple_action(Packet* p) {
 	// Add timer
-	if(CastorPacket::isXcast(p)) {
-		CastorXcastPkt header = CastorXcastPkt(p);
-		// Set timer for each destination individually
-		for(unsigned int i = 0; i < header.ndst(); i++) {
-			const PacketId pid = header.pid(i);
-			unsigned int timeout = toTable->getTimeout(header.fid(), header.dst(i), history->routedTo(pid)).value();
-			new PidTimer(this, pid, timeout);
-		}
-	} else {
-		CastorPkt& header = (CastorPkt&) *p->data();
-		if (!header.arq) {
-			unsigned int timeout = toTable->getTimeout(header.fid, header.dst, history->routedTo(header.pid)).value();
-			new PidTimer(this, header.pid, timeout);
-		}
+	CastorPkt& header = (CastorPkt&) *p->data();
+	if (!header.arq) {
+		unsigned int timeout = toTable->getTimeout(header.fid, header.dst, history->routedTo(header.pid)).value();
+		new PidTimer(this, header.pid, timeout);
 	}
 
 	return p;
