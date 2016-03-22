@@ -11,7 +11,7 @@ CLICK_DECLS
 
 class CastorMerkleFlow : public CastorFlow {
 public:
-	CastorMerkleFlow(size_t size, CastorFlowTable* flowtable, const Crypto* crypto);
+	CastorMerkleFlow(size_t size, const NodeId& dst, CastorFlowTable* flowtable, const Crypto* crypto);
 	~CastorMerkleFlow();
 
 	PacketLabel freshLabel();

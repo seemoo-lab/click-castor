@@ -30,7 +30,7 @@ private:
 	/**
 	 * Defines the type of CastorFlow to be used.
 	 */
-	CastorFlow* createNewFlow();
+	CastorFlow* createNewFlow(const NodeId& src, const NodeId& dst);
 };
 
 CLICK_ENDDECLS

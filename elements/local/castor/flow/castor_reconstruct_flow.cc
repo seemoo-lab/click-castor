@@ -27,8 +27,7 @@ Packet* CastorReconstructFlow::simple_action(Packet *p) {
 	unsigned int size = 1 << pkt.fsize;
 	e.aauths = new Hash[size];
 	e.pids =   new Hash[size];
-	// FIXME use actual end-to-end key
-	Buffer<32> key;
+	Buffer<32> key(crypto->getSharedKey(pkt.src)->data());
 	// Generate aauths from n
 	crypto->stream(e.aauths->data(), size * pkt.hsize, pkt.n()->data(), key.data());
 	for (int i = 0; i < size; i++) {

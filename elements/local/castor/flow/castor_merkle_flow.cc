@@ -3,12 +3,11 @@
 
 CLICK_DECLS
 
-CastorMerkleFlow::CastorMerkleFlow(size_t size, CastorFlowTable* flowtable, const Crypto* crypto) : size(size), height(MerkleTree::log2(size)), pos(0) {
+CastorMerkleFlow::CastorMerkleFlow(size_t size, const NodeId& dst, CastorFlowTable* flowtable, const Crypto* crypto) : size(size), height(MerkleTree::log2(size)), pos(0) {
 	aauths = new Hash[size];
 	pids = new Hash[size];
 	crypto->random(n);
-	// FIXME use actual end-to-end key
-	Buffer<32> key;
+	Buffer<32> key(crypto->getSharedKey(dst)->data());
 	// Generate aauths from n
 	crypto->stream(aauths->data(), size * sizeof(Hash), n.data(), key.data());
 	for (int i = 0; i < size; i++) {
