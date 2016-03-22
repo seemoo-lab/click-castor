@@ -119,10 +119,10 @@ elementclass CastorHandlePkt {
 
 	// Need to retransmit ACK
 	checkDuplicate[1]
-		//-> CastorPrint("Duplicate pid, retransmit ACK", $myIP)
 		-> CastorAddPktToHistory($history)
 		-> CastorRetransmitAck($history)
 		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
+		//-> CastorPrint("Duplicate pid, retransmit ACK", $myIP)
 		-> recAck;
 
 	// If invalid or duplicate -> discard
@@ -138,7 +138,7 @@ elementclass CastorHandlePkt {
 		-> null;
 
 	noLoopback[1]
-		//-> CastorPrint("Trying to retransmit ACK to myself", $myIP)
+		//-> CastorPrint("Source trying to retransmit", $myIP)
 		-> null;
 
 }

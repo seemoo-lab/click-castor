@@ -31,6 +31,7 @@ void CastorRetransmitAck::push(int, Packet *p) {
 	WritablePacket* q = Packet::make(&ack, sizeof(CastorAck));
 	CastorAnno::dst_id_anno(q) = CastorAnno::src_id_anno(p); // Unicast ACK to PKT sender
 	CastorAnno::hop_id_anno(q) = CastorAnno::dst_id_anno(q);
+	CastorAnno::hash_anno(q)   = pkt.pid;
 
 	assert(history->hasPktFrom(pkt.pid, CastorAnno::dst_id_anno(q)));
 
