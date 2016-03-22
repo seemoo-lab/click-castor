@@ -34,7 +34,7 @@ public:
 	 */
 	inline unsigned int size() const { return neighbors.size(); }
 
-    void add_handlers();
+	void add_handlers();
 
 private:
 	struct ListNode {
@@ -76,6 +76,7 @@ private:
 	unsigned int timeout;
 
 	static String read_handler(Element*, void*);
+	static String read_neighbors_handler(Element*, void*);
 
 	struct Statistics {
 		enum {

@@ -9,6 +9,7 @@ This repository contains **Castor** and its multicast extension **Xcastor** impl
   * [Cross Compilation](#cross-compilation)
   * [Extending the Code](#extending-the-code)
 * [Run (userlevel)](#run-userlevel)
+* [Access Element Handlers](#access-element-handlers)
 * [Related Publications](#related-publications)
 
 ## Code Navigation
@@ -74,6 +75,12 @@ userlevel/click EthDev=wlanX conf/castor/castor_multicast_via_unicast_routing.cl
 # Run Xcastor
 userlevel/click conf/castor/castor_xcast_routing.click
 ```
+
+## Access Element Handlers
+Element Handlers can be accessed using a [ControlSocket Element](http://read.cs.ucla.edu/click/elements/controlsocket).
+For example, one could generate a Unix socket to communicate with the Element Handlers like this: ControlSocket(unix, /tmp/click_socket);
+After connecting with the socket, one can read data from the Element Handlers using a line-based protocol described [here](http://read.cs.ucla.edu/click/elements/controlsocket).
+For example, one could read the list of neighbouring nodes by sending the command `READ neighbors.print` to the socket, which would lead to an answer of `200 OK\r\nDATA N\r\nx_1x_2x_n` where N denotes the length of the returned data and x_1 to x_n are the data symbols.
 
 ## Related Publications
 * E. Kohler, R. Morris, B. Chen, J. Jannotti, and M. F. Kaashoek, “The Click Modular Router,” *ACM Transactions on Computer Systems*, vol. 18, no. 3, pp. 263–297, Aug. 2000.
