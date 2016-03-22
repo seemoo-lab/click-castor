@@ -76,6 +76,8 @@ private:
 	unsigned int timeout;
 
 	static String read_handler(Element*, void*);
+        
+        static String read_neighbors_handler(Element*, void*);
 
 	struct Statistics {
 		enum {
