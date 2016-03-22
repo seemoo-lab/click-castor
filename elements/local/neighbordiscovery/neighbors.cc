@@ -85,11 +85,10 @@ String Neighbors::read_handler(Element *e, void *thunk) {
 
 String Neighbors::read_neighbors_handler(Element *e, void *) {
 	Neighbors* nb = static_cast<Neighbors*> (e);
-	HashTable<NeighborId, ListNode *> neighbors = nb->neighbors;	
+	HashTable<NeighborId, ListNode *> neighbors = nb->neighbors;
 	StringAccum sa;
 	for (const auto& neighbor_entry : neighbors) {
-			sa << neighbor_entry.first;
-			sa << "\n";
+		sa << neighbor_entry.first << "\n";
 	}
 	return String(sa.c_str());
 }
@@ -97,7 +96,6 @@ String Neighbors::read_neighbors_handler(Element *e, void *) {
 void Neighbors::add_handlers() {
 	add_read_handler("num", read_handler, Statistics::num);
 	add_read_handler("print", read_neighbors_handler, 0);
-	
 }
 
 CLICK_ENDDECLS
