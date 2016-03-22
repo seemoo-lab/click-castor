@@ -2,7 +2,7 @@
  * Initialize common blocks *
  ****************************/
 
-sam::SAManagement(fake);
+sam::SAManagement(fake, fake);
 crypto::Crypto(sam);
 flowtable :: CastorFlowTable(crypto);
 flowmanager :: CastorFlowManager($flowSize, flowtable, crypto);

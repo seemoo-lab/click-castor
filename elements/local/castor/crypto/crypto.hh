@@ -21,7 +21,9 @@ public:
 	/**
 	 * Returns a new SymmetricKey instance or NULL if no corresponding key exists
 	 */
-	const SymmetricKey* getSharedKey(NodeId) const;
+	const SymmetricKey* getSharedKey(const NodeId&) const;
+	const SymmetricKey* getSharedKey(const NeighborId&) const;
+
 	template<unsigned int S>
 	inline void stream_xor(Buffer<S>& cipher, const Buffer<S>& plain, const uint8_t* nonce, const SymmetricKey& key) const {
 		assert(key.size() == crypto_stream_KEYBYTES);

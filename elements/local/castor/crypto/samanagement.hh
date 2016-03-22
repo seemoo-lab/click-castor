@@ -5,6 +5,7 @@
 #include <click/hashtable.hh>
 #include "securityassociation.hh"
 #include "../node_id.hh"
+#include "../../neighbordiscovery/neighbor_id.hh"
 
 CLICK_DECLS
 
@@ -16,23 +17,33 @@ public:
 
 	int configure(Vector<String>&, ErrorHandler*);
 
-	void add(const NodeId& node, const SecurityAssociation& sa);
 	const SecurityAssociation* get(const NodeId& node, SecurityAssociation::Type type);
+	const SecurityAssociation* get(const NeighborId& node, SecurityAssociation::Type type);
 private:
 	typedef Vector<SecurityAssociation> SAs;
-	typedef HashTable<NodeId, SAs> SAMap;
-	SAMap sas;
+	HashTable<NodeId, SAs>     sas_e2e; // SAs between end nodes
+	HashTable<NeighborId, SAs> sas_h2h; // SAs between neighbors
+
+	size_t symmetricKeyLength;
+
+	void add(const NodeId& node, const SecurityAssociation& sa);
+	void add(const NeighborId& node, const SecurityAssociation& sa);
 
 	/**
-	 * XXX Warning
-	 * This function should be only used for testing. It generates unique but deterministic
+	 * XXX Warning: insecure key generation
+	 * These functions should be only used for testing. It generates unique but deterministic
 	 * keys for arbitrary node pairs.
-	 * In a production environment, shared keys should be created using some secure key
-	 * exchange protocol.
+	 * Eventually, keys should be generated using some key exchange protocol, e.g.,
+	 *  - pre-deployed keys
+	 *  - something similar to Serval DNA (?)
+	 *  - Diffie-Hellman
+	 *  - ...
 	 */
 	SecurityAssociation genereateSymmetricSA(const NodeId&);
-	NodeId myAddr; // Local nodes' IP address, used as seed for the KDF
-	size_t symmetricKeyLength;
+	SecurityAssociation genereateSymmetricSA(const NeighborId&);
+	// Local node's addresses, used to generate shared keys
+	NodeId myNodeId;
+	NeighborId myNeighborId;
 };
 
 CLICK_ENDDECLS

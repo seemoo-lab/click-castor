@@ -27,7 +27,13 @@ void Crypto::random(uint8_t* buf, unsigned int length) const {
 /**
  * Return the symmetric shared key for a destination.
  */
-const SymmetricKey* Crypto::getSharedKey(NodeId id) const {
+const SymmetricKey* Crypto::getSharedKey(const NodeId& id) const {
+	const SecurityAssociation* sharedKeySA = sam->get(id, SecurityAssociation::sharedsecret);
+	if (!sharedKeySA)
+		return 0;
+	return &sharedKeySA->secret;
+}
+const SymmetricKey* Crypto::getSharedKey(const NeighborId& id) const {
 	const SecurityAssociation* sharedKeySA = sam->get(id, SecurityAssociation::sharedsecret);
 	if (!sharedKeySA)
 		return 0;
