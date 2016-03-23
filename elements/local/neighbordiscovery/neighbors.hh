@@ -34,7 +34,7 @@ public:
 	 */
 	inline unsigned int size() const { return neighbors.size(); }
 
-    void add_handlers();
+	void add_handlers();
 
 private:
 	struct ListNode {
@@ -55,9 +55,10 @@ public:
 		inline bool operator==(const_iterator it) { return this->it == it.it; }
 		inline bool operator!=(const_iterator it) { return this->it != it.it; }
 		inline void operator++(int) { it++; }
+		inline void operator++() { ++it; }
 
 		inline const NeighborId &entry() const { return it.key(); }
-
+		inline const NeighborId &operator*() const { return it.key(); }
 	private:
 		HashTable<NeighborId, ListNode *>::const_iterator it;
 	};
