@@ -51,6 +51,13 @@ public:
 	/**
 	 * Expects keys of length crypto_shorthash_KEYBYTES.
 	 */
+	void auth(uint8_t* out,
+              const uint8_t* in, unsigned int inlen,
+              const uint8_t* key);
+
+	/**
+	 * Expects keys of length crypto_shorthash_KEYBYTES.
+	 */
 	void auth(Buffer<crypto_shorthash_BYTES>& out,
               const uint8_t* in, unsigned int inlen,
               const uint8_t* key);
