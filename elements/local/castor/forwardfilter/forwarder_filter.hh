@@ -20,7 +20,7 @@ private:
 	NeighborId my_id;
 	bool ignore;
 
-    static int write_handler(const String &, Element *, void *, ErrorHandler *);
+	static int write_handler(const String &, Element *, void *, ErrorHandler *);
 };
 
 CLICK_ENDDECLS
