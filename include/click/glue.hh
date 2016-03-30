@@ -328,7 +328,11 @@ typedef struct device net_device;
 
 // COMPILE-TIME ASSERTION CHECKING
 
+<<<<<<< HEAD
 #if !HAVE_ANDROID
+=======
+#if HAVE_ANDROID
+>>>>>>> 9e91319199bb5ddc0536fbca9fa1bba9b49dae53
 #if (!defined(__cplusplus) || !HAVE_CXX_STATIC_ASSERT) && !defined(static_assert)
 # define static_assert(x, ...) switch ((int) (x)) case 0: case !!((int) (x)):
 #endif
