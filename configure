@@ -829,6 +829,7 @@ enable_json
 enable_local
 enable_radio
 enable_simple
+enable_aodv
 enable_standard
 enable_tcpudp
 enable_test
@@ -1518,6 +1519,7 @@ Optional Features:
   --enable-local          include local elements
   --enable-radio          include radio elements
   --disable-simple        do not include simple versions of other elements
+  --enable-aodv           include AODV
   --disable-standard      do not include standard elements
   --disable-tcpudp        do not include TCP and UDP elements
   --disable-test          do not include regression test elements
@@ -7055,6 +7057,17 @@ else
 fi
 test "x$enable_all_elements" = xyes -a \( "x$enable_simple" = xNO -o "x$enable_simple" = x \) && enable_simple=yes
 if test "x$enable_simple" = xyes; then
+    :
+
+fi
+# Check whether --enable-aodv was given.
+if test "${enable_aodv+set}" = set; then :
+  enableval=$enable_aodv;
+else
+  enable_aodv=NO
+fi
+test "x$enable_all_elements" = xyes -a \( "x$enable_aodv" = xNO -o "x$enable_aodv" = x \) && enable_aodv=yes
+if test "x$enable_aodv" = xyes; then
     :
 
 fi
