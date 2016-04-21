@@ -25,7 +25,7 @@ elementclass FromNetwork{
 
 FromNetwork(fake) -> aodv_core::AODV_Core(fake) -> output::ToNetwork;
 
-host :: KernelTun(fake:ip/16, DEVNAME $HostDev);
+host :: KernelTun(fake:ip/16, DEVNAME $HostDev)
 	-> [1]aodv_core;
 
 aodv_core[1] 
