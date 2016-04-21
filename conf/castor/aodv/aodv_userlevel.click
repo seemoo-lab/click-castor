@@ -5,8 +5,6 @@ define(
 
 AddressInfo(fake $EthDev);
 
-tun -> fromhostdev :: { input -> output };
-
 /**
 * forward packets to the network
 * input[0] packets for the network
@@ -34,7 +32,7 @@ elementclass InputEth0{
 */
 elementclass System{
 
-	host :: KernelTun(fake:ip/16, HEADROOM $headroom, DEVNAME $HostDev);
+	host :: KernelTun(fake:ip/16, DEVNAME $HostDev);
 		-> fromhost_cl :: Classifier(12/0806, 12/0800);
 	fromhost_cl[0] 
 		-> ARPResponder(0.0.0.0/0 1:1:1:1:1:1) 
