@@ -13,7 +13,7 @@ AddressInfo(fake $EthDev);
 elementclass ToNetwork{
 	input[0]
 		-> Queue(2000)
-		-> ToDevice(wlan0);
+		-> ToDevice($EthDev, SNIFFER false);
 }
 
 elementclass FromNetwork{
