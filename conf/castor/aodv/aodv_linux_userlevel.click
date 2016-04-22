@@ -13,12 +13,12 @@ AddressInfo(fake $EthDev);
 elementclass ToNetwork{
 	input[0]
 		-> Queue(2000)
-		-> ToDevice($EthDev, SNIFFER false);
+		-> ToDevice($EthDev);
 }
 
 elementclass FromNetwork{
 	$myaddr_ethernet |
-	FromDevice(wlan0)
+	FromDevice($EthDev, SNIFFER false)
 		-> HostEtherFilter($myaddr_ethernet, DROP_OWN false, DROP_OTHER true)
 		-> output;
 }
