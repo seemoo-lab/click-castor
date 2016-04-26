@@ -13,7 +13,7 @@ int CastorAddAckToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 Packet* CastorAddAckToHistory::simple_action(Packet *p) {
-	CastorAck& ack = (CastorAck&) *p->data();
+	const CastorAck& ack = *reinterpret_cast<const CastorAck*>(p->data());
 	const PacketId& pid = CastorAnno::hash_anno(p);
 	if (history->hasAck(pid)) {
 		history->addAckFor(pid, CastorAnno::src_id_anno(p));
