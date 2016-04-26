@@ -97,6 +97,7 @@ public:
 	NodeId		src;
 	NodeId		dst;
 #endif
+	FlowId		fid;
 	AckAuth 	auth;
 };
 
