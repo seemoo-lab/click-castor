@@ -19,6 +19,7 @@ Packet* CastorCreateAck::simple_action(Packet* p) {
 	ack.type = CastorType::MERKLE_ACK;
 	ack.hsize = sizeof(AckAuth);
 	ack.len = htons(sizeof(CastorAck));
+	ack.fid  = pkt.fid;
 	ack.auth = flowtable->get(pkt.fid).aauths[ntohs(pkt.kpkt)];
 
 	WritablePacket* q = Packet::make(&ack, sizeof(CastorAck));

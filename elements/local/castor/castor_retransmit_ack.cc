@@ -21,7 +21,8 @@ void CastorRetransmitAck::push(int, Packet *p) {
 	CastorAck ack;
 	ack.type = CastorType::MERKLE_ACK;
 	ack.hsize = sizeof(Hash);
-	ack.len = sizeof(CastorAck);
+	ack.len = htons(sizeof(CastorAck));
+	ack.fid  = history->getFlowId(pkt.pid);
 	ack.auth = history->getAckAuth(pkt.pid);
 #ifdef DEBUG_ACK_SRCDST
 	ack.src = pkt.dst;
