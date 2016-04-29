@@ -33,14 +33,14 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	CastorPkt* header = reinterpret_cast<CastorPkt*>(q->data());
 	header->type = CastorType::MERKLE_PKT;
 	header->hsize = sizeof(Hash);
-	header->fsize = label.size;
-	header->arq = 0;
-	header->syn = include_n;
+	header->set_fsize(label.size);
+	header->unset_arq();
+	include_n ? header->set_syn() : header->unset_syn();
 	header->len = htons(p->length());
 #ifdef DEBUG_HOPCOUNT
-	header->hopcount = 0;
+	header->set_hopcount(0);
 #endif
-	header->fasize = fasize;
+	header->set_fasize(fasize);
 	header->src = src;
 	header->dst = dst;
 

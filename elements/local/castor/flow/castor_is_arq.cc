@@ -6,7 +6,7 @@
 CLICK_DECLS
 
 Packet* CastorIsARQ::simple_action(Packet *p) {
-	if (reinterpret_cast<const CastorPkt*>(p->data())->arq) {
+	if (reinterpret_cast<const CastorPkt*>(p->data())->arq()) {
 		output(1).push(p);
 		return 0;
 	} else {

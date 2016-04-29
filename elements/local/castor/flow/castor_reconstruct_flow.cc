@@ -16,7 +16,7 @@ int CastorReconstructFlow::configure(Vector<String> &conf, ErrorHandler *errh) {
 Packet* CastorReconstructFlow::simple_action(Packet *p) {
 	const CastorPkt& pkt = *reinterpret_cast<const CastorPkt*>(p->data());
 
-	assert(pkt.syn);
+	assert(pkt.syn());
 
 	CastorFlowEntry& e = flowtable->get(pkt.fid);
 
@@ -24,7 +24,7 @@ Packet* CastorReconstructFlow::simple_action(Packet *p) {
 		return p;
 	}
 
-	unsigned int size = 1 << pkt.fsize;
+	unsigned int size = 1 << pkt.fsize();
 	e.aauths = new Hash[size];
 	e.pids =   new Hash[size];
 	Buffer<32> key(crypto->getSharedKey(pkt.src)->data());

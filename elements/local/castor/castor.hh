@@ -52,16 +52,32 @@ public:
 	uint8_t 	type;    // = MERKLE_PKT
 	uint8_t 	hsize;   // size of the hash values in this header
 	uint16_t 	len;     // total length of the PKT (incl. payload)
-	uint8_t		syn : 1; // first PKT(s) of flow
-						 // 'syn' is set until the first ACK for the flow is received
-	uint8_t		arq : 1; // request retransmission of PKT
+private:
+	uint8_t		flags;
+public:
+	// first PKT(s) of flow
+	// 'syn' is set until the first ACK for the flow is received
+	inline bool syn() const { return (flags >> 7) & 1; }
+	inline void set_syn() { flags |= 1 << 7; }
+	inline void unset_syn() { flags &= ~(1 << 7); }
+	// request retransmission of PKT
+	inline bool arq() const { return (flags >> 6) & 1; }
+	inline void set_arq() { flags |= 1 << 6; }
+	inline void unset_arq() { flags &= ~(1 << 6); }
 #ifdef DEBUG_HOPCOUNT
-	uint8_t		hopcount : 6;
-#else
-	uint8_t		_        : 6; // padding
+	// hopcount
+	inline uint8_t hopcount() const { return flags & 0x3f; }
+	inline void set_hopcount(uint8_t hc) { flags = (flags & 0xc0) | (hc & 0x3f); }
 #endif
-	uint8_t 	fsize  : 4; // = Merkle tree height = log2(number of leaves)
-	uint8_t 	fasize : 4; // = number of flow authentication elements in [0..fsize]
+private:
+	uint8_t		flow_size;
+//	uint8_t 	fsize  : 4; // = Merkle tree height = log2(number of leaves)
+//	uint8_t 	fasize : 4; // = number of flow authentication elements in [0..fsize]
+public:
+	inline uint8_t     fsize () const    { return (flow_size >> 4) & 0x0f; }
+	inline void    set_fsize (uint8_t s) { flow_size = (flow_size & 0x0f) | (s << 4); }
+	inline uint8_t     fasize() const    { return flow_size & 0x0f; }
+	inline void    set_fasize(uint8_t s) { flow_size = (flow_size & 0xf0) | (s & 0x0f); }
 	uint16_t	kpkt; // the k-th packet of the current flow, necessary for flow validation (determines whether fauth[i] is left or right sibling in the Merkle tree)
 	NodeId		src;
 	NodeId		dst;
@@ -74,11 +90,11 @@ public:
 	inline Nonce* n() { return reinterpret_cast<Nonce*>((uint8_t*) this + sizeof(*this)); }
 	/* variable size 0..fsize */
 	// Hash fauth[fasize];
-	inline const Hash* fauth() const { return reinterpret_cast<const Hash*>((uint8_t*) this + sizeof(*this) + ((syn) ? sizeof(Nonce) : 0)); }
-	inline Hash* fauth() { return reinterpret_cast<Hash*>((uint8_t*) this + sizeof(*this) + ((syn) ? sizeof(Nonce) : 0)); }
+	inline const Hash* fauth() const { return reinterpret_cast<const Hash*>((uint8_t*) this + sizeof(*this) + ((syn()) ? sizeof(Nonce) : 0)); }
+	inline Hash* fauth() { return reinterpret_cast<Hash*>((uint8_t*) this + sizeof(*this) + ((syn()) ? sizeof(Nonce) : 0)); }
 
 	inline unsigned int header_len() const {
-		return sizeof(*this) + (syn ? sizeof(Nonce) : 0) + (unsigned int) fasize * hsize;
+		return sizeof(*this) + (syn() ? sizeof(Nonce) : 0) + (unsigned int) fasize() * hsize;
 	}
 	inline unsigned int payload_len() const {
 		return (unsigned int) ntohs(len) - header_len();
@@ -86,7 +102,7 @@ public:
 };
 
 /**
- * The Castor acknowledgement packet (ACK)
+ * The Castor acknowledgment packet (ACK)
  */
 class CastorAck {
 public:

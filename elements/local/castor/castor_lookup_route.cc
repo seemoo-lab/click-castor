@@ -25,7 +25,7 @@ Packet* CastorLookupRoute::simple_action(Packet *p){
 		return 0;
 	} else {
 #ifdef DEBUG_HOPCOUNT
-		header.hopcount++;
+		header.set_hopcount(header.hopcount() + 1);
 #endif
 		// Set annotation for destination and push Packet to Output
 		CastorAnno::dst_id_anno(p) = nextHop;

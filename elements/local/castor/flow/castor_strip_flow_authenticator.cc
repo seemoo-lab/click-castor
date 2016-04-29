@@ -6,24 +6,24 @@ CLICK_DECLS
 
 Packet* CastorStripFlowAuthenticator::simple_action(Packet *p) {
 	CastorPkt pkt = *reinterpret_cast<const CastorPkt*>(p->data());
-	Nonce n = pkt.syn ? *reinterpret_cast<const CastorPkt*>(p->data())->n() : Nonce();
+	Nonce n = pkt.syn() ? *reinterpret_cast<const CastorPkt*>(p->data())->n() : Nonce();
 
-	if (pkt.fasize == 0)
+	if (pkt.fasize() == 0)
 		return p;
 
 	WritablePacket* q = p->uniqueify();
 
 	// remove flow authenticator
-	unsigned int diff = pkt.fasize * pkt.hsize;
+	unsigned int diff = pkt.fasize() * pkt.hsize;
 	q->pull(diff);
 
 	// update length fields
 	pkt.len = htons(ntohs(pkt.len) - diff);
-	pkt.fasize = 0;
+	pkt.set_fasize(0);
 
 	// write back header to Packet
 	memcpy(q->data(), &pkt, sizeof(pkt));
-	if (pkt.syn)
+	if (pkt.syn())
 		*reinterpret_cast<CastorPkt*>(q->data())->n() = n;
 
 	return q;

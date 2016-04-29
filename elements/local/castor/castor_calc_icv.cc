@@ -25,9 +25,9 @@ Packet* CastorCalcICV::simple_action(Packet *p) {
 	}
 
 	assert(pkt.icv == ICV());
-	assert(pkt.fasize == 0);
+	assert(pkt.fasize() == 0);
 #ifdef DEBUG_HOPCOUNT
-	assert(pkt.hopcount == 0);
+	assert(pkt.hopcount() == 0);
 #endif
 
 	crypto->auth(pkt.icv, q->data(), ntohs(pkt.len), sk->data());

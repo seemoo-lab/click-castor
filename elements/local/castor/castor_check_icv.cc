@@ -29,13 +29,13 @@ Packet* CastorCheckICV::simple_action(Packet *p) {
 
 	const CastorPkt orig = pkt;
 #ifdef DEBUG_HOPCOUNT
-	pkt.hopcount = 0;
+	pkt.set_hopcount(0);
 #endif
 	pkt.icv = ICV();
 	crypto->auth(pkt.icv, q->data(), ntohs(pkt.len), sk->data());
 
 #ifdef DEBUG_HOPCOUNT
-	pkt.hopcount = orig.hopcount;
+	pkt.set_hopcount(orig.hopcount());
 #endif
 
 	if (pkt.icv != orig.icv) {

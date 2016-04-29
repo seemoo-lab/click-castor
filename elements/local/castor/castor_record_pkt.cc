@@ -39,7 +39,7 @@ Packet* CastorRecordPkt::simple_action(Packet *p) {
 		}
 		size_payload += pkt.payload_len();
 #ifdef DEBUG_HOPCOUNT
-		hopcounts.push_back(new UintListNode(pkt.hopcount));
+		hopcounts.push_back(new UintListNode(pkt.hopcount()));
 #endif
 	} else if (CastorPacket::getType(p) == CastorType::ACK) {
 		if(CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast())

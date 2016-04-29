@@ -6,7 +6,7 @@ CLICK_DECLS
 
 Packet* CastorIsSync::simple_action(Packet* p) {
 	const CastorPkt& pkt = *reinterpret_cast<const CastorPkt*>(p->data());
-	if (pkt.syn) {
+	if (pkt.syn()) {
 		output(1).push(p);
 		return 0;
 	}

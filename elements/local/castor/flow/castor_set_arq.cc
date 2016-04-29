@@ -12,11 +12,14 @@ int CastorSetARQ::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 Packet* CastorSetARQ::simple_action(Packet *p) {
-	if (reinterpret_cast<const CastorPkt*>(p->data())->arq == _arq) {
+	if (reinterpret_cast<const CastorPkt*>(p->data())->arq() == _arq) {
 		return p;
 	} else {
 		WritablePacket* q = p->uniqueify();
-		reinterpret_cast<CastorPkt*>(q->data())->arq = _arq;
+		if (_arq)
+			reinterpret_cast<CastorPkt*>(q->data())->set_arq();
+		else
+			reinterpret_cast<CastorPkt*>(q->data())->unset_arq();
 		return q;
 	}
 }
