@@ -7,7 +7,7 @@ crypto::Crypto(sam);
 flowtable :: CastorFlowTable(crypto);
 flowmanager :: CastorFlowManager($flowSize, flowtable, crypto);
 
-groupmap :: CastorXcastDestinationMap;
+groupmap :: XcastDestinationMap;
 
 neighbors :: Neighbors($neighborTimeout, $neighborsEnable);
 history :: CastorHistory;

@@ -9,9 +9,9 @@
 
 CLICK_DECLS
 
-class CastorXcastDestinationMap: public Element {
+class XcastDestinationMap: public Element {
 public:
-	const char *class_name() const	{ return "CastorXcastDestinationMap"; }
+	const char *class_name() const	{ return "XcastDestinationMap"; }
 	const char *port_count() const	{ return PORTS_0_0; }
 	const char *processing() const	{ return AGNOSTIC; }
 

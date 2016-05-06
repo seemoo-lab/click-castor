@@ -7,7 +7,7 @@ CLICK_DECLS
 int FloodingDestinationClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 			.read_mp("ID", myIP)
-			.read_mp("MAP", ElementCastArg("CastorXcastDestinationMap"), map)
+			.read_mp("MAP", ElementCastArg("XcastDestinationMap"), map)
 			.complete();
 }
 

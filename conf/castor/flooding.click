@@ -63,7 +63,7 @@ fromhostdev -> fromhost :: FromHost(fake);
 tohost :: ToHost() -> tohostdev;
 Idle() -> [1]tohost;
 
-groupmap :: CastorXcastDestinationMap;
+groupmap :: XcastDestinationMap;
 
 handleIpPacket :: HandleIPPacket(groupmap);
 handlepkt :: FloodingHandlePkt(fake, groupmap);

@@ -5,7 +5,7 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 	$myAddrInfo, $flowmanager, $flowtable, $crypto, $map |
 
 	input
-	-> CastorXcastToUnicast($map)
+	-> XcastToUnicast($map)
 	=> (input[0] -> output;
 		input[1] -> SetIPChecksum -> output;)
 	-> CastorAddHeader($flowmanager, $flowtable, $forceNonce)

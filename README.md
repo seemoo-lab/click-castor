@@ -16,7 +16,7 @@ This repository contains **Castor (v2)** implementation for the [Click Modular R
 This section gives a rough overview where relevant code for Castor (v2) is located.
 * `conf/castor/`: Click script files.
   * `castor_settings.click`: common settings, e.g., defining whether to run as userlevel or ns-3 module; Castor-specific parameters; ...
-  * `castor_multicast_via_unicast_routing.click`: **Castor (v2)** run configuration.
+  * `castor_unicast_routing.click`: **Castor (v2)** run configuration.
   * other `.click`: shared modules which are included by the main files (above).
 * `elements/castor/`: C++ source code.
   * `routing/`: main code base: routing logic
@@ -69,9 +69,9 @@ make elemlist all
 ```bash
 cd <CLICK_DIR>
 # Run Castor ...
-userlevel/click conf/castor/castor_multicast_via_unicast_routing.click
+userlevel/click conf/castor/castor_unicast_routing.click
 # ... or with non-standard network interface:
-userlevel/click EthDev=wlanX conf/castor/castor_multicast_via_unicast_routing.click
+userlevel/click EthDev=wlanX conf/castor/castor_unicast_routing.click
 ```
 
 ## Access Element Handlers

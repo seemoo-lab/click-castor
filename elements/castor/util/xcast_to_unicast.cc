@@ -1,16 +1,16 @@
 #include <click/config.h>
 #include <click/args.hh>
-#include "castor_xcast_to_unicast.hh"
+#include "xcast_to_unicast.hh"
 
 CLICK_DECLS
 
-int CastorXcastToUnicast::configure(Vector<String> &conf, ErrorHandler *errh) {
+int XcastToUnicast::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
-			.read_mp("MAP", ElementCastArg("CastorXcastDestinationMap"), map)
+			.read_mp("MAP", ElementCastArg("XcastDestinationMap"), map)
 			.complete();
 }
 
-void CastorXcastToUnicast::push(int, Packet *p) {
+void XcastToUnicast::push(int, Packet *p) {
 	// Extract source and destination from packet
 	const GroupId& destination = reinterpret_cast<const GroupId&>(p->ip_header()->ip_dst);
 	if (destination.is_multicast()) {
@@ -31,4 +31,4 @@ void CastorXcastToUnicast::push(int, Packet *p) {
 }
 
 CLICK_ENDDECLS
-EXPORT_ELEMENT(CastorXcastToUnicast)
+EXPORT_ELEMENT(XcastToUnicast)

@@ -2,8 +2,8 @@
 #define CLICK_FLOODING_RECORD_PKT_HH
 
 #include <click/element.hh>
-#include "../routing/castor_record_pkt.hh"
-#include "../routing/castor_xcast_destination_map.hh"
+#include "../util/castor_record_pkt.hh"
+#include "../util/xcast_destination_map.hh"
 
 CLICK_DECLS
 
@@ -16,7 +16,7 @@ public:
 
 	Packet* simple_action(Packet *);
 private:
-	CastorXcastDestinationMap* map;
+	XcastDestinationMap* map;
 };
 
 CLICK_ENDDECLS

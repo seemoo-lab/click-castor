@@ -1,23 +1,24 @@
 #include <click/config.h>
 #include <click/args.hh>
-#include "castor_xcast_destination_map.hh"
+#include "xcast_destination_map.hh"
+
 
 CLICK_DECLS
 
-const Vector<NodeId>& CastorXcastDestinationMap::get(const GroupId& group) const {
+const Vector<NodeId>& XcastDestinationMap::get(const GroupId& group) const {
 	if (map.count(group) == 0)
 		return empty;
 	else
 		return map[group];
 }
 
-int CastorXcastDestinationMap::insert(const GroupId& group, const Vector<NodeId>& dests) {
+int XcastDestinationMap::insert(const GroupId& group, const Vector<NodeId>& dests) {
 	map.set(group, dests);
 	return 0;
 }
 
-int CastorXcastDestinationMap::write_handler(const String& str, Element* e, void*, ErrorHandler* errh) {
-	CastorXcastDestinationMap* map = (CastorXcastDestinationMap*) e;
+int XcastDestinationMap::write_handler(const String& str, Element* e, void*, ErrorHandler* errh) {
+	XcastDestinationMap* map = (XcastDestinationMap*) e;
 
 	GroupId group;
 	Vector<NodeId> dsts;
@@ -31,9 +32,9 @@ int CastorXcastDestinationMap::write_handler(const String& str, Element* e, void
 	return map->insert(group, dsts);
 }
 
-void CastorXcastDestinationMap::add_handlers() {
+void XcastDestinationMap::add_handlers() {
 	add_write_handler("insert", write_handler, 0);
 }
 
 CLICK_ENDDECLS
-EXPORT_ELEMENT(CastorXcastDestinationMap)
+EXPORT_ELEMENT(XcastDestinationMap)

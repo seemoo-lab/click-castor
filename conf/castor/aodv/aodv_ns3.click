@@ -4,7 +4,7 @@
 
 require(library aodv_core.click);
 
-groupmap :: CastorXcastDestinationMap;
+groupmap :: XcastDestinationMap;
 
 AddressInfo(fake eth0); /**for ns3 simulation**/
 

@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include "flooding.hh"
-#include "../routing/castor_xcast_destination_map.hh"
+#include "../util/xcast_destination_map.hh"
 
 CLICK_DECLS
 
@@ -16,7 +16,7 @@ public:
 
 	void push(int, Packet *);
 private:
-	CastorXcastDestinationMap* map;
+	XcastDestinationMap* map;
 	IPAddress myIP;
 };
 
