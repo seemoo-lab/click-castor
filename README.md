@@ -1,5 +1,5 @@
-# Castor/Xcastor in Click
-This repository contains **Castor** and its multicast extension **Xcastor** implementations for the [Click Modular Router](http://www.read.cs.ucla.edu/click/).
+# Castor (v2) in Click
+This repository contains **Castor (v2)** implementation for the [Click Modular Router](http://www.read.cs.ucla.edu/click/).
 
 ## Table of Contents
 * [Code Naviation](#code-navigation)
@@ -13,39 +13,39 @@ This repository contains **Castor** and its multicast extension **Xcastor** impl
 * [Related Publications](#related-publications)
 
 ## Code Navigation
-This section gives a rough overview where relevant code for Castor/Xcastor is located.
+This section gives a rough overview where relevant code for Castor (v2) is located.
 * `conf/castor/`: Click script files.
   * `castor_settings.click`: common settings, e.g., defining whether to run as userlevel or ns-3 module; Castor-specific parameters; ...
-  * `castor_multicast_via_unicast_routing.click`: **Castor** run configuration.
-  * `castor_xcast_routing.click`: **Xcastor** run configuration.
+  * `castor_multicast_via_unicast_routing.click`: **Castor (v2)** run configuration.
   * other `.click`: shared modules which are included by the main files (above).
-* `elements/local/`: C++ source code.
-  * `castor/`: main code base, code only relevant for Xcastor is prefixed with `castor_xcast*`.
+* `elements/castor/`: C++ source code.
+  * `routing/`: main code base: routing logic
+  * `flow/`: flow generation and recontruction
   * `neighbordiscovery/`: reusable simple neighbor discovery protocol.
   * `flooding/`: "stupid" flooding protocol (was used to compare performance with Xcastor).
 
 ## Install
 ### Prerequisites
 * **libsodium**. To compile Castor, the [libsodium](https://download.libsodium.org/doc/) crypto library is required.
-The only `Element` requiring this library is `elements/local/castor/crypto/crypto.cc`, which performs all relevant crypto operations in Castor.
+The only `Element` requiring this library is `elements/castor/crypto/crypto.cc`, which performs all relevant crypto operations in Castor.
 If libsodium is installed in a non-standard path, you need to include an appropriate linker flag such as `LDFLAGS="-L<lib_dir>"`.
 Up-to-date installation instructions for libsodium can be found [here](https://download.libsodium.org/doc/installation/index.html).
-* **C++11**. The Castor and Xcastor implementations use some C\++11, e.g., `auto`, and, thus, require a compatible compiler. You might have to enforce `CXXFLAGS="-std=c++11"`.
+* **C++11**. The Castor (v2) implementation uses some C\++11 features, e.g., `auto`. You might have to enable those features with `CXXFLAGS="-std=c++11"`.
 
 ### General Build Instructions
 Click can be built as a regular userlevel or ns-3 module.
-After cloning this repository, configure Click with `--enable-local` (include Castor modules in `elements/local/` directory) and the appropriate target. More detailed build instructions for Click can be found in the official INSTALL file.
+After cloning this repository, configure Click with `--enable-castor` and the appropriate target. More detailed build instructions for Click can be found in the official INSTALL file.
 * userlevel: `--enable-userlevel --disable-linuxmodule`
 * ns-3: `--enable-nsclick --disable-userlevelm --disable-linuxmodule`
-* can be omitted for Castor/Xcastor (to speed up compliation process): `--disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools`
+* can be omitted for Castor (to speed up compliation process): `--disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools`
 
 ```bash
 git clone <PROJECT>
 cd click-castor
 # Configure (userlevel)
-./configure --enable-local --enable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
+./configure --enable-castor --enable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
 # Configure (ns-3)
-./configure --enable-local --enable-nsclick --disable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
+./configure --enable-castor --enable-nsclick --disable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
 # Build
 make
 ```
@@ -53,7 +53,7 @@ make
 ### Cross Compilation
 To build Click for a different architecture (such as i386 in our mesh nodes) on a x64 machine, you can cross compile using the `--host=i386-linux-gnu` (make sure to include the proper header files, e.g., `chroot` in the target file system):
 ```bash
-./configure --host=i386-linux-gnu --enable-local --enable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
+./configure --host=i386-linux-gnu --enable-castor --enable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
 ```
 
 ### Extending the Code
@@ -72,8 +72,6 @@ cd <CLICK_DIR>
 userlevel/click conf/castor/castor_multicast_via_unicast_routing.click
 # ... or with non-standard network interface:
 userlevel/click EthDev=wlanX conf/castor/castor_multicast_via_unicast_routing.click
-# Run Xcastor
-userlevel/click conf/castor/castor_xcast_routing.click
 ```
 
 ## Access Element Handlers

@@ -830,6 +830,7 @@ enable_local
 enable_radio
 enable_simple
 enable_aodv
+enable_castor
 enable_standard
 enable_tcpudp
 enable_test
@@ -1520,6 +1521,7 @@ Optional Features:
   --enable-radio          include radio elements
   --disable-simple        do not include simple versions of other elements
   --enable-aodv           include AODV
+  --enable-castor         include Castor/Beaver
   --disable-standard      do not include standard elements
   --disable-tcpudp        do not include TCP and UDP elements
   --disable-test          do not include regression test elements
@@ -7068,6 +7070,17 @@ else
 fi
 test "x$enable_all_elements" = xyes -a \( "x$enable_aodv" = xNO -o "x$enable_aodv" = x \) && enable_aodv=yes
 if test "x$enable_aodv" = xyes; then
+    :
+
+fi
+# Check whether --enable-castor was given.
+if test "${enable_castor+set}" = set; then :
+  enableval=$enable_castor;
+else
+  enable_castor=NO
+fi
+test "x$enable_all_elements" = xyes -a \( "x$enable_castor" = xNO -o "x$enable_castor" = x \) && enable_castor=yes
+if test "x$enable_castor" = xyes; then
     :
 
 fi
