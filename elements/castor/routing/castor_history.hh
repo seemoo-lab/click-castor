@@ -5,8 +5,8 @@
 #include <click/vector.hh>
 #include <click/hashtable.hh>
 #include <click/timestamp.hh>
-#include "castor.hh"
-#include "../neighbordiscovery/neighbor_id.hh"
+#include "../castor.hh"
+#include "../neighbor_id.hh"
 
 CLICK_DECLS
 

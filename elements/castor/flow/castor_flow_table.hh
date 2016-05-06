@@ -6,7 +6,7 @@
 #include "../castor.hh"
 #include "../crypto/crypto.hh"
 #include "merkle_tree.hh"
-#include "../../neighbordiscovery/neighbor_id.hh"
+#include "../neighbor_id.hh"
 #include "bitset.hh"
 
 CLICK_DECLS

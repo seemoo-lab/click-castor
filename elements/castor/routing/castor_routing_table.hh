@@ -3,8 +3,8 @@
 
 #include <click/element.hh>
 #include <click/hashtable.hh>
-#include "castor.hh"
-#include "../neighbordiscovery/neighbor_id.hh"
+#include "../castor.hh"
+#include "../neighbor_id.hh"
 #include "castor_estimator.hh"
 
 CLICK_DECLS

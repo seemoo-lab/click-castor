@@ -1,7 +1,7 @@
 #include <click/config.h>
 #include <click/args.hh>
 #include "castor_no_loopback.hh"
-#include "castor_anno.hh"
+#include "../castor_anno.hh"
 
 CLICK_DECLS
 

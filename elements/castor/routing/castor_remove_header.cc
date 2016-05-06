@@ -1,6 +1,6 @@
 #include <click/config.h>
 #include "castor_remove_header.hh"
-#include "castor.hh"
+#include "../castor.hh"
 
 CLICK_DECLS
 

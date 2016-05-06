@@ -2,7 +2,7 @@
 #define CLICK_CASTOR_ANNO_HH
 
 #include <click/packet_anno.hh>
-#include "../neighbordiscovery/neighbor_id.hh"
+#include "neighbor_id.hh"
 #include "hash.hh"
 
 CLICK_DECLS

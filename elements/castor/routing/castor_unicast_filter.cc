@@ -2,8 +2,8 @@
 #include <click/args.hh>
 #include <click/hashtable.hh>
 #include "castor_unicast_filter.hh"
-#include "castor.hh"
-#include "castor_anno.hh"
+#include "../castor.hh"
+#include "../castor_anno.hh"
 
 CLICK_DECLS
 

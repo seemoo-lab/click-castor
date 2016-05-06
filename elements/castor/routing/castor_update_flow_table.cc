@@ -1,8 +1,8 @@
 #include <click/config.h>
 #include <click/args.hh>
 #include "castor_update_flow_table.hh"
-#include "castor.hh"
-#include "castor_anno.hh"
+#include "../castor.hh"
+#include "../castor_anno.hh"
 
 CLICK_DECLS
 

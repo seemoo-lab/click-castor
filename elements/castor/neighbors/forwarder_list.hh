@@ -1,7 +1,7 @@
 #ifndef CLICK_FORWARDER_LIST_HH
 #define CLICK_FORWARDER_LIST_HH
 
-#include "../../neighbordiscovery/neighbor_id.hh"
+#include "../neighbor_id.hh"
 
 CLICK_DECLS
 

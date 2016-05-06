@@ -2,7 +2,7 @@
 #define CLICK_CASTOR_DEST_CLASSIFIER_HH
 
 #include <click/element.hh>
-#include "castor.hh"
+#include "../castor.hh"
 
 CLICK_DECLS
 

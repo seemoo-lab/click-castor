@@ -2,8 +2,8 @@
 #define CLICK_CASTOR_ANNOTATE_ID_HH
 
 #include <click/element.hh>
-#include "castor.hh"
-#include "../neighbordiscovery/neighbor_id.hh"
+#include "../castor.hh"
+#include "../neighbor_id.hh"
 
 CLICK_DECLS
 

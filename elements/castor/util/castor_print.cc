@@ -3,8 +3,8 @@
 #include <click/straccum.hh>
 #include <click/timestamp.hh>
 #include "castor_print.hh"
-#include "castor.hh"
-#include "castor_anno.hh"
+#include "../castor.hh"
+#include "../castor_anno.hh"
 
 CLICK_DECLS
 

@@ -3,11 +3,11 @@
 
 #include <click/element.hh>
 #include <click/timer.hh>
-#include "castor.hh"
+#include "../castor.hh"
 #include "castor_routing_table.hh"
 #include "castor_timeout_table.hh"
 #include "castor_history.hh"
-#include "ratelimiter/castor_rate_limit_table.hh"
+#include "../ratelimiter/castor_rate_limit_table.hh"
 
 CLICK_DECLS
 

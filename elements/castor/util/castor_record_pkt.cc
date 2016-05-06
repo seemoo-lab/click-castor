@@ -2,7 +2,7 @@
 #include <click/args.hh>
 #include <click/straccum.hh>
 #include "castor_record_pkt.hh"
-#include "castor_anno.hh"
+#include "../castor_anno.hh"
 
 CLICK_DECLS
 

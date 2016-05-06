@@ -1,7 +1,7 @@
 #include <click/config.h>
 #include <click/args.hh>
 #include "castor_check_icv.hh"
-#include "castor.hh"
+#include "../castor.hh"
 
 CLICK_DECLS
 

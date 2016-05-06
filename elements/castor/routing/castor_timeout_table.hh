@@ -3,9 +3,9 @@
 
 #include <click/element.hh>
 #include <click/hashtable.hh>
-#include "castor.hh"
+#include "../castor.hh"
 #include "castor_timeout.hh"
-#include "../neighbordiscovery/neighbor_id.hh"
+#include "../neighbor_id.hh"
 
 CLICK_DECLS
 

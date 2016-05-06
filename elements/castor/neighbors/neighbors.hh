@@ -6,7 +6,7 @@
 #include <click/list.hh>
 #include <click/timer.hh>
 #include <click/timestamp.hh>
-#include "neighbor_id.hh"
+#include "../neighbor_id.hh"
 
 CLICK_DECLS
 

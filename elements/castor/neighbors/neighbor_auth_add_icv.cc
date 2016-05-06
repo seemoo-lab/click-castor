@@ -3,7 +3,7 @@
 #include "neighbor_auth_add_icv.hh"
 #include "../castor_anno.hh"
 #include "../castor.hh"
-#include "../forwardfilter/forwarder_list.hh"
+#include "forwarder_list.hh"
 
 CLICK_DECLS
 

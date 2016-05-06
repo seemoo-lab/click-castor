@@ -2,7 +2,7 @@
 #define CLICK_CASTOR_UPDATE_FLOW_TABLE_HH
 
 #include <click/element.hh>
-#include "flow/castor_flow_table.hh"
+#include "../flow/castor_flow_table.hh"
 #include "castor_history.hh"
 
 CLICK_DECLS

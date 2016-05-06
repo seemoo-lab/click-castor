@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include "castor_history.hh"
-#include "../neighbordiscovery/neighbors.hh"
+#include "../neighbors/neighbors.hh"
 
 CLICK_DECLS
 

@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include "flooding.hh"
-#include "../castor/castor_xcast_destination_map.hh"
+#include "../routing/castor_xcast_destination_map.hh"
 
 CLICK_DECLS
 

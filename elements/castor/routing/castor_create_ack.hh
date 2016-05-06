@@ -2,7 +2,7 @@
 #define CLICK_CASTOR_CREATE_ACK_HH
 
 #include <click/element.hh>
-#include "flow/castor_flow_table.hh"
+#include "../flow/castor_flow_table.hh"
 
 CLICK_DECLS
 

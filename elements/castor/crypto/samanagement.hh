@@ -5,7 +5,7 @@
 #include <click/hashtable.hh>
 #include "securityassociation.hh"
 #include "../node_id.hh"
-#include "../../neighbordiscovery/neighbor_id.hh"
+#include "../neighbor_id.hh"
 
 CLICK_DECLS
 

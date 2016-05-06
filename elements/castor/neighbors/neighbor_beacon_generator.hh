@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include <click/timer.hh>
-#include "neighbor_id.hh"
+#include "../neighbor_id.hh"
 
 #define ETHERTYPE_BEACON 0x88B5 // 0x88B5 and 0x88B6 reserved for private experiments, so we use them
 

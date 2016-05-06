@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include "castor_rate_limit_table.hh"
-#include "../castor_history.hh"
+#include "../routing/castor_history.hh"
 
 CLICK_DECLS
 

@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include <click/hashtable.hh>
-#include "../../neighbordiscovery/neighbor_id.hh"
+#include "../neighbor_id.hh"
 #include "castor_rate_limit.hh"
 
 CLICK_DECLS

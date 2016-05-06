@@ -1,8 +1,8 @@
 #include <click/config.h>
 #include <click/args.hh>
 #include "castor_lookup_route.hh"
-#include "castor.hh"
-#include "castor_anno.hh"
+#include "../castor.hh"
+#include "../castor_anno.hh"
 
 CLICK_DECLS
 

@@ -1,7 +1,7 @@
 #include <click/config.h>
 #include <click/args.hh>
 #include "add_neighbor.hh"
-#include "../castor/castor_anno.hh"
+#include "../castor_anno.hh"
 
 CLICK_DECLS
 

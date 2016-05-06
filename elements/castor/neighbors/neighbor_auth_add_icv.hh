@@ -2,7 +2,7 @@
 #define CLICK_NEIGHBOR_AUTH_ADD_ICV_HH
 
 #include <click/element.hh>
-#include "../../neighbordiscovery/neighbors.hh"
+#include "neighbors.hh"
 #include "../crypto/crypto.hh"
 
 CLICK_DECLS

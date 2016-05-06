@@ -2,7 +2,7 @@
 #define CLICK_CASTOR_CALC_ICV_HH
 
 #include <click/element.hh>
-#include "crypto/crypto.hh"
+#include "../crypto/crypto.hh"
 
 CLICK_DECLS
 

@@ -5,7 +5,7 @@
 #include <click/hashtable.hh>
 #include <click/tokenbucket.hh>
 #include <click/timer.hh>
-#include "../../neighbordiscovery/neighbor_id.hh"
+#include "../neighbor_id.hh"
 #include "castor_rate_limit_table.hh"
 #include "ring_buffer.hh"
 

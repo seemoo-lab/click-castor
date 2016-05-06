@@ -4,7 +4,7 @@
 #include <click/element.hh>
 #include <click/timestamp.hh>
 #include <click/list.hh>
-#include "castor.hh"
+#include "../castor.hh"
 
 CLICK_DECLS
 

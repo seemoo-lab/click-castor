@@ -2,7 +2,7 @@
 #define CLICK_CASTOR_ANNOTATE_PID_HH
 
 #include <click/element.hh>
-#include "crypto/crypto.hh"
+#include "../crypto/crypto.hh"
 
 CLICK_DECLS
 

@@ -2,7 +2,7 @@
 #define CLICK_CASTOR_NO_LOOPBACK_HH
 
 #include <click/element.hh>
-#include "castor.hh"
+#include "../castor.hh"
 #include "castor_history.hh"
 
 CLICK_DECLS

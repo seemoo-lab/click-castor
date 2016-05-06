@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include "castor_history.hh"
-#include "flow/castor_flow_table.hh"
+#include "../flow/castor_flow_table.hh"
 
 CLICK_DECLS
 
