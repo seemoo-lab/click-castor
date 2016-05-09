@@ -131,7 +131,7 @@ libclick.a: Makefile $(LIBOBJS)
 	$(call verbose_cmd,$(AR_CREATE) libclick.a $(LIBOBJS),AR libclick.a)
 	$(call verbose_cmd,$(RANLIB),RANLIB,libclick.a)
 	
-	cp $(BASEPATH)/android-ndk-r6b/platforms/android-9/arch-arm/usr/lib/crt* .	
+	cp $(BASEPATH)/android-ndk-r10e/platforms/android-9/arch-arm/usr/lib/crt* .
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	cd $(top_builddir) \
