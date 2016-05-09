@@ -86,15 +86,15 @@ STD_ELEMENT_OBJS = addressinfo.o alignmentinfo.o \
 OBJS = $(ELEMENT_OBJS) $(ELEMENTSCONF).o click.o
 
 CPPFLAGS =  -DCLICK_USERLEVEL -DCLICK_ANDROID -c
-CFLAGS = -fpic -ffunction-sections -funwind-tables -fstack-protector -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__  -Wno-psabi -march=armv5te -mtune=xscale -msoft-float -fexceptions -mthumb -Os -fomit-frame-pointer -fno-strict-aliasing -finline-limit=64 -I/$(BASEPATH)/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.6/include -I$(BASEPATH)/android-ndk-r10/samples/hello-jni/jni -DANDROID  -Wa,--noexecstack   -O0 -g   -I/$(BASEPATH)/android-ndk-r10/platforms/android-19/arch-arm/usr/include -I/$(BASEPATH)/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.6/libs/armeabi/include/
-CXXFLAGS = -fpic -ffunction-sections -funwind-tables -fstack-protector -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__  -Wno-psabi -march=armv5te -mtune=xscale -msoft-float -fexceptions -frtti -mthumb -Os -fomit-frame-pointer -fno-strict-aliasing -finline-limit=64 -DANDROID  -Wa,--noexecstack   -O0 -g -I/$(BASEPATH)/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.8/include -I/$(BASEPATH)/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/include/ -I/$(BASEPATH)/android-ndk-r10/platforms/android-19/arch-arm/usr/include
+CFLAGS = -fPIC -ffunction-sections -funwind-tables -fstack-protector -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__  -Wno-psabi -march=armv5te -mtune=xscale -msoft-float -fexceptions -mthumb -Os -fomit-frame-pointer -fno-strict-aliasing -finline-limit=64 -I/$(BASEPATH)/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.6/include -I$(BASEPATH)/android-ndk-r10/samples/hello-jni/jni -DANDROID  -Wa,--noexecstack   -O0 -g   -I/$(BASEPATH)/android-ndk-r10/platforms/android-19/arch-arm/usr/include -I/$(BASEPATH)/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.6/libs/armeabi/include/
+CXXFLAGS = -fPIC -ffunction-sections -funwind-tables -fstack-protector -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__  -Wno-psabi -march=armv5te -mtune=xscale -msoft-float -fexceptions -frtti -mthumb -Os -fomit-frame-pointer -fno-strict-aliasing -finline-limit=64 -DANDROID  -Wa,--noexecstack   -O0 -g -I/$(BASEPATH)/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.8/include -I/$(BASEPATH)/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/include/ -I/$(BASEPATH)/android-ndk-r10/platforms/android-19/arch-arm/usr/include
 
 
 DEFS = -DHAVE_CONFIG_H
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include \
 	-I$(srcdir) -I$(top_srcdir)  
 	
-LDFLAGS = -L$(BASEPATH)/android-ndk-r10/platforms/android-19/arch-arm/usr/lib -L/$(BASEPATH)/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a -L./lib -lgnustl_shared -lsodium
+LDFLAGS = -L$(BASEPATH)/android-ndk-r10/platforms/android-19/arch-arm/usr/lib -L/$(BASEPATH)/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a -L./lib -lgnustl_shared -lsodium -pie
 
 LIBS = $(ELEMENT_LIBS)
 
@@ -123,6 +123,7 @@ ifneq ($(MAKECMDGOALS),clean)
 endif
 
 $(DRIVER): Makefile libclick.a $(OBJS)
+	@cp -r ../elements/local/* ../elements/userlevel/
 	$(call cxxlink,$(DL_LDFLAGS) $(OBJS) libclick.a $(LIBS),LINK)
 	#$(call cxxlink,-rdynamic $(OBJS) libclick.a $(LIBS),LINK)
 	
@@ -137,11 +138,10 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 elemlist:
-	@cp -r ../elements/local/* ../elements/userlevel/
 	@rm -f elements.conf elements.csmk
 	@$(MAKE) elements.conf
 $(ELEMENTSCONF).conf: $(top_builddir)/config.status $(CLICK_BUILDTOOL)
-	$(call verbose_cmd,echo "userlevel  analysis app aqm ethernet icmp ip simple standard tcpudp test threads @element_groups@" | $(CLICK_BUILDTOOL) findelem -r userlevel -p $(top_srcdir) -X $(srcdir)/elements.exclude $(FINDELEMFLAGS) >,FINDELEMENTS,elements.conf)
+	$(call verbose_cmd,echo "userlevel aodv analysis app aqm ethernet icmp ip simple standard tcpudp test threads @element_groups@" | $(CLICK_BUILDTOOL) findelem -r userlevel -p $(top_srcdir) -X $(srcdir)/elements.exclude $(FINDELEMFLAGS) >,FINDELEMENTS,elements.conf)
 $(ELEMENTSCONF).mk: $(ELEMENTSCONF).conf $(CLICK_BUILDTOOL)
 	$(call verbose_cmd,$(CLICK_BUILDTOOL) elem2make -x "$(STD_ELEMENT_OBJS)" < $(ELEMENTSCONF).conf >,CREATE,$(ELEMENTSCONF).mk)
 $(ELEMENTSCONF).cc: $(ELEMENTSCONF).conf $(CLICK_BUILDTOOL)
