@@ -23,7 +23,7 @@ elementclass CastorClassifier {
 		-> forwarderFilter :: ForwarderFilter($myAddr)
 		-> NeighborAuthCheckICV(crypto)
 		=> ( [0] -> NeighborAuthStripICV -> output;
-		     [1] -> CastorPrint("No valid neighbor-to-neighbor ICV", fake) -> Discard; )
+		     [1] /*-> CastorPrint("No valid neighbor-to-neighbor ICV", fake)*/ -> Discard; )
 		-> removeForwarderList :: RemoveForwarderList
 		-> cclassifier :: Classifier(0/c?, 0/a?, -);
 
