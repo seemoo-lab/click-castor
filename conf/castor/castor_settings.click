@@ -19,7 +19,7 @@ define(
 	$maxTo 60000, // 1 minute
 
 	/** Rate limit boundaries (in PKTs/sec) */
-	$ratelimitEnable true,
+	$ratelimitEnable false,
 	$initRate   4,
 	$minRate    1,
 	$maxRate 1024,
