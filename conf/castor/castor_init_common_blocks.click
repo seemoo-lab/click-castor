@@ -18,7 +18,7 @@ ratelimits :: CastorRateLimitTable(INIT $initRate, MIN $minRate, MAX $maxRate);
 castorclassifier :: CastorClassifier(fake, neighbors)
 ratelimiter :: CastorRateLimiter($ratelimitEnable, ratelimits, $bucketSize);
 
-replaystore :: ReplayStore($replayInterval, $replayCount);
+replaystore :: ReplayStore($replayInterval, $replayJitter, $replayCount);
 
 fromextdev -> castorclassifier;
 ethout :: OutputEth($broadcastJitter) -> toextdev;

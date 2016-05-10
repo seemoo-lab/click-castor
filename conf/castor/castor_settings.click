@@ -42,6 +42,7 @@ define(
 
 	/** Attacks */
 	$replayInterval 1000, // in ms
+	$replayJitter    300, // in ms
 	$replayCount       5, // how often a PKT-ACK pair will be replayed
 );
 

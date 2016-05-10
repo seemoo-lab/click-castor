@@ -8,6 +8,7 @@ CLICK_DECLS
 int ReplayStore::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 			.read_or_set_p("INTERVAL", interval, 500)
+			.read_or_set_p("JITTER", jitter, 100)
 			.read_or_set_p("REPLAY_MAX", replays_max, 10)
 			.read_or_set_p("ENABLE", enable, false)
 			.complete();
@@ -17,7 +18,7 @@ void ReplayStore::add_pkt(const Hash& id, Packet* p) {
 	if (!enable || table.count(id) > 0) {
 		p->kill();
 	} else {
-		table[id] = new ReplayTimer(this, id, p, replays_max, interval);
+		table[id] = new ReplayTimer(this, id, p, replays_max, interval, jitter);
 	}
 }
 
@@ -42,7 +43,7 @@ void ReplayStore::run_timer(Timer* _timer) {
 	}
 
 	if (timer->replays_left > 0) {
-		timer->reschedule_after_msec(interval);
+		timer->reschedule_after_msec(timer->interval());
 	} else {
 		table.erase(timer->id);
 		delete timer;
