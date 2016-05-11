@@ -3,22 +3,21 @@
 
 #include <click/element.hh>
 #include <click/hashtable.hh>
+#include <click/bitvector.hh>
 #include "../castor.hh"
 #include "../crypto/crypto.hh"
 #include "merkle_tree.hh"
 #include "../neighbor_id.hh"
-#include "bitset.hh"
 
 CLICK_DECLS
 
 class CastorFlowEntry {
 public:
-	CastorFlowEntry() : local(false), acked(false), tree(NULL), aauths(NULL), pids(NULL), bitset(NULL) {}
+	CastorFlowEntry() : local(false), acked(false), tree(NULL), aauths(NULL), pids(NULL) {}
 	~CastorFlowEntry() {
 		delete [] aauths;
 		delete [] pids;
 		delete tree;
-		delete bitset;
 	}
 	bool local; // am I the creator of the flow?
 	bool acked; // did I receive at least one ACK for this flow?
@@ -37,17 +36,19 @@ public:
 
 	/* Replay protection */
 	bool has_ack(unsigned int k) {
-		if (bitset == NULL)
+		if (tree == NULL)
 			return false;
-		return bitset->test(k);
+		if (bitset.size() == 0)
+			bitset = Bitvector((int) tree->size());
+		return bitset[k];
 	}
 	void set_ack(unsigned int k) {
-		if (bitset == NULL)
-			bitset = new BitSet(size());
-		bitset->set(k);
+		if (bitset.size() == 0 && tree != NULL)
+			bitset = Bitvector((int) tree->size());
+		bitset[k] = true;
 	}
 private:
-	BitSet* bitset;
+	Bitvector bitset;
 };
 
 class CastorFlowTable : public Element {
