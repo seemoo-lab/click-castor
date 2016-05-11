@@ -45,6 +45,8 @@ void ReplayStore::run_timer(Timer* _timer) {
 	if (timer->replays_left > 0) {
 		timer->reschedule_after_msec(timer->interval());
 	} else {
+		timer->pkt->kill();
+		timer->ack->kill();
 		table.erase(timer->id);
 		delete timer;
 	}

@@ -44,6 +44,7 @@ define(
 	$replayInterval 1000, // in ms
 	$replayJitter    300, // in ms
 	$replayCount       5, // how often a PKT-ACK pair will be replayed
+	$replayRateMax    10, // how many PKT-ACK pairs will be emitted per s
 );
 
 require(

@@ -18,9 +18,10 @@ handlepkt[1] -> DynamicEtherEncap(fake, neighbors, crypto) -> [1]ethout; // Retu
 handlepkt[2] -> DynamicEtherEncap(fake, neighbors, crypto) -> [0]ethout; // Forward PKT
 handleack    -> DynamicEtherEncap(fake, neighbors, crypto) -> [1]ethout; // Forward ACK
 
+replayratelimits :: CastorRateLimitTable(MIN $replayRateMax, MAX $replayRateMax, INIT $replayRateMax);
 replaystore[0,1]
-	=> ([0] -> CastorAddFlowAuthenticator(flowtable, true) -> output;
-		[1] -> output;)
+	=> ([0] -> CastorRateLimiter(true, replayratelimits, $replayRateMax) -> CastorAddFlowAuthenticator(flowtable, true) -> output;
+		[1] -> CastorRateLimiter(true, replayratelimits, $replayRateMax) -> output;)
 	-> DynamicEtherEncap(fake, neighbors, crypto)
 	-> [1]ethout;
 
