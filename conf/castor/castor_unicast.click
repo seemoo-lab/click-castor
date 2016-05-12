@@ -59,6 +59,7 @@ elementclass CastorForwardPkt {
 
 	input
 		-> auth :: CastorAuthenticateFlow($flowtable, $crypto)
+		-> AddReplayPkt(replaystore)
 		-> blackhole :: CastorBlackhole // inactive by default
 		-> route :: CastorLookupRoute($routeselector)
 		-> CastorAddPktToHistory($history)
@@ -96,7 +97,6 @@ elementclass CastorHandlePkt {
 	$myIP, $routeselector, $routingtable, $flowtable, $timeouttable, $ratelimits, $history, $crypto |
 
 	input
-		-> AddReplayPkt(replaystore)
 		-> isARQ :: CastorIsARQ
 		-> checkDuplicate :: CastorCheckDuplicate($history, $flowtable, $replayProtect)
 		-> destinationClassifier :: CastorDestClassifier($myIP);
@@ -134,7 +134,7 @@ elementclass CastorHandlePkt {
 
 	checkDuplicate[3]
 		// Might rarely happen if MAC ACK was lost and Castor PKT is retransmitted
-		-> CastorPrint("PKT duplicate from same neighbor", $myIP)
+		//-> CastorPrint("PKT duplicate from same neighbor", $myIP)
 		-> null;
 
 	noLoopback[1]
