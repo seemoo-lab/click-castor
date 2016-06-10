@@ -29,7 +29,7 @@ protected:
 	CastorRoutingTable* routingtable;
 	Neighbors* neighbors;
 
-	virtual double select(HashTable<NeighborId, CastorEstimator>& entry, Vector<NeighborId>& best_candidates);
+	virtual double select(CastorRoutingTable::FlowEntry& entry, Vector<NeighborId>& best_candidates);
 	virtual void update_candidates(const NeighborId&, double, Vector<NeighborId>&, double&) const;
 	bool should_broadcast(double best_estimate) const;
 	const NeighborId& select_random(const Vector<NeighborId>&) const;

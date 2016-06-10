@@ -24,12 +24,12 @@ NeighborId CastorRouteSelectorOriginal::select(const Hash& flow, const NodeId& s
 		return select_random(best_candidates);
 }
 
-double CastorRouteSelectorOriginal::select(HashTable<NeighborId, CastorEstimator>& entry, Vector<NeighborId>& best_candidates) {
+double CastorRouteSelectorOriginal::select(CastorRoutingTable::FlowEntry& entry, Vector<NeighborId>& best_candidates) {
 	double best_estimate = 0;
-	for (HashTable<NeighborId, CastorEstimator>::iterator candidate_it = entry.begin(); candidate_it != entry.end(); /* increment in loop */) {
+	for (CastorRoutingTable::FlowEntry::iterator candidate_it = entry.begin(); candidate_it != entry.end(); /* increment in loop */) {
 		if (neighbors->contains(candidate_it.key())) {
 			const NeighborId& candidate = candidate_it.key();
-			double candidate_estimate = candidate_it.value().getEstimate();
+			double candidate_estimate = candidate_it.value().estimator.getEstimate();
 			update_candidates(candidate, candidate_estimate, best_candidates, best_estimate);
 			candidate_it++;
 		} else { // This is no longer our neighbor; erase entry for this neighbor

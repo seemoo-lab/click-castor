@@ -56,7 +56,6 @@ void CastorStartTimer::adjust_estimator(const PacketId& pid) {
 		return;
 
 	const FlowId& fid = history->getFlowId(pid);
-	NodeId destination = history->getDestination(pid);
 
 	// decrease ratings
 	if(verbose) {
@@ -64,7 +63,7 @@ void CastorStartTimer::adjust_estimator(const PacketId& pid) {
 		sa << "[" << Timestamp::now() << "@" << myId << "] Timeout: no ACK received from " << routedTo.unparse();
 		click_chatter(sa.c_str());
 	}
-	CastorEstimator& estimator = table->estimator(fid, destination, routedTo);
+	CastorEstimator& estimator = table->estimator(fid, routedTo);
 	estimator.decreaseFrist();
 	estimator.decreaseAll();
 }
