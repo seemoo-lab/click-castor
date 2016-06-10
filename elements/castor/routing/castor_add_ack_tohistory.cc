@@ -15,12 +15,13 @@ int CastorAddAckToHistory::configure(Vector<String> &conf, ErrorHandler *errh) {
 Packet* CastorAddAckToHistory::simple_action(Packet *p) {
 	const CastorAck& ack = *reinterpret_cast<const CastorAck*>(p->data());
 	const PacketId& pid = CastorAnno::hash_anno(p);
+	const NeighborId& from = CastorAnno::src_id_anno(p);
 	if (history->hasAck(pid)) {
-		history->addAckFor(pid, CastorAnno::src_id_anno(p));
+		history->addAckFor(pid, from);
 	} else {
-		history->addFirstAckFor(pid, CastorAnno::src_id_anno(p), ack.auth);
-		flowtable->get(history->getFlowId(pid)).set_ack(history->k(pid));
+		history->addFirstAckFor(pid, from, ack.auth);
 	}
+	flowtable->get(history->getFlowId(pid)). set_ack(history->k(pid), from);
 	return p;
 }
 

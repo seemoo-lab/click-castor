@@ -23,23 +23,23 @@ int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 		errh->warning("Possibly unwanted updateDelta value: %f (reliability estimator adaption is very slow)", updateDelta);
 
 	// Initialize the flows so that it uses the new updateDelta value as default
-	flows = HashTable<FlowId, FlowEntry>(FlowEntry(NeighborEntry(updateDelta)));
+	flows = HashTable<FlowId, FlowEntry>(FlowEntry(CastorEstimator(updateDelta)));
 
 	return 0;
 }
 
-HashTable<NeighborId, CastorRoutingTable::NeighborEntry>& CastorRoutingTable::entry(const Hash& flow) {
+CastorRoutingTable::FlowEntry& CastorRoutingTable::entry(const Hash& flow) {
 	// HashTable's [] operator adds a default element if it does not exist
 	return flows[flow];
 }
 
 CastorEstimator& CastorRoutingTable::estimator(const Hash& flow, const NeighborId& forwarder) {
 	// HashTable's [] operator adds a default element if it does not exist
-	return flows[flow][forwarder].estimator;
+	return flows[flow][forwarder];
 }
 
-HashTable<NeighborId, CastorRoutingTable::NeighborEntry>& CastorRoutingTable::entry_copy(const Hash& flow, const NodeId& src, const NodeId& dst) {
-	Pair<NodeId,NodeId> pair(src, dst);
+CastorRoutingTable::FlowEntry& CastorRoutingTable::copy_estimators(const Hash& flow, const NodeId& src, const NodeId& dst) {
+	Pair<NodeId, NodeId> pair(src, dst);
 	if (flows.count(flow) > 0) {
 		/* do nothing */;
 	} else if (srcdstmap.count(pair) > 0) {
@@ -64,7 +64,7 @@ String CastorRoutingTable::unparse(const Hash& flow) const {
 		sa << " - EMPTY \n";
 	else
 		for (const auto&  it : fe)
-			sa << " - " << it.first << "\t" << it.second.estimator.getEstimate() << "\n";
+			sa << " - " << it.first << "\t" << it.second.getEstimate() << "\n";
 	return String(sa.c_str());
 }
 

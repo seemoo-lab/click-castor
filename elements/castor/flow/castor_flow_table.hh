@@ -35,20 +35,38 @@ public:
 	inline const Hash& fid() const { return tree->root(); }
 
 	/* Replay protection */
-	bool has_ack(unsigned int k) {
-		if (tree == NULL)
+	inline bool has_ack(unsigned int k) {
+		if (tree == NULL || acks.size() == 0)
 			return false;
-		if (bitset.size() == 0)
-			bitset = Bitvector((int) tree->size());
-		return bitset[k];
+		return acks[k];
 	}
-	void set_ack(unsigned int k) {
-		if (bitset.size() == 0 && tree != NULL)
-			bitset = Bitvector((int) tree->size());
-		bitset[k] = true;
+	inline bool has_ack(unsigned int k, NeighborId from) {
+		if (!has_ack(k))
+			return false;
+		if (neighbor_acks.count(from) == 0)
+			return false;
+		return neighbor_acks[from][k];
+	}
+	inline void set_ack(unsigned int k, NeighborId from) {
+		if (tree == NULL) {
+			click_chatter("no tree set, but tried to set ACK");
+			return;
+		}
+		if (acks.size() != tree->size()) {
+			// Set bit vector size to the size of the tree
+			acks = Bitvector((int) tree->size());
+			// Flow size will not change from now,
+			// so initialize neighbor_acks with appropriate value
+			neighbor_acks = HashTable<NeighborId, Bitvector>(acks);
+		}
+		acks[k] = true;
+		neighbor_acks[from][k] = true;
 	}
 private:
-	Bitvector bitset;
+	// Which (authenticated) ACKs have we received so far ...
+	Bitvector acks;
+	// ... and from which neighbor
+	HashTable<NeighborId, Bitvector> neighbor_acks;
 };
 
 class CastorFlowTable : public Element {

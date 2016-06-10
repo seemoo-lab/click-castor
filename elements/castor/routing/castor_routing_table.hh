@@ -3,7 +3,6 @@
 
 #include <click/element.hh>
 #include <click/hashtable.hh>
-#include <click/bitvector.hh>
 #include "../castor.hh"
 #include "../neighbor_id.hh"
 #include "castor_estimator.hh"
@@ -12,22 +11,18 @@ CLICK_DECLS
 
 class CastorRoutingTable : public Element {
 public:
-	class NeighborEntry {
-	public:
-		NeighborEntry(double updateDelta = 0.0) : estimator(CastorEstimator(updateDelta)) {};
-		CastorEstimator estimator;
-		Bitvector acks;
-	};
-	typedef HashTable<NeighborId, NeighborEntry> FlowEntry;
+	typedef HashTable<NeighborId, CastorEstimator> FlowEntry;
 
 public:
+	CastorRoutingTable() : flows(FlowEntry(CastorEstimator(0.0))) {};
+
 	const char *class_name() const { return "CastorRoutingTable"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
 	FlowEntry& entry(const Hash& flow);
-	FlowEntry& entry_copy(const Hash& flow, const NodeId& src, const NodeId& dst);
+	FlowEntry& copy_estimators(const Hash& flow, const NodeId& src, const NodeId& dst);
 	CastorEstimator& estimator(const Hash& flow, const NeighborId& forwarder);
 	void update(const Hash& flow, const NodeId& src, const NodeId& dst);
 
