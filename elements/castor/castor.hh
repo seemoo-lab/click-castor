@@ -61,6 +61,7 @@ public:
 	inline void set_syn() { flags |= 1 << 7; }
 	inline void unset_syn() { flags &= ~(1 << 7); }
 	// request retransmission of PKT
+	// TODO ARQ is deprecated and can be removed including all related Elements
 	inline bool arq() const { return (flags >> 6) & 1; }
 	inline void set_arq() { flags |= 1 << 6; }
 	inline void unset_arq() { flags &= ~(1 << 6); }

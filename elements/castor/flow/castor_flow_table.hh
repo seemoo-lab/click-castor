@@ -21,7 +21,6 @@ public:
 	}
 	bool local; // am I the creator of the flow?
 	bool acked; // did I receive at least one ACK for this flow?
-	NeighborId last;
 
 	inline bool complete() const { return tree != NULL && aauths != NULL && pids != NULL; }
 
@@ -35,19 +34,19 @@ public:
 	inline const Hash& fid() const { return tree->root(); }
 
 	/* Replay protection */
-	inline bool has_ack(unsigned int k) {
+	inline bool has_ack(unsigned int k) const {
 		if (tree == NULL || acks.size() == 0)
 			return false;
 		return acks[k];
 	}
-	inline bool has_ack(unsigned int k, NeighborId from) {
+	inline bool has_ack(unsigned int k, const NeighborId& from) const {
 		if (!has_ack(k))
 			return false;
 		if (neighbor_acks.count(from) == 0)
 			return false;
 		return neighbor_acks[from][k];
 	}
-	inline void set_ack(unsigned int k, NeighborId from) {
+	inline void set_ack(unsigned int k, const NeighborId& from) {
 		if (tree == NULL) {
 			click_chatter("no tree set, but tried to set ACK");
 			return;
@@ -62,6 +61,9 @@ public:
 		acked = true;
 		acks[k] = true;
 		neighbor_acks[from][k] = true;
+	}
+	inline const Bitvector& get_acks(const NeighborId& from) const {
+		return neighbor_acks[from];
 	}
 private:
 	// Which (authenticated) ACKs have we received so far ...
@@ -83,7 +85,6 @@ public:
 	bool insert(MerkleTree* tree);
 	CastorFlowEntry& get(const FlowId& fid);
 	MerkleTree* get(const FlowId& fid, unsigned int h);
-	NeighborId& last(const FlowId& fid);
 private:
 	Crypto* crypto;
 	HashTable<FlowId, CastorFlowEntry> flows;

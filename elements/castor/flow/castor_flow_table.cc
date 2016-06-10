@@ -14,9 +14,5 @@ CastorFlowEntry& CastorFlowTable::get(const FlowId& fid) {
 	return flows[fid];
 }
 
-NeighborId& CastorFlowTable::last(const FlowId& fid) {
-	return flows[fid].last;
-}
-
 CLICK_ENDDECLS
 EXPORT_ELEMENT(CastorFlowTable)

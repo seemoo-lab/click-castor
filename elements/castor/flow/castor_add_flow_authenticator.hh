@@ -21,17 +21,19 @@ private:
 	CastorFlowTable* flowtable;
 	bool force_full_auth;
 
-	inline unsigned int fauth_size(unsigned int k, unsigned int max) {
-		unsigned int c;  // output: c will count k's trailing zero bits,
-		        		 // so if k is 1101000 (base 2), then k will be 3
-		if (k) {
-			k = (k ^ (k - 1)) >> 1;  // Set k's trailing 0s to 1s and zero rest
-			for (c = 0; k; c++)
-				k >>= 1;
-		} else {
-			c = max;
+	unsigned int fauth_size(unsigned int k, unsigned int fsize, const FlowId& fid, const NeighborId& neighbor) {
+		const CastorFlowEntry& entry = flowtable->get(fid);
+		for (unsigned int l = 0; l < fsize; ++l) {
+			// [min, max[ is the range of indices for all leafs in the sibling subtree on level l
+			unsigned int min = (k ^ (1 << l)) & (-1 << l);
+			unsigned int max = min + (1 << l);
+			// if we have received _any_ ACK in this subtree, we can return
+			for (unsigned int i = min; i < max; ++i)
+				if (entry.has_ack(i, neighbor))
+					return l;
 		}
-		return c;
+		// did not have any ACKs
+		return fsize;
 	}
 };
 
