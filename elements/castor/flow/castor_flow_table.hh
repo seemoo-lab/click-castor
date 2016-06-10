@@ -59,6 +59,7 @@ public:
 			// so initialize neighbor_acks with appropriate value
 			neighbor_acks = HashTable<NeighborId, Bitvector>(acks);
 		}
+		acked = true;
 		acks[k] = true;
 		neighbor_acks[from][k] = true;
 	}

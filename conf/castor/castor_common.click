@@ -64,7 +64,6 @@ elementclass CastorHandleAck {
 		-> authenticate :: CastorAuthenticateAck($history, $CASTOR_VERSION)
 		-> updateTimeout :: CastorUpdateTimeout($timeouttable, $history, VERBOSE false)
 		-> updateEstimates :: CastorUpdateEstimates($routingtable, $history, $copyEstimators)
-		-> updateFlowTable :: CastorUpdateFlowTable($flowtable, $history)
 		-> CastorAddAckToHistory($history, $flowtable)
 		//-> CastorPrint('Received valid', $myIP)
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
