@@ -7,6 +7,7 @@
 #include "castor_routing_table.hh"
 #include "castor_timeout_table.hh"
 #include "castor_history.hh"
+#include "../flow/castor_flow_table.hh"
 #include "../ratelimiter/castor_rate_limit_table.hh"
 
 CLICK_DECLS
@@ -36,6 +37,7 @@ private:
 	CastorRoutingTable* table;
 	CastorTimeoutTable* toTable;
 	CastorHistory* history;
+	CastorFlowTable* flowtable;
 	CastorRateLimitTable* rate_limits;
 	NeighborId myId;
 

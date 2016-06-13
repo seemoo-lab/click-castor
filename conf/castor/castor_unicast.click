@@ -33,7 +33,7 @@ elementclass CastorLocalPkt {
 			input[1] -> CastorReconstructFlow($flowtable, $crypto) -> output;)
 		-> authFlow :: CastorAuthenticateFlow($flowtable, $crypto)
 		-> CastorAddPktToHistory($history)
-		-> CastorStartTimer($timeouttable, $history, ID $myIP, VERBOSE false)
+		-> CastorStartTimer($timeouttable, $history, FLOW_TABLE $flowtable, ID $myIP, VERBOSE false)
 		-> rec :: CastorRecordPkt
 		-> genAck :: CastorCreateAck($flowtable)
 		-> [0]output;
@@ -63,7 +63,7 @@ elementclass CastorForwardPkt {
 		-> blackhole :: CastorBlackhole // inactive by default
 		-> route :: CastorLookupRoute($routeselector)
 		-> CastorAddPktToHistory($history)
-		-> CastorStartTimer($timeouttable, $history, $routingtable, $ratelimits, ID $myIP, VERBOSE false)
+		-> CastorStartTimer($timeouttable, $history, $routingtable, $flowtable, $ratelimits, ID $myIP, VERBOSE false)
 		-> addFlowAuthenticator :: CastorAddFlowAuthenticator($flowtable, $fullFlowAuth)
 		-> CastorSetARQ(false)
 		//-> CastorPrint('Forwarding Packet', $myIP)

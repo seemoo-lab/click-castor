@@ -18,6 +18,7 @@ int CastorStartTimer::configure(Vector<String>& conf, ErrorHandler* errh) {
 			.read_mp("TO", ElementCastArg("CastorTimeoutTable"), toTable)
 			.read_mp("HISTORY", ElementCastArg("CastorHistory"), history)
 			.read_p("RT", ElementCastArg("CastorRoutingTable"), table)
+			.read_p("FLOW_TABLE", ElementCastArg("CastorFlowTable"), flowtable)
 			.read_p("RATE_LIMITS", ElementCastArg("CastorRateLimitTable"), rate_limits)
 			.read("ID", myId)
 			.read_or_set("VERBOSE", verbose, false)
@@ -42,6 +43,7 @@ void CastorStartTimer::run_timer(Timer* _timer) {
 	if (!history->hasAck(pid)) {
 		if (table)       adjust_estimator(pid);
 		if (rate_limits) adjust_rate_limit(pid);
+		flowtable->get(history->getFlowId(pid)).set_ack(history->k(pid), history->routedTo(pid));
 	}
 	history->remove(pid);
 
