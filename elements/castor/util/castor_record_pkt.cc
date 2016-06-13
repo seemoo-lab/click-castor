@@ -31,13 +31,15 @@ Packet* CastorRecordPkt::simple_action(Packet *p) {
 		records.push_back(new PidTime(pkt.pid));
 		npids++;
 		if(CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast()) {
-			size_broadcast += p->length();
+			size_broadcast += pkt.header_len();
 			nbroadcasts++;
 		} else {
-			size_unicast += p->length();
+			size_unicast += pkt.header_len();
 			nunicasts++;
 		}
 		size_payload += pkt.payload_len();
+		size += pkt.header_len();
+		size_noreset += pkt.header_len();
 #ifdef DEBUG_HOPCOUNT
 		hopcounts.push_back(new UintListNode(pkt.hopcount()));
 #endif
@@ -46,13 +48,15 @@ Packet* CastorRecordPkt::simple_action(Packet *p) {
 			size_broadcast += p->length();
 		else
 			size_unicast += p->length();
+		size += p->length();
+		size_noreset += p->length();
 	} else {
 		// Any other packet type
+		size += p->length();
+		size_noreset += p->length();
 	}
 
 	npackets++;
-	size += p->length();
-	size_noreset += p->length();
 
 	if (verbose && npackets % 100000 == 0) {
 		unsigned int diff = (last - start).sec(); // * 1000 + (last - start).msec();
