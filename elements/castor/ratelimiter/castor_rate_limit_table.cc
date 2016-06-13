@@ -41,8 +41,8 @@ void CastorRateLimitTable::register_listener(CastorRateLimiter* element) {
 void CastorRateLimitTable::notify(const NeighborId& node) const {
 	if (_listener)
 		_listener->update(node);
-	else if (warn_count++ < 5)
-		click_chatter("CastorRateLimitTable::notify() called but no listener set.");
+	//else if (warn_count++ < 5)
+	//	click_chatter("CastorRateLimitTable::notify() called but no listener set.");
 }
 
 CLICK_ENDDECLS
