@@ -15,7 +15,7 @@ define(
 
 	/** Timeout boundaries */
 	$initTo 1000, // 1 second
-	$minTo   100, // 100 ms
+	$minTo   400, // 0.4 seconds (if the value is too low, might result in routing loops due to unintentional replay attack)
 	$maxTo 60000, // 1 minute
 
 	/** Rate limit boundaries (in PKTs/sec) */
