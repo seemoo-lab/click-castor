@@ -21,7 +21,7 @@ Packet* CastorAddAckToHistory::simple_action(Packet *p) {
 	} else {
 		history->addFirstAckFor(pid, from, ack.auth);
 	}
-	flowtable->get(history->getFlowId(pid)). set_ack(history->k(pid), from);
+	flowtable->get(history->getFlowId(pid)).set_ack(history->k(pid), from);
 	return p;
 }
 
