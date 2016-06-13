@@ -32,13 +32,13 @@ Packet* NeighborAuthAddICV::simple_action(Packet *p) {
 		for (const NeighborId& neighbor : *neighbors)
 			if (neighbor != CastorAnno::src_id_anno(p))
 				forwarders.push_back(neighbor);
-		if (forwarders.size() == 0)
-			click_chatter("No other node than PKT sender to forward packet to (neighbors: %u), discard ...", neighbors->size());
+		//if (forwarders.size() == 0)
+		//	click_chatter("No other node than PKT sender to forward packet to (neighbors: %u), discard ...", neighbors->size());
 	} else {
 		if (fl.node != CastorAnno::src_id_anno(q))
 			forwarders.push_back(fl.node);
-		else
-			click_chatter("Trying to forward to PKT sender, discard ...");
+		//else
+		//	click_chatter("Trying to forward to PKT sender, discard ...");
 	}
 
 	if (forwarders.size() == 0) {
