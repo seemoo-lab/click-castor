@@ -44,10 +44,11 @@ Packet* CastorRecordPkt::simple_action(Packet *p) {
 		hopcounts.push_back(new UintListNode(pkt.hopcount()));
 #endif
 	} else if (CastorPacket::getType(p) == CastorType::ACK) {
+		CastorAck& ack = (CastorAck&) *p->data();
 		if(CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast())
-			size_broadcast += p->length();
+			size_broadcast += ntohs(ack.len);
 		else
-			size_unicast += p->length();
+			size_unicast += ntohs(ack.len);
 		size += p->length();
 		size_noreset += p->length();
 	} else {
