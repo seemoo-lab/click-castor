@@ -16,13 +16,13 @@ int CastorAuthenticateFlow::configure(Vector<String> &conf, ErrorHandler *errh) 
 Packet* CastorAuthenticateFlow::simple_action(Packet *p) {
 	CastorPkt& pkt = (CastorPkt&) *p->data();
 	CastorFlowEntry& e = flowtable->get(pkt.fid);
-	if (e.tree == NULL)
-		e.tree = new MerkleTree(pkt.fid, 1 << pkt.fsize(), *crypto);
+	if (!e.has_tree())
+		e.set_tree(new MerkleTree(pkt.fid, 1 << pkt.fsize(), *crypto));
 
-	int result = e.tree->valid_leaf(ntohs(pkt.kpkt), pkt.pid, pkt.fauth(), pkt.fasize());
+	int result = e.tree()->valid_leaf(ntohs(pkt.kpkt), pkt.pid, pkt.fauth(), pkt.fasize());
 	if (result == 0) {
 		// TODO add valid leafs and intermediate nodes to the tree while checking. flowtable->add(.) will compute all hashes again
-		e.tree->add(ntohs(pkt.kpkt), pkt.pid, pkt.fauth(), pkt.fasize());
+		e.tree()->add(ntohs(pkt.kpkt), pkt.pid, pkt.fauth(), pkt.fasize());
 		return p;
 	} else {
 		checked_output_push(-result, p); // 1 or 2

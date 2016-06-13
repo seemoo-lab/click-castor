@@ -43,7 +43,7 @@ void CastorStartTimer::run_timer(Timer* _timer) {
 	if (!history->hasAck(pid)) {
 		if (table)       adjust_estimator(pid);
 		if (rate_limits) adjust_rate_limit(pid);
-		flowtable->get(history->getFlowId(pid)).set_ack(history->k(pid), history->routedTo(pid));
+		flowtable->get(history->getFlowId(pid)).set_expired_pkt(history->k(pid));
 	}
 	history->remove(pid);
 

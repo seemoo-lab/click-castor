@@ -13,63 +13,72 @@ CLICK_DECLS
 
 class CastorFlowEntry {
 public:
-	CastorFlowEntry() : local(false), acked(false), tree(NULL), aauths(NULL), pids(NULL) {}
+	CastorFlowEntry() : local(false), acked(false), _tree(NULL), aauths(NULL), pids(NULL) {}
 	~CastorFlowEntry() {
 		delete [] aauths;
 		delete [] pids;
-		delete tree;
+		delete _tree;
 	}
 	bool local; // am I the creator of the flow?
 	bool acked; // did I receive at least one ACK for this flow?
 
-	inline bool complete() const { return tree != NULL && aauths != NULL && pids != NULL; }
+	inline bool complete() const { return has_tree() && aauths != NULL && pids != NULL; }
 
 	/* Merkle tree information */
 	Nonce n;      // values were created from this
 	Hash* aauths; // only allocated if we are an end node
 	Hash* pids;   // only allocated if we are an end node
-	MerkleTree* tree; // (partial) Merkle tree
-	inline unsigned int height() const { return tree->height(); }
-	inline unsigned int size() const { return tree->size(); }
-	inline const Hash& fid() const { return tree->root(); }
-
+	inline unsigned int height() const { return !has_tree() ? 0 : _tree->height(); }
+	inline unsigned int size() const { return !has_tree() ? 0 : _tree->size(); }
+	inline const Hash& fid() const { return !has_tree() ? default_root : _tree->root(); }
+	inline void set_tree(MerkleTree* tree) {
+		if (_tree != NULL) {
+			click_chatter("tried to reset tree!");
+			return;
+		}
+		_tree = tree;
+		expired_pkts = Bitvector((int) size());
+		neighbor_acks = HashTable<NeighborId, Bitvector>(expired_pkts);
+	}
+	inline MerkleTree* tree() {
+		return _tree;
+	}
+	inline bool has_tree() const { return _tree != NULL; }
 	/* Replay protection */
-	inline bool has_ack(unsigned int k) const {
-		if (tree == NULL || acks.size() == 0)
+	inline bool is_expired_pkt(unsigned int k) const {
+		if (!has_tree() || !valid_index(k))
 			return false;
-		return acks[k];
+		return expired_pkts[k];
 	}
 	inline bool has_ack(unsigned int k, const NeighborId& from) const {
-		if (!has_ack(k))
+		if (!has_tree() || !valid_index(k))
 			return false;
 		if (neighbor_acks.count(from) == 0)
 			return false;
 		return neighbor_acks[from][k];
 	}
-	inline void set_ack(unsigned int k, const NeighborId& from) {
-		if (tree == NULL) {
-			click_chatter("no tree set, but tried to set ACK");
+	inline void set_expired_pkt(unsigned int k) {
+		if (!has_tree())
 			return;
-		}
-		if (acks.size() != tree->size()) {
-			// Set bit vector size to the size of the tree
-			acks = Bitvector((int) tree->size());
-			// Flow size will not change from now,
-			// so initialize neighbor_acks with appropriate value
-			neighbor_acks = HashTable<NeighborId, Bitvector>(acks);
-		}
+		expired_pkts[k] = true;
+	}
+	inline void set_ack(unsigned int k, const NeighborId& from) {
 		acked = true;
-		acks[k] = true;
 		neighbor_acks[from][k] = true;
 	}
 	inline const Bitvector& get_acks(const NeighborId& from) const {
 		return neighbor_acks[from];
 	}
 private:
-	// Which (authenticated) ACKs have we received so far ...
-	Bitvector acks;
-	// ... and from which neighbor
+	inline bool valid_index(unsigned int k) const {
+		return has_tree() && k < size();
+	}
+	// Which PKTs of this flow have been expired or already ACK'd
+	Bitvector expired_pkts;
+	// From which neighbor have we already received which authentic ACK
 	HashTable<NeighborId, Bitvector> neighbor_acks;
+	MerkleTree* _tree; // (partial) Merkle tree
+	static const Hash default_root;
 };
 
 class CastorFlowTable : public Element {

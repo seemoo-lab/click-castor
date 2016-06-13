@@ -45,7 +45,7 @@ Packet* CastorAddFlowAuthenticator::simple_action(Packet *p) {
 	CastorPkt& newPkt = *reinterpret_cast<CastorPkt*>(q->data());
 	if (header.syn())
 		*newPkt.n() = n;
-	flowtable->get(header.fid).tree->path_to_root(ntohs(header.kpkt), newPkt.fauth(), header.fasize());
+	flowtable->get(header.fid).tree()->path_to_root(ntohs(header.kpkt), newPkt.fauth(), header.fasize());
 
 	return q;
 }

@@ -33,7 +33,7 @@ Packet* CastorReconstructFlow::simple_action(Packet *p) {
 	for (int i = 0; i < size; i++) {
 		crypto->hash(e.pids[i], e.aauths[i]);
 	}
-	e.tree = new MerkleTree(e.pids, size, *crypto);
+	e.set_tree(new MerkleTree(e.pids, size, *crypto));
 
 	return p;
 }

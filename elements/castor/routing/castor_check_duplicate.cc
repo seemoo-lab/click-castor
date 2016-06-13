@@ -31,7 +31,7 @@ Packet* CastorCheckDuplicate::simple_action(Packet *p) {
 		} else {
 			port = 2; // have received pid from different neighbor AND do NOT already know corresponding ACK -> add PKT to history and discard
 		}
-	} else if (replayprotect && flowtable->get(pkt.fid).has_ack(ntohs(pkt.kpkt))) { // 2. check if this is a late PKT duplicate
+	} else if (replayprotect && flowtable->get(pkt.fid).is_expired_pkt(ntohs(pkt.kpkt))) { // 2. check if this is a late PKT duplicate
 		port = 3; // have already received ACK for this PKT and entry for PKT has timed out -> discard
 	}
 
