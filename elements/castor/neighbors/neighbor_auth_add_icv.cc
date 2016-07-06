@@ -11,10 +11,14 @@ int NeighborAuthAddICV::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 			.read_mp("Neighbors", ElementCastArg("Neighbors"), neighbors)
 			.read_mp("Crypto", ElementCastArg("Crypto"), crypto)
+			.read_or_set_p("ENABLE", enable, true)
 			.complete();
 }
 
 Packet* NeighborAuthAddICV::simple_action(Packet *p) {
+	if (!enable)
+		return p;
+
 	WritablePacket* q = p->uniqueify();
 	if (!q)
 		return 0;

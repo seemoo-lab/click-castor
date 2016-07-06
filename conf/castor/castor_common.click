@@ -21,7 +21,7 @@ elementclass CastorClassifier {
 		-> ethclassifier :: Classifier(12/88B6, 12/88B5, -) // (0) Castor PKT/ACK; (1) beacon; (2) other
 		-> removeEthernetHeader :: Strip(14)
 		-> forwarderFilter :: ForwarderFilter($myAddr)
-		-> NeighborAuthCheckICV(crypto)
+		-> NeighborAuthCheckICV(crypto, $neighborsEnable)
 		=> ( [0] -> NeighborAuthStripICV -> output;
 		     [1] /*-> CastorPrint("No valid neighbor-to-neighbor ICV", fake)*/ -> Discard; )
 		-> removeForwarderList :: RemoveForwarderList
@@ -48,7 +48,7 @@ elementclass DynamicEtherEncap {
 
 	input
 		-> AddForwarderList
-		-> NeighborAuthAddICV($neighbors, $crypto)
+		-> NeighborAuthAddICV($neighbors, $crypto, $neighborsEnable)
 		-> EtherEncap($ETHERTYPE_CASTOR, $myAddr, 00:00:00:00:00:00)
 		-> StoreEtherAddress(OFFSET dst, ANNO 12)
 		-> output;

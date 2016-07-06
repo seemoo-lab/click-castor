@@ -7,7 +7,7 @@ CLICK_DECLS
 
 class ForwarderList {
 public:
-	ForwarderList() : num(1), nicv(1) {}
+	ForwarderList() : num(1), nicv(0) {}
 	uint8_t    num;  /* number of node identifiers in the list, can be extended in the future */
 	uint8_t    nicv; /* number of ICVs appended to this packet,	num != nicv if 'node'
 						is the broadcast address, i.e., more nodes addressed explicitly enumerated */

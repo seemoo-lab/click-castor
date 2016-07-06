@@ -16,6 +16,7 @@ public:
 	Packet* simple_action(Packet *);
 private:
 	Crypto* crypto;
+	bool enable;
 };
 
 CLICK_ENDDECLS

@@ -10,10 +10,14 @@ CLICK_DECLS
 int NeighborAuthCheckICV::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 			.read_mp("Crypto", ElementCastArg("Crypto"), crypto)
+			.read_or_set_p("ENABLE", enable, true)
 			.complete();
 }
 
 Packet* NeighborAuthCheckICV::simple_action(Packet *p) {
+	if (!enable)
+		return p;
+
 	if (p->length() < sizeof(ForwarderList)) {
 		checked_output_push(1, p);
 		return 0;

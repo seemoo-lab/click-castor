@@ -18,6 +18,7 @@ public:
 private:
 	Neighbors* neighbors;
 	Crypto* crypto;
+	bool enable;
 };
 
 CLICK_ENDDECLS
