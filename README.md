@@ -6,6 +6,7 @@ This repository contains **Castor** and its multicast extension **Xcastor** impl
 * [Install](#install)
   * [Prerequisites](#prerequisites)
   * [General Build Instructions](#general-build-instructions)
+  * [Android Build Instructions](#android-build-instructions)
   * [Cross Compilation](#cross-compilation)
   * [Extending the Code](#extending-the-code)
 * [Run (userlevel)](#run-userlevel)
@@ -48,6 +49,14 @@ cd click-castor
 ./configure --enable-local --enable-nsclick --disable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
 # Build
 make
+```
+
+### Android Build Instructions
+To build Click for Android, you must specify the `--enable-android` parameter when running `./configure` and build it with the target `android` afterwards. Additionally you need to set the `NDK_ROOT` environment variable, it should contain the path to your Android NDK.
+```bash
+export NDK_ROOT="/path/to/android/ndk/"
+./configure --enable-local --enable-android --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
+make android
 ```
 
 ### Cross Compilation

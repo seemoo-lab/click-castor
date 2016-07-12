@@ -75,6 +75,10 @@ dnl
 
 dnl userlevel driver and features
 
+AC_ARG_ENABLE([android],
+    [AS_HELP_STRING([--disable-android], [disable android user-level driver])],
+    [:], [enable_android=yes])
+
 AC_ARG_ENABLE([userlevel],
     [AS_HELP_STRING([--disable-userlevel], [disable user-level driver])],
     [:], [enable_userlevel=yes])
@@ -496,7 +500,7 @@ ELEMENTS_ARG_ENABLE(wifi, [include wifi elements and support], NO)
 AC_ARG_ENABLE(experimental, [AS_HELP_STRING([--enable-experimental], [enable experimental elements in normal groups])], :, enable_experimental=no)
 AC_ARG_ENABLE(skip-elements, [AS_HELP_STRING([--enable-skip-elements=ELTS], [disable comma-separated elements])], :, enable_skip_elements=no)
 
-for i in `(cd $srcdir/elements; ls | sed '/^CVS$/d;/^bsdmodule$/d;/^linuxmodule$/d;/^ns$/d;/^userlevel$/d;/^minios$/d')`; do
+for i in `(cd $srcdir/elements; ls | sed '/^CVS$/d;/^bsdmodule$/d;/^linuxmodule$/d;/^ns$/d;/^userlevel$/d;/^android$/d;/^minios$/d')`; do
     enableval=`eval 'echo $'"enable_$i"`
     test "x$enable_all_elements" = xyes -a "x$enableval" '!=' xno && enableval=yes
     test -d "$srcdir/elements/$i" -a "$enableval" = "yes" && element_groups="$element_groups $i"
@@ -727,7 +731,7 @@ dnl
 
 AC_LANG_C
 SOCKET_LIBS=
-if test "$enable_userlevel" = yes; then
+if test "$enable_userlevel" = yes || test "$enable_android" = yes; then
     savelibs="$LIBS"; LIBS=
     AC_SEARCH_LIBS(gethostbyname, nsl, , , $savelibs)
     AC_SEARCH_LIBS(connect, socket, , , $savelibs)
@@ -1180,7 +1184,7 @@ dnl possible drivers
 dnl
 
 POSSIBLE_DRIVERS=
-for i in bsdmodule linuxmodule ns userlevel minios; do
+for i in bsdmodule linuxmodule ns userlevel android minios; do
     test -f $srcdir/$i/Makefile.in && POSSIBLE_DRIVERS="$POSSIBLE_DRIVERS $i"
 done
 AC_SUBST(POSSIBLE_DRIVERS)
@@ -1234,6 +1238,10 @@ pcap.h and/or -lpcap not found; user-level driver can't steal packets.
     DRIVERS="$DRIVERS userlevel"
     AC_DEFINE(HAVE_USERLEVEL_DRIVER)
     HAVE_USERLEVEL_DRIVER=1
+fi
+
+if test "$enable_android" = yes; then
+    DRIVERS="$DRIVERS android"
 fi
 
 
@@ -2089,6 +2097,7 @@ test -f $srcdir/linuxmodule/Makefile.in && AC_CONFIG_FILES([linuxmodule/Makefile
 test -f $srcdir/minios/Makefile.in && AC_CONFIG_FILES([minios/Makefile minios/config.mk])
 test -f $srcdir/ns/Makefile.in && AC_CONFIG_FILES([ns/Makefile])
 test -f $srcdir/userlevel/Makefile.in && AC_CONFIG_FILES([userlevel/Makefile])
+test -f $srcdir/android/Makefile.in && AC_CONFIG_FILES([android/Makefile])
 
 test -d $srcdir/tools/click-align && AC_CONFIG_FILES([tools/click-align/Makefile])
 test -d $srcdir/tools/click-check && AC_CONFIG_FILES([tools/click-check/Makefile])

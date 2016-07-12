@@ -35,15 +35,19 @@
 
 #include <click/straccum.hh>
 
+
+#if HAVE_PCAP
 extern "C" {
 #include <pcap.h>
 }
+#endif
 
 #include "fakepcap.hh"
 #include <clicknet/udp.h>
 
 CLICK_DECLS
 
+#if HAVE_PCAP
 IPFlowRawSockets::Flow::Flow(const Packet *p)
     : _next(0),
       _flowid(p), _ip_p(p->ip_header()->ip_p),
@@ -59,6 +63,7 @@ IPFlowRawSockets::Flow::Flow(const Packet *p)
 
 IPFlowRawSockets::Flow::~Flow()
 {
+
     if (_wd >= 0)
 	close(_wd);
     if (_pcap)
@@ -171,13 +176,15 @@ IPFlowRawSockets::Flow::send_pkt(Packet *p, ErrorHandler *errh)
 
     p->kill();
 }
-
+#endif
 IPFlowRawSockets::IPFlowRawSockets()
     : _nnoagg(0), _nagg(0), _agg_notifier(0), _task(this),
       _gc_timer(gc_hook, this), _headroom(Packet::default_headroom)
 {
+#if HAVE_PCAP
     for (int i = 0; i < NFLOWMAP; i++)
 	_flowmap[i] = 0;
+#endif
 }
 
 IPFlowRawSockets::~IPFlowRawSockets()
@@ -187,6 +194,7 @@ IPFlowRawSockets::~IPFlowRawSockets()
 int
 IPFlowRawSockets::configure(Vector<String> &conf, ErrorHandler *errh)
 {
+#if HAVE_PCAP
     Element *e = 0;
 
     _snaplen = 2046;
@@ -203,9 +211,13 @@ IPFlowRawSockets::configure(Vector<String> &conf, ErrorHandler *errh)
 	return errh->error("%s is not an AggregateNotifier", e->name().c_str());
 
     return 0;
+#else
+    return -1;
+#endif
 }
 
 
+#if HAVE_PCAP
 void
 IPFlowRawSockets::end_flow(Flow *f, ErrorHandler *)
 {
@@ -214,10 +226,12 @@ IPFlowRawSockets::end_flow(Flow *f, ErrorHandler *)
     delete f;
     _nflows--;
 }
+#endif
 
 void
 IPFlowRawSockets::cleanup(CleanupStage)
 {
+#if HAVE_PCAP
     ErrorHandler *errh = ErrorHandler::default_handler();
     for (int i = 0; i < NFLOWMAP; i++)
 	while (Flow *f = _flowmap[i]) {
@@ -226,11 +240,13 @@ IPFlowRawSockets::cleanup(CleanupStage)
 	}
     if (_nnoagg > 0 && _nagg == 0)
 	errh->lwarning(declaration(), "saw no packets with aggregate annotations");
+#endif
 }
 
 int
 IPFlowRawSockets::initialize(ErrorHandler *errh)
 {
+#if HAVE_PCAP
     if (input_is_pull(0)) {
 	ScheduleInfo::join_scheduler(this, &_task, errh);
 	_signal = Notifier::upstream_empty_signal(this, 0, &_task);
@@ -239,8 +255,12 @@ IPFlowRawSockets::initialize(ErrorHandler *errh)
 	_agg_notifier->add_listener(this);
     _gc_timer.initialize(this);
     return 0;
+#else
+    return -1;
+#endif
 }
 
+#if HAVE_PCAP
 IPFlowRawSockets::Flow *
 IPFlowRawSockets::find_aggregate(uint32_t agg, const Packet *p)
 {
@@ -278,18 +298,24 @@ IPFlowRawSockets::find_aggregate(uint32_t agg, const Packet *p)
 
     return f;
 }
+#endif
 
 void
 IPFlowRawSockets::push(int, Packet *p)
 {
+#if HAVE_PCAP
     if (Flow *f = find_aggregate(AGGREGATE_ANNO(p), p)) {
 	_nagg++;
 	f->send_pkt(p, ErrorHandler::default_handler());
     } else
 	_nnoagg++;
+#endif
 }
 
 CLICK_ENDDECLS
+
+
+#if HAVE_PCAP
 extern "C" {
 void
 IPFlowRawSockets_get_packet(u_char* clientdata,
@@ -308,11 +334,14 @@ IPFlowRawSockets_get_packet(u_char* clientdata,
     SET_EXTRA_LENGTH_ANNO(p, pkthdr->len - length);
 }
 }
+#endif
+
 CLICK_DECLS
 
 void
 IPFlowRawSockets::selected(int fd, int)
 {
+#if HAVE_PCAP
     ErrorHandler *errh = ErrorHandler::default_handler();
     WritablePacket *p;
     int len;
@@ -376,11 +405,13 @@ IPFlowRawSockets::selected(int fd, int)
 	if (len <= 0 && errno != EAGAIN)
 	    errh->error("%s: read: %s", declaration().c_str(), strerror(errno));
     }
+#endif
 }
 
 bool
 IPFlowRawSockets::run_task(Task *)
 {
+#if HAVE_PCAP
     Packet *p = input(0).pull();
     if (p)
 	push(0, p);
@@ -388,22 +419,29 @@ IPFlowRawSockets::run_task(Task *)
 	return false;
     _task.fast_reschedule();
     return p != 0;
+#else
+    return false;
+#endif
 }
 
 void
 IPFlowRawSockets::aggregate_notify(uint32_t agg, AggregateEvent event, const Packet *)
 {
+#if HAVE_PCAP
     if (event == DELETE_AGG && find_aggregate(agg, 0)) {
 	_gc_aggs.push_back(agg);
 	_gc_aggs.push_back(click_jiffies());
 	if (!_gc_timer.scheduled())
 	    _gc_timer.schedule_after_msec(250);
     }
+#endif
 }
+
 
 void
 IPFlowRawSockets::gc_hook(Timer *t, void *thunk)
 {
+#if HAVE_PCAP
     IPFlowRawSockets *fs = static_cast<IPFlowRawSockets *>(thunk);
     uint32_t limit_jiff = click_jiffies() - (CLICK_HZ / 4);
     int i;
@@ -418,6 +456,7 @@ IPFlowRawSockets::gc_hook(Timer *t, void *thunk)
 	fs->_gc_aggs.erase(fs->_gc_aggs.begin(), fs->_gc_aggs.begin() + i);
 	t->schedule_after_msec(250);
     }
+#endif
 }
 
 enum { H_CLEAR };
@@ -425,6 +464,7 @@ enum { H_CLEAR };
 int
 IPFlowRawSockets::write_handler(const String &, Element *e, void *thunk, ErrorHandler *errh)
 {
+#if HAVE_PCAP
     IPFlowRawSockets *fs = static_cast<IPFlowRawSockets *>(e);
     switch ((intptr_t)thunk) {
       case H_CLEAR:
@@ -437,14 +477,19 @@ IPFlowRawSockets::write_handler(const String &, Element *e, void *thunk, ErrorHa
       default:
 	return -1;
     }
+#else
+    return -1;
+#endif    
 }
 
 void
 IPFlowRawSockets::add_handlers()
 {
+#if HAVE_PCAP
     add_write_handler("clear", write_handler, H_CLEAR);
     if (input_is_pull(0))
 	add_task_handlers(&_task);
+#endif
 }
 
 CLICK_ENDDECLS
