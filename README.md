@@ -52,11 +52,10 @@ make
 ```
 
 ### Android Build Instructions
-To build Click for Android, you can configure it for the userlevel and build it with the target `android` afterwards.
+To build Click for Android, you must specify the `--enable-android` parameter when running `./configure` and build it with the target `android` afterwards. Additionally you need to set the `NDK_ROOT` environment variable, it should contain the path to your Android NDK.
 ```bash
-# Configure (userlevel)
-./configure --enable-local --enable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
-# Build (android)
+export NDK_ROOT="/path/to/android/ndk/"
+./configure --enable-local --enable-android --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
 make android
 ```
 

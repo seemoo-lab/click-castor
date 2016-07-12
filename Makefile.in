@@ -56,7 +56,7 @@ ns: Makefile $(CLICK_BUILDTOOL) stamp-h
 userlevel: Makefile $(CLICK_BUILDTOOL) $(CLICK_COMPILE) stamp-h
 	@cd userlevel && $(MAKE) all
 android: Makefile $(CLICK_BUILDTOOL) $(CLICK_COMPILE) stamp-h
-	@cd userlevel && $(MAKE) -f Makefile.android all
+	@cd android && $(MAKE) all
 minios: Makefile $(CLICK_BUILDTOOL) $(CLICK_COMPILE) stamp-h
 	@cd minios && $(MAKE) all
 tools: Makefile stamp-h
@@ -81,6 +81,8 @@ clean-ns:
 	@cd ns && $(MAKE) clean
 clean-userlevel:
 	@cd userlevel && $(MAKE) clean
+clean-android:
+	@cd android && $(MAKE) clean
 clean-minios:
 	@cd minios && $(MAKE) clean
 clean-tools:
