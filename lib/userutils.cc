@@ -456,8 +456,10 @@ remove_file_on_exit(const String &file)
 	    click_signal(SIGINT, signal_handler, false);
 	    click_signal(SIGTERM, signal_handler, false);
 	    click_signal(SIGPIPE, signal_handler, false);
+#if !HAVE_ANDROID
             if (!getenv("CLICK_PRESERVE_TEMPORARIES"))
                 atexit(atexit_remover);
+#endif
 	}
 	if (char *x = new char[file.length() + 1]) {
 	    memcpy(x, file.data(), file.length());

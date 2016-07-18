@@ -23,9 +23,13 @@
 #include <click/timer.hh>
 #include <click/notifier.hh>
 #include "../analysis/aggregatenotifier.hh"
+
+#if HAVE_PCAP
 extern "C" {
 #include <pcap.h>
 }
+#endif
+
 CLICK_DECLS
 
 /*
@@ -155,6 +159,7 @@ class IPFlowRawSockets : public Element, public AggregateListener { public:
 
   private:
 
+#if HAVE_PCAP
     class Flow { public:
 
 	Flow(const Packet *);
@@ -184,11 +189,15 @@ class IPFlowRawSockets : public Element, public AggregateListener { public:
 	int _datalink;
 
     };
+#endif
 
     enum { FLOWMAP_BITS = 10, NFLOWMAP = 1 << FLOWMAP_BITS };
+
+#if HAVE_PCAP
     Flow *_flowmap[NFLOWMAP];
     Vector<Flow *> _flows;
     int _nflows;
+#endif
 
     uint32_t _nnoagg;
     uint32_t _nagg;
@@ -204,8 +213,11 @@ class IPFlowRawSockets : public Element, public AggregateListener { public:
     bool _usepcap;
     unsigned _headroom;
 
+#if HAVE_PCAP
     Flow *find_aggregate(uint32_t, const Packet * = 0);
     void end_flow(Flow *, ErrorHandler *);
+#endif
+
     void selected(int fd, int mask);
     static void gc_hook(Timer *, void *);
     static int write_handler(const String &, Element *, void *, ErrorHandler*) CLICK_COLD;
