@@ -8,8 +8,6 @@
 //#define DEBUG_ACK_SRCDST  // uncomment to add source and destination fields to ACK packets
 #define DEBUG_HOPCOUNT // include (unprotected) hopcount field in packets
 
-#define CASTOR_FLOWAUTH_ELEM                         8  // Number of flow auth elements
-
 #define icv_BYTES 8U
 #define nonce_BYTES 24U
 
@@ -27,18 +25,11 @@ namespace CastorType { // C++11's strongly typed 'enum class' does not work, so 
 		MERKLE = 0x0A,
 		MERKLE_PKT = PKT | MERKLE,
 		MERKLE_ACK = ACK | MERKLE,
-
-		XCAST = 0x0C,
-		XCAST_PKT = PKT | XCAST,
 	};
 };
 
 typedef Hash FlowId;
 typedef Hash PacketId;
-typedef struct {
-	Hash& operator[](int i) { return elem[i]; }
-	Hash elem[CASTOR_FLOWAUTH_ELEM];
-} FlowAuth;
 typedef Hash AckAuth;
 typedef Hash PktAuth;
 typedef Buffer<icv_BYTES> ICV;
@@ -126,10 +117,6 @@ public:
 	static inline uint8_t getType(const Packet* p) {
 		uint8_t type = p->data()[0] & 0xF0;
 		return type;
-	}
-	static inline bool isXcast(Packet* p) {
-		uint8_t type = p->data()[0] & 0x0F;
-		return (type == CastorType::XCAST);
 	}
 };
 
