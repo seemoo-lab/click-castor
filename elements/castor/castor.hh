@@ -76,12 +76,13 @@ public:
 	FlowId	 	fid;
 	PacketId 	pid;
 	ICV			icv;
-	/* included if SYN = 1 */
-	// Nonce	    n;
+	// Nonce n;
+	// included if SYN = 1
 	inline const Nonce* n() const { return reinterpret_cast<const Nonce*>((uint8_t*) this + sizeof(*this)); }
 	inline Nonce* n() { return reinterpret_cast<Nonce*>((uint8_t*) this + sizeof(*this)); }
-	/* variable size 0..fsize */
+
 	// Hash fauth[fasize];
+	// where fasize = 0..fsize
 	inline const Hash* fauth() const { return reinterpret_cast<const Hash*>((uint8_t*) this + sizeof(*this) + ((syn()) ? sizeof(Nonce) : 0)); }
 	inline Hash* fauth() { return reinterpret_cast<Hash*>((uint8_t*) this + sizeof(*this) + ((syn()) ? sizeof(Nonce) : 0)); }
 
