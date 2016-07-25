@@ -14,7 +14,7 @@ public:
 	inline Buffer(const uint8_t array[]) { memcpy(this->array, array, S); }
 	inline hashcode_t hashcode() const {
 		hashcode_t x;
-		memcpy(&x, array, sizeof(hashcode_t));
+		memcpy(&x, array, S < sizeof(hashcode_t) ? S : sizeof(hashcode_t));
 		return x;
 	}
 	inline Buffer<S>& operator=(const Buffer<S>& x) {
