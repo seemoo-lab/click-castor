@@ -33,7 +33,8 @@ Arguments:
 
 =item PORT
 
-Integer.  Port identifier of the device.
+Integer or PCI address.  Port identifier of the device, or a PCI address in the
+format fffff:ff:ff.f
 
 =item QUEUE
 
@@ -53,6 +54,11 @@ The default is 32.
 =item NDESC
 
 Integer.  Number of descriptors per ring. The default is 256.
+
+=item ALLOW_NONEXISTENT
+
+Boolean.  Do not fail if the PORT do not existent. If it's the case the task
+will never run and this element will behave like Idle.
 
 =back
 
@@ -99,7 +105,7 @@ private:
     static int reset_count_handler(const String&, Element*, void*,
                                    ErrorHandler*) CLICK_COLD;
 
-    unsigned int _port_id;
+    DPDKDevice* _dev;
     int _queue_id;
     bool _promisc;
     unsigned int _burst_size;

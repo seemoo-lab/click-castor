@@ -21,15 +21,12 @@
 #include <click/error.hh>
 #include <click/algorithm.hh>
 
-#include <rte_ethdev.h>
-#include <rte_mbuf.h>
-
 #include "todpdkdevice.hh"
 
 CLICK_DECLS
 
 ToDPDKDevice::ToDPDKDevice() :
-    _iqueues(), _port_id(0), _queue_id(0), _blocking(false),
+    _iqueues(), _dev(0), _queue_id(0), _blocking(false),
     _iqueue_size(1024), _burst_size(32), _timeout(0), _n_sent(0),
     _n_dropped(0), _congestion_warning_printed(false)
 {
@@ -41,16 +38,19 @@ ToDPDKDevice::~ToDPDKDevice()
 
 int ToDPDKDevice::configure(Vector<String> &conf, ErrorHandler *errh)
 {
-    int n_desc;
+    int n_desc = -1;
+	String dev;
+	bool allow_nonexistent = false;
 
     if (Args(conf, this, errh)
-        .read_mp("PORT", _port_id)
+        .read_mp("PORT", dev)
         .read_p("QUEUE", _queue_id)
         .read("IQUEUE", _iqueue_size)
         .read("BLOCKING", _blocking)
         .read("BURST", _burst_size)
         .read("TIMEOUT", _timeout)
         .read("NDESC",n_desc)
+        .read("ALLOW_NONEXISTENT", allow_nonexistent)
         .complete() < 0)
         return -1;
 
@@ -61,12 +61,21 @@ int ToDPDKDevice::configure(Vector<String> &conf, ErrorHandler *errh)
             "match BURST, that is %d", name().c_str(), _iqueue_size);
     }
 
-    return DPDKDevice::add_tx_device(
-        _port_id, _queue_id, (n_desc > 0) ? n_desc : 1024, errh);
+    if (!DPDKDeviceArg::parse(dev, _dev)) {
+        if (allow_nonexistent)
+            return 0;
+        else
+            return errh->error("%s : Unknown or invalid PORT", dev.c_str());
+    }
+
+    return _dev->add_tx_queue(_queue_id, (n_desc > 0) ? n_desc : 1024, errh);
 }
 
 int ToDPDKDevice::initialize(ErrorHandler *errh)
 {
+    if (!_dev)
+        return 0;
+
     _iqueues.resize(click_max_cpu_ids());
 
     for (int i = 0; i < _iqueues.size(); i++) {
@@ -124,7 +133,17 @@ inline struct rte_mbuf* get_mbuf(Packet* p, bool create=true) {
 
     if (likely(DPDKDevice::is_dpdk_packet(p))) {
         mbuf = (struct rte_mbuf *) p->destructor_argument();
-        p->set_buffer_destructor(DPDKDevice::fake_free_pkt);
+        rte_pktmbuf_pkt_len(mbuf) = p->length();
+        rte_pktmbuf_data_len(mbuf) = p->length();
+        mbuf->data_off = p->headroom();
+        if (p->shared()) {
+            /*Prevent DPDK from freeing the buffer. When all shared packet
+             * are freed, DPDKDevice::free_pkt will effectively destroy it.*/
+            rte_mbuf_refcnt_update(mbuf, 1);
+        } else {
+            //Reset buffer, let DPDK free the buffer when it wants
+            p->reset_buffer();
+        }
     } else if (create) {
         mbuf = rte_pktmbuf_alloc(DPDKDevice::get_mpool(rte_socket_id()));
         memcpy((void*) rte_pktmbuf_mtod(mbuf, unsigned char *), p->data(),
@@ -162,8 +181,8 @@ void ToDPDKDevice::flush_internal_queue(InternalQueue &iqueue) {
         if (iqueue.index + sub_burst >= _iqueue_size)
             // The sub_burst wraps around the ring
             sub_burst = _iqueue_size - iqueue.index;
-        r = rte_eth_tx_burst(_port_id, _queue_id, &iqueue.pkts[iqueue.index],
-                             iqueue.nr_pending);
+        r = rte_eth_tx_burst(_dev->port_id, _queue_id, &iqueue.pkts[iqueue.index],
+                             sub_burst);
 
         iqueue.nr_pending -= r;
         iqueue.index += r;
@@ -185,6 +204,9 @@ void ToDPDKDevice::flush_internal_queue(InternalQueue &iqueue) {
 
 void ToDPDKDevice::push(int, Packet *p)
 {
+    if (!_dev)
+        return;
+
     // Get the thread-local internal queue
     InternalQueue &iqueue = _iqueues[click_current_cpu_id()];
 

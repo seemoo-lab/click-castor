@@ -23,16 +23,13 @@
 #include <click/error.hh>
 #include <click/standard/scheduleinfo.hh>
 
-#include <rte_ethdev.h>
-#include <rte_mbuf.h>
-#include <rte_version.h>
 #include "fromdpdkdevice.hh"
 
 CLICK_DECLS
 
 FromDPDKDevice::FromDPDKDevice() :
-    _port_id(0), _queue_id(0), _promisc(true), _burst_size(32), _count(0),
-    _task(this)
+    _dev(0), _queue_id(0), _promisc(true), _burst_size(32),
+    _count(0), _task(this)
 {
 }
 
@@ -43,22 +40,34 @@ FromDPDKDevice::~FromDPDKDevice()
 int FromDPDKDevice::configure(Vector<String> &conf, ErrorHandler *errh)
 {
     int n_desc = -1;
+    String dev;
+    bool allow_nonexistent = false;
 
     if (Args(conf, this, errh)
-        .read_mp("PORT", _port_id)
+        .read_mp("PORT", dev)
         .read_p("QUEUE", _queue_id)
         .read("PROMISC", _promisc)
         .read("BURST", _burst_size)
         .read("NDESC", n_desc)
+        .read("ALLOW_NONEXISTENT", allow_nonexistent)
         .complete() < 0)
         return -1;
 
-    return DPDKDevice::add_rx_device(
-        _port_id, _queue_id, _promisc, (n_desc > 0) ? n_desc : 256, errh);
+    if (!DPDKDeviceArg::parse(dev, _dev)) {
+        if (allow_nonexistent)
+            return 0;
+        else
+            return errh->error("%s : Unknown or invalid PORT", dev.c_str());
+    }
+
+    return _dev->add_rx_queue(_queue_id, _promisc, (n_desc > 0) ? n_desc : 256, errh);
 }
 
 int FromDPDKDevice::initialize(ErrorHandler *errh)
 {
+    if (!_dev)
+        return 0;
+
     ScheduleInfo::initialize_task(this, &_task, true, errh);
 
     return DPDKDevice::initialize(errh);
@@ -72,13 +81,16 @@ bool FromDPDKDevice::run_task(Task * t)
 {
     struct rte_mbuf *pkts[_burst_size];
 
-    unsigned n = rte_eth_rx_burst(_port_id, _queue_id, pkts, _burst_size);
+    unsigned n = rte_eth_rx_burst(_dev->port_id, _queue_id, pkts, _burst_size);
     for (unsigned i = 0; i < n; ++i) {
-        rte_prefetch0(rte_pktmbuf_mtod(pkts[i], void *));
+        unsigned char* data = rte_pktmbuf_mtod(pkts[i], unsigned char *);
+        rte_prefetch0(data);
         WritablePacket *p =
-            Packet::make(rte_pktmbuf_mtod(pkts[i], unsigned char *),
+            Packet::make(data,
                          rte_pktmbuf_data_len(pkts[i]), DPDKDevice::free_pkt,
-                         pkts[i]);
+                         pkts[i],
+                         rte_pktmbuf_headroom(pkts[i]),
+                         rte_pktmbuf_tailroom(pkts[i]));
         p->set_packet_type_anno(Packet::HOST);
 
         output(0).push(p);

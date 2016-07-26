@@ -23,12 +23,3 @@ share/click/elementmap.xml
 share/click/pkg-config.mk
 stamp-egroup
 stamp-h
-
-*.o
-*.so
-*.dylib
-.cproject
-.project
-.pydevproject
-compile
-ns/elements.csmk
