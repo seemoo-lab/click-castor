@@ -10,7 +10,7 @@ This repository contains **Castor (v2)** implementation for the [Click Modular R
   * [Cross Compilation](#cross-compilation)
   * [Extending the Code](#extending-the-code)
 * [Run (userlevel)](#run-userlevel)
-* [Access Element Handlers](#access-element-handlers)
+* [Communicating with Click at Runtime](#communicating-with-click-at-runtime)
 * [Related Publications](#related-publications)
 
 ## Code Navigation
@@ -20,10 +20,15 @@ This section gives a rough overview where relevant code for Castor (v2) is locat
   * `castor_unicast_routing.click`: **Castor (v2)** run configuration.
   * other `.click`: shared modules which are included by the main files (above).
 * `elements/castor/`: C++ source code.
-  * `routing/`: main code base: routing logic
-  * `flow/`: flow generation and recontruction
-  * `neighbordiscovery/`: reusable simple neighbor discovery protocol.
+  * `castor.hh`: packet definitions
+  * `attack/`: elements specific to implement certain attacks
+  * `crypto/`: all required crypto (includes a wrapper class around `libsodium`)
   * `flooding/`: "stupid" flooding protocol (was used to compare performance with Xcastor).
+  * `flow/`: flow generation and reconstruction
+  * `neighbors/`: neighbor discovery and neighbor-to-neighbor authentication
+  * `ratelimiter`: prevents neighbors from flooding the network
+  * `routing/`: main code base: routing logic
+  * `util/`: utility Elements
 
 ## Install
 ### Prerequisites
@@ -31,22 +36,29 @@ This section gives a rough overview where relevant code for Castor (v2) is locat
 The only `Element` requiring this library is `elements/castor/crypto/crypto.cc`, which performs all relevant crypto operations in Castor.
 If libsodium is installed in a non-standard path, you need to include an appropriate linker flag such as `LDFLAGS="-L<lib_dir>"`.
 Up-to-date installation instructions for libsodium can be found [here](https://download.libsodium.org/doc/installation/index.html).
-* **C++11**. The Castor (v2) implementation uses some C\++11 features, e.g., `auto`. You might have to enable those features with `CXXFLAGS="-std=c++11"`.
+* **C++11**. The Castor (v2) implementation uses some C\++11 features, e.g., `auto`. Click currently does not use C\++11, so you have to enable it manually using `CXXFLAGS="-std=c++11"`.
 
 ### General Build Instructions
 Click can be built as a regular userlevel or ns-3 module.
 After cloning this repository, configure Click with `--enable-castor` and the appropriate target. More detailed build instructions for Click can be found in the official INSTALL file.
 * userlevel: `--enable-userlevel --disable-linuxmodule`
 * ns-3: `--enable-nsclick --disable-userlevelm --disable-linuxmodule`
-* can be omitted for Castor (to speed up compliation process): `--disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools`
+* can be omitted for Castor (to speed up compilation process): `--disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools`
 
+To summarize, `click-castor` can be build with the following commands:
 ```bash
 git clone <PROJECT>
 cd click-castor
 # Configure (userlevel)
-./configure --enable-castor --enable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
+./configure --enable-castor --enable-userlevel --disable-linuxmodule \
+            --disable-app --disable-aqm --disable-analysis --disable-test \
+            --disable-tcpudp --disable-icmp --disable-threads --disable-tools \
+            CXXFLAGS="-std=c++11" LDFLAGS="-L/path/to/libsodium"
 # Configure (ns-3)
-./configure --enable-castor --enable-nsclick --disable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
+./configure --enable-castor --enable-nsclick --disable-userlevel --disable-linuxmodule \
+            --disable-app --disable-aqm --disable-analysis --disable-test \
+            --disable-tcpudp --disable-icmp --disable-threads --disable-tools \
+            CXXFLAGS="-std=c++11" LDFLAGS="-L/path/to/libsodium"
 # Build
 make
 ```
@@ -55,14 +67,20 @@ make
 To build Click for Android, you must specify the `--enable-android` parameter when running `./configure` and build it with the target `android` afterwards. Additionally you need to set the `NDK_ROOT` environment variable, it should contain the path to your Android NDK.
 ```bash
 export NDK_ROOT="/path/to/android/ndk/"
-./configure --enable-local --enable-android --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
+./configure --enable-castor --enable-android --disable-linuxmodule \
+            --disable-app --disable-aqm --disable-analysis --disable-test \
+            --disable-tcpudp --disable-icmp --disable-threads --disable-tools
 make android
 ```
 
 ### Cross Compilation
 To build Click for a different architecture (such as i386 in our mesh nodes) on a x64 machine, you can cross compile using the `--host=i386-linux-gnu` (make sure to include the proper header files, e.g., `chroot` in the target file system):
 ```bash
-./configure --host=i386-linux-gnu --enable-castor --enable-userlevel --disable-linuxmodule --disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools
+./configure --host=i386-linux-gnu \
+            --enable-castor --enable-userlevel --disable-linuxmodule \
+            --disable-app --disable-aqm --disable-analysis --disable-test \
+            --disable-tcpudp --disable-icmp --disable-threads --disable-tools \
+            CXXFLAGS="-std=c++11" LDFLAGS="-L/path/to/libsodium"
 ```
 
 ### Extending the Code
@@ -83,12 +101,17 @@ userlevel/click conf/castor/castor_unicast_routing.click
 userlevel/click EthDev=wlanX conf/castor/castor_unicast_routing.click
 ```
 
-## Access Element Handlers
+## Communicating with Click at Runtime
 Element Handlers can be accessed using a [ControlSocket Element](http://read.cs.ucla.edu/click/elements/controlsocket).
-For example, one could generate a Unix socket to communicate with the Element Handlers like this: ControlSocket(unix, /tmp/click_socket);
+To communicate via a Unix socket, one can either
+- include `ControlSocket(unix, /tmp/click_socket);` in the `.click` config file, or
+- start Click with parameter `-u /tmp/click_socket`.
+
 After connecting with the socket, one can read data from the Element Handlers using a line-based protocol described [here](http://read.cs.ucla.edu/click/elements/controlsocket).
 For example, one could read the list of neighbouring nodes by sending the command `READ neighbors.print` to the socket, which would lead to an answer of `200 OK\r\nDATA N\r\nx_1x_2x_n` where N denotes the length of the returned data and x_1 to x_n are the data symbols.
 
+
 ## Related Publications
-* E. Kohler, R. Morris, B. Chen, J. Jannotti, and M. F. Kaashoek, “The Click Modular Router,” *ACM Transactions on Computer Systems*, vol. 18, no. 3, pp. 263–297, Aug. 2000.
-* W. Galuba, P. Papadimitratos, M. Poturalski, K. Aberer, Z. Despotovic, and W. Kellerer, “Castor: Scalable Secure Routing for Ad Hoc Networks,” in *Proceedings of the IEEE Conference on Computer Communications (INFOCOM)*, 2010, pp. 1–9.
+* E. Kohler, R. Morris, B. Chen, J. Jannotti, and M. F. Kaashoek, “**The Click Modular Router**,” *ACM Transactions on Computer Systems*, vol. 18, no. 3, pp. 263–297, Aug. 2000. ([PDF](https://pdos.csail.mit.edu/papers/click:tocs00/paper.pdf), [web](http://read.cs.ucla.edu/click/click))
+* W. Galuba, P. Papadimitratos, M. Poturalski, K. Aberer, Z. Despotovic, and W. Kellerer, “**Castor: Scalable Secure Routing for Ad Hoc Networks**,” in *Proceedings of the IEEE Conference on Computer Communications (INFOCOM)*, 2010, pp. 1–9. ([PDF](https://infoscience.epfl.ch/record/148217/files/castor.pdf))
+* M. Schmittner and M. Hollick, “**Xcastor: Secure and Scalable Group Communication in Ad Hoc Networks**,” in *IEEE Symposium on a World of Wireless, Mobile and Multimedia Networks (WoWMoM)*, June 2016. ([PDF](https://www.informatik.tu-darmstadt.de/fileadmin/user_upload/Group_SEEMOO/milan_schmittner/xcastor-wowmom16.pdf))
