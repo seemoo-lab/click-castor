@@ -1484,7 +1484,7 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --disable-android       disable android user-level driver
+  --enable-android        enable android user-level driver
   --disable-userlevel     disable user-level driver
     --enable-user-multithread
                           support userlevel multithreading
@@ -6382,7 +6382,7 @@ test -z "$AR_CREATEFLAGS" && AR_CREATEFLAGS=cru
 if test "${enable_android+set}" = set; then :
   enableval=$enable_android; :
 else
-  enable_android=yes
+  enable_android=no
 fi
 
 
