@@ -13,6 +13,8 @@ int CastorDestClassifier::configure(Vector<String> &conf, ErrorHandler *errh) {
 void CastorDestClassifier::push(int, Packet *p) {
 	CastorPkt* header = (CastorPkt*) p->data();
 
+	click_chatter("CastorDestClassifier: %lx=%lx (myId=dst)\n", myId, header->dst);
+
 	if (myId == header->dst)
 		output(0).push(p);
 	else

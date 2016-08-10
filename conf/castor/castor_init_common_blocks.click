@@ -14,6 +14,10 @@ history :: CastorHistory;
 routingtable :: CastorRoutingTable($updateDelta);
 timeouttable :: CastorTimeoutTable(INIT $initTo, MIN $minTo, MAX $maxTo);
 ratelimits :: CastorRateLimitTable(INIT $initRate, MIN $minRate, MAX $maxRate);
+//fromhandler :: FromHandler();
+//tohandler :: ToHandler();
+debug_handler :: CastorDebugHandler(flowmanager);
+//createDebugPkt :: CastorCreateDebugPkt(flowmanager, flowtable);
 
 castorclassifier :: CastorClassifier(fake, neighbors)
 ratelimiter :: CastorRateLimiter($ratelimitEnable, ratelimits, $bucketSize);

@@ -1,11 +1,16 @@
 /*******************
  * Wire the Blocks *
  *******************/
+mysocket :: ControlSocket(unix, /tmp/castor_debug_socket);
 
 fromhost
 	-> handleIpPacket
 	-> annoSrcAddr :: SetEtherAddress(ANNO 0, ADDR fake)
 	-> handlepkt;		// Process new generated packets
+
+debug_handler
+	//-> createDebugPkt
+	-> annoSrcAddr;
 
 castorclassifier[0]
 	-> ratelimiter // Rate limit PKTs
@@ -16,7 +21,8 @@ castorclassifier[2] -> [1]tohost; // Deliver non-Castor packets directly to host
 handlepkt[0] -> removeHeader -> [0]tohost; // Deliver PKT to host
 handlepkt[1] -> DynamicEtherEncap(fake, neighbors, crypto) -> [1]ethout; // Return ACK
 handlepkt[2] -> DynamicEtherEncap(fake, neighbors, crypto) -> [0]ethout; // Forward PKT
-handleack    -> DynamicEtherEncap(fake, neighbors, crypto) -> [1]ethout; // Forward ACK
+handleack[0] -> DynamicEtherEncap(fake, neighbors, crypto) -> [1]ethout; // Forward ACK
+handleack[1] -> debug_handler;
 
 replayratelimits :: CastorRateLimitTable(MIN $replayRateMax, MAX $replayRateMax, INIT $replayRateMax);
 replaystore[0,1]

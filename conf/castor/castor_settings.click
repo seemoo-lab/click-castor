@@ -48,7 +48,7 @@ define(
 );
 
 require(
-	library castor_io_ns3.click,
-	//library castor_io_userlevel.click,
+	//library castor_io_ns3.click,
+	library castor_io_userlevel.click,
 	//library castor_io_benchmark.click,
 );
