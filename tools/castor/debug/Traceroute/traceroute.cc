@@ -79,6 +79,7 @@ Traceroute::Traceroute(int argc, char** argv) {
  * It is possible that there is data left on the castor-debug-handler from a previous ping.
  */
 void Traceroute::clean_socket() {
+
 	int n = 0;
 	char* buffer;
 	int count = 0;
@@ -169,7 +170,7 @@ bool Traceroute::receive() {
 		}
 		tmp_ret = "";
 	} while(!interrupted);
-//	std::cout << "ret = " << ret << std::endl;
+	std::cout << "ret = " << ret << std::endl;
 	parse_single_traceroute_info(ret);	
 	return true;	
 }
@@ -178,12 +179,14 @@ bool Traceroute::receive() {
  * Parse the data that was received
  */
 void Traceroute::parse_single_traceroute_info(std::string ret) {
+	//std::cout << "parse single routes" << std::endl;
 	char* dump = strdup(reinterpret_cast<const char*>(ret.c_str()));
 	size_t num_paths = std::count(ret.begin(), ret.end(), '<'); 
 	char** debug_acks = new char *[num_paths];	
 	strtok(dump, "|");
 	for(int i=0; i < num_paths; i++) {
 		debug_acks[i] = strtok(NULL, "<");
+		strtok(NULL, "|");
 	}
 
 	for(int i=0; i < num_paths; i++) {
@@ -202,6 +205,8 @@ void Traceroute::merge_routes() {
 	int i, j;
 	Route* route1;
 	Route* route2;
+
+	//std::cout << "merge routes" << std::endl;
 
 	for(i=num_routes-1; i >= 0; i--) {
 		for(j=num_routes-1; j >= 0 && j != i; j--) {
@@ -230,6 +235,8 @@ void Traceroute::sort_routes() {
 	size_t num_routes = routes.size();
 	int i, j, m;
 	float rtt1, rtt2;
+	//std::cout << "sort routes" << std::endl;
+
 
 	if(num_routes == 1 || cli.st == ST_NORMAL)
 		return;
@@ -262,6 +269,9 @@ void Traceroute::analyze() {
 	size_t num_routes = routes.size();
 	std::string routes_str("");
 	Route *route;
+
+
+	//std::cout << "analyze routes" << std::endl;
 
 	for(i=0; i < num_routes; i++) {
 		route = &routes.at(i);	

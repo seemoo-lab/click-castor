@@ -19,8 +19,6 @@ Route::Route(char* debug_ack, char* dst_ip)
 	char* mac_address_str;
 	char* ip_address_str;
 
-
-
 	mac_address_str = strtok(dump_route, ":");
 	while(mac_address_str){
 		ip_address_str = strtok(NULL, ",");

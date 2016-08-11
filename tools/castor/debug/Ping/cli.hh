@@ -20,7 +20,7 @@ public:
 	int size = 0;
 	int ttl = -1;
 	int deadline = -1;
-	std::string ifa_name = "eth0";
+	std::string ifa_name = "wlan0";
 	char src_ip[INET_ADDRSTRLEN];
 	char dst_ip[INET_ADDRSTRLEN];
 };

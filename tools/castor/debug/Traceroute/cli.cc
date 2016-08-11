@@ -13,17 +13,20 @@
 void print_help() {
 	std::string usage 	= 	"Usage: traceroute <ip address> [options]\n";
 	std::string options 	= 	"Options:" 
-					"\n\t-a|--all <x>:      \tConsider all invloved nodes."
-					"\n\t-I|--interface <x>:\tInterface name x."
-					"\n\t-d|--deadline<x>:  \tMaximal time to wait for a reponse."
-					"\n\t--ttl <x>:         \tAmount of nodes that are allowed to" 
-								 "forwared the packet."
+					"\n\t-a|--all <x>:"
+					"\t\t\tConsider all invloved nodes."
+					"\n\t-I|--interface <x>:"
+					"\t\tInterface name x."
+					"\n\t-d|--deadline<x>:"
+					"\t\tMaximal time to wait for a reponse."
+					"\n\t--ttl <x>:"
+					"\t\t\tAmount of nodes that are allowed to forwared the packet."
 					"\n\t--route [all|dst|nodst]:"
-					"                       \tShow all nodes or with(out) destination."
+					"\tShow all nodes or with(out) destination."
 					"\n\t--address_type [ip|mac|ip_mac]:"
-					"               	\tShow node entry as IP, MAC or both."
+					"\tShow node entry as IP, MAC or both."
 					"\n\t--sort [normal|up|down]:"
-					"               	\tShows the routes in the desired order.";
+					"\tShows the routes in the desired order.";
 	std::cout << usage + options << std::endl;
 }
 

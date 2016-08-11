@@ -21,7 +21,7 @@ public:
 	AddressType at = AT_IP;
 	RouteType rt = RT_DST;
 	SortType st = ST_NORMAL;
-	std::string ifa_name = "eth0";
+	std::string ifa_name = "wlan0";
 	char src_ip[INET_ADDRSTRLEN];
 	char dst_ip[INET_ADDRSTRLEN];
 	char *src_mac = NULL;

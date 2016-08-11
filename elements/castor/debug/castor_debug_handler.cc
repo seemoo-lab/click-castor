@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sstream>
 #include <click/vector.hh>
+#include "../flow/castor_flow.hh"
 #include <iostream>
 #include <stdio.h>
 #include <cstdlib>
@@ -20,12 +21,12 @@ CLICK_DECLS
 CastorDebugHandler::CastorDebugHandler() { };
 CastorDebugHandler::~CastorDebugHandler() { };
 
-static CastorFlowManager* flow;
+static CastorFlowManager* flow_manager;
 static int pkt_size = 0;
 
 int CastorDebugHandler::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
-		.read_mp("FLOW_MANAGER", ElementCastArg("CastorFlowManager"), flow)
+		.read_mp("FLOW_MANAGER", ElementCastArg("CastorFlowManager"), flow_manager)
 		// FIXME read Crypto
 		.complete();
 }
@@ -100,13 +101,15 @@ Packet* CastorDebugHandler::create_castor_pkt(const unsigned char* src_ip, const
 	header->src = src;
 	header->dst = dst;
 
-	PacketLabel label = flow->getPacketLabel(header->src, header->dst);
+	//CastorFlow* flow = flow_manager->createFlowIfNotExists(header->src, header->dst);
+	//PacketLabel label = flow->freshLabel();
+	PacketLabel label = flow_manager->getPacketLabel(header->src, header->dst);
 	unsigned int fasize = 0;
 	header->hsize = sizeof(Hash);
 	header->set_fsize(0);
 	header->len = htons(p->length());
 	header->set_fasize(0);
-	header->fid = Hash(); // FIXME new method: flow->getCurrentFlowId(src, dst)
+	header->fid = label.fid;//Hash(); // FIXME new method: flow->getCurrentFlowId(src, dst)
 	crypto->random(header->pid);
 	header->kpkt = 0xffff;
 	header->icv = ICV();
@@ -135,7 +138,7 @@ int CastorDebugHandler::write_callback(const String &s, Element *e, void *vparam
 	Packet* p = fh->create_castor_pkt(src_ip, dst_ip, dbg, aret, insp, size);
 	pkt_size = p->length();
 
-	start_time = std::clock();
+	start_time = p->timestamp_anno().msec();
 
 	fh->output(0).push(p);
 }
@@ -150,7 +153,9 @@ Packet*  CastorDebugHandler::simple_action(Packet *p) {
 	int i;
 
 	//dbg_ack_str += String(p->timestamp_anno().msec()) + "|"; // sec
-	double rtt = (std::clock() - start_time) / (double) (CLOCKS_PER_SEC/1000);
+	//double rtt = (std::clock() - start_time) / (double) (CLOCKS_PER_SEC/1000);
+	click_chatter("start_time=%lf , curr_time=%lf\n", start_time, p->timestamp_anno().msec());
+	double rtt = (p->timestamp_anno().msec() - start_time);
 	dbg_ack_str += String(rtt) + "|";
 	dbg_ack_str += String(pkt_size) + "|";
 

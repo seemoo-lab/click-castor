@@ -158,7 +158,6 @@ bool Ping::receive() {
 		if(ret.size() <= 55) {
 			sleep(1);
 			if((--t) == 0) {
-				std::cout << "Timeout" << std::endl;
 				return false;
 			}
 			ret = "";
@@ -168,6 +167,7 @@ bool Ping::receive() {
 		
 	} while(!interrupted); 
 	
+	std::cout << ret << std::endl;
 	print_single_ping_info(ret);
 
 	return true;	

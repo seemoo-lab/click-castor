@@ -30,17 +30,18 @@ Packet* CastorInsertPath::simple_action(Packet* p) {
 	const CastorAck& ack = *reinterpret_cast<const CastorAck*>(p->data());
 
 	CastorAck header = ack;
-	header.len = htons(ntohs(header.len) + (unsigned int) (header.path_len+1)*sizeof(PathElem));
+	header.len = htons(ntohs(header.len) + (unsigned int)sizeof(PathElem));
 
 	// Resize the ACK, so a new PathElem(IP, MAC) can be inserted
 	WritablePacket* q = p->uniqueify();
-	q = q->push((header.path_len+1)*sizeof(PathElem));
+	q = q->put(sizeof(PathElem));
 
 	memcpy(q->data(), &header, sizeof(CastorAck));
 
 	CastorAck& newAck = *reinterpret_cast<CastorAck*>(q->data());
 	*newAck.path() = *ack.path();
 
+	//click_chatter("insert path: mac= %s ip=%s\n", myMac.unparse().c_str(), myIp.unparse().c_str());
 	// Add the IP and the MAC of this node to the ACK
 	newAck.add_to_path(myMac, myIp);
 

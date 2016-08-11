@@ -148,15 +148,19 @@ public:
 	inline const PathElem* path() const { return reinterpret_cast<const PathElem*>((uint8_t*) this + sizeof(*this)); }
 
 	inline void add_to_path(NeighborId mac, NodeId ip) {
-//		click_chatter("path_len= %d, mac = %lx, ip = %lx", path_len, mac, ip);
+		click_chatter("path_len= %d, mac = %s, ip = %s", path_len, mac.unparse().c_str(), ip.unparse().c_str());
 		PathElem path_elem;
 		path_elem.ip = ip;
 		path_elem.mac = mac;
 
+
 		PathElem* ptr_path_elem = path();
 		ptr_path_elem[path_len] = path_elem;
-
 		path_len++;
+
+		for(int i=0; i < path_len; i++)
+			click_chatter("neighbor%d mac = %s, ip = %s", i, ptr_path_elem[i].mac.unparse().c_str(), ptr_path_elem[i].ip.unparse().c_str());
+
 	}
 };
 
