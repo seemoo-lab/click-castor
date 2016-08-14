@@ -15,6 +15,7 @@ public:
 	~CastorMerkleFlow();
 
 	PacketLabel freshLabel();
+	FlowId getFlowId();
 	bool isAlive() const;
 private:
 	MerkleTree* tree;

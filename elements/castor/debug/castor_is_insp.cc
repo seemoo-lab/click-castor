@@ -4,6 +4,9 @@
 
 CLICK_DECLS
 
+/*
+ * Sends the incoming packet (PKT or ACK) to output 1 if the INSP flag is set
+ */
 Packet* CastorIsInsp::simple_action(Packet* p) {
 	if (CastorPacket::getType(p) == CastorType::PKT) {
 		const CastorPkt& pkt = *reinterpret_cast<const CastorPkt*>(p->data());

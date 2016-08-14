@@ -17,9 +17,12 @@ public:
 	// Parse and stores all user inputs
 	CLI cli;	
 private:
+	// Initialize the socket that is used to communicate with castor.
+	bool connect_to_socket();	
+
  	// It is possible that there is data left on 
 	// the castor-debug-handler from a previous ping.
-	void clean_socket();
+	void clear_socket();
 
 	// Sends a command to the connected socket an receives the response
 	bool send_socket_cmd(std::string cmd, std::string& ret);
@@ -40,10 +43,12 @@ private:
 	void sort_routes();
 
 	// Analyzes the collected data and printd it on the screen
-	void analyze();
+	void analyze_routes();
 	
 	// Prints one single Route with time, size and num_nodes
 	void setup_print_route(std::string& routes_str, Route* route);
+
+	void print_title();
 
 	// Socket that is used to communicate with castor
 	int sockfd;

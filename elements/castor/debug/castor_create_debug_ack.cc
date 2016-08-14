@@ -23,8 +23,7 @@ Packet* CastorCreateDebugAck::simple_action(Packet* p) {
 	pkt.dbg() ? ack.set_dbg() : ack.unset_dbg();
 	pkt.insp() ? ack.set_insp() : ack.unset_insp();
 
-	click_chatter("createDebugAck: pid = %lx", pkt.pid);
-
+	// Creats new CastorAck packet
 	WritablePacket* q = Packet::make(&ack, sizeof(CastorAck));
 	CastorAnno::dst_id_anno(q) = CastorAnno::src_id_anno(p);
 	CastorAnno::hop_id_anno(q) = CastorAnno::dst_id_anno(q);

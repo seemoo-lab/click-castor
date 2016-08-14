@@ -20,6 +20,7 @@ public:
 	int configure(Vector<String>&, ErrorHandler*);
 
 	PacketLabel getPacketLabel(NodeId, NodeId);
+	FlowId getCurrentFlowId(NodeId, NodeId);
 private:
 	unsigned int _flowsize;
 	CastorFlowTable* _flowtable;

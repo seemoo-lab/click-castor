@@ -18,6 +18,7 @@ private:
 	CastorHistory* history;
 	NeighborId myMac;
 
+	// If the Mac address of this node is inside the ACK return true, otherwise false
 	bool already_forwarded(const PathElem* path, uint8_t path_len);
 };
 

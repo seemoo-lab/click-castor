@@ -16,8 +16,6 @@ public:
 
 	Packet* simple_action(Packet*);
 private:
-//	uint64_t mac_to_hex(String mac);
-//	uint64_t getMac();
 	NeighborId myMac;
 	NodeId myIp;
 };

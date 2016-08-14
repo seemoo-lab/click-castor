@@ -13,7 +13,7 @@
 void print_help() {
 	std::string usage 	= 	"Usage: traceroute <ip address> [options]\n";
 	std::string options 	= 	"Options:" 
-					"\n\t-a|--all <x>:"
+					"\n\t-e|--extensive <x>:"
 					"\t\t\tConsider all invloved nodes."
 					"\n\t-I|--interface <x>:"
 					"\t\tInterface name x."
@@ -30,58 +30,74 @@ void print_help() {
 	std::cout << usage + options << std::endl;
 }
 
+/*
+ * Parses all arguments and prints a help-message if an error occurs.
+ */
 bool CLI::parse_args(int argc, char** argv) {
 	if (argc >= 2) {
 		struct sockaddr_in tmp_addr;
 		int res = inet_pton(AF_INET, argv[1], &(tmp_addr.sin_addr));
-		if (res && this->options(argc, argv)) {
-			//dst_ip = argv[1];
+
+		if (res && parse_options(argc, argv)) {
 			strcpy(dst_ip, argv[1]);
 			return true;
 		}
 	} 
+
 	print_help();
 	return false;
 }
 
-bool CLI::options(int argc, char** argv) {
+/*
+ * Parses all options and sets the corresponding attributes in the program.
+ * Returns false if a wrong argument was given.
+ */ 
+bool CLI::parse_options(int argc, char** argv) {
 	std::string route_type_str("");
 	std::string address_type_str("");
 	std::string sort_type_str("");
+	
 	for (int i=2; i < argc; i++) {
 		std::string opt(argv[i]);
-		if (opt == "-a" || opt == "--all") {
-			all = true;
+
+		if (opt == "-e" || opt == "--extensive") {
+			ext = true;
 		} else if (opt == "-d" || opt == "--deadline") {
 			deadline = atoi(argv[++i]);
 		} else if (opt == "-I" || opt == "--interface") {
 			ifa_name = std::string(argv[++i]);
 		} else if (opt == "--ttl") {
 			ttl = atoi(argv[++i]);
+
+			if(ttl > MAX_TTL) 
+				return false;
 		} else if (opt == "--address_type") {
 			address_type_str = std::string(argv[++i]);
+
 			if(address_type_str == "mac")	
-				at = AT_MAC;
+				address_type = AT_MAC;
 			else if(address_type_str == "ip_mac")
-				at = AT_MAC_IP;
+				address_type = AT_MAC_IP;
 			else 
-				at = AT_IP;
+				address_type = AT_IP;
 		} else if (opt == "--route") {
 			route_type_str = std::string(argv[++i]);
+			
 			if(route_type_str == "all") 
-				rt = RT_ALL;
+				route_type = RT_ALL;
 			else if(route_type_str == "nodst")
-				rt = RT_NODST;
+				route_type = RT_NODST;
 			else	
-				rt = RT_DST;
+				route_type = RT_DST;
 		} else if (opt == "--sort") {
 			sort_type_str = std::string(argv[++i]);
+
 			if(sort_type_str == "normal")
-				st = ST_NORMAL;
+				sort_type = ST_NORMAL;
 			else if(sort_type_str == "up")
-				st = ST_UP;
+				sort_type = ST_UP;
 			else
-				st = ST_DOWN;
+				sort_type = ST_DOWN;
 		} else {
 			return false;
 		}
@@ -89,17 +105,24 @@ bool CLI::options(int argc, char** argv) {
 	return true;
 }
 
+/*
+ * Finds the own ip address to a given interface name.
+ */
 bool CLI::set_local_ip() {
 	struct ifaddrs *ifAddrStruct = NULL;
 	struct ifaddrs *ifa = NULL;
-
-	getifaddrs(&ifAddrStruct);
-	
 	void *tmpAddrPtr = NULL;
 	char addressBuffer[INET_ADDRSTRLEN];
+
+	// Creates a linked list of structures describing the network interfaces 
+	// of the local system, and stores the address of the first item of the 
+	// list in *ifap. The list consists of ifaddrs structures.
+	getifaddrs(&ifAddrStruct);
+	
 	for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
 		if (!ifa->ifa_addr)
 			continue;
+
 		if (ifa->ifa_addr->sa_family == AF_INET && ifa->ifa_name == ifa_name) {
 			// is a valid IPv4 Address and desired interface
 			tmpAddrPtr=&((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;		
@@ -108,5 +131,42 @@ bool CLI::set_local_ip() {
 			return true;
 		}
 	}
+	
 	return false;
+}
+
+bool CLI::get_ext() {
+	return ext;
+}
+
+int CLI::get_ttl() {
+	return ttl;
+}
+
+int CLI::get_deadline() {
+	return deadline;
+}
+
+AddressType CLI::get_address_type() {
+	return address_type;
+}
+
+RouteType CLI::get_route_type() {
+	return route_type;
+}
+
+SortType CLI::get_sort_type() {
+	return sort_type;
+}
+
+std::string CLI::get_ifa_name() {
+	return ifa_name;
+}
+
+char* CLI::get_src_ip() {
+	return src_ip;
+}
+
+char* CLI::get_dst_ip() {
+	return dst_ip;
 }

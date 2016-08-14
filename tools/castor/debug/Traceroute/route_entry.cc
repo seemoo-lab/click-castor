@@ -1,38 +1,38 @@
 #include "route_entry.hh"
 
-RouteEntry::RouteEntry(std::string mac_address, std::string ip_address)
+RouteEntry::RouteEntry(std::string mac, std::string ip)
 {
-	this->mac_address = mac_address;
-	this->ip_address = ip_address;
-	this->response_time = 0;
+	mac_address = mac;
+	ip_address = ip;
+	rtt = 0;
 }
 
-float RouteEntry::get_response_time()
+float RouteEntry::get_rtt()
 {
-	return this->response_time;
+	return rtt;
 }
 
 std::string RouteEntry::get_mac_address()
 {
-	return this->mac_address;
+	return mac_address;
 }
 
 std::string RouteEntry::get_ip_address()
 {
-	return this->ip_address;
+	return ip_address;
 }
 
-void RouteEntry::set_response_time(float response_time)
+void RouteEntry::set_rtt(float t)
 {
-	this->response_time = response_time;	
+	rtt = t;	
 }
 
-void RouteEntry::set_mac_address(std::string mac_address)
+void RouteEntry::set_mac_address(std::string mac)
 {
-	this->mac_address = mac_address;
+	mac_address = mac;
 }
 
-void RouteEntry::set_ip_address(std::string ip_address)
+void RouteEntry::set_ip_address(std::string ip)
 {
-	this->ip_address = ip_address;
+	ip_address = ip;
 }

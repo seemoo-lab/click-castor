@@ -9,7 +9,7 @@
 #include "neighbor_id.hh"
 
 //#define DEBUG_ACK_SRCDST  // uncomment to add source and destination fields to ACK packets
-#define DEBUG_HOPCOUNT // include (unprotected) hopcount field in packets
+//#define DEBUG_HOPCOUNT // WARNING: Can not be used with Debug! Include (unprotected) hopcount field in packets
 
 #define icv_BYTES 8U
 #define nonce_BYTES 24U
@@ -55,19 +55,21 @@ public:
 	inline void set_syn() { flags |= 1 << 7; }
 	inline void unset_syn() { flags &= ~(1 << 7); }
 	// All debug packets contain this flag, for identification reasons
-	inline bool dbg() const { return (flags >> 5) & 1; }
-	inline void set_dbg() { flags |= 1 << 5; }
-	inline void unset_dbg() { flags &= ~(1 << 5); }
+	inline bool dbg() const { return (flags >> 6) & 1; }
+	inline void set_dbg() { flags |= 1 << 6; }
+	inline void unset_dbg() { flags &= ~(1 << 6); }
 	// All nodes receiving PKT with this flag, return an ACK immediately
-	inline bool aret() const { return (flags >> 4) & 1; }
-	inline void set_aret() { flags |= 1 << 4; }
-	inline void unset_aret() { flags &= ~(1 << 4); }
+	inline bool aret() const { return (flags >> 5) & 1; }
+	inline void set_aret() { flags |= 1 << 5; }
+	inline void unset_aret() { flags &= ~(1 << 5); }
 	// Tells a node to mark the ACK with the same flag. On the other hand a node
 	// receiving such an ACK, append their MAC address before forwarding it
-	inline bool insp() const { return (flags >> 3) & 1; }
-	inline void set_insp() { flags |= 1 << 3; }
-	inline void unset_insp() { flags &= ~(1 << 3); }
-
+	inline bool insp() const { return (flags >> 4) & 1; }
+	inline void set_insp() { flags |= 1 << 4; }
+	inline void unset_insp() { flags &= ~(1 << 4); }
+	// TTL is a counter that is decremented at each node.
+	inline uint8_t ttl() const { return flags & 0x0f; }
+	inline void set_ttl(uint8_t t) { flags = (flags & 0xf0) | (t & 0x0f); }
 
 #ifdef DEBUG_HOPCOUNT
 	// hopcount

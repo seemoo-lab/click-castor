@@ -41,59 +41,48 @@ Traceroute::Traceroute(int argc, char** argv) {
 		return;
 	}
 
-	std::cout << "TRACEROUTE\n==============================================\n\n" 
-		  << "   -- " << cli.src_ip << " ==> " << cli.dst_ip <<  " --" << std::endl;
+	print_title();
+	
+	if(!connect_to_socket()) {
+		std::cout << "Could not connect to the " << 
+			DEBUG_HANDLER_SOCK << " socket." << std::endl;
+		return;
+	}
 
-	// Initialize the socket that is used to communicate with castor
+	clear_socket();
+
+	// Kick off traceroute
+	if(!send()) {
+		std::cout << "Send failed" << std::endl;
+		return;
+	}
+
+	// Receives all responses
+	if(!receive()) {
+		std::cout << "Receive failed" << std::endl;
+		return;
+	}
+
+	merge_routes();
+	sort_routes();
+	analyze_routes();
+
+	close(sockfd);
+}
+
+/*
+ * Initialize the socket that is used to communicate with castor.
+ */
+bool Traceroute::connect_to_socket() {
 	sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 	address.sun_family = AF_UNIX;
 	strcpy(address.sun_path, DEBUG_HANDLER_SOCK);
 	len = sizeof(address);
 
 	if(connect(sockfd, (sockaddr*)&address, len) == -1)
-		return;
+		return false;
 
-	this->clean_socket();
-
-	// Kick off traceroute
-	if(!this->send()) {
-		std::cout << "Send failed" << std::endl;
-		return;
-	}
-	// Receives all responses
-	if(!this->receive()) {
-		std::cout << "Receive failed" << std::endl;
-		return;
-	}
-
-	// Removes the duplicates
-	this->merge_routes();
-
-	this->sort_routes();
-
-	this->analyze();
-	close(sockfd);
-}
-
-/*
- * It is possible that there is data left on the castor-debug-handler from a previous ping.
- */
-void Traceroute::clean_socket() {
-
-	int n = 0;
-	char* buffer;
-	int count = 0;
-	do {
-		ioctl(sockfd, FIONREAD, &count);
-		if(!count)
-			return;
-		buffer = (char*)calloc(count, sizeof(char*));
-
-		n = read(sockfd, buffer, count);
-		if (n < 0)
-			return;
-		free(buffer);
-	} while(true);
+	return true;
 }
 
 /*
@@ -113,21 +102,32 @@ bool Traceroute::send_socket_cmd(std::string cmd, std::string& ret) {
 
 	do {
 		ioctl(sockfd, FIONREAD, &count);
+
 		if(count == 0 && n != 0){
 			return true;
 		}
 		
 		buffer = (char*)calloc(count, sizeof(char*));
-
 		n = read(sockfd, buffer, count);
+		
 		if (n < 0) {
 			std::cout << "read failed" << std::endl;
 			free(buffer);
 			return false;
 		}
+
 		ret += std::string(buffer);
 		free(buffer);
 	} while(true);
+}
+
+/*
+ * It is possible that there is data left on the castor-debug-handler from a previous ping.
+ */
+void Traceroute::clear_socket() {
+	std::string ret("");
+	std::string args = "READ debug_handler.clear";
+	send_socket_cmd(args, ret);
 }
 
 /*
@@ -135,12 +135,12 @@ bool Traceroute::send_socket_cmd(std::string cmd, std::string& ret) {
  */
 bool Traceroute::send() {
 	std::string ret("");
-	std::string args = "WRITE debug_handler.debug " + std::string(cli.src_ip) + 
-			"|" + std::string(cli.dst_ip) + "|" + std::to_string(DBG) + 
-			"|" + std::to_string(cli.all) + "|" + std::to_string(INSP) +
-			"|0|";
+	std::string args = "WRITE debug_handler.debug " + std::string(cli.get_src_ip()) + 
+			"|" + std::string(cli.get_dst_ip()) + "|" + std::to_string(DBG) + 
+			"|" + std::to_string(cli.get_ext()) + "|" + std::to_string(INSP) +
+			"|" + std::to_string(cli.get_ttl()) + "|0|";
 
-	return this->send_socket_cmd(args, ret); 	
+	return send_socket_cmd(args, ret); 	
 }
 
 /*
@@ -151,25 +151,31 @@ bool Traceroute::receive() {
 	std::string ret(""); 
 	std::string args = "READ debug_handler.debug";
 	bool retval;
-	int t=cli.deadline;
+	int d = cli.get_deadline();
 	
 	do {
-		retval = this->send_socket_cmd(args, tmp_ret);	
+		retval = send_socket_cmd(args, tmp_ret);	
+
 		if(!retval)
 			return false;
+
 		if(tmp_ret.size() <= 55) {
 			sleep(1);
-			if((--t) == 0) {
+
+			if((--d) == 0) {
 				break;
-			} else if(ret != "" && !cli.all)
+			} else if(ret != "" && !cli.get_ext())
 				break;
 		} else {
 			ret += tmp_ret;
-			if(!cli.all)
+
+			if(!cli.get_ext())
 				break;
 		}
+
 		tmp_ret = "";
 	} while(!interrupted);
+
 	std::cout << "ret = " << ret << std::endl;
 	parse_single_traceroute_info(ret);	
 	return true;	
@@ -179,18 +185,19 @@ bool Traceroute::receive() {
  * Parse the data that was received
  */
 void Traceroute::parse_single_traceroute_info(std::string ret) {
-	//std::cout << "parse single routes" << std::endl;
 	char* dump = strdup(reinterpret_cast<const char*>(ret.c_str()));
 	size_t num_paths = std::count(ret.begin(), ret.end(), '<'); 
 	char** debug_acks = new char *[num_paths];	
+
 	strtok(dump, "|");
+
 	for(int i=0; i < num_paths; i++) {
 		debug_acks[i] = strtok(NULL, "<");
 		strtok(NULL, "|");
 	}
 
 	for(int i=0; i < num_paths; i++) {
-		Route new_route(debug_acks[i], cli.dst_ip);
+		Route new_route(debug_acks[i], cli.get_dst_ip());
 		routes.push_back(new_route);
 	}
 
@@ -206,12 +213,11 @@ void Traceroute::merge_routes() {
 	Route* route1;
 	Route* route2;
 
-	//std::cout << "merge routes" << std::endl;
-
 	for(i=num_routes-1; i >= 0; i--) {
 		for(j=num_routes-1; j >= 0 && j != i; j--) {
 			route1 = &routes.at(i);
 			route2 = &routes.at(j);
+
 			if(route1->entries.size() < route2->entries.size()) {
 				if(route2->merge(*route1)) {
 					routes.erase(routes.begin()+i);	
@@ -224,6 +230,7 @@ void Traceroute::merge_routes() {
 				}
 			}
 		}	
+
 		num_routes = routes.size();
 	}
 }
@@ -235,19 +242,18 @@ void Traceroute::sort_routes() {
 	size_t num_routes = routes.size();
 	int i, j, m;
 	float rtt1, rtt2;
-	//std::cout << "sort routes" << std::endl;
 
-
-	if(num_routes == 1 || cli.st == ST_NORMAL)
+	if(num_routes == 1 || cli.get_sort_type() == ST_NORMAL)
 		return;
 
 	for(i=num_routes-1; i >= 0; i--) {
 		m = 0;
-		for(j=1; j <= i; j++) {
-			rtt1 = routes.at(m).get_response_time();
-			rtt2 = routes.at(j).get_response_time();
 
-			if(cli.st == ST_UP) {
+		for(j=1; j <= i; j++) {
+			rtt1 = routes.at(m).get_rtt();
+			rtt2 = routes.at(j).get_rtt();
+
+			if(cli.get_sort_type() == ST_UP) {
 				if(rtt1 <= rtt2)
 					m = j;
 			} else  {
@@ -261,32 +267,31 @@ void Traceroute::sort_routes() {
 }
 
 /*
- * Analyzes the collected data and printd it on the screen
+ * Analyzes the collected data and prints it on the screen
  */
-void Traceroute::analyze() {
+void Traceroute::analyze_routes() {
 	int i, num_entries, packet_size;
 	float response_time;
 	size_t num_routes = routes.size();
 	std::string routes_str("");
 	Route *route;
 
-
-	//std::cout << "analyze routes" << std::endl;
-
 	for(i=0; i < num_routes; i++) {
 		route = &routes.at(i);	
-		if(cli.rt == RT_DST) {
+
+		if(cli.get_route_type() == RT_DST) {
 			if(route->contains_dst) {
 				setup_print_route(routes_str, route);
 			}
-		} else if(cli.rt == RT_ALL) {
+		} else if(cli.get_route_type() == RT_ALL) {
 				setup_print_route(routes_str, route);
-		} else if(cli.rt == RT_NODST) {
+		} else if(cli.get_route_type() == RT_NODST) {
 			if(!route->contains_dst) {
 				setup_print_route(routes_str, route);
 			}
 		}
 	}	
+
 	routes_str += "\n==============================================\n";
 	std::cout << routes_str << std::endl;
 }
@@ -297,29 +302,41 @@ void Traceroute::analyze() {
 void Traceroute::setup_print_route(std::string& routes_str, Route* route) {
 	int num_entries = route->entries.size();
 	int packet_size = route->get_packet_size();
-	float response_time = route->get_response_time();
+	float rtt = route->get_rtt();
 	std::stringstream ss;
+
 	ss << std::fixed << std::setprecision(2); 
 	ss << "\n==============================================\n";
-	ss << "time: " << response_time << "ms"
+	ss << "time: " << rtt << "ms"
 	      " | size: " << packet_size << "byte" 
 	      " | nodes: " << num_entries << "\n";
 	ss << "----------------------------------------------\n";
-	ss << route->to_string(cli.at);
+	ss << route->to_string(cli.get_address_type());
+
 	routes_str += ss.str();
 }
 
+void Traceroute::print_title() {
+	std::cout << "TRACEROUTE\n==============================================\n\n" 
+		  << "   -- " << cli.get_src_ip() << " ==> " << cli.get_dst_ip() <<  " --" << std::endl;
+}
+
+// Is called by the interrupt handler, if 'Strg + c' was pressed.
 void exit_handler(int s) {
 	interrupted = true;
 }
+
 Traceroute* traceroute;
 
 int main(int argc, char** argv) {
+	// With the sigIntHandler we can interrupt the program with 'Strg + c'
 	struct sigaction sigIntHandler;
+
 	sigIntHandler.sa_handler = exit_handler;
 	sigemptyset(&sigIntHandler.sa_mask);
 	sigIntHandler.sa_flags = 0;
 	sigaction(SIGINT, &sigIntHandler, NULL);
+
 	traceroute = new Traceroute(argc, argv);
 	delete traceroute;
 }

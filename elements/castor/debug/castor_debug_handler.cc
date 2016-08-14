@@ -33,7 +33,7 @@ int CastorDebugHandler::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 // Converts an ip-address to a correspinding hex
 // Example: 192.168.56.101 => c0a83865
-long ip_to_hex(const unsigned char* ip) {
+long CastorDebugHandler::ip_to_hex(const unsigned char* ip) {
 	char* dump = strdup(reinterpret_cast<const char*>(ip));
 	char* b0 = strtok(dump, ".");
 	char* b1 = strtok(NULL, ".");
@@ -53,17 +53,17 @@ long ip_to_hex(const unsigned char* ip) {
 	return hex_ip;
 }
 
-void hex_to_ip(uint32_t hex_ip, char* ip_str) {
-	//char ip_str[16];
+// Converts a hex to an ip-address
+// Example: c0a83865 => 192.168.56.101 
+void CastorDebugHandler::hex_to_ip(uint32_t hex_ip, char* ip_str) {
 	uint32_t tmp1 = (hex_ip & 0xff000000) >> 24;
 	uint32_t tmp2 = (hex_ip & 0xff0000) >> 16;
 	uint32_t tmp3 = (hex_ip & 0xff00) >> 8;
 	uint32_t tmp4 = hex_ip & 0xff;
 	sprintf(ip_str, "%d.%d.%d.%d", tmp1, tmp2, tmp3, tmp4);
-	//return ip_str;
 }
 
-Hash rand_pid() {
+Hash CastorDebugHandler::rand_pid() {
 	uint8_t r[CASTOR_HASH_LENGTH];
 	for(int i=0; i < CASTOR_HASH_LENGTH; i++) {
 		r[i] = (uint8_t) std::rand()%128;
@@ -73,10 +73,11 @@ Hash rand_pid() {
 }
 
 Packet* CastorDebugHandler::create_castor_pkt(const unsigned char* src_ip, const unsigned char* dst_ip,
-				int dbg, int aret, int insp, int size) {
+				  	      int dbg, int aret, int insp, int ttl, int size) {
 
 	int new_pkt_size = size < sizeof(CastorPkt) ? sizeof(CastorPkt) : size;
 	new_pkt_size = new_pkt_size < MAX_ETHER_PKT_SIZE ? new_pkt_size : MAX_ETHER_PKT_SIZE;
+	click_chatter("SIZE: %d\n", new_pkt_size);
 
 	WritablePacket* p = Packet::make(new_pkt_size);
 
@@ -98,18 +99,16 @@ Packet* CastorDebugHandler::create_castor_pkt(const unsigned char* src_ip, const
 	dbg ? header->set_dbg() : header->unset_dbg();
 	aret ? header->set_aret() : header->unset_aret();
 	insp ? header->set_insp() : header->unset_insp();
+	header->set_ttl(ttl);
 	header->src = src;
 	header->dst = dst;
 
-	//CastorFlow* flow = flow_manager->createFlowIfNotExists(header->src, header->dst);
-	//PacketLabel label = flow->freshLabel();
-	PacketLabel label = flow_manager->getPacketLabel(header->src, header->dst);
 	unsigned int fasize = 0;
 	header->hsize = sizeof(Hash);
 	header->set_fsize(0);
 	header->len = htons(p->length());
 	header->set_fasize(0);
-	header->fid = label.fid;//Hash(); // FIXME new method: flow->getCurrentFlowId(src, dst)
+	header->fid = flow_manager->getCurrentFlowId(src, dst);
 	crypto->random(header->pid);
 	header->kpkt = 0xffff;
 	header->icv = ICV();
@@ -120,8 +119,8 @@ Packet* CastorDebugHandler::create_castor_pkt(const unsigned char* src_ip, const
 
 static std::clock_t start_time;
 
-// Expects a string with this convention: "<src_ip>|<dst_ip>|DBG|ARET|INSP|pkt_size|"
-// Example: "192.168.0.10|192.168.0.11|1|0|0|64|"
+// Expects a string with this convention: "<src_ip>|<dst_ip>|DBG|ARET|INSP|ttl|pkt_size|"
+// Example: "192.168.0.10|192.168.0.11|1|0|0|15|56|"
 int CastorDebugHandler::write_callback(const String &s, Element *e, void *vparam, ErrorHandler *errh) {
 	click_chatter("write_callback: %s\n", s.printable().c_str());
 	CastorDebugHandler *fh = static_cast<CastorDebugHandler*>(e);
@@ -133,9 +132,11 @@ int CastorDebugHandler::write_callback(const String &s, Element *e, void *vparam
 	int dbg = atoi(strtok(NULL, "|"));
 	int aret = atoi(strtok(NULL, "|"));
 	int insp = atoi(strtok(NULL, "|"));
+	int ttl = atoi(strtok(NULL, "|"));
+	click_chatter("ttl=%d\n", ttl);
 	int size = atoi(strtok(NULL, "|"));
 
-	Packet* p = fh->create_castor_pkt(src_ip, dst_ip, dbg, aret, insp, size);
+	Packet* p = fh->create_castor_pkt(src_ip, dst_ip, dbg, aret, insp, ttl, size);
 	pkt_size = p->length();
 
 	start_time = p->timestamp_anno().msec();
@@ -144,8 +145,9 @@ int CastorDebugHandler::write_callback(const String &s, Element *e, void *vparam
 }
 
 // Incoming ACK-packets are stored (as a string) in a queue and not forwarded.
-// Conevention: rtt|[mac_1, mac_2, ...]|
-// Example: "324|080027CC7750|" or "324||" if no path is added
+// Conevention: rtt|packet_size|mac_1:ip_1, mac_2:ip_2, ...|<
+// Example: "|975|56|08-00-27-64-0F-53:192.168.56.102,08-00-27-CC-77-50:192.168.56.101|<" 
+// 	 or "|81|56|<" if no path is added
 Packet*  CastorDebugHandler::simple_action(Packet *p) {
 	String dbg_ack_str("");
 	const CastorAck& ack = *reinterpret_cast<const CastorAck*>(p->data());
@@ -173,7 +175,9 @@ Packet*  CastorDebugHandler::simple_action(Packet *p) {
 	return NULL;
 }
 
-// Returns the last element in the queue.
+/* 
+ * Returns the last element in the queue.
+ */
 String CastorDebugHandler::read_callback(Element *e, void *vparam) {
 	std::vector<String> *queue = static_cast<std::vector<String>*>(vparam);
 	String tmp("|");
@@ -184,7 +188,22 @@ String CastorDebugHandler::read_callback(Element *e, void *vparam) {
 	return tmp;
 }
 
+/* 
+ * Clears the queue.
+ */
+String CastorDebugHandler::clear_callback(Element *e, void *vparam) {
+	std::vector<String> *queue = static_cast<std::vector<String>*>(vparam);
+	if (!queue->empty())
+		queue->clear();
+	return String("");
+}
+
+/*
+ * Adds the callback functions to handlers, so we can communicate with
+ * click via a UNIX-socket.
+ */
 void CastorDebugHandler::add_handlers() {
+	add_read_handler("clear", clear_callback, &dbg_ack_queue);
 	add_write_handler("debug", write_callback, 0);
 	add_read_handler("debug", read_callback, &dbg_ack_queue);
 }

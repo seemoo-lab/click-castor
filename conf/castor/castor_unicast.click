@@ -79,20 +79,41 @@ elementclass CastorForwardPkt {
 		-> blackhole :: CastorBlackhole // inactive by default
 		-> route :: CastorLookupRoute($routeselector)
 		-> CastorAddPktToHistory($history)
-		-> isDbg2 :: CastorIsDbg
 		-> CastorStartTimer($timeouttable, $history, $routingtable, $flowtable, $ratelimits, ID $myIP, VERBOSE false)
 		-> addFlowAuthenticator :: CastorAddFlowAuthenticator($flowtable, $fullFlowAuth)
 		//-> CastorPrint('Forwarding Packet', $myIP)
 		-> rec :: CastorRecordPkt
-		-> isAret :: CastorIsAret
 		-> [0]output;
 
-	isDbg1[1] -> blackhole;
+	// Bounce back to sender
+	auth[2]
+		-> CastorPrint("Flow authentication failed (insufficient flow auth elements)", $myIP)
+		-> CastorMirror($myIP)
+		-> [0]output;
 
-	isDbg2[1] -> rec;
+	auth[1]
+		-> CastorPrint("Flow authentication failed", $myIP)
+		-> Discard;
+
+	route[1]
+		-> CastorPrint("No suitable PKT forwarding contact", $myIP)
+		-> Discard;
+
+
+	// Debug Path  ----------------------------------------------------
+
+	isDbg1[1] 
+		-> debugBlackhole :: CastorBlackhole // inactive by default
+		-> debugRoute :: CastorLookupRoute($routeselector)
+		-> CastorAddPktToHistory($history)
+		-> debugRec :: CastorRecordPkt
+		-> isAret :: CastorIsAret
+		-> decTtl :: CastorDecTtl
+		-> [0]output;
 
 	isAret[1]
 		-> createDebugAck :: CastorCreateDebugAck($flowtable)
+		-> decTtl 
 		-> [0]output;
 
 	createDebugAck[1]
@@ -103,21 +124,11 @@ elementclass CastorForwardPkt {
 		-> insertPath :: CastorInsertPath($myIP, $myIP)
 		-> [1]output;
 
-	// Bounce back to sender
-	auth[2]
-		-> CastorPrint("Flow authentication failed (insufficient flow auth elements)", $myIP)
-		-> CastorMirror($myIP)
-		-> isAret
-		-> [0]output;
-
-	null :: Discard;
-	auth[1]
-		-> CastorPrint("Flow authentication failed", $myIP)
-		-> null;
-
-	route[1]
-		-> CastorPrint("No suitable PKT forwarding contact", $myIP)
-		-> null;
+	decTtl[1] 
+		-> Discard;
+	
+	debugRoute[1]
+		-> Discard;
 }
 
 /**

@@ -13,6 +13,9 @@ int CastorDebugAuthenticateAck::configure(Vector<String>& conf, ErrorHandler* er
 		.complete();
 }
 
+/*
+ * If the Mac address of this node is inside the ACK return true, otherwise false
+ */
 bool CastorDebugAuthenticateAck::already_forwarded(const PathElem* path, uint8_t path_len) {
 	int i;
 	for(i=0; i < path_len; i++) {
@@ -22,7 +25,9 @@ bool CastorDebugAuthenticateAck::already_forwarded(const PathElem* path, uint8_t
 	return false;
 }
 
-// Checks if the ACK corresponds to a forwarded PKT.
+/*
+ * Checks if the ACK should be forwarded.
+ */
 void CastorDebugAuthenticateAck::push(int, Packet* p) {
 	const CastorAck& ack = *reinterpret_cast<const CastorAck*>(p->data());
 	const PacketId& pid = ack.auth;

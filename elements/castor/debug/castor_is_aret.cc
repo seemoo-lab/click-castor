@@ -4,6 +4,9 @@
 
 CLICK_DECLS
 
+/*
+ * Sends the incoming PKT to output 1 if the ARET flag is set
+ */
 Packet* CastorIsAret::simple_action(Packet* p) {
 	if (CastorPacket::getType(p) == CastorType::PKT) {
 		CastorPkt& pkt = (CastorPkt&) *p->data();

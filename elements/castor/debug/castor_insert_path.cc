@@ -30,14 +30,17 @@ Packet* CastorInsertPath::simple_action(Packet* p) {
 	const CastorAck& ack = *reinterpret_cast<const CastorAck*>(p->data());
 
 	CastorAck header = ack;
+	// The length of the packet gets larger
 	header.len = htons(ntohs(header.len) + (unsigned int)sizeof(PathElem));
 
 	// Resize the ACK, so a new PathElem(IP, MAC) can be inserted
 	WritablePacket* q = p->uniqueify();
 	q = q->put(sizeof(PathElem));
 
+	// Copy the data from the old packet into the new packet
 	memcpy(q->data(), &header, sizeof(CastorAck));
 
+	// Create a new ACK with the data of the old ACK
 	CastorAck& newAck = *reinterpret_cast<CastorAck*>(q->data());
 	*newAck.path() = *ack.path();
 
