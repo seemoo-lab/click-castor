@@ -16,7 +16,8 @@ void print_help() {
 					"\n\t-p|--preloaded <x>:\tSends x packets before trying to receive one."
 					"\n\t-q|--quiet:        \tNothing is displayed except the summary lines."
 					"\n\t-s|--size <x>:     \tSize of the transported data."
-					"\n\t-d|--deadline <x>: \tTimeout."
+					"\n\t-t|--timeout<x>:   \tTime to wait for a response, in sec."
+					"\n\t-d|--deadline <x>: \tSpecifiy a timeout, in sec, before ping exits."
 					"\n\t--ttl <x>:         \tAmount of nodes that are allowed to" 
 								"forwared the packet.";
 	std::cout << usage + options << std::endl;
@@ -61,8 +62,11 @@ bool CLI::parse_options(int argc, char** argv) {
 			quiet = true; 
 		} else if (opt == "-s" || opt == "--size") {
 			size = atoi(argv[++i]);
+		} else if (opt == "-t" || opt == "--timeout") {
+			timeout = atoi(argv[++i]);
 		} else if (opt == "-d" || opt == "--deadline") {
 			deadline = atoi(argv[++i]);
+			deadline_flag = true;
 		} else if (opt == "--ttl") {
 			ttl = atoi(argv[++i]);
 
@@ -131,8 +135,16 @@ int CLI::get_ttl() {
 	return ttl;
 }
 
+int CLI::get_timeout() {
+	return timeout;
+}
+
 int CLI::get_deadline() {
 	return deadline;
+}
+
+bool CLI::contains_deadline() {
+	return deadline_flag;
 }
 
 std::string CLI::get_ifa_name() {

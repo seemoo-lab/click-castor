@@ -34,6 +34,8 @@ bool interrupted = false;
 	  --ttl <x>:         Amount of nodes that are allowed to forwared the packet.
  */
 Ping::Ping(int argc, char** argv) {
+	int D;
+
 	// Checks the input
 	if (!cli.parse_args(argc, argv))
 		return;
@@ -53,6 +55,7 @@ Ping::Ping(int argc, char** argv) {
 	}
 
 	clear_socket();
+	D = cli.get_deadline();
 
 	if(cli.get_num_preloaded())
 		preloaded();
@@ -60,7 +63,6 @@ Ping::Ping(int argc, char** argv) {
 	// Ping ...
 	while(cli.get_count() != transmitted && !interrupted) {
 		if(!send()) {
-			std::cout << "Send failed" << std::endl;
 			break;
 		} else {
 			transmitted++;
@@ -68,6 +70,11 @@ Ping::Ping(int argc, char** argv) {
 			if(!receive())
 				break;
 		}	
+
+		D = D - cli.get_interval();
+
+		if(cli.contains_deadline() && D <= 0)
+			break;
 
 		sleep(cli.get_interval());
 	}	
@@ -115,8 +122,10 @@ bool Ping::send_socket_cmd(std::string cmd, std::string& ret) {
 		buffer = (char*)calloc(count, sizeof(char*));
 		n = read(sockfd, buffer, count);
 
-		if (n < 0)
+		if (n < 0) {
+			std::cout << "Error: send_socket_cmd: read" << std::endl;
 			return false;
+		}
 
 		ret += std::string(buffer);
 		free(buffer);
@@ -151,25 +160,28 @@ bool Ping::receive() {
 	std::string ret("");
 	std::string args = "READ debug_handler.debug";
 
-	int d=cli.get_deadline();
+	int t=cli.get_timeout();
 	bool retval = false;
 
 	do {
 		retval = send_socket_cmd(args, ret);
 
-		if(!retval) {
-			std::cout << "Receive failed" << std::endl;
+		if(!retval)
 			return false;
-		}
 
 		if(ret.size() <= 55) {
 			sleep(1);
-
-			if((--d) == 0)
-				return false;
+			
+			// Check the timeout
+			if((--t) == 0) {
+				std::cout << "From " << cli.get_src_ip()
+					  << " Destination Host Unreachable" << std::endl;
+				return true;
+			}
 
 			ret = "";
 		} else {
+			// Got a debug_ack_str
 			break;
 		}
 		
@@ -186,6 +198,7 @@ bool Ping::receive() {
  */
 void Ping::preloaded() {
 	int n = cli.get_num_preloaded();
+
 	while(n >= 0 && !interrupted) {
 		send();
 		sleep(cli.get_interval());
@@ -219,13 +232,16 @@ void Ping::print_single_ping_info(std::string ret) {
 	strtok(dump, "|");
 	char* timestamp_str = strtok(NULL, "|");
 	char* packet_size_str = strtok(NULL, "|");
-
+	float timestamp;
+	
 	if(timestamp_str && packet_size_str){
+		timestamp = atof(timestamp_str);
 		if(!cli.is_quiet())
-			std::cout << std::string(packet_size_str) << " bytes from " 
-			<< cli.get_dst_ip() << ": time=" << std::string(timestamp_str) << " ms" << std::endl;
+			std::cout << std::fixed << std::setprecision(2) 
+				  << packet_size_str << " bytes from " 
+			 	  << cli.get_dst_ip() << ": time=" << timestamp 
+				  << " ms" << std::endl;
 
-		double timestamp = atof(timestamp_str);
 		times.push_back(timestamp);
 	} else
 		std::cout << " Data was corrupted" << std::endl;

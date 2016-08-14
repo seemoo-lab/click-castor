@@ -72,7 +72,7 @@ int init_unix_server_socket(const char* dbg_ack_str) {
 int main(int argc, char** argv) {
 	std::cout << "Ping Test\n===============" << std::endl;
 	std::string dbg_ack_str("");
-	dbg_ack_str = dbg_ack_str + TMP_RESP_MSG + "|1.9|102|";
+	dbg_ack_str = dbg_ack_str + TMP_RESP_MSG + " |1.9|102|<";
 	init_unix_server_socket(dbg_ack_str.c_str());
 
 	return 0;

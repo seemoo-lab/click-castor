@@ -14,7 +14,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <cstdlib>
-#include <ctime>
+//#include <ctime>
+#include <time.h>
 
 CLICK_DECLS
 
@@ -117,7 +118,7 @@ Packet* CastorDebugHandler::create_castor_pkt(const unsigned char* src_ip, const
 	return p;
 }
 
-static std::clock_t start_time;
+static clock_t start_time;
 
 // Expects a string with this convention: "<src_ip>|<dst_ip>|DBG|ARET|INSP|ttl|pkt_size|"
 // Example: "192.168.0.10|192.168.0.11|1|0|0|15|56|"
@@ -139,7 +140,8 @@ int CastorDebugHandler::write_callback(const String &s, Element *e, void *vparam
 	Packet* p = fh->create_castor_pkt(src_ip, dst_ip, dbg, aret, insp, ttl, size);
 	pkt_size = p->length();
 
-	start_time = p->timestamp_anno().msec();
+//	start_time = p->timestamp_anno().msec();
+	start_time = clock();
 
 	fh->output(0).push(p);
 }
@@ -149,15 +151,15 @@ int CastorDebugHandler::write_callback(const String &s, Element *e, void *vparam
 // Example: "|975|56|08-00-27-64-0F-53:192.168.56.102,08-00-27-CC-77-50:192.168.56.101|<" 
 // 	 or "|81|56|<" if no path is added
 Packet*  CastorDebugHandler::simple_action(Packet *p) {
-	String dbg_ack_str("");
+	String dbg_ack_str(" |");
 	const CastorAck& ack = *reinterpret_cast<const CastorAck*>(p->data());
 	String tmp_split(",");
 	int i;
+	float rtt = (float)((clock() - start_time) * 1000) / CLOCKS_PER_SEC;
 
-	//dbg_ack_str += String(p->timestamp_anno().msec()) + "|"; // sec
-	//double rtt = (std::clock() - start_time) / (double) (CLOCKS_PER_SEC/1000);
-	click_chatter("start_time=%lf , curr_time=%lf\n", start_time, p->timestamp_anno().msec());
-	double rtt = (p->timestamp_anno().msec() - start_time);
+	click_chatter("start_time=%d , curr_time=%d\n", start_time, clock());
+//	dbg_ack_str += String(p->timestamp_anno().msec()) + "|"; // sec
+//	double rtt = (p->timestamp_anno().msec() - start_time);
 	dbg_ack_str += String(rtt) + "|";
 	dbg_ack_str += String(pkt_size) + "|";
 
@@ -180,7 +182,8 @@ Packet*  CastorDebugHandler::simple_action(Packet *p) {
  */
 String CastorDebugHandler::read_callback(Element *e, void *vparam) {
 	std::vector<String> *queue = static_cast<std::vector<String>*>(vparam);
-	String tmp("|");
+//	String tmp("|");
+	String tmp("");
 	if (!queue->empty()) {
 		tmp += queue->back();
 		queue->pop_back();

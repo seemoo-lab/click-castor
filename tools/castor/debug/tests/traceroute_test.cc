@@ -28,6 +28,7 @@ int init_unix_server_socket(const char* dbg_ack_str) {
 	ssize_t size;
 	struct sockaddr_un address;
 	const int y = 1;
+
 	if((create_socket=socket (AF_LOCAL, SOCK_STREAM, 0)) > 0)
 		std::cout << "Socket created" << std::endl;
 	unlink(UDS_FILE);
@@ -45,6 +46,15 @@ int init_unix_server_socket(const char* dbg_ack_str) {
 			&addrlen );
 	if (new_socket > 0)
 		std::cout << "A Client is connected ..." << std::endl;
+
+	// Traceroute sends some clear message
+	size = recv(new_socket, buffer, BUF-1, 0);
+	if(size > 0)
+		buffer[size] = '\0';
+	std::cout << "Message received: " << buffer << std::endl;
+	std::cout << "Send message: " << "ok" << std::endl;
+	send (new_socket, "ok", strlen("ok"), 0);
+
 	// Traceroute sends some dbg_pkt_str 
 	size = recv(new_socket, buffer, BUF-1, 0);
 	if(size > 0)
@@ -82,31 +92,31 @@ int init_unix_server_socket(const char* dbg_ack_str) {
 
 std::string create_graph1() {
 	std::stringstream ss;
-	ss << TMP_RESP_MSG << "|1.632|102|" << MACs[2] << ":" << IPs[2] << "," 
+	ss << TMP_RESP_MSG << " |1.632|102|" << MACs[2] << ":" << IPs[2] << "," 
 					    << MACs[1] << ":" << IPs[1] << "," 
 			  		    << MACs[0] << ":" << IPs[0] << "|<"
-			   << "|0.532|102|" << MACs[4] << ":" << IPs[4] << ","
+	   << TMP_RESP_MSG << " |0.532|102|" << MACs[4] << ":" << IPs[4] << ","
 			  		    << MACs[0] << ":" << IPs[0] << "|<"
-			   << "|0.932|102|" << MACs[1] << ":" << IPs[1] << ","
+    	   << TMP_RESP_MSG << " |0.932|102|" << MACs[1] << ":" << IPs[1] << ","
 			  		    << MACs[0] << ":" << IPs[0] << "|<";
 	return ss.str();
 }
 
 std::string create_graph2() {
 	std::stringstream ss;
-	ss << TMP_RESP_MSG << "|1.632|102|" << MACs[2] << ":" << IPs[2] << "," 
+	ss << TMP_RESP_MSG << " |1.632|102|" << MACs[2] << ":" << IPs[2] << "," 
 					    << MACs[1] << ":" << IPs[1] << "," 
 			  		    << MACs[0] << ":" << IPs[0] << "|<"
-			   << "|0.532|102|" << MACs[4] << ":" << IPs[4] << ","
+			   << " |0.532|102|" << MACs[4] << ":" << IPs[4] << ","
 			  		    << MACs[0] << ":" << IPs[0] << "|<"
-			   << "|0.932|102|" << MACs[1] << ":" << IPs[1] << ","
+			   << " |0.932|102|" << MACs[1] << ":" << IPs[1] << ","
 			  		    << MACs[0] << ":" << IPs[0] << "|<"
-			   << "|0.2|102|"   << MACs[3] << ":" << IPs[3] << ","
+			   << " |0.2|102|"   << MACs[3] << ":" << IPs[3] << ","
 			  		    << MACs[0] << ":" << IPs[0] << "|<"
-			   << "|1.0|102|"   << MACs[1] << ":" << IPs[1] << ","
+			   << " |1.0|102|"   << MACs[1] << ":" << IPs[1] << ","
 			  		    << MACs[3] << ":" << IPs[3] << ","
 			  		    << MACs[0] << ":" << IPs[0] << "|<"
-			   << "|2.2|102|"   << MACs[2] << ":" << IPs[2] << ","
+			   << " |2.2|102|"   << MACs[2] << ":" << IPs[2] << ","
 			  		    << MACs[1] << ":" << IPs[1] << ","
 			  		    << MACs[3] << ":" << IPs[3] << ","
 			  		    << MACs[0] << ":" << IPs[0] << "|<";

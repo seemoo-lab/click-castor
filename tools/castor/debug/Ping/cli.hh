@@ -28,7 +28,9 @@ public:
 	int is_quiet();
 	int get_size();
 	int get_ttl();
+	int get_timeout();
 	int get_deadline();
+	bool contains_deadline();
 	std::string get_ifa_name();
 	char* get_src_ip();
 	char* get_dst_ip();
@@ -55,8 +57,14 @@ private:
 	// Time to live
 	int ttl = MAX_TTL;
 
+	// Time to wait for a response, in sec.
+	int timeout = 3;
+
 	// After x sec the program stops or if -x this attribute is ignored.
 	int deadline = -1;
+
+	// Is the deadline set to a value other than -1.
+	bool deadline_flag = false;
 
 	// The used network interface
 	std::string ifa_name = DEFAULT_IFA_NAME;
