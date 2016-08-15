@@ -27,10 +27,10 @@ bool interrupted = false;
 	  -i|--interval <x>: Waits x seconds between sending each packet.
 	  -I|--interface <x>:Interface name x.
 	  -p|--preloaded <x>:Sends x packets before trying to receive one.
-	  -n|--numerical:    Numeric ouput only.
 	  -q|--quiet:        Nothing is displayed except the summary lines.
 	  -s|--size <x>:     Size of the transported data.
-	  -d|--deadline <x>: Timeout.
+	  -t|--timeout<x>:   Time to wait for a response, in sec.
+	  -d|--deadline <x>: Specifiy a timeout, in sec, before ping exits.
 	  --ttl <x>:         Amount of nodes that are allowed to forwared the packet.
  */
 Ping::Ping(int argc, char** argv) {
@@ -49,7 +49,7 @@ Ping::Ping(int argc, char** argv) {
 	print_title();
 
 	if(!connect_to_socket()) {
-		std::cout << "Could not connect to the " << 
+		std::cout << "Error: Could not connect to the " << 
 			DEBUG_HANDLER_SOCK << " socket." << std::endl;
 		return;
 	}
@@ -63,12 +63,15 @@ Ping::Ping(int argc, char** argv) {
 	// Ping ...
 	while(cli.get_count() != transmitted && !interrupted) {
 		if(!send()) {
+			std::cout << "Error: Could not send message." << std::endl;
 			break;
 		} else {
 			transmitted++;
 
-			if(!receive())
+			if(!receive()) {
+				std::cout << "Error: Could not receive message." << std::endl;
 				break;
+			}
 		}	
 
 		D = D - cli.get_interval();
@@ -109,7 +112,7 @@ bool Ping::send_socket_cmd(std::string cmd, std::string& ret) {
 	cmd.append("\n");
 
 	if (write(sockfd, cmd.c_str(), cmd.size()) == -1) {
-		std::cout << "Error: send_socket_cmd: write" << std::endl;
+		std::cout << "Error: Writing to socket failed." << std::endl;
 		return false;
 	}
 
@@ -123,7 +126,7 @@ bool Ping::send_socket_cmd(std::string cmd, std::string& ret) {
 		n = read(sockfd, buffer, count);
 
 		if (n < 0) {
-			std::cout << "Error: send_socket_cmd: read" << std::endl;
+			std::cout << "Error: Reading from socket failed." << std::endl;
 			return false;
 		}
 
@@ -141,7 +144,7 @@ void Ping::clear_socket() {
 	send_socket_cmd(args, ret); 	
 }
 /*
- * Sends the debug parameters to the castor-debug-handler via the socket
+ * Sends the debug parameters to the castor-debug-handler via the socket.
  */
 bool Ping::send() {
 	std::string ret("");
@@ -154,7 +157,7 @@ bool Ping::send() {
 }
 
 /*
- * Reiceives the debug informations from the castor-debug-handler via the socket
+ * Reiceives the debug informations from the castor-debug-handler via the socket.
  */
 bool Ping::receive() {
 	std::string ret("");
@@ -194,7 +197,7 @@ bool Ping::receive() {
 }
 
 /*
- * Sends the desired amount of data before the actual ping
+ * Sends the desired amount of data before the actual ping.
  */
 void Ping::preloaded() {
 	int n = cli.get_num_preloaded();
@@ -207,7 +210,7 @@ void Ping::preloaded() {
 }
 
 /*
- * Analyzes the collected data and printd it on the screen
+ * Analyzes the collected data and printd it on the screen.
  */
 void Ping::analyze() {
 	std::cout << std::endl << "--- " << cli.get_dst_ip() << " ping statistics ---" << std::endl;
@@ -225,7 +228,7 @@ void Ping::analyze() {
 }
 
 /*
- * Parse and print the data that was received during a single ping
+ * Parse and print the data that was received during a single ping.
  */
 void Ping::print_single_ping_info(std::string ret) {
 	char* dump = strdup(reinterpret_cast<const char*>(ret.c_str()));

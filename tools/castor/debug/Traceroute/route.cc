@@ -24,7 +24,7 @@ Route::Route(char* debug_ack, char* dst_ip)
 	char* mac_address_str;
 	char* ip_address_str;
 
-	// Parses the path inside the debug_ack. 
+	// Parses the path inside the debug_ack
 	mac_address_str = strtok(dump_route, ":");
 	while(mac_address_str){
 		ip_address_str = strtok(NULL, ",");
@@ -39,7 +39,7 @@ Route::Route(char* debug_ack, char* dst_ip)
 	rtt = atof(timestamp_str);
 	packet_size = atoi(packet_size_str);
 
-	// the response time of the route is also the time of the last entry
+	// The response time of the route is also the time of the last entry
 	entries.at(0).set_rtt(rtt);
 }
 

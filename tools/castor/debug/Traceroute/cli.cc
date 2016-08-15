@@ -116,7 +116,7 @@ bool CLI::set_local_ip() {
 
 	// Creates a linked list of structures describing the network interfaces 
 	// of the local system, and stores the address of the first item of the 
-	// list in *ifap. The list consists of ifaddrs structures.
+	// list in *ifap. The list consists of ifaddrs structures
 	getifaddrs(&ifAddrStruct);
 	
 	for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
@@ -124,7 +124,7 @@ bool CLI::set_local_ip() {
 			continue;
 
 		if (ifa->ifa_addr->sa_family == AF_INET && ifa->ifa_name == ifa_name) {
-			// is a valid IPv4 Address and desired interface
+			// Is a valid IPv4 Address and desired interface
 			tmpAddrPtr=&((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;		
 			inet_ntop(AF_INET, tmpAddrPtr, src_ip, INET_ADDRSTRLEN);
 			// inet_pton(AF_INET, addressBuffer, &(src_ip.sin_addr));

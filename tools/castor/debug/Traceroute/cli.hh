@@ -31,10 +31,10 @@ public:
 	CLI() { };
 	~CLI() { };
 
-	// Parses all arguments and prints a help-message if an error occurs.
+	// Parses all arguments and prints a help-message if an error occurs
 	bool parse_args(int argc, char** argv);
 
- 	// Finds the own ip address to a given interface name.
+ 	// Finds the own ip address to a given interface name
 	bool set_local_ip();
 	
 	bool get_ext();

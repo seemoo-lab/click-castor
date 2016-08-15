@@ -17,11 +17,11 @@ public:
 	// Parse and stores all user inputs
 	CLI cli;	
 private:
-	// Initialize the socket that is used to communicate with castor.
+	// Initialize the socket that is used to communicate with castor
 	bool connect_to_socket();	
 
  	// It is possible that there is data left on 
-	// the castor-debug-handler from a previous ping.
+	// the castor-debug-handler from a previous ping
 	void clear_socket();
 
 	// Sends a command to the connected socket an receives the response

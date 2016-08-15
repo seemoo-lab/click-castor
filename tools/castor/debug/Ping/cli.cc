@@ -16,8 +16,8 @@ void print_help() {
 					"\n\t-p|--preloaded <x>:\tSends x packets before trying to receive one."
 					"\n\t-q|--quiet:        \tNothing is displayed except the summary lines."
 					"\n\t-s|--size <x>:     \tSize of the transported data."
-					"\n\t-t|--timeout<x>:   \tTime to wait for a response, in sec."
-					"\n\t-d|--deadline <x>: \tSpecifiy a timeout, in sec, before ping exits."
+					"\n\t-t|--timeout<x>:   \tTime to wait for a response, in x sec."
+					"\n\t-d|--deadline <x>: \tSpecifiy a timeout, in x sec, before ping exits."
 					"\n\t--ttl <x>:         \tAmount of nodes that are allowed to" 
 								"forwared the packet.";
 	std::cout << usage + options << std::endl;
@@ -92,7 +92,7 @@ bool CLI::set_local_ip() {
 
 	// Creates a linked list of structures describing the network interfaces 
 	// of the local system, and stores the address of the first item of the 
-	// list in *ifap. The list consists of ifaddrs structures.
+	// list in *ifap. The list consists of ifaddrs structures
 	getifaddrs(&ifAddrStruct);
 	
 	for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {

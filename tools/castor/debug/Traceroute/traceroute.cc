@@ -44,7 +44,7 @@ Traceroute::Traceroute(int argc, char** argv) {
 	print_title();
 	
 	if(!connect_to_socket()) {
-		std::cout << "Could not connect to the " << 
+		std::cout << "Error: Could not connect to the " << 
 			DEBUG_HANDLER_SOCK << " socket." << std::endl;
 		return;
 	}
@@ -52,14 +52,14 @@ Traceroute::Traceroute(int argc, char** argv) {
 	clear_socket();
 
 	// Kick off traceroute
-	if(!send()) {
-		std::cout << "Send failed" << std::endl;
+	if(!send()) { 
+		std::cout << "Error: Could not send msg." << std::endl;
 		return;
 	}
 
 	// Receives all responses
 	if(!receive()) {
-		std::cout << "Receive failed" << std::endl;
+		std::cout << "Error: Could not receive msg." << std::endl;
 		return;
 	}
 
@@ -96,7 +96,7 @@ bool Traceroute::send_socket_cmd(std::string cmd, std::string& ret) {
 	cmd.append("\n");
 
 	if (write(sockfd, cmd.c_str(), cmd.size()) == -1) {
-		std::cout << "Error: send_socket_cmd: write" << std::endl;
+		std::cout << "Error: Writing to socket failed." << std::endl;
 		return false;
 	}
 
@@ -111,7 +111,7 @@ bool Traceroute::send_socket_cmd(std::string cmd, std::string& ret) {
 		n = read(sockfd, buffer, count);
 		
 		if (n < 0) {
-			std::cout << "read failed" << std::endl;
+			std::cout << "Error: Reading from socket failed." << std::endl;
 			free(buffer);
 			return false;
 		}
@@ -131,7 +131,7 @@ void Traceroute::clear_socket() {
 }
 
 /*
- * Sends the debug parameters to the castor-debug-handler via the socket
+ * Sends the debug parameters to the castor-debug-handler via the socket.
  */
 bool Traceroute::send() {
 	std::string ret("");
@@ -144,7 +144,7 @@ bool Traceroute::send() {
 }
 
 /*
- * Reiceives the debug informations from the castor-debug-handler via the socket
+ * Reiceives the debug informations from the castor-debug-handler via the socket.
  */
 bool Traceroute::receive() {
 	std::string tmp_ret("");
@@ -182,7 +182,7 @@ bool Traceroute::receive() {
 }
 
 /*
- * Parse the data that was received
+ * Parse the data that was received.
  */
 void Traceroute::parse_single_traceroute_info(std::string ret) {
 	char* dump = strdup(reinterpret_cast<const char*>(ret.c_str()));
@@ -205,7 +205,7 @@ void Traceroute::parse_single_traceroute_info(std::string ret) {
 }
 
 /*
- * If all castor nodes return their paths there will be some duplicates that has to removed
+ * If all castor nodes return their paths there will be some duplicates that has to removed.
  */
 void Traceroute::merge_routes() {
 	size_t num_routes = routes.size();
@@ -236,7 +236,7 @@ void Traceroute::merge_routes() {
 }
 
 /*
- * Sorts the routes in order of the rtt
+ * Sorts the routes in order of the rtt.
  */
 void Traceroute::sort_routes() {
 	size_t num_routes = routes.size();
@@ -267,7 +267,7 @@ void Traceroute::sort_routes() {
 }
 
 /*
- * Analyzes the collected data and prints it on the screen
+ * Analyzes the collected data and prints it on the screen.
  */
 void Traceroute::analyze_routes() {
 	int i, num_entries, packet_size;
@@ -297,7 +297,7 @@ void Traceroute::analyze_routes() {
 }
 
 /*
- * Prints one single Route with time, size and num_nodes
+ * Prints one single Route with time, size and num_nodes.
  */
 void Traceroute::setup_print_route(std::string& routes_str, Route* route) {
 	int num_entries = route->entries.size();
@@ -321,7 +321,9 @@ void Traceroute::print_title() {
 		  << "   -- " << cli.get_src_ip() << " ==> " << cli.get_dst_ip() <<  " --" << std::endl;
 }
 
-// Is called by the interrupt handler, if 'Strg + c' was pressed.
+/*
+ * Is called by the interrupt handler, if 'Strg + c' was pressed.
+ */
 void exit_handler(int s) {
 	interrupted = true;
 }

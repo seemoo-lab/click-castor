@@ -25,6 +25,9 @@ CastorDebugHandler::~CastorDebugHandler() { };
 static CastorFlowManager* flow_manager;
 static int pkt_size = 0;
 
+// Time when a PKT is created and send to a neighbor
+static clock_t start_time;
+
 int CastorDebugHandler::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 		.read_mp("FLOW_MANAGER", ElementCastArg("CastorFlowManager"), flow_manager)
@@ -32,8 +35,10 @@ int CastorDebugHandler::configure(Vector<String> &conf, ErrorHandler *errh) {
 		.complete();
 }
 
-// Converts an ip-address to a correspinding hex
-// Example: 192.168.56.101 => c0a83865
+/*
+ * Converts an ip-address to a correspinding hex
+ * Example: 192.168.56.101 => c0a83865
+ */
 long CastorDebugHandler::ip_to_hex(const unsigned char* ip) {
 	char* dump = strdup(reinterpret_cast<const char*>(ip));
 	char* b0 = strtok(dump, ".");
@@ -54,8 +59,10 @@ long CastorDebugHandler::ip_to_hex(const unsigned char* ip) {
 	return hex_ip;
 }
 
-// Converts a hex to an ip-address
-// Example: c0a83865 => 192.168.56.101 
+/*
+ * Converts a hex to an ip-address
+ * Example: c0a83865 => 192.168.56.101 
+ */
 void CastorDebugHandler::hex_to_ip(uint32_t hex_ip, char* ip_str) {
 	uint32_t tmp1 = (hex_ip & 0xff000000) >> 24;
 	uint32_t tmp2 = (hex_ip & 0xff0000) >> 16;
@@ -64,6 +71,9 @@ void CastorDebugHandler::hex_to_ip(uint32_t hex_ip, char* ip_str) {
 	sprintf(ip_str, "%d.%d.%d.%d", tmp1, tmp2, tmp3, tmp4);
 }
 
+/*
+ * Calculates a random Hash.
+ */
 Hash CastorDebugHandler::rand_pid() {
 	uint8_t r[CASTOR_HASH_LENGTH];
 	for(int i=0; i < CASTOR_HASH_LENGTH; i++) {
@@ -73,13 +83,18 @@ Hash CastorDebugHandler::rand_pid() {
 	return myHash;
 }
 
+/*
+ * Creates a new PKT with the given debug attributes set.
+ */
 Packet* CastorDebugHandler::create_castor_pkt(const unsigned char* src_ip, const unsigned char* dst_ip,
 				  	      int dbg, int aret, int insp, int ttl, int size) {
 
+	// Calculates the PKT size
 	int new_pkt_size = size < sizeof(CastorPkt) ? sizeof(CastorPkt) : size;
 	new_pkt_size = new_pkt_size < MAX_ETHER_PKT_SIZE ? new_pkt_size : MAX_ETHER_PKT_SIZE;
 	click_chatter("SIZE: %d\n", new_pkt_size);
 
+	// Creates a new packet with the given size
 	WritablePacket* p = Packet::make(new_pkt_size);
 
 	if (!p) {
@@ -94,6 +109,7 @@ Packet* CastorDebugHandler::create_castor_pkt(const unsigned char* src_ip, const
 
 	memset(p->data(), 0, p->length());
 
+	// Creates a PKT and sets the necessary attributes
 	CastorPkt* header = reinterpret_cast<CastorPkt*>(p->data());
 	header->type = CastorType::PKT;
 	header->unset_syn();
@@ -104,7 +120,6 @@ Packet* CastorDebugHandler::create_castor_pkt(const unsigned char* src_ip, const
 	header->src = src;
 	header->dst = dst;
 
-	unsigned int fasize = 0;
 	header->hsize = sizeof(Hash);
 	header->set_fsize(0);
 	header->len = htons(p->length());
@@ -118,10 +133,12 @@ Packet* CastorDebugHandler::create_castor_pkt(const unsigned char* src_ip, const
 	return p;
 }
 
-static clock_t start_time;
-
-// Expects a string with this convention: "<src_ip>|<dst_ip>|DBG|ARET|INSP|ttl|pkt_size|"
-// Example: "192.168.0.10|192.168.0.11|1|0|0|15|56|"
+/*
+ * Expects a string with this convention: "<src_ip>|<dst_ip>|DBG|ARET|INSP|ttl|pkt_size|"
+ * Example: "192.168.0.10|192.168.0.11|1|0|0|15|56|"
+ *
+ * This string is parsed and a PKT is created.
+ */
 int CastorDebugHandler::write_callback(const String &s, Element *e, void *vparam, ErrorHandler *errh) {
 	click_chatter("write_callback: %s\n", s.printable().c_str());
 	CastorDebugHandler *fh = static_cast<CastorDebugHandler*>(e);
@@ -134,7 +151,6 @@ int CastorDebugHandler::write_callback(const String &s, Element *e, void *vparam
 	int aret = atoi(strtok(NULL, "|"));
 	int insp = atoi(strtok(NULL, "|"));
 	int ttl = atoi(strtok(NULL, "|"));
-	click_chatter("ttl=%d\n", ttl);
 	int size = atoi(strtok(NULL, "|"));
 
 	Packet* p = fh->create_castor_pkt(src_ip, dst_ip, dbg, aret, insp, ttl, size);
@@ -146,10 +162,12 @@ int CastorDebugHandler::write_callback(const String &s, Element *e, void *vparam
 	fh->output(0).push(p);
 }
 
-// Incoming ACK-packets are stored (as a string) in a queue and not forwarded.
-// Conevention: rtt|packet_size|mac_1:ip_1, mac_2:ip_2, ...|<
-// Example: "|975|56|08-00-27-64-0F-53:192.168.56.102,08-00-27-CC-77-50:192.168.56.101|<" 
-// 	 or "|81|56|<" if no path is added
+/*
+ * Incoming ACK-packets are stored (as a string) in a queue and not forwarded.
+ * Conevention: rtt|packet_size|mac_1:ip_1, mac_2:ip_2, ...|<
+ * Example: "|975|56|08-00-27-64-0F-53:192.168.56.102,08-00-27-CC-77-50:192.168.56.101|<" 
+ * 	 or "|81|56|<" if no path is added
+ */
 Packet*  CastorDebugHandler::simple_action(Packet *p) {
 	String dbg_ack_str(" |");
 	const CastorAck& ack = *reinterpret_cast<const CastorAck*>(p->data());

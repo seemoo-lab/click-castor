@@ -16,13 +16,13 @@ public:
 	~Ping() { };
 	CLI cli;	
 private:
-	// Initialize the socket that is used to communicate with castor.
+	// Initialize the socket that is used to communicate with castor
 	bool connect_to_socket();
 
- 	// It is possible that there is data left on the castor-debug-handler from a previous ping.
+ 	// It is possible that there is data left on the castor-debug-handler from a previous ping
 	void clear_socket();
 
-	// Sends a command to the connected socket an receives the response.
+	// Sends a command to the connected socket an receives the response
 	bool send_socket_cmd(std::string cmd, std::string& ret);
 
    	// Sends the debug parameters to the castor-debug-handler via the socket
