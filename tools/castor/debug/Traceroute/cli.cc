@@ -14,7 +14,7 @@ void print_help() {
 	std::string usage 	= 	"Usage: traceroute <ip address> [options]\n";
 	std::string options 	= 	"Options:" 
 					"\n\t-e|--extensive <x>:"
-					"\t\t\tConsider all invloved nodes."
+					"\t\tConsider all invloved nodes."
 					"\n\t-I|--interface <x>:"
 					"\t\tInterface name x."
 					"\n\t-d|--deadline<x>:"
@@ -64,6 +64,9 @@ bool CLI::parse_options(int argc, char** argv) {
 			ext = true;
 		} else if (opt == "-d" || opt == "--deadline") {
 			deadline = atoi(argv[++i]);
+			deadline_flag = true;
+		} else if (opt == "-t" || opt == "--timeout") {
+			timeout = atoi(argv[++i]);
 		} else if (opt == "-I" || opt == "--interface") {
 			ifa_name = std::string(argv[++i]);
 		} else if (opt == "--ttl") {
@@ -145,6 +148,14 @@ int CLI::get_ttl() {
 
 int CLI::get_deadline() {
 	return deadline;
+}
+
+bool CLI::contains_deadline() {
+	return deadline_flag;
+}
+
+int CLI::get_timeout() {
+	return timeout;
 }
 
 AddressType CLI::get_address_type() {

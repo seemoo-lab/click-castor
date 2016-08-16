@@ -22,14 +22,16 @@ public:
 	// Contains all route entries, each with a rtt, mac and ip
 	std::vector<RouteEntry> entries;
 
-	// Is set to true, if this route contains a destinatin node
-	bool contains_dst = false;
 
+	bool contains_dst();
 	float get_rtt();
 	int get_packet_size();
 private:
 	// Checks if the given route is a prefix of this route 
 	bool is_prefix(Route route);
+
+	// Is set to true, if this route contains a destinatin node
+	bool contains_dst_flag = false;
 
 	// Round trip time
 	float rtt;

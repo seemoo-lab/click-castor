@@ -30,7 +30,7 @@ Route::Route(char* debug_ack, char* dst_ip)
 		ip_address_str = strtok(NULL, ",");
 
 		if(!strcmp(ip_address_str, dst_ip))
-			contains_dst = true;
+			contains_dst_flag = true;
 
 		entries.push_back(RouteEntry(std::string(mac_address_str), std::string(ip_address_str)));
 		mac_address_str = strtok(NULL, ":");
@@ -134,4 +134,8 @@ float Route::get_rtt() {
 
 int Route::get_packet_size() {
 	return packet_size;
+}
+
+bool Route::contains_dst() {
+	return contains_dst_flag;
 }

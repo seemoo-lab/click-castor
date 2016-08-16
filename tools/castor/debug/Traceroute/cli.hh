@@ -40,6 +40,8 @@ public:
 	bool get_ext();
 	int get_ttl();
 	int get_deadline();
+	bool contains_deadline();
+	int get_timeout();
 	AddressType get_address_type();
 	RouteType get_route_type();
 	SortType get_sort_type();
@@ -60,6 +62,12 @@ private:
 
 	// After x sec the program stops or if -x this attribute is ignored.
 	int deadline = -1;
+
+	// Is the deadline set to a value other than -1
+	bool deadline_flag = false;
+
+	// Time to wait for a response in sec.
+	int timeout = 1;
 
 	// Defines which addresses are to be shown.
 	AddressType address_type = AT_IP;

@@ -16,7 +16,7 @@ public:
 	void set_mac_address(std::string mac_address);
 	void set_ip_address(std::string ip_address);
 private:
-	// Round trip time 
+	// Round trip time in ms 
 	float rtt;
 
 	std::string mac_address;

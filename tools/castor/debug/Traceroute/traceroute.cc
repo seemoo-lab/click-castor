@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
+#include <sys/time.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <iomanip>
@@ -31,6 +32,8 @@ bool interrupted = false;
 	  --address_type [ip|mac|ip_mac]: Show node entry as IP, MAC or both.
  */
 Traceroute::Traceroute(int argc, char** argv) {
+	struct timeval start_time, curr_time;
+
 	// Checks the input
 	if (!cli.parse_args(argc, argv))
 		return;
@@ -51,17 +54,29 @@ Traceroute::Traceroute(int argc, char** argv) {
 
 	clear_socket();
 
-	// Kick off traceroute
-	if(!send()) { 
-		std::cout << "Error: Could not send msg." << std::endl;
-		return;
-	}
+	gettimeofday(&start_time, NULL);
 
-	// Receives all responses
-	if(!receive()) {
-		std::cout << "Error: Could not receive msg." << std::endl;
-		return;
-	}
+	do {
+		// Kick off traceroute
+		if(!send()) { 
+			std::cout << "Error: Could not send msg." << std::endl;
+			return;
+		}
+
+		// Receives all responses
+		if(!receive()) {
+			std::cout << "Error: Could not receive msg." << std::endl;
+			return;
+		}
+
+		// Checks deadline
+		if(cli.contains_deadline()) {
+			gettimeofday(&curr_time, NULL);
+
+			if((curr_time.tv_sec-start_time.tv_sec) >= cli.get_deadline())
+				break;
+		}
+	} while(!interrupted && (cli.get_ext() || !dst_found));
 
 	merge_routes();
 	sort_routes();
@@ -151,7 +166,7 @@ bool Traceroute::receive() {
 	std::string ret(""); 
 	std::string args = "READ debug_handler.debug";
 	bool retval;
-	int d = cli.get_deadline();
+	int t = cli.get_timeout();
 	
 	do {
 		retval = send_socket_cmd(args, tmp_ret);	
@@ -162,7 +177,7 @@ bool Traceroute::receive() {
 		if(tmp_ret.size() <= 55) {
 			sleep(1);
 
-			if((--d) == 0) {
+			if((--t) == 0) {
 				break;
 			} else if(ret != "" && !cli.get_ext())
 				break;
@@ -176,7 +191,7 @@ bool Traceroute::receive() {
 		tmp_ret = "";
 	} while(!interrupted);
 
-	std::cout << "ret = " << ret << std::endl;
+	//std::cout << "ret = " << ret << std::endl;
 	parse_single_traceroute_info(ret);	
 	return true;	
 }
@@ -199,6 +214,9 @@ void Traceroute::parse_single_traceroute_info(std::string ret) {
 	for(int i=0; i < num_paths; i++) {
 		Route new_route(debug_acks[i], cli.get_dst_ip());
 		routes.push_back(new_route);
+		
+		if(new_route.contains_dst())
+			dst_found = true;
 	}
 
 	delete [] debug_acks;
@@ -218,7 +236,7 @@ void Traceroute::merge_routes() {
 			route1 = &routes.at(i);
 			route2 = &routes.at(j);
 
-			if(route1->entries.size() < route2->entries.size()) {
+			if(route1->entries.size() <= route2->entries.size()) {
 				if(route2->merge(*route1)) {
 					routes.erase(routes.begin()+i);	
 					break;
@@ -271,7 +289,6 @@ void Traceroute::sort_routes() {
  */
 void Traceroute::analyze_routes() {
 	int i, num_entries, packet_size;
-	float response_time;
 	size_t num_routes = routes.size();
 	std::string routes_str("");
 	Route *route;
@@ -280,13 +297,13 @@ void Traceroute::analyze_routes() {
 		route = &routes.at(i);	
 
 		if(cli.get_route_type() == RT_DST) {
-			if(route->contains_dst) {
+			if(route->contains_dst()) {
 				setup_print_route(routes_str, route);
 			}
 		} else if(cli.get_route_type() == RT_ALL) {
 				setup_print_route(routes_str, route);
 		} else if(cli.get_route_type() == RT_NODST) {
-			if(!route->contains_dst) {
+			if(!route->contains_dst()) {
 				setup_print_route(routes_str, route);
 			}
 		}

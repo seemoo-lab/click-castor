@@ -55,6 +55,9 @@ private:
 	int len;
 	sockaddr_un address;
 
+	// Is true if one route contains the destination node
+	bool dst_found = false;
+
 	// Stores all received routes 
 	std::vector<Route> routes;	
 };
