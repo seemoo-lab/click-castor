@@ -58,10 +58,10 @@ bool Route::merge(Route route) {
 	if(!is_prefix(route))		
 		return false;
 	
-	for(i=num_entries-1; i >= 0; i--) {
-		if(!entries.at(i+diff).get_rtt()) 
-			entries.at(i+diff).set_rtt(route.entries.at(i).get_rtt()); 
-	}
+	//for(i=num_entries-1; i >= 0; i--) {
+		//if(!entries.at(i+diff).get_rtt()) 
+		//	entries.at(i+diff).set_rtt(route.entries.at(i).get_rtt()); 
+	//}
 
 	return true;
 }
@@ -72,6 +72,8 @@ bool Route::merge(Route route) {
 bool Route::is_prefix(Route route) {
 	int i, diff;
 	size_t num_entries = route.entries.size();
+	RouteEntry* entry1;
+	RouteEntry* entry2;
 	std::string mac1(""); 
 	std::string mac2("");
 
@@ -81,11 +83,22 @@ bool Route::is_prefix(Route route) {
 	diff = entries.size() - num_entries;
 
 	for(i=num_entries-1; i >= 0; i--) {
-		mac1 = entries.at(i+diff).get_mac_address();
-		mac2 = route.entries.at(i).get_mac_address();
+		entry1 = &entries.at(i+diff);
+		entry2 = &route.entries.at(i);
+		mac1 = entry1->get_mac_address();
+		mac2 = entry2->get_mac_address();
+
+		//std::cout << "ip1= " << entry1->get_ip_address() << " ip2= " << entry2->get_ip_address() << std::endl;
 
 		if(mac1 != mac2)
 			return false;	
+		else {
+			// Share missing rtt
+			if(!entry1->get_rtt() && entry2->get_rtt())
+				entry1->set_rtt(entry2->get_rtt());
+			else
+				entry2->set_rtt(entry1->get_rtt());
+		}
 	}
 
 	return true;
