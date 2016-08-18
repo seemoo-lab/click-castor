@@ -113,12 +113,17 @@ elementclass CastorForwardPkt {
 
 	isAret[1]
 		-> createDebugAck :: CastorCreateDebugAck($flowtable)
-		-> decTtl 
+		-> decTtl
 		-> [0]output;
 
 	createDebugAck[1]
+		-> CastorAnnotateDebugPid
+		-> noLoopback :: CastorNoLoopback($history, $myIP)
 		-> isInsp :: CastorIsInsp
 		-> [1]output;
+
+	noLoopback[1]
+		-> Discard;
 
 	isInsp[1]
 		-> insertPath :: CastorInsertPath($myIP, $myIP)
