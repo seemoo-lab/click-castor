@@ -23,13 +23,13 @@ public:
 	bool set_local_ip();
 
 	int get_count();
-	int get_interval();
+	float get_interval();
 	int get_num_preloaded();
 	int is_quiet();
 	int get_size();
 	int get_ttl();
-	int get_timeout();
-	int get_deadline();
+	float get_timeout();
+	float get_deadline();
 	bool contains_deadline();
 	std::string get_ifa_name();
 	char* get_src_ip();
@@ -43,7 +43,7 @@ private:
 	int count = -1;
 
 	// Number of sec between each packets
-	int interval = 2;
+	float interval = 1;
 
 	// Number of packets to be send without waiting to replay
 	int num_preloaded = 0;
@@ -58,10 +58,10 @@ private:
 	int ttl = MAX_TTL;
 
 	// Time to wait for a response, in sec
-	int timeout = 3;
+	float timeout = 1;
 
 	// After x sec the program stops or if -x this attribute is ignored
-	int deadline = -1;
+	float deadline = -1;
 
 	// Is the deadline set to a value other than -1
 	bool deadline_flag = false;

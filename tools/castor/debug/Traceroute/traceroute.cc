@@ -15,6 +15,9 @@
 
 #define DEBUG_HANDLER_SOCK "/tmp/castor_debug_socket"
 
+// This message is always send "200 Read handler 'debug_handler.ping' OK\nDATA 78\n"
+#define DEF_SOCK_MSG_LEN 55
+
 bool interrupted = false;
 
 /*
@@ -27,6 +30,7 @@ bool interrupted = false;
 	  -a|--all <x>:      Consider all invloved nodes.
 	  -I|--interface <x>:Interface name x.
 	  -d|--deadline<x>:  Maximal time to wait for a reponse.
+	  -t|--timeout<x>:"  Time to wait for a response, in x sec.
 	  --ttl <x>:         Amount of nodes that are allowed to forwared the packet.
  	  --route [all|dst|nodst]:  Show all nodes or with(out) destination.
 	  --address_type [ip|mac|ip_mac]: Show node entry as IP, MAC or both.
@@ -166,7 +170,7 @@ bool Traceroute::receive() {
 	std::string ret(""); 
 	std::string args = "READ debug_handler.debug";
 	bool retval;
-	int t = cli.get_timeout();
+	float t = cli.get_timeout();
 	
 	do {
 		retval = send_socket_cmd(args, tmp_ret);	
@@ -174,10 +178,12 @@ bool Traceroute::receive() {
 		if(!retval)
 			return false;
 
-		if(tmp_ret.size() <= 55) {
-			sleep(1);
+		if(tmp_ret.size() <= DEF_SOCK_MSG_LEN) {
+			usleep(1000);
 
-			if((--t) == 0) {
+			// Check timeout
+			t = t - 0.001;
+			if(t <= 0) {
 				break;
 			} else if(ret != "" && !cli.get_ext())
 				break;

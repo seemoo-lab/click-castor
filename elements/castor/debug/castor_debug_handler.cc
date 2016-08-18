@@ -126,9 +126,7 @@ void CastorDebugHandler::send_debug_pkt(const unsigned char* src_ip, const unsig
 
 	pkt_size = p->length();
 
-	start_time = Timestamp::now();
-
-	click_chatter("SEND ....\n");
+	start_times.set(header->pid, Timestamp::now());
 
 	output(0).push(p);
 }
@@ -170,12 +168,10 @@ Packet* CastorDebugHandler::simple_action(Packet *p) {
 	int i;
 	end_time = Timestamp::now();
 
-	Timestamp diff = end_time - start_time;
+	Timestamp diff = end_time - start_times.get(ack.auth);
+	start_times.erase(ack.auth);
 	double rtt = diff.sec() * 1000 + (double) diff.usec() / 1000;
 
-//	click_chatter("start_time=%f , curr_time=%f\n", start_time_ms, end_time_ms);
-//	dbg_ack_str += String(p->timestamp_anno().msec()) + "|"; // sec
-//	double rtt = (p->timestamp_anno().msec() - start_time);
 	dbg_ack_str += String(rtt) + "|";
 	dbg_ack_str += String(pkt_size) + "|";
 
@@ -200,10 +196,12 @@ String CastorDebugHandler::read_callback(Element *e, void *vparam) {
 	std::vector<String> *queue = static_cast<std::vector<String>*>(vparam);
 //	String tmp("|");
 	String tmp("");
+
 	if (!queue->empty()) {
 		tmp += queue->back();
 		queue->pop_back();
 	}
+
 	return tmp;
 }
 
@@ -211,9 +209,12 @@ String CastorDebugHandler::read_callback(Element *e, void *vparam) {
  * Clears the queue.
  */
 String CastorDebugHandler::clear_callback(Element *e, void *vparam) {
-	std::vector<String> *queue = static_cast<std::vector<String>*>(vparam);
-	if (!queue->empty())
-		queue->clear();
+	CastorDebugHandler *fh = static_cast<CastorDebugHandler*>(e);
+
+	fh->start_times.clear();
+
+	if (!fh->dbg_ack_queue.empty())
+		fh->dbg_ack_queue.clear();
 	return String("");
 }
 
@@ -222,7 +223,7 @@ String CastorDebugHandler::clear_callback(Element *e, void *vparam) {
  * click via a UNIX-socket.
  */
 void CastorDebugHandler::add_handlers() {
-	add_read_handler("clear", clear_callback, &dbg_ack_queue);
+	add_read_handler("clear", clear_callback, 0);
 	add_write_handler("debug", write_callback, 0);
 	add_read_handler("debug", read_callback, &dbg_ack_queue);
 }

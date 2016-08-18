@@ -57,10 +57,8 @@ int init_unix_server_socket(const char* dbg_ack_str) {
 		if(size > 0)
 			buffer[size] = '\0';
 		std::cout << "Message received: " << buffer << std::endl;
-		sleep(1);
 		std::cout << "Send message: " << dbg_ack_str << std::endl;
 		send (new_socket, dbg_ack_str, strlen(dbg_ack_str), 0);
-		sleep(2);
 	}
 
 	sleep(2);

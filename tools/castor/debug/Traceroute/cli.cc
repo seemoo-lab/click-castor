@@ -19,6 +19,8 @@ void print_help() {
 					"\t\tInterface name x."
 					"\n\t-d|--deadline<x>:"
 					"\t\tMaximal time to wait for a reponse."
+					"\n\t-t|--timeout<x>:"
+					"\t\tTime to wait for a response, in x sec."
 					"\n\t--ttl <x>:"
 					"\t\t\tAmount of nodes that are allowed to forwared the packet."
 					"\n\t--route [all|dst|nodst]:"
@@ -63,10 +65,10 @@ bool CLI::parse_options(int argc, char** argv) {
 		if (opt == "-e" || opt == "--extensive") {
 			ext = true;
 		} else if (opt == "-d" || opt == "--deadline") {
-			deadline = atoi(argv[++i]);
+			deadline = atof(argv[++i]);
 			deadline_flag = true;
 		} else if (opt == "-t" || opt == "--timeout") {
-			timeout = atoi(argv[++i]);
+			timeout = atof(argv[++i]);
 		} else if (opt == "-I" || opt == "--interface") {
 			ifa_name = std::string(argv[++i]);
 		} else if (opt == "--ttl") {
@@ -146,7 +148,7 @@ int CLI::get_ttl() {
 	return ttl;
 }
 
-int CLI::get_deadline() {
+float CLI::get_deadline() {
 	return deadline;
 }
 
@@ -154,7 +156,7 @@ bool CLI::contains_deadline() {
 	return deadline_flag;
 }
 
-int CLI::get_timeout() {
+float CLI::get_timeout() {
 	return timeout;
 }
 

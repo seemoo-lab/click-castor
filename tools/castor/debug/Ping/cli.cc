@@ -53,7 +53,7 @@ bool CLI::parse_options(int argc, char** argv) {
 		if (opt == "-c" || opt == "--count") {
 			count = atoi(argv[++i]);
 		} else if (opt == "-i" || opt == "--interval") {
-			interval = atoi(argv[++i]);
+			interval = atof(argv[++i]);
 		} else if (opt == "-I" || opt == "--interface") {
 			ifa_name = std::string(argv[++i]);
 		} else if (opt == "-p" || opt == "--preloaded") {
@@ -63,9 +63,9 @@ bool CLI::parse_options(int argc, char** argv) {
 		} else if (opt == "-s" || opt == "--size") {
 			size = atoi(argv[++i]);
 		} else if (opt == "-t" || opt == "--timeout") {
-			timeout = atoi(argv[++i]);
+			timeout = atof(argv[++i]);
 		} else if (opt == "-d" || opt == "--deadline") {
-			deadline = atoi(argv[++i]);
+			deadline = atof(argv[++i]);
 			deadline_flag = true;
 		} else if (opt == "--ttl") {
 			ttl = atoi(argv[++i]);
@@ -115,7 +115,7 @@ int CLI::get_count() {
 	return count;
 }
 
-int CLI::get_interval() {
+float CLI::get_interval() {
 	return interval;
 }
 
@@ -135,11 +135,11 @@ int CLI::get_ttl() {
 	return ttl;
 }
 
-int CLI::get_timeout() {
+float CLI::get_timeout() {
 	return timeout;
 }
 
-int CLI::get_deadline() {
+float CLI::get_deadline() {
 	return deadline;
 }
 

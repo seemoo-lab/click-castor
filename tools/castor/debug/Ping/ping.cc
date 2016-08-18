@@ -8,12 +8,16 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
+#include <sys/time.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <iomanip>
 #include <sstream>
 
 #define DEBUG_HANDLER_SOCK "/tmp/castor_debug_socket"
+
+// This message is always send "200 Read handler 'debug_handler.ping' OK\nDATA 78\n"
+#define DEF_SOCK_MSG_LEN 55
 
 bool interrupted = false;
 
@@ -34,7 +38,7 @@ bool interrupted = false;
 	  --ttl <x>:         Amount of nodes that are allowed to forwared the packet.
  */
 Ping::Ping(int argc, char** argv) {
-	int D;
+	struct timeval start_time, curr_time;
 
 	// Checks the input
 	if (!cli.parse_args(argc, argv))
@@ -55,7 +59,7 @@ Ping::Ping(int argc, char** argv) {
 	}
 
 	clear_socket();
-	D = cli.get_deadline();
+	gettimeofday(&start_time, NULL);
 
 	if(cli.get_num_preloaded())
 		preloaded();
@@ -74,12 +78,15 @@ Ping::Ping(int argc, char** argv) {
 			}
 		}	
 
-		D = D - cli.get_interval();
+		// Check deadline
+		if(cli.contains_deadline()) {
+			gettimeofday(&curr_time, NULL);
 
-		if(cli.contains_deadline() && D <= 0)
-			break;
+			if((curr_time.tv_sec-start_time.tv_sec) >= cli.get_deadline())
+				break;
+		}
 
-		sleep(cli.get_interval());
+		usleep(cli.get_interval()*1000000);
 	}	
 
 	analyze();
@@ -163,7 +170,7 @@ bool Ping::receive() {
 	std::string ret("");
 	std::string args = "READ debug_handler.debug";
 
-	int t=cli.get_timeout();
+	float t=cli.get_timeout();
 	bool retval = false;
 
 	do {
@@ -172,11 +179,12 @@ bool Ping::receive() {
 		if(!retval)
 			return false;
 
-		if(ret.size() <= 55) {
-			sleep(1);
-			
+		if(ret.size() <= DEF_SOCK_MSG_LEN) {
+			usleep(1000);
+
 			// Check the timeout
-			if((--t) == 0) {
+			t = t - 0.001;
+			if(t <= 0) {
 				std::cout << "From " << cli.get_src_ip()
 					  << " Destination Host Unreachable" << std::endl;
 				return true;
@@ -204,7 +212,7 @@ void Ping::preloaded() {
 
 	while(n >= 0 && !interrupted) {
 		send();
-		sleep(cli.get_interval());
+		usleep(cli.get_interval()*1000000);
 		n--;
 	}
 }

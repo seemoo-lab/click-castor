@@ -7,7 +7,6 @@
 #include "../flow/castor_flow_manager.hh"
 #include "../flow/castor_flow_table.hh"
 #include "../crypto/crypto.hh"
-#include <ctime>
 
 CLICK_DECLS
 
@@ -60,8 +59,13 @@ private:
 	Crypto* crypto;
 	CastorFlowManager* flow_manager;
 
-	Timestamp start_time, end_time;
 	int pkt_size;
+
+	// Stores, for each PKT, the time when it is send
+	HashTable<PacketId, Timestamp> start_times; 
+
+	// Stores the time when the ACK is received 
+	Timestamp end_time;
 };
 
 CLICK_ENDDECLS
