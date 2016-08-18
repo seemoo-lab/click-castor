@@ -23,3 +23,8 @@ share/click/elementmap.xml
 share/click/pkg-config.mk
 stamp-egroup
 stamp-h
+
+# Tool specific stuff
+.cproject
+.project
+.settings/
