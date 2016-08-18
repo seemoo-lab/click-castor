@@ -51,14 +51,17 @@ private:
 	Hash rand_pid();
 
 	// Creates a new PKT with the given debug attributes set
-	Packet* create_castor_pkt(const unsigned char* src_ip, const unsigned char* dst_ip,
+	void send_debug_pkt(const unsigned char* src_ip, const unsigned char* dst_ip,
 					int dbg, int aret, int insp, int ttl, int size);
 
 	// Stores all incoming ACK as a string
 	std::vector<String> dbg_ack_queue;
 
 	Crypto* crypto;
-	
+	CastorFlowManager* flow_manager;
+
+	Timestamp start_time, end_time;
+	int pkt_size;
 };
 
 CLICK_ENDDECLS

@@ -22,12 +22,6 @@ CLICK_DECLS
 CastorDebugHandler::CastorDebugHandler() { };
 CastorDebugHandler::~CastorDebugHandler() { };
 
-static CastorFlowManager* flow_manager;
-static int pkt_size = 0;
-
-// Time when a PKT is created and send to a neighbor
-static struct timeval start_time, end_time;
-
 int CastorDebugHandler::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 		.read_mp("FLOW_MANAGER", ElementCastArg("CastorFlowManager"), flow_manager)
@@ -61,7 +55,7 @@ long CastorDebugHandler::ip_to_hex(const unsigned char* ip) {
 
 /*
  * Converts a hex to an ip-address
- * Example: c0a83865 => 192.168.56.101 
+ * Example: c0a83865 => 192.168.56.101
  */
 void CastorDebugHandler::hex_to_ip(uint32_t hex_ip, char* ip_str) {
 	uint32_t tmp1 = (hex_ip & 0xff000000) >> 24;
@@ -86,7 +80,7 @@ Hash CastorDebugHandler::rand_pid() {
 /*
  * Creates a new PKT with the given debug attributes set.
  */
-Packet* CastorDebugHandler::create_castor_pkt(const unsigned char* src_ip, const unsigned char* dst_ip,
+void CastorDebugHandler::send_debug_pkt(const unsigned char* src_ip, const unsigned char* dst_ip,
 				  	      int dbg, int aret, int insp, int ttl, int size) {
 
 	// Calculates the PKT size
@@ -99,7 +93,7 @@ Packet* CastorDebugHandler::create_castor_pkt(const unsigned char* src_ip, const
 
 	if (!p) {
 		click_chatter("Can not create packet!");
-		return NULL;
+		return;
 	}
 
 	std::srand(std::time(0));
@@ -130,7 +124,13 @@ Packet* CastorDebugHandler::create_castor_pkt(const unsigned char* src_ip, const
 	header->icv = ICV();
 	click_chatter("createDebugPkt: pid = %lx", header->pid);
 
-	return p;
+	pkt_size = p->length();
+
+	start_time = Timestamp::now();
+
+	click_chatter("SEND ....\n");
+
+	output(0).push(p);
 }
 
 /*
@@ -153,34 +153,27 @@ int CastorDebugHandler::write_callback(const String &s, Element *e, void *vparam
 	int ttl = atoi(strtok(NULL, "|"));
 	int size = atoi(strtok(NULL, "|"));
 
-	Packet* p = fh->create_castor_pkt(src_ip, dst_ip, dbg, aret, insp, ttl, size);
-	pkt_size = p->length();
-
-//	start_time = p->timestamp_anno().msec();
-	gettimeofday(&start_time, NULL);
-
-	click_chatter("SEND ....\n");
-
-	fh->output(0).push(p);
+	fh->send_debug_pkt(src_ip, dst_ip, dbg, aret, insp, ttl, size);
+	return 0;
 }
 
 /*
  * Incoming ACK-packets are stored (as a string) in a queue and not forwarded.
  * Conevention: rtt|packet_size|mac_1:ip_1, mac_2:ip_2, ...|<
- * Example: "|975|56|08-00-27-64-0F-53:192.168.56.102,08-00-27-CC-77-50:192.168.56.101|<" 
+ * Example: "|975|56|08-00-27-64-0F-53:192.168.56.102,08-00-27-CC-77-50:192.168.56.101|<"
  * 	 or "|81|56|<" if no path is added
  */
-Packet*  CastorDebugHandler::simple_action(Packet *p) {
+Packet* CastorDebugHandler::simple_action(Packet *p) {
 	String dbg_ack_str(" |");
 	const CastorAck& ack = *reinterpret_cast<const CastorAck*>(p->data());
 	String tmp_split(",");
 	int i;
-	gettimeofday(&end_time, NULL);
+	end_time = Timestamp::now();
 
-	double start_time_ms = (double)(start_time.tv_sec * 1000 + start_time.tv_usec) / 1000;
-	double end_time_ms = (double)(end_time.tv_sec * 1000 + end_time.tv_usec) / 1000;
-	double rtt = (double)(end_time_ms - start_time_ms);
-	click_chatter("start_time=%f , curr_time=%f\n", start_time_ms, end_time_ms);
+	Timestamp diff = end_time - start_time;
+	double rtt = diff.sec() * 1000 + (double) diff.usec() / 1000;
+
+//	click_chatter("start_time=%f , curr_time=%f\n", start_time_ms, end_time_ms);
 //	dbg_ack_str += String(p->timestamp_anno().msec()) + "|"; // sec
 //	double rtt = (p->timestamp_anno().msec() - start_time);
 	dbg_ack_str += String(rtt) + "|";
@@ -200,7 +193,7 @@ Packet*  CastorDebugHandler::simple_action(Packet *p) {
 	return NULL;
 }
 
-/* 
+/*
  * Returns the last element in the queue.
  */
 String CastorDebugHandler::read_callback(Element *e, void *vparam) {
@@ -214,7 +207,7 @@ String CastorDebugHandler::read_callback(Element *e, void *vparam) {
 	return tmp;
 }
 
-/* 
+/*
  * Clears the queue.
  */
 String CastorDebugHandler::clear_callback(Element *e, void *vparam) {
