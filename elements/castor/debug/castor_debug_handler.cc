@@ -14,8 +14,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <cstdlib>
-//#include <ctime>
-#include <time.h>
+#include <chrono>
+#include <sys/time.h>
 
 CLICK_DECLS
 
@@ -26,7 +26,7 @@ static CastorFlowManager* flow_manager;
 static int pkt_size = 0;
 
 // Time when a PKT is created and send to a neighbor
-static clock_t start_time;
+static struct timeval start_time, end_time;
 
 int CastorDebugHandler::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
@@ -157,7 +157,9 @@ int CastorDebugHandler::write_callback(const String &s, Element *e, void *vparam
 	pkt_size = p->length();
 
 //	start_time = p->timestamp_anno().msec();
-	start_time = clock();
+	gettimeofday(&start_time, NULL);
+
+	click_chatter("SEND ....\n");
 
 	fh->output(0).push(p);
 }
@@ -173,9 +175,12 @@ Packet*  CastorDebugHandler::simple_action(Packet *p) {
 	const CastorAck& ack = *reinterpret_cast<const CastorAck*>(p->data());
 	String tmp_split(",");
 	int i;
-	float rtt = (float)((clock() - start_time) * 1000) / CLOCKS_PER_SEC;
+	gettimeofday(&end_time, NULL);
 
-	click_chatter("start_time=%d , curr_time=%d\n", start_time, clock());
+	double start_time_ms = (double)(start_time.tv_sec * 1000 + start_time.tv_usec) / 1000;
+	double end_time_ms = (double)(end_time.tv_sec * 1000 + end_time.tv_usec) / 1000;
+	double rtt = (double)(end_time_ms - start_time_ms);
+	click_chatter("start_time=%f , curr_time=%f\n", start_time_ms, end_time_ms);
 //	dbg_ack_str += String(p->timestamp_anno().msec()) + "|"; // sec
 //	double rtt = (p->timestamp_anno().msec() - start_time);
 	dbg_ack_str += String(rtt) + "|";

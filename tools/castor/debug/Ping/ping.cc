@@ -190,7 +190,7 @@ bool Ping::receive() {
 		
 	} while(!interrupted); 
 	
-	std::cout << ret << std::endl;
+	//std::cout << ret << std::endl;
 	print_single_ping_info(ret);
 
 	return true;	
@@ -223,7 +223,7 @@ void Ping::analyze() {
 
 	std::cout << std::fixed << std::setprecision(2) << transmitted << " packets transmitted, " 
 		  << std::to_string(times.size()) << " received, " << std::to_string(loss_percentage)
-		  << "\% packet loss, time " << accumulate_time << std::endl << "rtt min/avg/max = "
+		  << "\% packet loss, time " << accumulate_time << "ms" << std::endl << "rtt min/avg/max = "
 		  << min_time << "/" << average_time << "/" << max_time << std::endl;
 }
 

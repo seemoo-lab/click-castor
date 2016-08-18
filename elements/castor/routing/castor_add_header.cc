@@ -35,6 +35,9 @@ Packet* CastorAddHeader::simple_action(Packet *p) {
 	header->hsize = sizeof(Hash);
 	header->set_fsize(label.size);
 	include_n ? header->set_syn() : header->unset_syn();
+	header->unset_dbg();
+	header->unset_aret();
+	header->unset_insp();
 	header->len = htons(p->length());
 #ifdef DEBUG_HOPCOUNT
 	header->set_hopcount(0);
