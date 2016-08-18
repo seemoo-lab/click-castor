@@ -6,16 +6,7 @@
 #include "castor_debug_handler.hh"
 #include "../castor.hh"
 #include "../hash.hh"
-#include <string>
-#include <string.h>
-#include <sstream>
-#include <click/vector.hh>
 #include "../flow/castor_flow.hh"
-#include <iostream>
-#include <stdio.h>
-#include <cstdlib>
-#include <chrono>
-#include <sys/time.h>
 
 CLICK_DECLS
 
@@ -96,7 +87,7 @@ void CastorDebugHandler::send_debug_pkt(const unsigned char* src_ip, const unsig
 		return;
 	}
 
-	std::srand(std::time(0));
+	std::srand(Timestamp::now().msec());
 
 	NodeId src(ip_to_hex(src_ip));
 	NodeId dst(ip_to_hex(dst_ip));
@@ -193,7 +184,7 @@ Packet* CastorDebugHandler::simple_action(Packet *p) {
  * Returns the last element in the queue.
  */
 String CastorDebugHandler::read_callback(Element *e, void *vparam) {
-	std::vector<String> *queue = static_cast<std::vector<String>*>(vparam);
+	Vector<String> *queue = static_cast<Vector<String>*>(vparam);
 //	String tmp("|");
 	String tmp("");
 

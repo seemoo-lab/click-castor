@@ -2,15 +2,7 @@
 #include <click/args.hh>
 #include "castor_insert_path.hh"
 #include "../castor.hh"
-#include <arpa/inet.h>
 #include "../castor_anno.hh"
-#include <sys/ioctl.h>
-#include <ifaddrs.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <net/if.h>
-#include <netinet/in.h>
 
 
 CLICK_DECLS

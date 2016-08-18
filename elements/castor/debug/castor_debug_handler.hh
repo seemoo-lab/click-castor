@@ -3,7 +3,7 @@
 
 #include <click/element.hh>
 #include "../castor.hh"
-#include <vector>
+#include <click/vector.hh>
 #include "../flow/castor_flow_manager.hh"
 #include "../flow/castor_flow_table.hh"
 #include "../crypto/crypto.hh"
@@ -54,7 +54,7 @@ private:
 					int dbg, int aret, int insp, int ttl, int size);
 
 	// Stores all incoming ACK as a string
-	std::vector<String> dbg_ack_queue;
+	Vector<String> dbg_ack_queue;
 
 	Crypto* crypto;
 	CastorFlowManager* flow_manager;
