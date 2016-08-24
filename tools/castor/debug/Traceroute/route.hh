@@ -14,7 +14,7 @@ public:
 
 	// Checks if the given route is a prefix of this route and
 	// take the rtts, if some are missing
-	bool merge(Route route);
+	bool merge(Route& route);
 
 	// Converts the route object to a string
 	std::string to_string(AddressType at);
@@ -28,7 +28,7 @@ public:
 	int get_packet_size();
 private:
 	// Checks if the given route is a prefix of this route 
-	bool is_prefix(Route route);
+	bool is_prefix(Route& route);
 
 	// Is set to true, if this route contains a destinatin node
 	bool contains_dst_flag = false;

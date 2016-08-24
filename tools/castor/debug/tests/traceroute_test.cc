@@ -125,11 +125,24 @@ std::string create_graph2() {
 
 std::string create_graph3() {
 	std::stringstream ss;
-	ss << TMP_RESP_MSG << "|1.632|102|" << MACs[2] << ":" << IPs[2] << "," 
+	ss << TMP_RESP_MSG << " |1.632|102|" << MACs[2] << ":" << IPs[2] << "," 
 			  		    << MACs[0] << ":" << IPs[0] << "|<"
-			   << "|0.532|102|" << MACs[4] << ":" << IPs[4] << ","
+			   << " |0.532|102|" << MACs[4] << ":" << IPs[4] << ","
 			  		    << MACs[0] << ":" << IPs[0] << "|<"
-			   << "|0.932|102|" << MACs[1] << ":" << IPs[1] << ","
+			   << " |0.932|102|" << MACs[1] << ":" << IPs[1] << ","
+			  		    << MACs[0] << ":" << IPs[0] << "|<";
+	return ss.str();
+}
+
+std::string create_graph4() {
+	std::stringstream ss;
+	ss << TMP_RESP_MSG << " |1.632|102|" << MACs[2] << ":" << IPs[2] << "," 
+					    << MACs[1] << ":" << IPs[1] << "," 
+			  		    << MACs[0] << ":" << IPs[0] << "|<"
+			   << " |2.63|102|" << MACs[3] << ":" << IPs[3] << "," 
+					    << MACs[1] << ":" << IPs[1] << "," 
+			  		    << MACs[0] << ":" << IPs[0] << "|<"
+			   << " |0.932|102|"<< MACs[1] << ":" << IPs[1] << ","
 			  		    << MACs[0] << ":" << IPs[0] << "|<";
 	return ss.str();
 }
@@ -137,7 +150,7 @@ std::string create_graph3() {
 int main(int argc, char** argv) {
 	std::cout << "Traceroute Test\n===============" << std::endl;
 	std::string dbg_ack_str("");
-	int num_graphs = 3;
+	int num_graphs = 4;
 	int selected_graph = 1;
 	
 	if(argc == 2) {
@@ -154,6 +167,9 @@ int main(int argc, char** argv) {
 		break;
 	case 3:
 		dbg_ack_str = create_graph3();
+		break;
+	case 4:
+		dbg_ack_str = create_graph4();
 		break;
 	default:
 		dbg_ack_str = create_graph1();

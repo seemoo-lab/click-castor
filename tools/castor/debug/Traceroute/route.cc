@@ -47,7 +47,7 @@ Route::Route(char* debug_ack, char* dst_ip)
  * Checks if the given route is a prefix of this route and
  * take the rtts, if some are missing.	
  */
-bool Route::merge(Route route) {
+bool Route::merge(Route& route) {
 	size_t num_entries = route.entries.size();
 	int i, diff;
 	diff = entries.size() - num_entries;
@@ -55,21 +55,13 @@ bool Route::merge(Route route) {
 	if(num_entries > entries.size())
 		return false;
 
-	if(!is_prefix(route))		
-		return false;
-	
-	//for(i=num_entries-1; i >= 0; i--) {
-		//if(!entries.at(i+diff).get_rtt()) 
-		//	entries.at(i+diff).set_rtt(route.entries.at(i).get_rtt()); 
-	//}
-
-	return true;
+	return is_prefix(route);		
 }
 
 /*
  * Checks if the given route is a prefix of this route. 
  */
-bool Route::is_prefix(Route route) {
+bool Route::is_prefix(Route& route) {
 	int i, diff;
 	size_t num_entries = route.entries.size();
 	RouteEntry* entry1;
@@ -87,8 +79,6 @@ bool Route::is_prefix(Route route) {
 		entry2 = &route.entries.at(i);
 		mac1 = entry1->get_mac_address();
 		mac2 = entry2->get_mac_address();
-
-		//std::cout << "ip1= " << entry1->get_ip_address() << " ip2= " << entry2->get_ip_address() << std::endl;
 
 		if(mac1 != mac2)
 			return false;	

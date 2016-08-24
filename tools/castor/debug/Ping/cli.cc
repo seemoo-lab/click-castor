@@ -10,16 +10,16 @@
 void print_help() {
 	std::string usage 	= 	"Usage: ping <ip address> [options]\n";
 	std::string options 	= 	"Options:" 
-					"\n\t-c|--count <x>:    \tSends x packets."
+					"\n\t-c|--count <x>:    \tStops after sending x packets."
 					"\n\t-i|--interval <x>: \tWaits x seconds between sending each packet."
 					"\n\t-I|--interface <x>:\tInterface name x."
 					"\n\t-p|--preloaded <x>:\tSends x packets before trying to receive one."
 					"\n\t-q|--quiet:        \tNothing is displayed except the summary lines."
-					"\n\t-s|--size <x>:     \tSize of the transported data."
+					"\n\t-s|--size <x>:     \tSize of the transported data, in x byte."
 					"\n\t-t|--timeout<x>:   \tTime to wait for a response, in x sec."
-					"\n\t-d|--deadline <x>: \tSpecifiy a timeout, in x sec, before ping exits."
+					"\n\t-d|--deadline <x>: \tSpecify a timeout, in x sec, before ping exits."
 					"\n\t--ttl <x>:         \tAmount of nodes that are allowed to" 
-								"forwared the packet.";
+								"forward the packet.";
 	std::cout << usage + options << std::endl;
 }
 
