@@ -18,10 +18,14 @@ NeighborId CastorRouteSelectorOriginal::select(const Hash& flow, const NodeId& s
 	Vector<NeighborId> best_candidates;
 	double best_estimate = select(routingtable->copy_estimators(flow, src, dst), best_candidates);
 	// Depending on the best estimate, we decide whether to broadcast anyway
-	if (should_broadcast(best_estimate))
+	if (should_broadcast(best_estimate)) {
+		click_chatter("PKT BROADCAST\n");
 		return broadcast();
-	else
+	}
+	else { 
+		click_chatter("PKT UNICAST\n");
 		return select_random(best_candidates);
+	}
 }
 
 double CastorRouteSelectorOriginal::select(CastorRoutingTable::FlowEntry& entry, Vector<NeighborId>& best_candidates) {

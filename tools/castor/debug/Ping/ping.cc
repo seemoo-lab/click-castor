@@ -186,7 +186,7 @@ bool Ping::receive() {
 			t = t - 0.001;
 			if(t <= 0) {
 				if(!cli.is_quiet())
-					std::cout << "From " << cli.get_src_ip()
+					std::cout << "From " << cli.get_dst_ip()
 						  << " Destination Host Unreachable" << std::endl;
 				return true;
 			}

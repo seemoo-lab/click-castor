@@ -160,8 +160,8 @@ Packet* CastorDebugHandler::simple_action(Packet *p) {
 	end_time = Timestamp::now();
 
 	Timestamp diff = end_time - start_times.get(ack.auth);
-	start_times.erase(ack.auth);
-	double rtt = diff.sec() * 1000 + (double) diff.usec() / 1000;
+//	start_times.erase(ack.auth);
+	double rtt = (double)diff.sec() * 1000.0 + (double)diff.usec() / 1000.0;
 
 	dbg_ack_str += String(rtt) + "|";
 	dbg_ack_str += String(pkt_size) + "|";
