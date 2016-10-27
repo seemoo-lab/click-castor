@@ -18,7 +18,7 @@ elementclass CastorClassifier {
 		-> annoSrcAddr :: GetEtherAddress(ANNO 0, OFFSET src)
 		-> AddNeighbor($neighbors, ENABLE $neighborsEnable) // add all neighbors that we receive transmissions from
 		-> BroadcastPainter
-		-> ethclassifier :: Classifier(12/88B6, 12/88B5, 12/0800, -) // (0) Castor PKT/ACK; (1) beacon; (2) IPv4; (3) other
+		-> ethclassifier :: Classifier(12/88B6, 12/88B5, -) // (0) Castor PKT/ACK; (1) beacon; (2) other
 		-> removeEthernetHeader :: Strip(14)
 		-> forwarderFilter :: ForwarderFilter($myAddr)
 		-> NeighborAuthCheckICV(crypto, $neighborsEnable)
@@ -34,19 +34,15 @@ elementclass CastorClassifier {
 		-> [1]output;
 
 	cclassifier[2] // Malformed Castor packet
+		-> Print("[DROP] malformed Castor packet")
 		-> Discard;
 
 	ethclassifier[1] // Beacon
+		// Already updated Neighbor table
 		-> Discard
 
-	ethclassifier[2] // IP packet
-		-> removeEthernetHeader2 :: Strip(14)
-		-> MarkIPHeader(0)
-		-> IPPrint("Received non-Castor packet")
-		-> [2]output;
-
-	ethclassifier[3] // Unknown packet
-		-> Print("Dropping unknown packet")
+	ethclassifier[2] // other
+		//-> Print("[DROP] non-Castor packet")
 		-> Discard;
 }
 

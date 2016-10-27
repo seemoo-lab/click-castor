@@ -37,9 +37,6 @@ elementclass ToHost {
 		-> CheckIPHeader
 		-> output;
 
-	input[1]
-		-> output;
-
 }
 
 /**
