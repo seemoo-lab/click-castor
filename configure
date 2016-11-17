@@ -667,6 +667,7 @@ PCAP_INCLUDES
 TOOL_TARGETS
 TOOLDIRS
 OTHER_TARGETS
+HAVE_ANDROID_DRIVER
 HAVE_MINIOS_DRIVER
 HAVE_BSDMODULE_DRIVER
 HAVE_LINUXMODULE_DRIVER
@@ -3218,7 +3219,7 @@ ac_config_headers="$ac_config_headers include/click/config.h:config.h.in"
 
 ac_config_headers="$ac_config_headers include/click/pathvars.h:pathvars.h.in"
 
-ac_config_headers="$ac_config_headers include/click/config-bsdmodule.h:config-bsdmodule.h.in include/click/config-linuxmodule.h:config-linuxmodule.h.in include/click/config-ns.h:config-ns.h.in include/click/config-userlevel.h:config-userlevel.h.in include/click/config-minios.h:config-minios.h.in"
+ac_config_headers="$ac_config_headers include/click/config-bsdmodule.h:config-bsdmodule.h.in include/click/config-linuxmodule.h:config-linuxmodule.h.in include/click/config-ns.h:config-ns.h.in include/click/config-userlevel.h:config-userlevel.h.in include/click/config-minios.h:config-minios.h.in include/click/config-android.h:config-android.h.in"
 
 ac_config_files="$ac_config_files Makefile"
 
@@ -10444,6 +10445,8 @@ HAVE_BSDMODULE_DRIVER=0
 
 HAVE_MINIOS_DRIVER=0
 
+HAVE_ANDROID_DRIVER=0
+
 
 OTHER_TARGETS=
 
@@ -10820,6 +10823,9 @@ fi
 
 if test "$enable_android" = yes; then
     DRIVERS="$DRIVERS android"
+    $as_echo "#define HAVE_ANDROID_DRIVER 1" >>confdefs.h
+
+    HAVE_ANDROID_DRIVER=1
 fi
 
 
@@ -14314,6 +14320,7 @@ do
     "include/click/config-ns.h") CONFIG_HEADERS="$CONFIG_HEADERS include/click/config-ns.h:config-ns.h.in" ;;
     "include/click/config-userlevel.h") CONFIG_HEADERS="$CONFIG_HEADERS include/click/config-userlevel.h:config-userlevel.h.in" ;;
     "include/click/config-minios.h") CONFIG_HEADERS="$CONFIG_HEADERS include/click/config-minios.h:config-minios.h.in" ;;
+    "include/click/config-android.h") CONFIG_HEADERS="$CONFIG_HEADERS include/click/config-android.h:config-android.h.in" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "bin/click-buildtool") CONFIG_FILES="$CONFIG_FILES bin/click-buildtool:click-buildtool.in" ;;
     "bin/click-compile") CONFIG_FILES="$CONFIG_FILES bin/click-compile:click-compile.in" ;;

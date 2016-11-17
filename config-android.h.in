@@ -1,4 +1,3 @@
-/* include/click/config-android.h.  Generated from config-android.h.in by configure.  */
 /* Process this file with configure to produce config-android.h. -*- mode: c -*- */
 #ifndef CLICK_CONFIG_ANDROID_H
 #define CLICK_CONFIG_ANDROID_H
@@ -8,17 +7,15 @@
 #include <click/config-userlevel.h>
 
 /* Define if you have the <execinfo.h> header file. */
-#undef HAVE_EXECINFO_H
+#define HAVE_EXECINFO_H 0
 
 /* Define if you have the <ifaddrs.h> header file. */
-#undef HAVE_IFADDRS_H
-
-#undef HAVE_NET_BPF_H
+#define HAVE_IFADDRS_H 0
 
 /* Define if you have -lpcap and pcap.h. */
-#undef HAVE_PCAP
+#define HAVE_PCAP 0
 
-#undef HAVE_ALLOW_KQUEUE
+#define HAVE_ALLOW_KQUEUE 0
 
 /* Define if the C++ compiler understands static_assert. */
 #undef HAVE_CXX_STATIC_ASSERT

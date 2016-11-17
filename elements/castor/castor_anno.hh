@@ -11,6 +11,10 @@ CLICK_DECLS
  * Utility class to handle custom annotations
  */
 class CastorAnno {
+private:
+	CastorAnno() {
+		static_assert(castor_paint_offset + sizeof(uint8_t) < Packet::anno_size, "CastorAnno may access annotation space beyond Packet::anno_size");
+	}
 public:
 	static inline NeighborId& dst_id_anno(Packet* p) {
 		return anno<NeighborId>(p, dst_id_anno_offset);
@@ -33,7 +37,6 @@ public:
 	static const uint8_t hop_id_anno_offset = dst_id_anno_offset + sizeof(NeighborId);
 	static const uint8_t castor_anno_offset = hop_id_anno_offset + sizeof(NeighborId);
 	static const uint8_t castor_paint_offset = castor_anno_offset + sizeof(Hash);
-	static_assert(castor_paint_offset + sizeof(uint8_t) < Packet::anno_size, "CastorAnno may access annotation space beyond Packet::anno_size");
 private:
 	template<typename T>
 	static inline T& anno(Packet* p, uint8_t offset) {

@@ -15,9 +15,9 @@ libdir = @libdir@
 
 VPATH = .:$(top_srcdir)/lib:$(top_srcdir)/$(subdir):$(top_srcdir)/elements/standard
 
-CC = ${NDK_ROOT}/toolchains/arm-linux-androideabi-4.8/prebuilt/linux-x86_64/bin/arm-linux-androideabi-gcc
+CC = `ndk-which gcc`
 CPP = @CPP@
-CXX = ${NDK_ROOT}/toolchains/arm-linux-androideabi-4.8/prebuilt/linux-x86_64/bin/arm-linux-androideabi-g++ -fpermissive -w -g -std=c++11
+CXX = `ndk-which g++` -fpermissive -w -g -std=c++11
 CXXCPP = @CXXCPP@
 DEPCFLAGS = @DEPCFLAGS@
 AR_CREATE = @AR@ @AR_CREATEFLAGS@
@@ -82,14 +82,26 @@ STD_ELEMENT_OBJS = addressinfo.o alignmentinfo.o \
 OBJS = $(ELEMENT_OBJS) $(ELEMENTSCONF).o click.o
 
 CPPFLAGS = @CPPFLAGS@ -DCLICK_ANDROID
-CFLAGS = -fPIC -ffunction-sections -funwind-tables -fstack-protector -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__  -Wno-psabi -march=armv5te -mtune=xscale -msoft-float -fexceptions -mthumb -Os -fomit-frame-pointer -fno-strict-aliasing -finline-limit=64 -I${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.6/include/ -I${NDK_ROOT}/samples/hello-jni/jni -DANDROID -Wa,--noexecstack -O0 -g -I${NDK_ROOT}/platforms/android-19/arch-arm/usr/include/ -I${NDK_ROOT}/android-ndk-r10/sources/cxx-stl/gnu-libstdc++/4.6/libs/armeabi/include/
-CXXFLAGS = -fPIC -ffunction-sections -funwind-tables -fstack-protector -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__  -Wno-psabi -march=armv5te -mtune=xscale -msoft-float -fexceptions -frtti -mthumb -Os -fomit-frame-pointer -fno-strict-aliasing -finline-limit=64 -DANDROID  -Wa,--noexecstack -O0 -g -I${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.8/include/ -I${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/include/ -I${NDK_ROOT}/platforms/android-19/arch-arm/usr/include/
+CFLAGS = -fPIC -ffunction-sections -funwind-tables -fstack-protector -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ \
+	-Wno-psabi -march=armv5te -mtune=xscale -msoft-float -fexceptions -mthumb -fomit-frame-pointer -fno-strict-aliasing -finline-limit=64 \
+	-DANDROID -Wa,--noexecstack -Os -g \
+	-I${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.9/include \
+	-I${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include/ \
+	-I${NDK_ROOT}/platforms/android-23/arch-arm/usr/include/
+CXXFLAGS = -fPIC -ffunction-sections -funwind-tables -fstack-protector -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__  \
+	-Wno-psabi -march=armv5te -mtune=xscale -msoft-float -fexceptions -frtti -mthumb -fomit-frame-pointer -fno-strict-aliasing -finline-limit=64 \
+	-DANDROID -Wa,--noexecstack -Os -g \
+	-I${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.9/include/ \
+	-I${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include/ \
+	-I${NDK_ROOT}/platforms/android-23/arch-arm/usr/include/
 
 DEFS = @DEFS@
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include \
 	-I$(srcdir) -I$(top_srcdir) \
 	@PROPER_INCLUDES@ @PCAP_INCLUDES@ @NETMAP_INCLUDES@
-LDFLAGS = -DCLICK_ANDROID -L${NDK_ROOT}/platforms/android-19/arch-arm/usr/lib -L/${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a -L./lib -lgnustl_shared -lsodium -pie
+LDFLAGS = -DCLICK_ANDROID -lgnustl_shared -pie -static \
+	-L${NDK_ROOT}/platforms/android-23/arch-arm/usr/lib \
+	-L/${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a
 DL_LDFLAGS = @DL_LDFLAGS@
 
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS)
@@ -141,8 +153,6 @@ $(DRIVER): Makefile libclick.a $(OBJS)
 libclick.a: Makefile $(LIBOBJS)
 	$(call verbose_cmd,$(AR_CREATE) libclick.a $(LIBOBJS),AR libclick.a)
 	$(call verbose_cmd,$(RANLIB),RANLIB,libclick.a)
-
-	cp $(NDK_ROOT)/platforms/android-9/arch-arm/usr/lib/crt* .
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
