@@ -14,12 +14,12 @@ MerkleTree::MerkleTree(const Hash in[], unsigned int length, const Crypto& crypt
 
 	unsigned int l = _height - 1;
 	// hash input values
-	for (int k = 0; k < _leaves; k++) {
+	for (unsigned int k = 0; k < _leaves; k++) {
 		crypto.hash(element(l, k), in[k]);
 	}
 	// create intermediate nodes up to the root
 	for (; l > 0; l--) {
-		for (int i = 0; i < nodes_per_level(l); i += 2) {
+		for (unsigned int i = 0; i < nodes_per_level(l); i += 2) {
 			crypto.hash(element(l - 1, i >> 1),
 					    element(l, i) + element(l, i + 1));
 		}
@@ -33,7 +33,8 @@ MerkleTree::MerkleTree(const Hash& root, unsigned int length, const Crypto& cryp
 	}
 	_leaves = length;
 	_height = log2(_leaves) + 1;
-	_flat = new Hash[index(_height)] { root }; // set first element to 'root' rest to zero
+	_flat = new Hash[index(_height)](); // set first element to 'root' rest to zero
+	_flat[0] = root;
 }
 
 MerkleTree::~MerkleTree() {
@@ -91,7 +92,7 @@ bool MerkleTree::validate(unsigned int k, const Hash& in, const Hash siblings[],
 	// First hash the input
 	Hash current;
 	crypto.hash(current, in);
-	for(int s = 0; s < h; s++) {
+	for(unsigned int s = 0; s < h; s++) {
 		if (k & (1 << s)) { // sibling is left child
 			crypto.hash(current, siblings[s] + current);
 		} else { // sibling is right child
