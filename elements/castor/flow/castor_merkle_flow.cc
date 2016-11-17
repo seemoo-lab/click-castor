@@ -10,7 +10,7 @@ CastorMerkleFlow::CastorMerkleFlow(size_t size, const NodeId& dst, CastorFlowTab
 	Buffer<32> key(crypto->getSharedKey(dst)->data());
 	// Generate aauths from n
 	crypto->stream(aauths->data(), size * sizeof(Hash), n.data(), key.data());
-	for (int i = 0; i < size; i++) {
+	for (unsigned int i = 0; i < size; i++) {
 		crypto->hash(pids[i], aauths[i]);
 	}
 	tree = new MerkleTree(pids, size, *crypto);

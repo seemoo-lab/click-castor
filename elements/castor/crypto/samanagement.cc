@@ -56,17 +56,17 @@ SecurityAssociation SAManagement::genereateSymmetricSA(const NodeId& node) {
 	Vector<uint8_t> key;
 	key.reserve(symmetricKeyLength);
 	if (myNodeId.addr() < node.addr()) {
-		for (int i = 0; i < sizeof(NodeId); i++)
+		for (unsigned int i = 0; i < sizeof(NodeId); i++)
 			key.push_back(myNodeId.data()[i]);
-		for (int i = 0; i < sizeof(NodeId); i++)
+		for (unsigned int i = 0; i < sizeof(NodeId); i++)
 			key.push_back(node.data()[i]);
 	} else {
-		for (int i = 0; i < sizeof(NodeId); i++)
+		for (unsigned int i = 0; i < sizeof(NodeId); i++)
 			key.push_back(node.data()[i]);
-		for (int i = 0; i < sizeof(NodeId); i++)
+		for (unsigned int i = 0; i < sizeof(NodeId); i++)
 			key.push_back(myNodeId.data()[i]);
 	}
-	while (key.size() < symmetricKeyLength)
+	while ((unsigned int) key.size() < symmetricKeyLength)
 		key.push_back(0);
 	return SecurityAssociation(SecurityAssociation::sharedsecret, key);
 }
@@ -75,17 +75,17 @@ SecurityAssociation SAManagement::genereateSymmetricSA(const NeighborId& node) {
 	Vector<uint8_t> key;
 	key.reserve(symmetricKeyLength);
 	if (myNeighborId.unparse() < node.unparse()) {
-		for (int i = 0; i < sizeof(NeighborId); i++)
+		for (unsigned int i = 0; i < sizeof(NeighborId); i++)
 			key.push_back(myNeighborId.data()[i]);
-		for (int i = 0; i < sizeof(NeighborId); i++)
+		for (unsigned int i = 0; i < sizeof(NeighborId); i++)
 			key.push_back(node.data()[i]);
 	} else {
-		for (int i = 0; i < sizeof(NeighborId); i++)
+		for (unsigned int i = 0; i < sizeof(NeighborId); i++)
 			key.push_back(node.data()[i]);
-		for (int i = 0; i < sizeof(NeighborId); i++)
+		for (unsigned int i = 0; i < sizeof(NeighborId); i++)
 			key.push_back(myNeighborId.data()[i]);
 	}
-	while (key.size() < symmetricKeyLength)
+	while ((unsigned int) key.size() < symmetricKeyLength)
 		key.push_back(0);
 	return SecurityAssociation(SecurityAssociation::sharedsecret, key);
 }

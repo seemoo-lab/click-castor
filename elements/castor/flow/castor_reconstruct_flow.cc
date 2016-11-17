@@ -30,7 +30,7 @@ Packet* CastorReconstructFlow::simple_action(Packet *p) {
 	Buffer<32> key(crypto->getSharedKey(pkt.src)->data());
 	// Generate aauths from n
 	crypto->stream(e.aauths->data(), size * pkt.hsize, pkt.n()->data(), key.data());
-	for (int i = 0; i < size; i++) {
+	for (unsigned int i = 0; i < size; i++) {
 		crypto->hash(e.pids[i], e.aauths[i]);
 	}
 	e.set_tree(new MerkleTree(e.pids, size, *crypto));
