@@ -25,16 +25,14 @@ int main(int argc, char **argv)
   typedef csc_t::err_t err_t;
   err_t err = cs.configure(ip, port);
 
-  cout << endl;
   cout << "# Castor Neighbors" << endl;
   string data = "";
   err = cs.read("neighbors", "print", data);
-  cout << data;
+  cout << data << endl;
 
-  cout << endl;
   cout << "# Castor Routing Table" << endl; 
   err = cs.read("routingtable", "print", data);
-  cout << data;
+  cout << data << endl;
 
   return 0;
 }
