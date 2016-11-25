@@ -4,32 +4,33 @@ This repository contains **Castor (v2)** implementation for the [Click Modular R
 ## Table of Contents
 * [Code Naviation](#code-navigation)
 * [Install](#install)
-  * [Prerequisites](#prerequisites)
-  * [Build Instructions](#build-instructions)
-  * [Cross Compilation](#cross-compilation)
-    * [General](#general)
-    * [Android](#android)
-  * [Extending the Code](#extending-the-code)
+	* [Prerequisites](#prerequisites)
+	* [Build Instructions](#build-instructions)
+	* [Cross Compilation](#cross-compilation)
+		* [General](#general)
+		* [Android](#android)
+	* [Extending the Code](#extending-the-code)
 * [Run (userlevel)](#run-userlevel)
 * [Communicating with Click at Runtime](#communicating-with-click-at-runtime)
+	* [Castor Status](#castor-status)
 * [Related Publications](#related-publications)
 
 ## Code Navigation
 This section gives a rough overview where relevant code for Castor (v2) is located.
 * `conf/castor/`: Click script files.
-  * `castor_settings.click`: common settings, e.g., defining whether to run as userlevel or ns-3 module; Castor-specific parameters; ...
-  * `castor_unicast_routing.click`: **Castor (v2)** run configuration.
-  * other `.click`: shared modules which are included by the main files (above).
+	* `castor_settings.click`: common settings, e.g., defining whether to run as userlevel or ns-3 module; Castor-specific parameters; ...
+	* `castor_unicast_routing.click`: **Castor (v2)** run configuration.
+	* other `.click`: shared modules which are included by the main files (above).
 * `elements/castor/`: C++ source code.
-  * `castor.hh`: packet definitions
-  * `attack/`: elements specific to implement certain attacks
-  * `crypto/`: all required crypto (includes a wrapper class around `libsodium`)
-  * `flooding/`: "stupid" flooding protocol (was used to compare performance with Xcastor).
-  * `flow/`: flow generation and reconstruction
-  * `neighbors/`: neighbor discovery and neighbor-to-neighbor authentication
-  * `ratelimiter/`: prevents neighbors from flooding the network
-  * `routing/`: main code base: routing logic
-  * `util/`: utility Elements
+	* `castor.hh`: packet definitions
+	* `attack/`: elements specific to implement certain attacks
+	* `crypto/`: all required crypto (includes a wrapper class around `libsodium`)
+	* `flooding/`: "stupid" flooding protocol (was used to compare performance with Xcastor).
+	* `flow/`: flow generation and reconstruction
+	* `neighbors/`: neighbor discovery and neighbor-to-neighbor authentication
+	* `ratelimiter/`: prevents neighbors from flooding the network
+	* `routing/`: main code base: routing logic
+	* `util/`: utility Elements
 
 ## Install
 ### Prerequisites
@@ -114,6 +115,14 @@ To communicate via a Unix socket, one can either
 After connecting with the socket, one can read data from the Element Handlers using a line-based protocol described [here](http://read.cs.ucla.edu/click/elements/controlsocket).
 For example, one could read the list of neighbouring nodes by sending the command `READ neighbors.print` to the socket, which would lead to an answer of `200 OK\r\nDATA N\r\nx_1x_2x_n` where `N` denotes the length of the returned data and `x_1` to `x_n` are the data symbols.
 
+### Castor Status
+As an example, we include a small program which queries the neighbor and routing tables. You need to start `click` with `-p 7777`.
+```
+cd <CLICK_DIR>
+make -C tools/castor/status
+userlevel/click conf/castor/castor_unicast_routing.click -p 7777 &
+tools/castor/status/castor_status
+```
 
 ## Related Publications
 * E. Kohler, R. Morris, B. Chen, J. Jannotti, and M. F. Kaashoek, “**The Click Modular Router**,” *ACM Transactions on Computer Systems*, vol. 18, no. 3, pp. 263–297, Aug. 2000. ([PDF](https://pdos.csail.mit.edu/papers/click:tocs00/paper.pdf), [web](http://read.cs.ucla.edu/click/click))
