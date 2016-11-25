@@ -1,9 +1,2 @@
-*.d
-*.o
-Makefile
-click
-elements.cc
-elements.conf
-elements.csmk
-elements.mk
-libclick.a
+/build
+/toolchain
