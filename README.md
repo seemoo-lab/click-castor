@@ -5,9 +5,10 @@ This repository contains **Castor (v2)** implementation for the [Click Modular R
 * [Code Naviation](#code-navigation)
 * [Install](#install)
   * [Prerequisites](#prerequisites)
-  * [General Build Instructions](#general-build-instructions)
-  * [Android Build Instructions](#android-build-instructions)
+  * [Build Instructions](#build-instructions)
   * [Cross Compilation](#cross-compilation)
+    * [General](#general)
+    * [Android](#android)
   * [Extending the Code](#extending-the-code)
 * [Run (userlevel)](#run-userlevel)
 * [Communicating with Click at Runtime](#communicating-with-click-at-runtime)
@@ -26,7 +27,7 @@ This section gives a rough overview where relevant code for Castor (v2) is locat
   * `flooding/`: "stupid" flooding protocol (was used to compare performance with Xcastor).
   * `flow/`: flow generation and reconstruction
   * `neighbors/`: neighbor discovery and neighbor-to-neighbor authentication
-  * `ratelimiter`: prevents neighbors from flooding the network
+  * `ratelimiter/`: prevents neighbors from flooding the network
   * `routing/`: main code base: routing logic
   * `util/`: utility Elements
 
@@ -36,13 +37,12 @@ This section gives a rough overview where relevant code for Castor (v2) is locat
 The only `Element` requiring this library is `elements/castor/crypto/crypto.cc`, which performs all relevant crypto operations in Castor.
 If libsodium is installed in a non-standard path, you need to include an appropriate linker flag such as `LDFLAGS="-L<lib_dir>"`.
 Up-to-date installation instructions for libsodium can be found [here](https://download.libsodium.org/doc/installation/index.html).
-* **C++11**. The Castor (v2) implementation uses some C\++11 features, e.g., `auto`. Click currently does not use C\++11, so you have to enable it manually using `CXXFLAGS="-std=c++11"`.
 
 ### General Build Instructions
 Click can be built as a regular userlevel or ns-3 module.
 After cloning this repository, configure Click with `--enable-castor` and the appropriate target. More detailed build instructions for Click can be found in the official INSTALL file.
 * userlevel: `--enable-userlevel --disable-linuxmodule`
-* ns-3: `--enable-nsclick --disable-userlevelm --disable-linuxmodule`
+* ns-3: `--enable-nsclick --disable-userlevel --disable-linuxmodule`
 * can be omitted for Castor (to speed up compilation process): `--disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools`
 
 To summarize, `click-castor` can be build with the following commands:
@@ -53,34 +53,38 @@ cd click-castor
 ./configure --enable-castor --enable-userlevel --disable-linuxmodule \
             --disable-app --disable-aqm --disable-analysis --disable-test \
             --disable-tcpudp --disable-icmp --disable-threads --disable-tools \
-            CXXFLAGS="-std=c++11" LDFLAGS="-L/path/to/libsodium"
+            LDFLAGS="-L/path/to/libsodium"
 # Configure (ns-3)
 ./configure --enable-castor --enable-nsclick --disable-userlevel --disable-linuxmodule \
             --disable-app --disable-aqm --disable-analysis --disable-test \
             --disable-tcpudp --disable-icmp --disable-threads --disable-tools \
-            CXXFLAGS="-std=c++11" LDFLAGS="-L/path/to/libsodium"
+            LDFLAGS="-L/path/to/libsodium"
 # Build
 make
 ```
 
-### Android Build Instructions
-To build Click for Android, you must specify the `--enable-android` parameter when running `./configure` and build it with the target `android` afterwards. Additionally you need to set the `NDK_ROOT` environment variable, it should contain the path to your Android NDK.
-```bash
-export NDK_ROOT="/path/to/android/ndk/"
-./configure --enable-castor --enable-android --disable-linuxmodule \
-            --disable-app --disable-aqm --disable-analysis --disable-test \
-            --disable-tcpudp --disable-icmp --disable-threads --disable-tools
-make android
-```
-
 ### Cross Compilation
+
+#### General
 To build Click for a different architecture (such as i386 in our mesh nodes) on a x64 machine, you can cross compile using the `--host=i386-linux-gnu` (make sure to include the proper header files, e.g., `chroot` in the target file system):
 ```bash
 ./configure --host=i386-linux-gnu \
             --enable-castor --enable-userlevel --disable-linuxmodule \
             --disable-app --disable-aqm --disable-analysis --disable-test \
             --disable-tcpudp --disable-icmp --disable-threads --disable-tools \
-            CXXFLAGS="-std=c++11" LDFLAGS="-L/path/to/libsodium"
+            LDFLAGS="-L/path/to/libsodium"
+```
+
+#### Android
+**Note:** Android instructions are currently outdated.
+
+To build Click for Android, you must specify the `--enable-android` parameter when running `./configure` and build it with the target `android` afterwards.--- Additionally you need to set the `NDK_ROOT` environment variable, it should contain the path to your Android NDK.
+```bash
+export NDK_ROOT="/path/to/android/ndk/"
+./configure --enable-castor --enable-android --disable-linuxmodule \
+            --disable-app --disable-aqm --disable-analysis --disable-test \
+            --disable-tcpudp --disable-icmp --disable-threads --disable-tools
+make android
 ```
 
 ### Extending the Code
@@ -108,7 +112,7 @@ To communicate via a Unix socket, one can either
 - start Click with parameter `-u /tmp/click_socket`.
 
 After connecting with the socket, one can read data from the Element Handlers using a line-based protocol described [here](http://read.cs.ucla.edu/click/elements/controlsocket).
-For example, one could read the list of neighbouring nodes by sending the command `READ neighbors.print` to the socket, which would lead to an answer of `200 OK\r\nDATA N\r\nx_1x_2x_n` where N denotes the length of the returned data and x_1 to x_n are the data symbols.
+For example, one could read the list of neighbouring nodes by sending the command `READ neighbors.print` to the socket, which would lead to an answer of `200 OK\r\nDATA N\r\nx_1x_2x_n` where `N` denotes the length of the returned data and `x_1` to `x_n` are the data symbols.
 
 
 ## Related Publications
