@@ -57,7 +57,7 @@ public:
    * Return a string describing the ControlSocket's host and port.
    * Requires: object is configured
    */
-  const string name() { assert(_init); return _name; }
+  const std::string name() { assert(_init); return _name; }
 
 
   /*
@@ -74,47 +74,47 @@ public:
    * CONFIG is filled with the configuration; existing contents are replaced.
    * Returns: no_err, no_handler, handler_err, handler_no_perm, sys_err, init_err, click_err
    */
-  err_t get_router_config(string &config)         { return read("", "config", config); }
-  err_t get_router_flat_config(string &config)    { return read("", "flatconfig", config); }
+  err_t get_router_config(std::string &config)         { return read("", "config", config); }
+  err_t get_router_flat_config(std::string &config)    { return read("", "flatconfig", config); }
 
   /*
    * Get a string containing the router's version
    * VERS is filled with the version; existing contents are replaced.
    * Returns: no_err, no_handler, handler_err, handler_no_perm, sys_err, init_err, click_err
    */
-  err_t get_router_version(string &vers)  { err_t err = read("", "version", vers); vers = trim(vers); return err; }
+  err_t get_router_version(std::string &vers)  { err_t err = read("", "version", vers); vers = trim(vers); return err; }
 
   /*
    * Get the names of the elements in the the current router configuration.
    * ELS is filled with the names, existing contents are replaced.
    * Returns: no_err, no_handler, handler_err, handler_no_perm, sys_err, init_err, click_err
    */
-  err_t get_config_el_names(vector<string> &els);
+  err_t get_config_el_names(std::vector<std::string> &els);
 
   /*
    * Get the names of the element types that the router knows about.
    * CLASSES is filled with the names, existing contents are replaced.
    * Returns: no_err, no_handler, handler_err, handler_no_perm, sys_err, init_err, click_err
    */
-  err_t get_router_classes(vector<string> &classes)   { return get_string_vec("", "classes", classes); }
+  err_t get_router_classes(std::vector<std::string> &classes)   { return get_string_vec("", "classes", classes); }
 
   /*
    * Get the names of the packages that the router knows about.
    * PACKAGES is filled with the names, existing contents are replaced.
    * Returns: no_err, no_handler, handler_err, handler_no_perm, sys_err, init_err, click_err
    */
-  err_t get_router_packages(vector<string> &pkgs)  { return get_string_vec("", "packages", pkgs); }
+  err_t get_router_packages(std::vector<std::string> &pkgs)  { return get_string_vec("", "packages", pkgs); }
 
   /*
    * Get the names of the current router configuration requirements.
    * REQS is filled with the names, existing contents are replaced.
    * Returns: no_err, no_handler, handler_err, handler_no_perm, sys_err, init_err, click_err
    */
-  err_t get_config_reqs(vector<string> &reqs)         { return get_string_vec("", "requirements", reqs); }
+  err_t get_config_reqs(std::vector<std::string> &reqs)         { return get_string_vec("", "requirements", reqs); }
 
   struct handler_info_t {
-    string element_name;
-    string handler_name;
+    std::string element_name;
+    std::string handler_name;
     bool can_read;
     bool can_write;
     handler_info_t() : can_read(false), can_write(false) { }
@@ -126,7 +126,7 @@ public:
    * HANDLERS is filled with the handler info, existing contents are replaced.
    * Returns: no_err, no_element, handler_err, handler_no_perm, sys_err, init_err, click_err
    */
-  err_t get_el_handlers(string el, vector<handler_info_t> &handlers);
+  err_t get_el_handlers(std::string el, std::vector<handler_info_t> &handlers);
 
   /*
    * Check whether a read/write handler exists.
@@ -136,9 +136,9 @@ public:
    * EXISTS is filled with true if the handler exists, otherwise false.
    * Returns: no_err, sys_err, init_err, click_err
    */
-  err_t check_handler(string el, string h, bool is_write, bool &exists);
+  err_t check_handler(std::string el, std::string h, bool is_write, bool &exists);
 protected:
-  err_t check_handler_workaround(string el, string h, bool is_write, bool &exists);
+  err_t check_handler_workaround(std::string el, std::string h, bool is_write, bool &exists);
 
 public:
   /*
@@ -149,7 +149,7 @@ public:
    * If NAME is not empty, calls``NAME.HANDLER''; otherwise calls ``HANDLER''
    * Returns: no_err, no_element, no_handler, handler_err, handler_no_perm, sys_err, init_err, click_err
    */
-  err_t read(string el, string handler, string &response);
+  err_t read(std::string el, std::string handler, std::string &response);
 
   /*
    * Return the results of reading a handler.
@@ -162,7 +162,7 @@ public:
    * If returns too_short, the operation succeeded, but returned more than BUFSZ characters; the first BUFSZ
    * characters of the result are placed into BUF, and BUFSZ is unchanged.
    */
-  err_t read(string el, string handler, char *buf, int &bufsz);
+  err_t read(std::string el, std::string handler, char *buf, int &bufsz);
 
   /*
    * Write data to an element's handler.
@@ -172,7 +172,7 @@ public:
    * If NAME is not empty, calls``NAME.HANDLER''; otherwise calls ``HANDLER''
    * Returns: no_err, no_element, no_handler, handler_err, handler_no_perm, sys_err, init_err, click_err
    */
-  err_t write(string el, string handler, string data);
+  err_t write(std::string el, std::string handler, std::string data);
 
   /*
    * Write data to an element's handler.
@@ -183,14 +183,14 @@ public:
    * If NAME is not empty, calls``NAME.HANDLER''; otherwise calls ``HANDLER''
    * Returns: no_err, no_element, no_handler, handler_err, handler_no_perm, sys_err, init_err, click_err
    */
-  err_t write(string el, string handler, const char *buf, int bufsz);
+  err_t write(std::string el, std::string handler, const char *buf, int bufsz);
 
   /*
    * sugar, for reading and writing handlers.
    */
-  err_t read(handler_info_t h, string &response)      { return read(h.element_name, h.handler_name, response); }
+  err_t read(handler_info_t h, std::string &response)      { return read(h.element_name, h.handler_name, response); }
   err_t read(handler_info_t h, char *buf, int &bufsz) { return read(h.element_name, h.handler_name, buf, bufsz); }
-  err_t write(handler_info_t h, string data)          { return write(h.element_name, h.handler_name, data); }
+  err_t write(handler_info_t h, std::string data)          { return write(h.element_name, h.handler_name, data); }
   err_t write(handler_info_t h, const char *buf, int bufsz) { return write(h.element_name, h.handler_name, buf, bufsz); }
 
 
@@ -204,7 +204,7 @@ private:
   int _fd;
   int _protocol_minor_version;
 
-  string _name;
+  std::string _name;
 
   enum {
     CODE_OK = 200,
@@ -223,13 +223,13 @@ private:
 
   /* Try to read a '\n'-terminated line (including the '\n') from the
    * socket.  */
-  err_t readline(string &buf);
+  err_t readline(std::string &buf);
 
-  int get_resp_code(string line);
-  int get_data_len(string line);
+  int get_resp_code(std::string line);
+  int get_data_len(std::string line);
   err_t handle_err_code(int code);
 
-  err_t get_string_vec(string el, string h, vector<string> &v);
-  vector<string> split(string s, size_t offset, char terminator);
-  string trim(string s);
+  err_t get_string_vec(std::string el, std::string h, std::vector<std::string> &v);
+  std::vector<std::string> split(std::string s, size_t offset, char terminator);
+  std::string trim(std::string s);
 };
