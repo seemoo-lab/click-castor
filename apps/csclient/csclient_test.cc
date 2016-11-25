@@ -1,6 +1,7 @@
 #include <string.h>
 #include <iostream>
 #include <assert.h>
+#include <cstdlib>
 #include <arpa/inet.h>
 
 #include "csclient.hh"
