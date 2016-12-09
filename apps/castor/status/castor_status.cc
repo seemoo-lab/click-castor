@@ -7,6 +7,7 @@
 
 using namespace std;
 
+#define assert_eq(e, v) do { if ((e) != (v)) { cerr << "got " << (e) << endl; } assert((e) == (v)); } while (false)
 #define ok(err) assert_eq(err, ControlSocketClient::no_err)
 
 int main(int argc, char **argv)
