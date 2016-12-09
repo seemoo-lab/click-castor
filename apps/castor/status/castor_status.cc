@@ -7,6 +7,8 @@
 
 using namespace std;
 
+#define ok(err) assert_eq(err, ControlSocketClient::no_err)
+
 int main(int argc, char **argv)
 {
   unsigned short port = 7777;
@@ -28,10 +30,12 @@ int main(int argc, char **argv)
   cout << "# Castor Neighbors" << endl;
   string data = "";
   err = cs.read("neighbors", "print", data);
+  ok(err);
   cout << data << endl;
 
   cout << "# Castor Routing Table" << endl;
   err = cs.read("routingtable", "print", data);
+  ok(err);
   cout << data << endl;
 
   return 0;
