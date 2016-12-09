@@ -119,9 +119,9 @@ For example, one could read the list of neighbouring nodes by sending the comman
 As an example, we include a small program which queries the neighbor and routing tables. You need to start `click` with `-p 7777`.
 ```
 cd <CLICK_DIR>
-make -C tools/castor/status
+make -C apps/castor/status
 userlevel/click conf/castor/castor_unicast_routing.click -p 7777 &
-tools/castor/status/castor_status
+apps/castor/status/castor_status
 ```
 
 ## Related Publications

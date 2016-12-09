@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <arpa/inet.h>
 
-#include "../../../apps/csclient/csclient.hh"
+#include "../../csclient/csclient.hh"
 
 using namespace std;
 
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
   err = cs.read("neighbors", "print", data);
   cout << data << endl;
 
-  cout << "# Castor Routing Table" << endl; 
+  cout << "# Castor Routing Table" << endl;
   err = cs.read("routingtable", "print", data);
   cout << data << endl;
 

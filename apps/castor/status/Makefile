@@ -1,6 +1,6 @@
 PROGRAM := castor_status
 
-CSCLIENT_DIR ?= ../../../apps/csclient/
+CSCLIENT_DIR ?= ../../apps/csclient/
 CSCLIENT_CC := $(CSCLIENT_DIR)csclient.cc
 CSCLIENT_HH := $(CSCLIENT_DIR)csclient.hh
 
