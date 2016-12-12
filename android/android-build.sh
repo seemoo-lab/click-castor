@@ -46,8 +46,7 @@ python $MAKE_TOOLCHAIN --api="$NDK_API_COMPAT" \
     --disable-linuxmodule \
     ${CLICK_OPTIONS} \
     --host="${HOST_COMPILER}" \
-    --prefix="${PREFIX}"
-    CPPFLAGS=--sysroot="${TOOLCHAIN_DIR}/sysroot" || exit 1
+    --prefix="${PREFIX}" || exit 1
 
 if [ "$NDK_API" != "$NDK_API_COMPAT" ]; then
   egrep '^#define ' config.log | sort -u > config-def-compat.log
@@ -62,8 +61,7 @@ if [ "$NDK_API" != "$NDK_API_COMPAT" ]; then
     --disable-linuxmodule \
     ${CLICK_OPTIONS} \
     --host="${HOST_COMPILER}" \
-    --prefix="${PREFIX}" \
-    CPPFLAGS=--sysroot="${TOOLCHAIN_DIR}/sysroot" || exit 1
+    --prefix="${PREFIX}" || exit 1
 
   egrep '^#define ' config.log | sort -u > config-def.log
   if ! cmp config-def.log config-def-compat.log; then
