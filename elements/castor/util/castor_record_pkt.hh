@@ -50,6 +50,8 @@ protected:
 
 	bool active;
 	bool verbose;
+	Timestamp last_print;
+
 private:
 	static String read_handler(Element*, void*);
 

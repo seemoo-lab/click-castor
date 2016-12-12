@@ -15,6 +15,7 @@ int CastorRecordPkt::configure(Vector<String> &conf, ErrorHandler *errh) {
 
 int CastorRecordPkt::initialize(ErrorHandler*) {
 	reset();
+	last_print = Timestamp::now_steady();
 	return 0;
 }
 
@@ -59,11 +60,12 @@ Packet* CastorRecordPkt::simple_action(Packet *p) {
 
 	npackets++;
 
-	if (verbose && npackets % 100000 == 0) {
+	if (verbose && (last_print + Timestamp::make_msec(1000)) < last) {
 		unsigned int diff = (last - start).sec(); // * 1000 + (last - start).msec();
 		double rate = (double) size_payload / diff / (1024 * 1024 / 8);
 		double pkt_rate = (double) npackets / diff;
 		click_chatter("Throughput: %.2f Mbit/s, PKT rate: %.2f/s", rate, pkt_rate);
+		last_print = last;
 	}
 
 	return p;
