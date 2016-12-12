@@ -4,14 +4,11 @@ This repository contains **Castor (v2)** implementation for the [Click Modular R
 ## Table of Contents
 * [Code Naviation](#code-navigation)
 * [Install](#install)
-	* [Prerequisites](#prerequisites)
-	* [Build Instructions](#build-instructions)
+	* [General](#general)
 	* [Cross Compilation](#cross-compilation)
-		* [General](#general)
-		* [Android](#android)
-	* [Extending the Code](#extending-the-code)
-* [Run (userlevel)](#run-userlevel)
-* [Communicating with Click at Runtime](#communicating-with-click-at-runtime)
+	* [Android](#android)
+* [Run](#run)
+	* [Communicating with Click at Runtime](#communicating-with-click-at-runtime)
 	* [Castor Status](#castor-status)
 * [Related Publications](#related-publications)
 
@@ -33,80 +30,48 @@ This section gives a rough overview where relevant code for Castor (v2) is locat
 	* `util/`: utility Elements
 
 ## Install
-### Prerequisites
-* **libsodium**. To compile Castor, the [libsodium](https://download.libsodium.org/doc/) crypto library is required.
-The only `Element` requiring this library is `elements/castor/crypto/crypto.cc`, which performs all relevant crypto operations in Castor.
-If libsodium is installed in a non-standard path, you need to include an appropriate linker flag such as `LDFLAGS="-L<lib_dir>"`.
-Up-to-date installation instructions for libsodium can be found [here](https://download.libsodium.org/doc/installation/index.html).
 
-### General Build Instructions
-Click can be built as a regular userlevel or ns-3 module.
-After cloning this repository, configure Click with `--enable-castor` and the appropriate target. More detailed build instructions for Click can be found in the official INSTALL file.
-* userlevel: `--enable-userlevel --disable-linuxmodule`
-* ns-3: `--enable-nsclick --disable-userlevel --disable-linuxmodule`
-* can be omitted for Castor (to speed up compilation process): `--disable-app --disable-aqm --disable-analysis --disable-test --disable-tcpudp --disable-icmp --disable-threads --disable-tools`
+This repository comes with convenience scripts to build **Castor (v2)** with its only dependency **[libsodium](https://download.libsodium.org/doc/)**.
 
-To summarize, `click-castor` can be build with the following commands:
+### General
+`click-castor` can be built as a regular userlevel or [ns-3](https://www.nsnam.org/) module.
+After cloning this repository, simply run
 ```bash
-git clone <PROJECT>
-cd click-castor
-# Configure (userlevel)
-./configure --enable-castor --enable-userlevel --disable-linuxmodule \
-            --disable-app --disable-aqm --disable-analysis --disable-test \
-            --disable-tcpudp --disable-icmp --disable-threads --disable-tools \
-            LDFLAGS="-L/path/to/libsodium"
-# Configure (ns-3)
-./configure --enable-castor --enable-nsclick --disable-userlevel --disable-linuxmodule \
-            --disable-app --disable-aqm --disable-analysis --disable-test \
-            --disable-tcpudp --disable-icmp --disable-threads --disable-tools \
-            LDFLAGS="-L/path/to/libsodium"
-# Build
-make
+# Userlevel or ...
+./build-castor-native.sh
+# ... ns-3
+./build-castor-ns3.sh
 ```
 
-### Cross Compilation
-
-#### General
-To build Click for a different architecture (such as i386 in our mesh nodes) on a x64 machine, you can cross compile using the `--host=i386-linux-gnu` (make sure to include the proper header files, e.g., `chroot` in the target file system):
-```bash
-./configure --host=i386-linux-gnu \
-            --enable-castor --enable-userlevel --disable-linuxmodule \
-            --disable-app --disable-aqm --disable-analysis --disable-test \
-            --disable-tcpudp --disable-icmp --disable-threads --disable-tools \
-            LDFLAGS="-L/path/to/libsodium"
-```
-
-#### Android
-**Note:** Android instructions are currently outdated.
-
-To build Click for Android, you must specify the `--enable-android` parameter when running `./configure` and build it with the target `android` afterwards.--- Additionally you need to set the `NDK_ROOT` environment variable, it should contain the path to your Android NDK.
-```bash
-export NDK_ROOT="/path/to/android/ndk/"
-./configure --enable-castor --enable-android --disable-linuxmodule \
-            --disable-app --disable-aqm --disable-analysis --disable-test \
-            --disable-tcpudp --disable-icmp --disable-threads --disable-tools
-make android
-```
-
-### Extending the Code
-If new `Element`s are created, i.e., new `EXPORT_ELEMENT` directives are added in any source file in the `elements/` directory, run
+If you plan to *extend the code* (e.g., altered or new `Elements` in the `elements/` direcotry), you only need to run 
 ```bash
 make elemlist all
 ```
 
-## Run (userlevel)
-* Make sure to include the proper `castor_io_userlevel.click` in `castor_settings.click`.
-* Castor uses a single network interface for communication with other nodes. By default, this interface is `wlan0`. This can be changed either in the `conf/castor/castor_io_userlevel.click` configuration file (look for variable `EthDev`) or by specifying `EthDev=wlanX` when starting Click.
+### Cross Compilation
+To build Click for a different architecture (such as i386 in our mesh nodes) on a x64 machine, you can cross compile by adding `--host=i386-linux-gnu` to the `./configure` call in `build-castor-native.sh`. Make sure to include the proper header files, e.g., `chroot` in the target file system.
+
+### Android
+The Android build scripts use standalone toolchains. This requires the `NDK_ROOT` environment variable to point to your [Android NDK](https://developer.android.com/ndk/) installation.
+Depending on `ARCH` (currently `armv7-a` or `armv8-a`), simply run
+```
+./build-android-ARCH.sh
+```
+The relevant binaries are then found in `android/build/click-android-ARCH`.
+
+
+
+## Run
+Castor uses a single network interface for communication with other nodes. By default, this interface is `wlan0`. This can be changed either in the `conf/castor/castor_io_userlevel.click` configuration file (look for variable `EthDev`) or by specifying `EthDev=wlanX` when starting Click.
 
 ```bash
-cd <CLICK_DIR>
 # Run Castor ...
 userlevel/click conf/castor/castor_unicast_routing.click
 # ... or with non-standard network interface:
 userlevel/click EthDev=wlanX conf/castor/castor_unicast_routing.click
 ```
 
-## Communicating with Click at Runtime
+### Communicating with Click at Runtime
 Element Handlers can be accessed using a [ControlSocket Element](http://read.cs.ucla.edu/click/elements/controlsocket).
 To communicate via a Unix socket, one can either
 - include `ControlSocket(unix, /tmp/click_socket);` in the `.click` config file, or
@@ -116,9 +81,8 @@ After connecting with the socket, one can read data from the Element Handlers us
 For example, one could read the list of neighbouring nodes by sending the command `READ neighbors.print` to the socket, which would lead to an answer of `200 OK\r\nDATA N\r\nx_1x_2x_n` where `N` denotes the length of the returned data and `x_1` to `x_n` are the data symbols.
 
 ### Castor Status
-As an example, we include a small program which queries the neighbor and routing tables. You need to start `click` with `-p 7777`.
+As an example, we include a small program which queries the neighbor and routing tables. To use it, you need to start `click` with `-p 7777`.
 ```
-cd <CLICK_DIR>
 make -C apps/castor/status
 userlevel/click conf/castor/castor_unicast_routing.click -p 7777 &
 apps/castor/status/castor_status
