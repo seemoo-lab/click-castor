@@ -61,9 +61,9 @@ Packet* CastorRecordPkt::simple_action(Packet *p) {
 
 	if (verbose && npackets % 100000 == 0) {
 		unsigned int diff = (last - start).sec(); // * 1000 + (last - start).msec();
-		double rate = (double) size_payload / diff / (1024 * 1024);
+		double rate = (double) size_payload / diff / (1024 * 1024 / 8);
 		double pkt_rate = (double) npackets / diff;
-		click_chatter("Throughput: %.2f MB/s, PKT rate: %.2f/s", rate, pkt_rate);
+		click_chatter("Throughput: %.2f Mbit/s, PKT rate: %.2f/s", rate, pkt_rate);
 	}
 
 	return p;

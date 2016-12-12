@@ -51,7 +51,9 @@ elementclass DynamicEtherEncap {
 
 	input
 		-> AddForwarderList
-		-> NeighborAuthAddICV($neighbors, $crypto, $neighborsEnable)
+		-> NeighborAuthAddICV($neighbors, $crypto, true)
+		=> ( [0] -> output;
+		     [1] /* -> CastorPrint("No neighbors, no ICV added", fake) */ -> output; )
 		-> EtherEncap($ETHERTYPE_CASTOR, $myAddr, 00:00:00:00:00:00)
 		-> StoreEtherAddress(OFFSET dst, ANNO 12)
 		-> output;
