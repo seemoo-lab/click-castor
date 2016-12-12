@@ -11,6 +11,9 @@ define(
 	$broadcastAdjust 8.0, // bandwidth investment for route discovery (larger values reduce the broadcast probability)
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 
+	$rtTimeout 10000, // rt entry timeout (ms)
+	$rtCleanInterval 1000, // how often is rt cleaned (ms)
+
 	$flowSize 128, // number of pids per flow
 
 	/** Timeout boundaries */

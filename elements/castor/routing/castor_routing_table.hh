@@ -3,6 +3,9 @@
 
 #include <click/element.hh>
 #include <click/hashtable.hh>
+#include <click/list.hh>
+#include <click/timer.hh>
+#include <click/timestamp.hh>
 #include "../castor.hh"
 #include "../neighbor_id.hh"
 #include "castor_estimator.hh"
@@ -14,7 +17,7 @@ public:
 	typedef HashTable<NeighborId, CastorEstimator> FlowEntry;
 
 public:
-	CastorRoutingTable() : flows(FlowEntry(CastorEstimator(0.0))) {};
+	CastorRoutingTable() : timer(this), timeout(0), clean_interval(0), flows(NULL), updateDelta(0) {};
 
 	const char *class_name() const { return "CastorRoutingTable"; }
 	const char *port_count() const { return PORTS_0_0; }
@@ -28,7 +31,23 @@ public:
 
 	void add_handlers();
 private:
-	HashTable<FlowId, FlowEntry> flows;
+	void run_timer(Timer*);
+
+	struct ListNode {
+		inline ListNode(FlowId id, FlowEntry entry, Timestamp timeout) : id(id), entry(entry), timeout(timeout) {}
+		List_member<ListNode> node;
+		FlowId id;
+		FlowEntry entry;
+		Timestamp timeout;
+	};
+
+	List<ListNode, &ListNode::node> timeout_queue;
+	Timer timer;
+	unsigned int timeout;
+	unsigned int clean_interval;
+
+	HashTable<FlowId, ListNode *> flows;
+	double updateDelta;
 
 	HashTable<Pair<NodeId, NodeId>, Hash> srcdstmap;
 	HashTable<             NodeId , Hash>    dstmap;

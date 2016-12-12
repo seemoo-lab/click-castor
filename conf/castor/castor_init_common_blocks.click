@@ -11,7 +11,7 @@ groupmap :: XcastDestinationMap;
 
 neighbors :: Neighbors($neighborTimeout, $neighborsEnable);
 history :: CastorHistory;
-routingtable :: CastorRoutingTable($updateDelta);
+routingtable :: CastorRoutingTable($updateDelta, TIMEOUT $rtTimeout, CLEAN $rtCleanInterval);
 timeouttable :: CastorTimeoutTable(INIT $initTo, MIN $minTo, MAX $maxTo);
 ratelimits :: CastorRateLimitTable(INIT $initRate, MIN $minRate, MAX $maxRate);
 
