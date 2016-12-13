@@ -59,9 +59,9 @@ public:
 	friend class CastorRateLimiter;
 private:
 	typedef unsigned int index_t;
-	index_t start;
-	index_t count;
 	index_t _capacity;
+	index_t count;
+	index_t start;
 
 	Packet** store;
 

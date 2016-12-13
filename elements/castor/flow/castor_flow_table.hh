@@ -13,7 +13,7 @@ CLICK_DECLS
 
 class CastorFlowEntry {
 public:
-	CastorFlowEntry() : local(false), acked(false), _tree(NULL), aauths(NULL), pids(NULL) {}
+	CastorFlowEntry() : local(false), acked(false), aauths(NULL), pids(NULL), _tree(NULL) {}
 	~CastorFlowEntry() {
 		delete [] aauths;
 		delete [] pids;
