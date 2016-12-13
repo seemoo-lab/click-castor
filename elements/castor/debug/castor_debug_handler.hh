@@ -40,15 +40,6 @@ public:
 	void add_handlers();
 
 private:
-	// Converts an ip-address to a correspinding hex
-	long ip_to_hex(const unsigned char* ip);
-
-	// Converts a hex to an ip-address
-	void hex_to_ip(uint32_t hex_ip, char* ip_str);
-
-	// Calculate a random Hash
-	Hash rand_pid();
-
 	// Creates a new PKT with the given debug attributes set
 	void send_debug_pkt(const unsigned char* src_ip, const unsigned char* dst_ip,
 					int dbg, int aret, int insp, int ttl, int size);

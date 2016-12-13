@@ -21,54 +21,6 @@ int CastorDebugHandler::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 /*
- * Converts an ip-address to a correspinding hex
- * Example: 192.168.56.101 => c0a83865
- */
-long CastorDebugHandler::ip_to_hex(const unsigned char* ip) {
-	char* dump = strdup(reinterpret_cast<const char*>(ip));
-	char* b0 = strtok(dump, ".");
-	char* b1 = strtok(NULL, ".");
-	char* b2 = strtok(NULL, ".");
-	char* b3 = strtok(NULL, ".");
-
-	int size = sizeof(b0) + sizeof(b1) + sizeof(b2) + sizeof(b3);
-
-	char* tmp = (char*)malloc(size);
-
-	sprintf(tmp, "%02x%02x%02x%02x", atoi(b3), atoi(b2), atoi(b1), atoi(b0));
-
-	long hex_ip = (long)strtol(tmp, NULL, 16);
-
-	free(tmp);
-
-	return hex_ip;
-}
-
-/*
- * Converts a hex to an ip-address
- * Example: c0a83865 => 192.168.56.101
- */
-void CastorDebugHandler::hex_to_ip(uint32_t hex_ip, char* ip_str) {
-	uint32_t tmp1 = (hex_ip & 0xff000000) >> 24;
-	uint32_t tmp2 = (hex_ip & 0xff0000) >> 16;
-	uint32_t tmp3 = (hex_ip & 0xff00) >> 8;
-	uint32_t tmp4 = hex_ip & 0xff;
-	sprintf(ip_str, "%d.%d.%d.%d", tmp1, tmp2, tmp3, tmp4);
-}
-
-/*
- * Calculates a random Hash.
- */
-Hash CastorDebugHandler::rand_pid() {
-	uint8_t r[CASTOR_HASH_LENGTH];
-	for(int i=0; i < CASTOR_HASH_LENGTH; i++) {
-		r[i] = (uint8_t) std::rand()%128;
-	}
-	Hash myHash(r);
-	return myHash;
-}
-
-/*
  * Creates a new PKT with the given debug attributes set.
  */
 void CastorDebugHandler::send_debug_pkt(const unsigned char* src_ip, const unsigned char* dst_ip,
@@ -77,20 +29,16 @@ void CastorDebugHandler::send_debug_pkt(const unsigned char* src_ip, const unsig
 	// Calculates the PKT size
 	int new_pkt_size = size < sizeof(CastorPkt) ? sizeof(CastorPkt) : size;
 	new_pkt_size = new_pkt_size < MAX_ETHER_PKT_SIZE ? new_pkt_size : MAX_ETHER_PKT_SIZE;
-	click_chatter("SIZE: %d\n", new_pkt_size);
 
 	// Creates a new packet with the given size
 	WritablePacket* p = Packet::make(new_pkt_size);
 
 	if (!p) {
-		click_chatter("Can not create packet!");
 		return;
 	}
 
-	std::srand(Timestamp::now().msec());
-
-	NodeId src(ip_to_hex(src_ip));
-	NodeId dst(ip_to_hex(dst_ip));
+	NodeId src(src_ip);
+	NodeId dst(dst_ip);
 
 	memset(p->data(), 0, p->length());
 
@@ -113,7 +61,6 @@ void CastorDebugHandler::send_debug_pkt(const unsigned char* src_ip, const unsig
 	crypto->random(header->pid);
 	header->kpkt = 0xffff;
 	header->icv = ICV();
-	click_chatter("createDebugPkt: pid = %lx", header->pid);
 
 	pkt_size = p->length();
 
@@ -129,7 +76,6 @@ void CastorDebugHandler::send_debug_pkt(const unsigned char* src_ip, const unsig
  * This string is parsed and a PKT is created.
  */
 int CastorDebugHandler::write_callback(const String &s, Element *e, void *vparam, ErrorHandler *errh) {
-	click_chatter("write_callback: %s\n", s.printable().c_str());
 	CastorDebugHandler *fh = static_cast<CastorDebugHandler*>(e);
 
 	char* parameter = strdup(s.printable().c_str());
@@ -160,7 +106,6 @@ Packet* CastorDebugHandler::simple_action(Packet *p) {
 	end_time = Timestamp::now();
 
 	Timestamp diff = end_time - start_times.get(ack.auth);
-//	start_times.erase(ack.auth);
 	double rtt = (double)diff.sec() * 1000.0 + (double)diff.usec() / 1000.0;
 
 	dbg_ack_str += String(rtt) + "|";
@@ -185,7 +130,6 @@ Packet* CastorDebugHandler::simple_action(Packet *p) {
  */
 String CastorDebugHandler::read_callback(Element *e, void *vparam) {
 	Vector<String> *queue = static_cast<Vector<String>*>(vparam);
-//	String tmp("|");
 	String tmp("");
 
 	if (!queue->empty()) {
