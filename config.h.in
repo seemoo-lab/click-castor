@@ -306,11 +306,6 @@
 # include <click/config-minios.h>
 #endif
 
-/* Define stuff under Android. */
-#ifdef CLICK_ANDROID
-# include <click/config-android.h>
-#endif
-
 /* Ensure declaration of DefaultArg template. */
 #ifdef __cplusplus
 CLICK_DECLS
