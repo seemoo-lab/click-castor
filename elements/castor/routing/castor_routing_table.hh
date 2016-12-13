@@ -34,7 +34,7 @@ private:
 	void run_timer(Timer*);
 
 	struct ListNode {
-		inline ListNode(FlowId id, FlowEntry entry, Timestamp timeout) : id(id), entry(entry), timeout(timeout) {}
+		inline ListNode(const FlowId &id, const FlowEntry &entry, const Timestamp &timeout) : id(id), entry(entry), timeout(timeout) {}
 		List_member<ListNode> node;
 		FlowId id;
 		FlowEntry entry;
