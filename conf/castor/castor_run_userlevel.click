@@ -4,10 +4,6 @@ define(
 	$HostDev tun0,
 );
 
-require(
-	library castor_socket.click,
-);
-
 AddressInfo(fake $EthDev);
 
 tun :: KernelTun(fake:ip/16, HEADROOM $headroom, DEVNAME $HostDev);
@@ -24,3 +20,10 @@ elementclass BroadcastJitter {
 
 	input -> output;
 }
+
+// Finally wire all blocks
+require(
+	library castor_socket.click,
+	library castor_init_blocks.click,
+	library castor_wiring.click,
+);

@@ -3,6 +3,8 @@
  **************/
 
 define(
+	$CASTOR_VERSION 1, // Deprecated
+
 	// 0x88B5 and 0x88B6 reserved for private experiments, so we use them
 	$ETHERTYPE_CASTOR 0x88B6,
 	$ETHERTYPE_BEACON 0x88B5,
@@ -48,10 +50,4 @@ define(
 	$replayJitter    300, // in ms
 	$replayCount       5, // how often a PKT-ACK pair will be replayed
 	$replayRateMax    10, // how many PKT-ACK pairs will be emitted per s
-);
-
-require(
-	library castor_io_userlevel.click,
-	//library castor_io_ns3.click,
-	//library castor_io_benchmark.click,
 );

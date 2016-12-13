@@ -15,9 +15,9 @@ This repository contains **Castor (v2)** implementation for the [Click Modular R
 ## Code Navigation
 This section gives a rough overview where relevant code for Castor (v2) is located.
 * `conf/castor/`: Click script files.
-	* `castor_settings.click`: common settings, e.g., defining whether to run as userlevel or ns-3 module; Castor-specific parameters; ...
-	* `castor_unicast_routing.click`: **Castor (v2)** run configuration.
-	* other `.click`: shared modules which are included by the main files (above).
+	* `castor_settings.click`: Castor-specific parameters etc.
+	* `castor_run_PROFILE.click`: Run configurations where `PROFILE` can be `userlevel`, `ns3`, or `benchmark`.
+	* other `.click`: shared modules which are included by the run configurations.
 * `elements/castor/`: C++ source code.
 	* `castor.hh`: packet definitions
 	* `attack/`: elements specific to implement certain attacks
@@ -66,9 +66,14 @@ Castor uses a single network interface for communication with other nodes. By de
 
 ```bash
 # Run Castor ...
-userlevel/click conf/castor/castor_unicast_routing.click
+userlevel/click conf/castor/castor_run_userlevel.click
 # ... or with non-standard network interface:
-userlevel/click EthDev=wlanX conf/castor/castor_unicast_routing.click
+userlevel/click EthDev=wlanX conf/castor/castor_run_userlevel.click
+```
+
+Alternatively, you can run a benchmark configuration which does not require any network interfaces:
+```bash
+userlevel/click conf/castor/castor_run_benchmark.click
 ```
 
 ### Interaction at Runtime

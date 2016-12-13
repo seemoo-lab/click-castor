@@ -1,6 +1,11 @@
 /****************************
  * Initialize common blocks *
  ****************************/
+require(
+	library castor_settings.click,
+	library castor_io.click,
+	library castor_common.click,
+);
 
 sam::SAManagement(fake, fake);
 crypto::Crypto(sam);
@@ -25,3 +30,13 @@ fromextdev -> castorclassifier;
 ethout :: OutputEth($broadcastJitter) -> toextdev;
 fromhostdev -> fromhost :: FromHost(fake);
 tohost :: ToHost() -> tohostdev;
+
+// How to choose next hop
+routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, $broadcastAdjust);
+
+// How to handle PKTs and ACKs
+handlepkt :: CastorHandlePkt(fake, routeselector, routingtable, flowtable, timeouttable, ratelimits, history, crypto);
+handleack :: CastorHandleAck(fake, routingtable, flowtable, timeouttable, ratelimits, history, neighbors, crypto);
+
+handleIpPacket :: CastorHandleMulticastToUnicastIpPacket(fake, flowmanager, flowtable, crypto, groupmap);
+removeHeader :: CastorRemoveHeader;

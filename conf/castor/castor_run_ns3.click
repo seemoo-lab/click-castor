@@ -31,3 +31,9 @@ elementclass BroadcastJitter {
 	cp[1]
 		-> output; // this frame was not broadcasted -> no need to delay (Paint(0))
 }
+
+require(
+	library castor_socket.click,
+	library castor_init_blocks.click,
+	library castor_wiring.click,
+);
