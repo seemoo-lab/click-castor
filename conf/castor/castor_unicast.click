@@ -19,7 +19,7 @@ elementclass CastorLocalPkt {
 	$myIP, $flowtable, $timeouttable, $history, $crypto |
 
 	input
-		-> CastorPrint('Packet reached destination', $myIP)
+		//-> CastorPrint('Packet reached destination', $myIP)
 		-> CastorStripFlowAuthenticator
 		// Check ICV before trying to authenticate flow
 		-> isDbg :: CastorIsDbg
@@ -72,8 +72,7 @@ elementclass CastorForwardPkt {
 	$myIP, $routeselector, $routingtable, $flowtable, $timeouttable, $ratelimits, $history, $crypto |
 
 	input
-		-> Print("Forward PKT")
-		-> isDbg1 :: CastorIsDbg
+		-> isDbg :: CastorIsDbg
 		-> auth :: CastorAuthenticateFlow($flowtable, $crypto)
 		-> AddReplayPkt(replaystore)
 		-> blackhole :: CastorBlackhole // inactive by default
@@ -102,7 +101,7 @@ elementclass CastorForwardPkt {
 
 	// Debug Path  ----------------------------------------------------
 
-	isDbg1[1] 
+	isDbg[1]
 		-> debugBlackhole :: CastorBlackhole // inactive by default
 		-> debugRoute :: CastorLookupRoute($routeselector)
 		-> CastorAddPktToHistory($history)
@@ -146,7 +145,6 @@ elementclass CastorHandlePkt {
 	$myIP, $routeselector, $routingtable, $flowtable, $timeouttable, $ratelimits, $history, $crypto |
 
 	input
-		-> CastorDebugPrint("CastorHandlePkt", $myIP)
 		-> checkDuplicate :: CastorCheckDuplicate($history, $flowtable, $replayProtect)
 		-> destinationClassifier :: CastorDestClassifier($myIP);
 
