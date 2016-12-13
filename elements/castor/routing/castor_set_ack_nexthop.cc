@@ -30,6 +30,8 @@ Packet* CastorSetAckNexthop::simple_action(Packet* p) {
 	// We also use broadcast (opportunistically) if the ACK sender is our only current neighbor
 	bool use_broadcast = active_count != 2;
 
+	click_chatter("ACK active_count= %d\n", active_count);
+
 	// Set packet destination
 	CastorAnno::dst_id_anno(p) = use_broadcast ? NeighborId::make_broadcast() : dst;
 	CastorAnno::hop_id_anno(p) = dst;

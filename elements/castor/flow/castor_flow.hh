@@ -27,6 +27,10 @@ public:
 	 */
 	virtual PacketLabel freshLabel() = 0;
 	/**
+	 * Returns the current flow id.
+	 */
+	virtual FlowId getFlowId() = 0;
+	/**
 	 * Returns true if this flow is still alive, i.e., if there exist more fresh labels.
 	 * Returns false otherwise.
 	 */

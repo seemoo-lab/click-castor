@@ -47,6 +47,10 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 	return label;
 }
 
+FlowId CastorMerkleFlow::getFlowId() {
+	return fid;
+}
+
 bool CastorMerkleFlow::isAlive() const {
 	return pos < size;
 }

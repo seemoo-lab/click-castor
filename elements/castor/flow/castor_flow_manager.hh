@@ -20,13 +20,14 @@ public:
 	int configure(Vector<String>&, ErrorHandler*);
 
 	PacketLabel getPacketLabel(NodeId, NodeId);
+	FlowId getCurrentFlowId(NodeId, NodeId);
 private:
 	unsigned int _flowsize;
 	CastorFlowTable* _flowtable;
 	Crypto* _crypto;
 	HashTable<NodeId, HashTable<NodeId, CastorFlow*> > _flows;
-
 	CastorFlow* createFlowIfNotExists(NodeId src, NodeId dst);
+
 	/**
 	 * Defines the type of CastorFlow to be used.
 	 */

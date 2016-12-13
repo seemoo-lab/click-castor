@@ -17,7 +17,7 @@ Packet* CastorAddFlowAuthenticator::simple_action(Packet *p) {
 	const CastorPkt& pkt = *reinterpret_cast<const CastorPkt*>(p->data());
 
 	// Send full-sized flow authenticator if we broadcast
-	bool full_auth = force_full_auth || pkt.arq() ||
+	bool full_auth = force_full_auth ||
 					 CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast();
 
 	uint8_t new_fasize = full_auth ? pkt.fsize() : fauth_size(ntohs(pkt.kpkt), pkt.fsize(), pkt.fid, CastorAnno::dst_id_anno(p));

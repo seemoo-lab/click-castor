@@ -64,6 +64,7 @@ elementclass CastorHandleAck {
 
 	// Regular ACK flow
 	input
+		-> isDbg :: CastorIsDbg
 		-> calcPid :: CastorAnnotatePid($crypto)
 		-> AddReplayAck(replaystore)
 		-> authenticate :: CastorAuthenticateAck($history, $CASTOR_VERSION)
@@ -74,9 +75,20 @@ elementclass CastorHandleAck {
 		-> noLoopback :: CastorNoLoopback($history, $myIP)
 		// It does not make sense to update the rate limit packets that I sent myself
 		-> updateRate :: CastorUpdateRateLimit($ratelimitEnable, $ratelimits, $history)
-		-> CastorSetAckNexthop($history, $neighbors)
+		-> setAckNexthop :: CastorSetAckNexthop($history, $neighbors)
 		-> recAck :: CastorRecordPkt
 		-> output;
+
+	isDbg[1] 
+		-> CastorAnnotateDebugPid
+		-> debugAuthenticateAck :: CastorDebugAuthenticateAck($history, $myIP)
+		-> isInsp :: CastorIsInsp
+		-> debugNoLoopback :: CastorNoLoopback($history, $myIP)
+		-> setAckNexthop;
+
+	isInsp[1] 
+		-> insertPath :: CastorInsertPath($myIP, $myIP)
+		-> debugNoLoopback;
 
 	// Discarding...
 	null :: Discard;
@@ -100,6 +112,11 @@ elementclass CastorHandleAck {
 	noLoopback[1]
 		//-> CastorPrint("Don't send to myself", $myIP)
 		-> null;
+
+	debugNoLoopback[1]
+		-> [1]output;
+	
+	debugAuthenticateAck[1] -> CastorDebugPrint("Couldn't authenticate ACK", $myIP) -> null;
 }
 
 elementclass CastorBlackhole {

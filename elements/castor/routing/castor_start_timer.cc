@@ -28,10 +28,8 @@ int CastorStartTimer::configure(Vector<String>& conf, ErrorHandler* errh) {
 Packet* CastorStartTimer::simple_action(Packet* p) {
 	// Add timer
 	CastorPkt& header = (CastorPkt&) *p->data();
-	if (!header.arq()) {
-		unsigned int timeout = toTable->getTimeout(header.fid, header.dst, history->routedTo(header.pid)).value();
-		new PidTimer(this, header.pid, timeout);
-	}
+	unsigned int timeout = toTable->getTimeout(header.fid, header.dst, history->routedTo(header.pid)).value();
+	new PidTimer(this, header.pid, timeout);
 
 	return p;
 }
