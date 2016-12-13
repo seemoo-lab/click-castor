@@ -1,6 +1,8 @@
 # Castor (v2) in Click
 This repository contains **Castor (v2)** implementation for the [Click Modular Router](http://www.read.cs.ucla.edu/click/).
 
+**Discalimer:** *This is highly experimental code and is expected to break from time to time. Feel free to [contact me](mailto:mschmittner@seemoo.tu-darmstadt.de) if you encounter problems.*
+
 ## Table of Contents
 * [Code Naviation](#code-navigation)
 * [Install](#install)
@@ -10,6 +12,7 @@ This repository contains **Castor (v2)** implementation for the [Click Modular R
 * [Run](#run)
 	* [Interaction at Runtime](#interaction-at-runtime)
 	* [Tools](#tools)
+* [Contributor](#contributors)
 * [Related Publications](#related-publications)
 
 ## Code Navigation
@@ -95,6 +98,11 @@ make
 * **ping** Perform a classic `ping` using Castor packets. *Debug packets do not tamper with current routing state*.
 * **traceroute** Trace packets through the network. Can be used to find all currently available paths to the destination. *Debug packets do not tamper with current routing state*.
 
+## Contributors
+* **Milan Schmittner** ([email](mailto:mschmittner@seemoo.tu-darmstadt.de), [web](https://seemoo.de/mschmittner), *maintainer*)
+* Daniel Steinmetzer (early version of the original *Castor* implementation)
+* Michael Koch (port to *Android*)
+* Simon Schmitt (`ping` and `traceroute` tools)
 
 ## Related Publications
 * E. Kohler, R. Morris, B. Chen, J. Jannotti, and M. F. Kaashoek, “**The Click Modular Router**,” *ACM Transactions on Computer Systems*, vol. 18, no. 3, pp. 263–297, Aug. 2000. ([PDF](https://pdos.csail.mit.edu/papers/click:tocs00/paper.pdf), [web](http://read.cs.ucla.edu/click/click))
