@@ -8,8 +8,8 @@ This repository contains **Castor (v2)** implementation for the [Click Modular R
 	* [Cross Compilation](#cross-compilation)
 	* [Android](#android)
 * [Run](#run)
-	* [Communicating with Click at Runtime](#communicating-with-click-at-runtime)
-	* [Castor Status](#castor-status)
+	* [Interaction at Runtime](#interaction-at-runtime)
+	* [Tools](#tools)
 * [Related Publications](#related-publications)
 
 ## Code Navigation
@@ -71,22 +71,25 @@ userlevel/click conf/castor/castor_unicast_routing.click
 userlevel/click EthDev=wlanX conf/castor/castor_unicast_routing.click
 ```
 
-### Communicating with Click at Runtime
-Element Handlers can be accessed using a [ControlSocket Element](http://read.cs.ucla.edu/click/elements/controlsocket).
-To communicate via a Unix socket, one can either
-- include `ControlSocket(unix, /tmp/click_socket);` in the `.click` config file, or
-- start Click with parameter `-u /tmp/click_socket`.
+### Interaction at Runtime
+Click's `Element` handlers can be accessed using a [ControlSocket Element](http://read.cs.ucla.edu/click/elements/controlsocket).
+By default, Castor starts with two sockets opened (see `conf/castor/castor_socket.click).
+- Unix socket under `/tmp/click-castor.sock`, and
+- TCP socket at port 7777.
 
 After connecting with the socket, one can read data from the Element Handlers using a line-based protocol described [here](http://read.cs.ucla.edu/click/elements/controlsocket).
 For example, one could read the list of neighbouring nodes by sending the command `READ neighbors.print` to the socket, which would lead to an answer of `200 OK\r\nDATA N\r\nx_1x_2x_n` where `N` denotes the length of the returned data and `x_1` to `x_n` are the data symbols.
 
-### Castor Status
-As an example, we include a small program which queries the neighbor and routing tables. To use it, you need to start `click` with `-p 7777`.
+### Tools
+Castor provides a number of tools for interaction (see `apps/castor/`). To build them, run
+```bash
+cd apps/castor
+make
 ```
-make -C apps/castor/status
-userlevel/click conf/castor/castor_unicast_routing.click -p 7777 &
-apps/castor/status/castor_status
-```
+* **status** Queries the neighbor and routing tables.
+* **ping** Perform a classic `ping` using Castor packets. *Debug packets do not tamper with current routing state*.
+* **traceroute** Trace packets through the network. Can be used to find all currently available paths to the destination. *Debug packets do not tamper with current routing state*.
+
 
 ## Related Publications
 * E. Kohler, R. Morris, B. Chen, J. Jannotti, and M. F. Kaashoek, “**The Click Modular Router**,” *ACM Transactions on Computer Systems*, vol. 18, no. 3, pp. 263–297, Aug. 2000. ([PDF](https://pdos.csail.mit.edu/papers/click:tocs00/paper.pdf), [web](http://read.cs.ucla.edu/click/click))
