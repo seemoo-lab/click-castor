@@ -12,8 +12,7 @@
 #include <signal.h>
 #include <iomanip>
 #include <sstream>
-
-#define DEBUG_HANDLER_SOCK "/tmp/castor_debug_socket"
+#include "../castor_socket.hh"
 
 // This message is always send "200 Read handler 'debug_handler.ping' OK\nDATA 78\n"
 #define DEF_SOCK_MSG_LEN 55
@@ -52,7 +51,7 @@ Traceroute::Traceroute(int argc, char** argv) {
 	
 	if(!connect_to_socket()) {
 		std::cout << "Error: Could not connect to the " << 
-			DEBUG_HANDLER_SOCK << " socket." << std::endl;
+			CASTOR_SOCKET << " socket." << std::endl;
 		return;
 	}
 
@@ -95,7 +94,7 @@ Traceroute::Traceroute(int argc, char** argv) {
 bool Traceroute::connect_to_socket() {
 	sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 	address.sun_family = AF_UNIX;
-	strcpy(address.sun_path, DEBUG_HANDLER_SOCK);
+	strcpy(address.sun_path, CASTOR_SOCKET);
 	len = sizeof(address);
 
 	if(connect(sockfd, (sockaddr*)&address, len) == -1)

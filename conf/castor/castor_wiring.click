@@ -1,7 +1,6 @@
 /*******************
  * Wire the Blocks *
  *******************/
-mysocket :: ControlSocket(unix, /tmp/castor_debug_socket);
 
 fromhost
 	-> handleIpPacket

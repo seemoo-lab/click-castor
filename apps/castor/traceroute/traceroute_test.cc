@@ -10,10 +10,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <sstream>
+#include "../castor_socket.hh"
 
 #define BUF 1024
-#define UDS_FILE "/tmp/castor_debug_socket"
-#define TMP_RESP_MSG "200 Read handler 'debug_handler.ping' OK\nDATA 78\n" 
+#define TMP_RESP_MSG "200 Read handler 'debug_handler.ping' OK\nDATA 78\n"
 
 std::string IPs[] = {"192.168.56.100", "192.168.56.101", "192.168.56.102", "192.168.56.103", "192.168.56.104",
 			"192.168.56.105","192.168.56.106","192.168.56.107","192.168.56.108","192.168.56.109"};
@@ -31,9 +31,9 @@ int init_unix_server_socket(const char* dbg_ack_str) {
 
 	if((create_socket=socket (AF_LOCAL, SOCK_STREAM, 0)) > 0)
 		std::cout << "Socket created" << std::endl;
-	unlink(UDS_FILE);
+	unlink(CASTOR_SOCKET);
 	address.sun_family = AF_LOCAL;
-	strcpy(address.sun_path, UDS_FILE);
+	strcpy(address.sun_path, CASTOR_SOCKET);
 	if (bind ( create_socket,
 				(struct sockaddr *) &address,
 				sizeof (address)) != 0) {
