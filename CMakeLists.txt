@@ -2,12 +2,34 @@
 ### THIS IS JUST INCLUDED TO SUPPORT
 ### CODE NAVIGATION IN JetBrain's CLion
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.6)
 project(click_castor)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_FILES
+    apps/castor/ping/cli.cc
+    apps/castor/ping/cli.hh
+    apps/castor/ping/ping.cc
+    apps/castor/ping/ping.hh
+    apps/castor/ping/ping_test.cc
+    apps/castor/status/castor_status.cc
+    apps/castor/traceroute/cli.cc
+    apps/castor/traceroute/cli.hh
+    apps/castor/traceroute/route.cc
+    apps/castor/traceroute/route.hh
+    apps/castor/traceroute/route_entry.cc
+    apps/castor/traceroute/route_entry.hh
+    apps/castor/traceroute/traceroute.cc
+    apps/castor/traceroute/traceroute.hh
+    apps/castor/traceroute/traceroute_test.cc
+    apps/castor/castor_socket.hh
+    apps/csclient/csclient.cc
+    apps/csclient/csclient.hh
+    apps/csclient/csclient_test
+    apps/csclient/csclient_test.cc
+    apps/csclient/Makefile
+    apps/csclient/test.click
     elements/analysis/adjusttimestamp.cc
     elements/analysis/adjusttimestamp.hh
     elements/analysis/aggcounter.cc
@@ -120,6 +142,26 @@ set(SOURCE_FILES
     elements/castor/crypto/samanagement.hh
     elements/castor/crypto/securityassociation.cc
     elements/castor/crypto/securityassociation.hh
+    elements/castor/debug/castor_annotate_debug_pid.cc
+    elements/castor/debug/castor_annotate_debug_pid.hh
+    elements/castor/debug/castor_create_debug_ack.cc
+    elements/castor/debug/castor_create_debug_ack.hh
+    elements/castor/debug/castor_debug_authenticate_ack.cc
+    elements/castor/debug/castor_debug_authenticate_ack.hh
+    elements/castor/debug/castor_debug_handler.cc
+    elements/castor/debug/castor_debug_handler.hh
+    elements/castor/debug/castor_debug_print.cc
+    elements/castor/debug/castor_debug_print.hh
+    elements/castor/debug/castor_dec_ttl.cc
+    elements/castor/debug/castor_dec_ttl.hh
+    elements/castor/debug/castor_insert_path.cc
+    elements/castor/debug/castor_insert_path.hh
+    elements/castor/debug/castor_is_aret.cc
+    elements/castor/debug/castor_is_aret.hh
+    elements/castor/debug/castor_is_dbg.cc
+    elements/castor/debug/castor_is_dbg.hh
+    elements/castor/debug/castor_is_insp.cc
+    elements/castor/debug/castor_is_insp.hh
     elements/castor/flooding/flooding.hh
     elements/castor/flooding/flooding_blackhole_filter.cc
     elements/castor/flooding/flooding_blackhole_filter.hh
@@ -142,14 +184,10 @@ set(SOURCE_FILES
     elements/castor/flow/castor_flow_table.hh
     elements/castor/flow/castor_has_complete_flow.cc
     elements/castor/flow/castor_has_complete_flow.hh
-    elements/castor/flow/castor_is_arq.cc
-    elements/castor/flow/castor_is_arq.hh
     elements/castor/flow/castor_merkle_flow.cc
     elements/castor/flow/castor_merkle_flow.hh
     elements/castor/flow/castor_reconstruct_flow.cc
     elements/castor/flow/castor_reconstruct_flow.hh
-    elements/castor/flow/castor_set_arq.cc
-    elements/castor/flow/castor_set_arq.hh
     elements/castor/flow/castor_strip_flow_authenticator.cc
     elements/castor/flow/castor_strip_flow_authenticator.hh
     elements/castor/flow/merkle_tree.cc
@@ -1198,6 +1236,8 @@ set(SOURCE_FILES
     elements/wifi/wifiseq.hh
     elements/wifi/wirelessinfo.cc
     elements/wifi/wirelessinfo.hh
+    exopc/click.cc
+    exopc/syscall.c
     include/click/standard/addressinfo.hh
     include/click/standard/alignmentinfo.hh
     include/click/standard/errorelement.hh
