@@ -28,18 +28,23 @@ int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 		errh->warning("Possibly unwanted updateDelta value: %f (reliability estimator adaption is very slow)", updateDelta);
 
 	timer.initialize(this);
+	default_entry = FlowEntry(CastorEstimator(updateDelta));
 
 	return 0;
 }
 
-CastorRoutingTable::FlowEntry& CastorRoutingTable::entry(const Hash& flow) {
+bool CastorRoutingTable::has_entry(const Hash &flow) const {
+	return flows.count(flow) > 0;
+}
+
+CastorRoutingTable::FlowEntry& CastorRoutingTable::entry(const Hash& flow, const FlowEntry &init) {
 	// TODO: only allocate flow state after first ACK received
 	Timestamp node_timeout = Timestamp::recent_steady() + Timestamp::make_msec(timeout);
 
 	ListNode **node_ptr = flows.get_pointer(flow);
 	ListNode *node = NULL;
 	if (node_ptr == NULL) {
-		node = new ListNode(flow, FlowEntry(CastorEstimator(updateDelta)), node_timeout);
+		node = new ListNode(flow, init, node_timeout);
 		flows.set(flow, node);
 		bool empty = timeout_queue.empty();
 		timeout_queue.push_back(node);
@@ -68,14 +73,15 @@ CastorEstimator& CastorRoutingTable::estimator(const Hash& flow, const NeighborI
 
 CastorRoutingTable::FlowEntry& CastorRoutingTable::copy_estimators(const Hash& flow, const NodeId& src, const NodeId& dst) {
 	Pair<NodeId, NodeId> pair(src, dst);
-	if (flows.count(flow) > 0) {
+	const FlowEntry *init = &default_entry;
+	if (has_entry(flow)) {
 		/* do nothing */;
-	} else if (srcdstmap.count(pair) > 0) {
-		flows[flow] = flows[srcdstmap[pair]];
-	} else if (dstmap.count(dst) > 0) {
-		flows[flow] = flows[dstmap[dst]];
+	} else if (srcdstmap.count(pair) > 0 && has_entry(srcdstmap[pair])) {
+		init = &entry(srcdstmap[pair]);
+	} else if (dstmap.count(dst) > 0 && has_entry(dstmap[dst])) {
+		init = &entry(dstmap[dst]);
 	}
-	return entry(flow);
+	return entry(flow, *init);
 }
 
 void CastorRoutingTable::update(const Hash& flow, const NodeId& src, const NodeId& dst) {

@@ -17,15 +17,17 @@ public:
 	typedef HashTable<NeighborId, CastorEstimator> FlowEntry;
 
 public:
-	CastorRoutingTable() : timer(this), timeout(0), clean_interval(0), flows(NULL), updateDelta(0) {};
+	CastorRoutingTable() : timer(this), timeout(0), clean_interval(0), flows(NULL), updateDelta(0), default_entry(CastorEstimator(updateDelta)) {};
 
 	const char *class_name() const { return "CastorRoutingTable"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	FlowEntry& entry(const Hash& flow);
+	FlowEntry& entry(const Hash& flow, const FlowEntry &init);
+	FlowEntry& entry(const Hash& flow) { return entry(flow, default_entry); };
 	FlowEntry& copy_estimators(const Hash& flow, const NodeId& src, const NodeId& dst);
+	bool has_entry(const Hash &flow) const;
 	CastorEstimator& estimator(const Hash& flow, const NeighborId& forwarder);
 	void update(const Hash& flow, const NodeId& src, const NodeId& dst);
 
@@ -48,6 +50,8 @@ private:
 
 	HashTable<FlowId, ListNode *> flows;
 	double updateDelta;
+
+	FlowEntry default_entry;
 
 	HashTable<Pair<NodeId, NodeId>, Hash> srcdstmap;
 	HashTable<             NodeId , Hash>    dstmap;
