@@ -24,6 +24,7 @@ CastorMerkleFlow::CastorMerkleFlow(size_t size, const NodeId& dst, CastorFlowTab
 CastorMerkleFlow::~CastorMerkleFlow() {
 	delete [] aauths;
 	delete [] pids;
+	delete tree;
 }
 
 PacketLabel CastorMerkleFlow::freshLabel() {
