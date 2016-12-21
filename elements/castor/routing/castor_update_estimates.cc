@@ -25,7 +25,7 @@ Packet* CastorUpdateEstimates::simple_action(Packet *p) {
 	if (enableCopyEstimators)
 		continuous_flow->update(fid, history->getSource(pid), history->getDestination(pid));
 
-	CastorEstimator& estimator = table->entry(fid)[from];
+	CastorEstimator& estimator = table->at(fid)[from];
 	if (routedTo == from || isFirstAck)
 		estimator.increaseFirst();
 	estimator.increaseAll();

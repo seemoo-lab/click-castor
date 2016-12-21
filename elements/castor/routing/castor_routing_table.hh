@@ -15,22 +15,24 @@ CLICK_DECLS
 class CastorRoutingTable : public Element {
 public:
 	typedef HashTable<NeighborId, CastorEstimator> FlowEntry;
-
+	typedef size_t size_type;
 public:
-	CastorRoutingTable() : timer(this), timeout(0), clean_interval(0), flows(NULL), updateDelta(0), default_entry(CastorEstimator(updateDelta)) {};
+	CastorRoutingTable() : timer(this), default_entry(CastorEstimator(updateDelta)) {};
 
 	const char *class_name() const { return "CastorRoutingTable"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	FlowEntry& entry(const Hash& flow, const FlowEntry &init);
-	FlowEntry& entry(const Hash& flow) { return entry(flow, default_entry); };
-	void copy_entry(const Hash &from, const Hash &to);
-	bool has_entry(const Hash &flow) const;
-
+	FlowEntry& at(const Hash &flow) { return at_or_default(flow, default_entry); };
+	void insert(const Hash &flow, const FlowEntry &entry);
+	size_type count(const Hash &flow) const;
+	size_type size() const;
 	void add_handlers();
+
 private:
+	FlowEntry& at_or_default(const Hash &flow, const FlowEntry &init);
+
 	void run_timer(Timer*);
 
 	struct ListNode {

@@ -63,7 +63,7 @@ void CastorStartTimer::adjust_estimator(const PacketId& pid) {
 		sa << "[" << Timestamp::now() << "@" << myId << "] Timeout: no ACK received from " << routedTo.unparse();
 		click_chatter(sa.c_str());
 	}
-	CastorEstimator& estimator = table->entry(fid)[routedTo];
+	CastorEstimator& estimator = table->at(fid)[routedTo];
 	estimator.decreaseFrist();
 	estimator.decreaseAll();
 }

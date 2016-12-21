@@ -33,11 +33,15 @@ int CastorRoutingTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return 0;
 }
 
-bool CastorRoutingTable::has_entry(const Hash &flow) const {
-	return flows.count(flow) > 0;
+CastorRoutingTable::size_type CastorRoutingTable::count(const Hash &flow) const {
+	return flows.count(flow);
 }
 
-CastorRoutingTable::FlowEntry& CastorRoutingTable::entry(const Hash& flow, const FlowEntry &init) {
+CastorRoutingTable::size_type CastorRoutingTable::size() const {
+	return flows.size();
+}
+
+CastorRoutingTable::FlowEntry& CastorRoutingTable::at_or_default(const Hash &flow, const FlowEntry &init) {
 	// TODO: only allocate flow state after first ACK received
 	Timestamp node_timeout = Timestamp::recent_steady() + Timestamp::make_msec(timeout);
 
@@ -66,12 +70,8 @@ CastorRoutingTable::FlowEntry& CastorRoutingTable::entry(const Hash& flow, const
 	return node->entry;
 }
 
-void CastorRoutingTable::copy_entry(const Hash &from, const Hash &to) {
-	if (!has_entry(from)) {
-		click_chatter("Tried to copy from %s", from.str().c_str());
-		return;
-	}
-	(void) entry(to, entry(from));
+void CastorRoutingTable::insert(const Hash &flow, const CastorRoutingTable::FlowEntry &entry) {
+	(void) at_or_default(flow, entry);
 }
 
 String CastorRoutingTable::unparse(const Hash& flow) const {
