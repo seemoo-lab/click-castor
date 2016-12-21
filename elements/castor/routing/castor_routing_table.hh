@@ -2,53 +2,37 @@
 #define CLICK_CASTOR_ROUTING_TABLE_HH
 
 #include <click/element.hh>
-#include <click/hashtable.hh>
-#include <click/list.hh>
-#include <click/timer.hh>
-#include <click/timestamp.hh>
 #include "../castor.hh"
 #include "../neighbor_id.hh"
 #include "castor_estimator.hh"
+#include "ephemeral_map.hh"
 
 CLICK_DECLS
 
 class CastorRoutingTable : public Element {
 public:
 	typedef HashTable<NeighborId, CastorEstimator> FlowEntry;
-	typedef size_t size_type;
+	typedef ephemeral_map<FlowId, FlowEntry>::size_type size_type;
+
 public:
-	CastorRoutingTable() : timer(this), default_entry(CastorEstimator(updateDelta)) {};
+	CastorRoutingTable() : default_entry(CastorEstimator(0)) {};
 
 	const char *class_name() const { return "CastorRoutingTable"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	FlowEntry& at(const Hash &flow) { return at_or_default(flow, default_entry); };
+	FlowEntry& at(const Hash &flow) { return flows->at_or_default(flow, default_entry); };
 	void insert(const Hash &flow, const FlowEntry &entry);
 	size_type count(const Hash &flow) const;
-	size_type size() const;
+
 	void add_handlers();
 
 private:
-	FlowEntry& at_or_default(const Hash &flow, const FlowEntry &init);
+	void run_timer(Timer *timer) { flows->run_timer(timer); }
 
-	void run_timer(Timer*);
+	ephemeral_map<FlowId, FlowEntry> *flows;
 
-	struct ListNode {
-		inline ListNode(const FlowId &id, const FlowEntry &entry, const Timestamp &timeout) : id(id), entry(entry), timeout(timeout) {}
-		List_member<ListNode> node;
-		FlowId id;
-		FlowEntry entry;
-		Timestamp timeout;
-	};
-
-	List<ListNode, &ListNode::node> timeout_queue;
-	Timer timer;
-	unsigned int timeout;
-	unsigned int clean_interval;
-
-	HashTable<FlowId, ListNode *> flows;
 	double updateDelta;
 
 	FlowEntry default_entry;
