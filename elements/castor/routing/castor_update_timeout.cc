@@ -28,9 +28,8 @@ Packet* CastorUpdateTimeout::simple_action(Packet* p) {
 
 	// Get flow's timeout object
 	const FlowId& fid = history->getFlowId(pid);
-	NodeId subfid = history->getDestination(pid);
 	NeighborId routedTo = history->routedTo(pid);
-	CastorTimeout& timeout = table->getTimeout(fid, subfid, routedTo);
+	CastorTimeout& timeout = table->getTimeout(fid, routedTo);
 
 	// Update timeout
 	timeout.update(new_rtt);
