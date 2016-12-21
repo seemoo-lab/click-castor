@@ -50,6 +50,7 @@ protected:
 
 	bool active;
 	bool verbose;
+	bool summary_only;
 	Timestamp last_print;
 
 private:

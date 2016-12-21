@@ -10,6 +10,7 @@ int CastorRecordPkt::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 			.read_or_set_p("ACTIVE", active, true)
 			.read_or_set_p("VERBOSE", verbose, false)
+			.read_or_set_p("SUMMARY", summary_only, true)
 			.complete();
 }
 
@@ -29,7 +30,8 @@ Packet* CastorRecordPkt::simple_action(Packet *p) {
 
 	if(CastorPacket::getType(p) == CastorType::PKT) {
 		CastorPkt& pkt = (CastorPkt&) *p->data();
-		records.push_back(new PidTime(pkt.pid));
+		if (!summary_only)
+			records.push_back(new PidTime(pkt.pid));
 		npids++;
 		if(CastorAnno::dst_id_anno(p) == NeighborId::make_broadcast()) {
 			size_broadcast += pkt.header_len();
@@ -42,7 +44,8 @@ Packet* CastorRecordPkt::simple_action(Packet *p) {
 		size += pkt.header_len();
 		size_noreset += pkt.header_len();
 #ifdef DEBUG_HOPCOUNT
-		hopcounts.push_back(new UintListNode(pkt.hopcount()));
+		if (!summary_only)
+			hopcounts.push_back(new UintListNode(pkt.hopcount()));
 #endif
 	} else if (CastorPacket::getType(p) == CastorType::ACK) {
 		CastorAck& ack = (CastorAck&) *p->data();
