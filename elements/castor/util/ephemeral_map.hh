@@ -24,7 +24,7 @@ public:
 
 public:
 	ephemeral_map(const Timestamp &timeout, const Timestamp &clean_interval, const V &default_value, Element *owner)
-			: timeout(timeout), clean_interval(clean_interval), timer(owner), default_value(default_value), _map(NULL) {
+			: timeout(timeout), clean_interval(clean_interval), timer(owner), default_value(default_value), owner(owner), _map(NULL) {
 		timer.initialize(owner);
 	}
 
@@ -38,6 +38,8 @@ public:
 	void run_timer(Timer*);
 
 private:
+	Element *owner;
+
 	Timer timer;
 	Timestamp timeout;
 	Timestamp clean_interval;
@@ -99,7 +101,7 @@ void ephemeral_map<K,V>::run_timer(Timer* _timer) {
 		delete node;
 	}
 
-	click_chatter("CLEAN: delete %u, left %u", removed, _map.size());
+	click_chatter("[%s] CLEAN: delete %u, left %u", owner->declaration().c_str(), removed, _map.size());
 
 	if (node != NULL) {
 		// Restart the timer with the timeout of the first expiring value
