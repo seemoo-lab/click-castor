@@ -5,7 +5,7 @@
 #include "../castor.hh"
 #include "../neighbor_id.hh"
 #include "castor_estimator.hh"
-#include "ephemeral_map.hh"
+#include "../util/ephemeral_map.hh"
 
 CLICK_DECLS
 
