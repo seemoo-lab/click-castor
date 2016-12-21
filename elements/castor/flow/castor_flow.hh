@@ -11,7 +11,6 @@ public:
 	unsigned int num;
 	unsigned int size;
 	FlowId fid;
-	Hash* fauth;
 	PacketId pid;
 	AckAuth aauth;
 	Nonce n;

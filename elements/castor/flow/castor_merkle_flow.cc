@@ -37,12 +37,6 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 	label.fid = fid;
 	label.pid = pids[pos];
 
-	/* TODO legacy to not break Xcastor */
-	label.fauth = new Hash[height];
-	// Set flow authenticator
-	tree->path_to_root(pos, label.fauth);
-	label.aauth = aauths[pos];
-
 	pos++;
 
 	return label;
