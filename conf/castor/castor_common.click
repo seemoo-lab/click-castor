@@ -76,7 +76,7 @@ elementclass CastorHandleAck {
 		// It does not make sense to update the rate limit packets that I sent myself
 		-> updateRate :: CastorUpdateRateLimit($ratelimitEnable, $ratelimits, $history)
 		-> setAckNexthop :: CastorSetAckNexthop($history, $neighbors)
-		-> recAck :: CastorRecordPkt
+		//-> recAck :: CastorRecordPkt
 		-> output;
 
 	isDbg[1] 
@@ -125,7 +125,7 @@ elementclass CastorBlackhole {
 		-> output;
 
 	filter[1]
-		-> rec :: CastorRecordPkt
+		//-> rec :: CastorRecordPkt
 		-> Discard;
 }
 
@@ -142,7 +142,7 @@ elementclass CastorHandleMulticastToUnicastIpPacket {
 	-> CastorAddHeader($flowmanager, $flowtable, $forceNonce)
 	-> CastorCalcICV($crypto)
 	//-> CastorPrint('Send', $myAddrInfo)
-	-> rec :: CastorRecordPkt
+	//-> rec :: CastorRecordPkt
 	-> output;
 }
 
@@ -166,7 +166,7 @@ elementclass CastorLocalPkt {
 		-> authFlow :: CastorAuthenticateFlow($flowtable, $crypto)
 		-> addPktToHistory :: CastorAddPktToHistory($history)
 		-> CastorStartTimer($timeouttable, $history, FLOW_TABLE $flowtable, ID $myIP, VERBOSE false)
-		-> rec :: CastorRecordPkt
+		//-> rec :: CastorRecordPkt
 		-> genAck :: CastorCreateAck($flowtable)
 		-> [0]output;
 
@@ -212,7 +212,7 @@ elementclass CastorForwardPkt {
 		-> CastorStartTimer($timeouttable, $history, $routingtable, $flowtable, $ratelimits, ID $myIP, VERBOSE false)
 		-> addFlowAuthenticator :: CastorAddFlowAuthenticator($flowtable, $fullFlowAuth)
 		//-> CastorPrint('Forwarding Packet', $myIP)
-		-> rec :: CastorRecordPkt
+		//-> rec :: CastorRecordPkt
 		-> [0]output;
 
 	// Bounce back to sender
@@ -236,7 +236,7 @@ elementclass CastorForwardPkt {
 		-> debugBlackhole :: CastorBlackhole // inactive by default
 		-> debugRoute :: CastorLookupRoute($routeselector)
 		-> CastorAddPktToHistory($history)
-		-> debugRec :: CastorRecordPkt
+		//-> debugRec :: CastorRecordPkt
 		-> isAret :: CastorIsAret
 		-> decTtl :: CastorDecTtl
 		-> [0]output;
@@ -290,10 +290,12 @@ elementclass CastorHandlePkt {
 		-> [2]output;
 
 	handleLocal[1]
-		-> recAck :: CastorRecordPkt
+		//-> recAck :: CastorRecordPkt
 		-> [1]output;
 
-	forward[1] -> recAck;
+	forward[1]
+	    //-> recAck;
+	    -> [1]output;
 
 	// Need to retransmit ACK
 	checkDuplicate[1]
@@ -301,7 +303,8 @@ elementclass CastorHandlePkt {
 		-> CastorRetransmitAck($history)
 		-> noLoopback :: CastorNoLoopback($history, $myIP) // The src node should not retransmit ACKs
 		//-> CastorPrint("Duplicate pid, retransmit ACK", $myIP)
-		-> recAck;
+		//-> recAck;
+		-> [1]output;
 
 	// If invalid or duplicate -> discard
 	null :: Discard;
