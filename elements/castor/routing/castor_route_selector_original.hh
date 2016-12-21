@@ -5,6 +5,7 @@
 #include "castor_route_selector.hh"
 #include "../neighbors/neighbors.hh"
 #include "castor_routing_table.hh"
+#include "castor_continuous_flow_map.hh"
 
 CLICK_DECLS
 
@@ -28,7 +29,9 @@ protected:
 
 	CastorRoutingTable* routingtable;
 	Neighbors* neighbors;
+	CastorContinuousFlowMap* continuous_flow;
 
+	void copy_flow_entry(const Hash &flow, const NodeId &src, const NodeId &dst);
 	virtual double select(CastorRoutingTable::FlowEntry& entry, Vector<NeighborId>& best_candidates);
 	virtual void update_candidates(const NeighborId&, double, Vector<NeighborId>&, double&) const;
 	bool should_broadcast(double best_estimate) const;

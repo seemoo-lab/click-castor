@@ -4,6 +4,7 @@
 #include <click/element.hh>
 #include "castor_history.hh"
 #include "castor_routing_table.hh"
+#include "castor_continuous_flow_map.hh"
 
 CLICK_DECLS
 
@@ -17,6 +18,7 @@ public:
 	Packet* simple_action(Packet*);
 private:
 	CastorRoutingTable* table;
+	CastorContinuousFlowMap* continuous_flow;
 	CastorHistory* history;
 	bool enableCopyEstimators;
 };

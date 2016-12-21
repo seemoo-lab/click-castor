@@ -9,14 +9,25 @@ int CastorRouteSelectorOriginal::configure(Vector<String> &conf, ErrorHandler *e
 	return Args(conf, this, errh)
 			.read_mp("RT", ElementCastArg("CastorRoutingTable"), routingtable)
 			.read_mp("NEIGHBORS", ElementCastArg("Neighbors"), neighbors)
+			.read_mp("CONTINUOUS_FLOW", ElementCastArg("CastorContinuousFlowMap"), continuous_flow)
 			.read_or_set_p("BROADCAST_ADJUST", broadcastAdjust, 8)
 			.complete();
 }
 
+void CastorRouteSelectorOriginal::copy_flow_entry(const Hash &flow, const NodeId &src, const NodeId &dst) {
+	if (!routingtable->has_entry(flow)) {
+		const Hash &previous = continuous_flow->previous(src, dst);
+		if (routingtable->has_entry(previous))
+			routingtable->copy_entry(previous, flow);
+	}
+}
+
 NeighborId CastorRouteSelectorOriginal::select(const Hash& flow, const NodeId& src, const NodeId& dst) {
+	// Optionally copy old estimators for new flow
+	copy_flow_entry(flow, src, dst);
 	// Search for the neighbor with the highest estimate
 	Vector<NeighborId> best_candidates;
-	double best_estimate = select(routingtable->copy_estimators(flow, src, dst), best_candidates);
+	double best_estimate = select(routingtable->entry(flow), best_candidates);
 	// Depending on the best estimate, we decide whether to broadcast anyway
 	if (should_broadcast(best_estimate))
 		return broadcast();

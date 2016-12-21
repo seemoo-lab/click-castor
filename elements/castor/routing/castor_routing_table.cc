@@ -71,24 +71,12 @@ CastorEstimator& CastorRoutingTable::estimator(const Hash& flow, const NeighborI
 	return entry(flow)[forwarder];
 }
 
-CastorRoutingTable::FlowEntry& CastorRoutingTable::copy_estimators(const Hash& flow, const NodeId& src, const NodeId& dst) {
-	Pair<NodeId, NodeId> pair(src, dst);
-	const FlowEntry *init = &default_entry;
-	if (has_entry(flow)) {
-		/* do nothing */;
-	} else if (srcdstmap.count(pair) > 0 && has_entry(srcdstmap[pair])) {
-		init = &entry(srcdstmap[pair]);
-	} else if (dstmap.count(dst) > 0 && has_entry(dstmap[dst])) {
-		init = &entry(dstmap[dst]);
+void CastorRoutingTable::copy_entry(const Hash &from, const Hash &to) {
+	if (!has_entry(from)) {
+		click_chatter("Tried to copy from %s", from.str().c_str());
+		return;
 	}
-	return entry(flow, *init);
-}
-
-void CastorRoutingTable::update(const Hash& flow, const NodeId& src, const NodeId& dst) {
-	(void) entry(flow); // provoke timeout_queue update
-	Pair<NodeId,NodeId> pair(src, dst);
-	srcdstmap[pair] = flow;
-	dstmap[dst] = flow;
+	(void) entry(to, entry(from));
 }
 
 String CastorRoutingTable::unparse(const Hash& flow) const {

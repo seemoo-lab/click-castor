@@ -9,6 +9,7 @@ CLICK_DECLS
 int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 			.read_mp("ROUTING_TABLE", ElementCastArg("CastorRoutingTable"), table)
+			.read_mp("CONTINUOUS_FLOW", ElementCastArg("CastorContinuousFlowMap"), continuous_flow)
 			.read_mp("HISTORY", ElementCastArg("CastorHistory"), history)
 			.read_or_set_p("COPY_ESTIMATORS", enableCopyEstimators, true)
 			.complete();
@@ -22,7 +23,7 @@ Packet* CastorUpdateEstimates::simple_action(Packet *p) {
 	bool isFirstAck = !history->hasAck(pid);
 
 	if (enableCopyEstimators)
-		table->update(fid, history->getSource(pid), history->getDestination(pid));
+		continuous_flow->update(fid, history->getSource(pid), history->getDestination(pid));
 
 	CastorEstimator& estimator = table->estimator(fid, from);
 	if (routedTo == from || isFirstAck)

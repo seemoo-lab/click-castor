@@ -26,10 +26,9 @@ public:
 
 	FlowEntry& entry(const Hash& flow, const FlowEntry &init);
 	FlowEntry& entry(const Hash& flow) { return entry(flow, default_entry); };
-	FlowEntry& copy_estimators(const Hash& flow, const NodeId& src, const NodeId& dst);
+	void copy_entry(const Hash &from, const Hash &to);
 	bool has_entry(const Hash &flow) const;
 	CastorEstimator& estimator(const Hash& flow, const NeighborId& forwarder);
-	void update(const Hash& flow, const NodeId& src, const NodeId& dst);
 
 	void add_handlers();
 private:
@@ -52,9 +51,6 @@ private:
 	double updateDelta;
 
 	FlowEntry default_entry;
-
-	HashTable<Pair<NodeId, NodeId>, Hash> srcdstmap;
-	HashTable<             NodeId , Hash>    dstmap;
 
 	String unparse(const FlowId&) const;
 	void print(const FlowId&) const;
