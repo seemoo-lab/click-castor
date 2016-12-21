@@ -28,7 +28,6 @@ public:
 	FlowEntry& entry(const Hash& flow) { return entry(flow, default_entry); };
 	void copy_entry(const Hash &from, const Hash &to);
 	bool has_entry(const Hash &flow) const;
-	CastorEstimator& estimator(const Hash& flow, const NeighborId& forwarder);
 
 	void add_handlers();
 private:

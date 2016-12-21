@@ -66,11 +66,6 @@ CastorRoutingTable::FlowEntry& CastorRoutingTable::entry(const Hash& flow, const
 	return node->entry;
 }
 
-CastorEstimator& CastorRoutingTable::estimator(const Hash& flow, const NeighborId& forwarder) {
-	// HashTable's [] operator adds a default element if it does not exist
-	return entry(flow)[forwarder];
-}
-
 void CastorRoutingTable::copy_entry(const Hash &from, const Hash &to) {
 	if (!has_entry(from)) {
 		click_chatter("Tried to copy from %s", from.str().c_str());
