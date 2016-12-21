@@ -5,6 +5,7 @@
 #include <click/hashtable.hh>
 #include "../castor.hh"
 #include "castor_flow_entry.hh"
+#include "../util/ephemeral_map.hh"
 
 CLICK_DECLS
 
@@ -13,11 +14,14 @@ public:
 	const char *class_name() const { return "CastorFlowTable"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }
+	int configure(Vector<String>&, ErrorHandler*);
 
 	CastorFlowEntry &get(const FlowId &fid);
 	bool has(const FlowId &fid) const;
 private:
-	HashTable<FlowId, CastorFlowEntry> flows;
+	void run_timer(Timer *timer) { flows->run_timer(timer); }
+
+	ephemeral_map<FlowId, CastorFlowEntry> *flows;
 };
 
 CLICK_ENDDECLS
