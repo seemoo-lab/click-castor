@@ -1,12 +1,7 @@
 #include <click/config.h>
 #include <click/args.hh>
 #include <click/packet.hh>
-#include <clicknet/udp.h>
-#include <clicknet/ether.h>
 #include "castor_debug_handler.hh"
-#include "../castor.hh"
-#include "../hash.hh"
-#include "../flow/castor_flow.hh"
 
 CLICK_DECLS
 
@@ -16,7 +11,6 @@ CastorDebugHandler::~CastorDebugHandler() { };
 int CastorDebugHandler::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
 		.read_mp("FLOW_MANAGER", ElementCastArg("CastorFlowManager"), flow_manager)
-		// FIXME read Crypto
 		.complete();
 }
 

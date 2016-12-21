@@ -6,7 +6,7 @@
 CLICK_DECLS
 
 CastorFlowManager::CastorFlowManager() : _crypto(NULL),
-_flows(HashTable<NodeId, HashTable<NodeId, CastorFlow*> >(HashTable<NodeId, CastorFlow*>(NULL)))
+_flows(HashTable<NodeId, HashTable<NodeId, CastorMerkleFlow*> >(HashTable<NodeId, CastorMerkleFlow*>(NULL)))
 {
 }
 
@@ -19,7 +19,7 @@ int CastorFlowManager::configure(Vector<String> &conf, ErrorHandler *errh) {
 }
 
 FlowId CastorFlowManager::getCurrentFlowId(NodeId src, NodeId dst) {
-	CastorFlow* flow = createFlowIfNotExists(src, dst);
+	CastorMerkleFlow* flow = createFlowIfNotExists(src, dst);
 
 	return flow->getFlowId();
 }
@@ -30,13 +30,13 @@ PacketLabel CastorFlowManager::getPacketLabel(NodeId src, NodeId dst) {
 		return PacketLabel();
 	}
 
-	CastorFlow* flow = createFlowIfNotExists(src, dst);
+	CastorMerkleFlow* flow = createFlowIfNotExists(src, dst);
 
 	return flow->freshLabel();
 }
 
-CastorFlow* CastorFlowManager::createFlowIfNotExists(NodeId src, NodeId dst) {
-	CastorFlow*& flow = _flows[src][dst];
+CastorMerkleFlow* CastorFlowManager::createFlowIfNotExists(NodeId src, NodeId dst) {
+	CastorMerkleFlow*& flow = _flows[src][dst];
 
 	if (!flow) {
 		flow = createNewFlow(src, dst);
@@ -50,7 +50,7 @@ CastorFlow* CastorFlowManager::createFlowIfNotExists(NodeId src, NodeId dst) {
 	return flow;
 }
 
-CastorFlow* CastorFlowManager::createNewFlow(const NodeId& src, const NodeId& dst) {
+CastorMerkleFlow* CastorFlowManager::createNewFlow(const NodeId& src, const NodeId& dst) {
 	(void) src;
 	return new CastorMerkleFlow(_flowsize, dst, _flowtable, _crypto);
 }

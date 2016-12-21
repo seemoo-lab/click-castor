@@ -177,7 +177,6 @@ set(SOURCE_FILES
     elements/castor/flow/castor_add_flow_authenticator.hh
     elements/castor/flow/castor_authenticate_flow.cc
     elements/castor/flow/castor_authenticate_flow.hh
-    elements/castor/flow/castor_flow.hh
     elements/castor/flow/castor_flow_manager.cc
     elements/castor/flow/castor_flow_manager.hh
     elements/castor/flow/castor_flow_table.cc

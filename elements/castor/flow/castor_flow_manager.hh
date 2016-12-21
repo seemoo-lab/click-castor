@@ -2,7 +2,7 @@
 #define CLICK_CASTOR_FLOW_MANAGER_HH
 
 #include <click/element.hh>
-#include "castor_flow.hh"
+#include "castor_merkle_flow.hh"
 #include "castor_flow_table.hh"
 #include "../node_id.hh"
 #include "../crypto/crypto.hh"
@@ -25,13 +25,13 @@ private:
 	unsigned int _flowsize;
 	CastorFlowTable* _flowtable;
 	Crypto* _crypto;
-	HashTable<NodeId, HashTable<NodeId, CastorFlow*> > _flows;
-	CastorFlow* createFlowIfNotExists(NodeId src, NodeId dst);
+	HashTable<NodeId, HashTable<NodeId, CastorMerkleFlow*> > _flows;
+	CastorMerkleFlow* createFlowIfNotExists(NodeId src, NodeId dst);
 
 	/**
 	 * Defines the type of CastorFlow to be used.
 	 */
-	CastorFlow* createNewFlow(const NodeId& src, const NodeId& dst);
+	CastorMerkleFlow* createNewFlow(const NodeId& src, const NodeId& dst);
 };
 
 CLICK_ENDDECLS

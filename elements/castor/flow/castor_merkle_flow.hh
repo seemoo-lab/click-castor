@@ -4,12 +4,21 @@
 #include <click/vector.hh>
 #include "../crypto/crypto.hh"
 #include "merkle_tree.hh"
-#include "castor_flow.hh"
 #include "castor_flow_table.hh"
 
 CLICK_DECLS
 
-class CastorMerkleFlow : public CastorFlow {
+class PacketLabel {
+public:
+	unsigned int num;
+	unsigned int size;
+	FlowId fid;
+	PacketId pid;
+	AckAuth aauth;
+	Nonce n;
+};
+
+class CastorMerkleFlow {
 public:
 	CastorMerkleFlow(size_t size, const NodeId& dst, CastorFlowTable* flowtable, const Crypto* crypto);
 	~CastorMerkleFlow();
