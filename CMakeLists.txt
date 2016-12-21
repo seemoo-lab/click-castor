@@ -181,6 +181,8 @@ set(SOURCE_FILES
     elements/castor/flow/castor_flow_manager.hh
     elements/castor/flow/castor_flow_table.cc
     elements/castor/flow/castor_flow_table.hh
+    elements/castor/flow/castor_flow_entry.cc
+    elements/castor/flow/castor_flow_entry.hh
     elements/castor/flow/castor_has_complete_flow.cc
     elements/castor/flow/castor_has_complete_flow.hh
     elements/castor/flow/castor_merkle_flow.cc

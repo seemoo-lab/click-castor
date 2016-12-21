@@ -3,37 +3,31 @@
 
 #include <click/vector.hh>
 #include "../crypto/crypto.hh"
-#include "merkle_tree.hh"
 #include "castor_flow_table.hh"
+#include "castor_flow_entry.hh"
 
 CLICK_DECLS
 
 class PacketLabel {
 public:
+	PacketLabel(unsigned int num, unsigned int size, const FlowId &fid, const PacketId &pid, const Nonce &n)
+			: num(num), size(size), fid(fid), pid(pid), n(n) { }
 	unsigned int num;
 	unsigned int size;
-	FlowId fid;
-	PacketId pid;
-	AckAuth aauth;
-	Nonce n;
+	const FlowId &fid;
+	const PacketId &pid;
+	const Nonce &n;
 };
 
 class CastorMerkleFlow {
 public:
 	CastorMerkleFlow(size_t size, const NodeId& dst, CastorFlowTable* flowtable, const Crypto* crypto);
-	~CastorMerkleFlow();
 
 	PacketLabel freshLabel();
 	FlowId getFlowId();
 	bool isAlive() const;
 private:
-	MerkleTree* tree;
-	Nonce n;
-	Hash  fid;
-	Hash* aauths;
-	Hash* pids;
-	const unsigned int size;
-	const unsigned int height;
+	CastorFlowEntry *entry;
 	unsigned int pos;
 };
 

@@ -9,7 +9,7 @@ require(
 
 sam::SAManagement(fake, fake);
 crypto::Crypto(sam);
-flowtable :: CastorFlowTable(crypto);
+flowtable :: CastorFlowTable();
 flowmanager :: CastorFlowManager($flowSize, flowtable, crypto);
 
 groupmap :: XcastDestinationMap;

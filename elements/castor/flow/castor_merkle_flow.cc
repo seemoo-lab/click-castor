@@ -1,11 +1,13 @@
 #include <click/config.h>
 #include "castor_merkle_flow.hh"
+#include "merkle_tree.hh"
 
 CLICK_DECLS
 
-CastorMerkleFlow::CastorMerkleFlow(size_t size, const NodeId& dst, CastorFlowTable* flowtable, const Crypto* crypto) : size(size), height(MerkleTree::log2(size)), pos(0) {
-	aauths = new Hash[size];
-	pids = new Hash[size];
+CastorMerkleFlow::CastorMerkleFlow(size_t size, const NodeId& dst, CastorFlowTable* flowtable, const Crypto* crypto) : pos(0) {
+	Hash *aauths = new Hash[size];
+	Hash *pids = new Hash[size];
+	Nonce n;
 	crypto->random(n);
 	Buffer<32> key(crypto->getSharedKey(dst)->data());
 	// Generate aauths from n
@@ -13,40 +15,38 @@ CastorMerkleFlow::CastorMerkleFlow(size_t size, const NodeId& dst, CastorFlowTab
 	for (unsigned int i = 0; i < size; i++) {
 		crypto->hash(pids[i], aauths[i]);
 	}
-	tree = new MerkleTree(pids, size, *crypto);
-	fid = tree->root();
-	if (!flowtable->get(fid).has_tree())
-		flowtable->get(fid).set_tree(tree);
-	else
-		click_chatter("Could not add tree to flow table");
-}
+	MerkleTree *tree = new MerkleTree(pids, size, *crypto);
 
-CastorMerkleFlow::~CastorMerkleFlow() {
-	delete [] aauths;
-	delete [] pids;
+	assert(!flowtable->has(tree->root()));
+
+	// insert new flow table entry
+	entry = &flowtable->get(tree->root());
+	entry->set_tree(tree);
+	entry->n = n;
+	entry->aauths = aauths;
+	entry->pids = pids;
 }
 
 PacketLabel CastorMerkleFlow::freshLabel() {
-	if (!isAlive())
-		return PacketLabel();
-	PacketLabel label;
-	label.num = pos;
-	label.size = height;
-	label.n = n;
-	label.fid = fid;
-	label.pid = pids[pos];
+	assert(isAlive());
 
+	PacketLabel label(
+			pos,
+			entry->size(),
+			entry->fid(),
+			entry->pids[pos],
+			entry->n
+	);
 	pos++;
-
 	return label;
 }
 
 FlowId CastorMerkleFlow::getFlowId() {
-	return fid;
+	return entry->fid();
 }
 
 bool CastorMerkleFlow::isAlive() const {
-	return pos < size;
+	return pos < entry->size();
 }
 
 CLICK_ENDDECLS

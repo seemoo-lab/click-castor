@@ -24,7 +24,7 @@ Packet* CastorReconstructFlow::simple_action(Packet *p) {
 		return p;
 	}
 
-	unsigned int size = 1 << pkt.fsize();
+	unsigned int size = 1u << pkt.fsize();
 	e.aauths = new Hash[size];
 	e.pids =   new Hash[size];
 	Buffer<32> key(crypto->getSharedKey(pkt.src)->data());

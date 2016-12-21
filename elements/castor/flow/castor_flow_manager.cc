@@ -18,17 +18,14 @@ int CastorFlowManager::configure(Vector<String> &conf, ErrorHandler *errh) {
 			.complete();
 }
 
-FlowId CastorFlowManager::getCurrentFlowId(NodeId src, NodeId dst) {
+const FlowId &CastorFlowManager::getCurrentFlowId(NodeId src, NodeId dst) {
 	CastorMerkleFlow* flow = createFlowIfNotExists(src, dst);
 
 	return flow->getFlowId();
 }
 
 PacketLabel CastorFlowManager::getPacketLabel(NodeId src, NodeId dst) {
-	if (src.empty() || dst.empty() || src.is_multicast()) {
-		click_chatter("Invalid source or destination address");
-		return PacketLabel();
-	}
+	assert(!src.empty() || !dst.empty() || !src.is_multicast());
 
 	CastorMerkleFlow* flow = createFlowIfNotExists(src, dst);
 
