@@ -8,6 +8,8 @@
 
 CLICK_DECLS
 
+class CastorFlowManager;
+
 class PacketLabel {
 public:
 	PacketLabel(unsigned int num, unsigned int size, const FlowId &fid, const PacketId &pid, const Nonce &n)
@@ -22,11 +24,13 @@ public:
 class CastorMerkleFlow {
 public:
 	CastorMerkleFlow(size_t size, const NodeId& dst, CastorFlowTable* flowtable, const Crypto* crypto);
-
 	PacketLabel freshLabel();
 	const FlowId &getFlowId() const;
 	bool isAlive() const;
 private:
+	friend class CastorFlowManager;
+	CastorMerkleFlow() : entry(NULL) { }
+
 	CastorFlowEntry *entry;
 	unsigned int pos;
 };

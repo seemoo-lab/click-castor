@@ -25,13 +25,8 @@ private:
 	unsigned int _flowsize;
 	CastorFlowTable* _flowtable;
 	Crypto* _crypto;
-	HashTable<NodeId, HashTable<NodeId, CastorMerkleFlow*> > _flows;
-	CastorMerkleFlow* createFlowIfNotExists(NodeId src, NodeId dst);
-
-	/**
-	 * Defines the type of CastorFlow to be used.
-	 */
-	CastorMerkleFlow* createNewFlow(const NodeId& src, const NodeId& dst);
+	HashTable<NodeId, HashTable<NodeId, CastorMerkleFlow> > _flows;
+	CastorMerkleFlow &createFlowIfNotExists(NodeId src, NodeId dst);
 };
 
 CLICK_ENDDECLS
