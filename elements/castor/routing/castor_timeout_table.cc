@@ -21,11 +21,13 @@ int CastorTimeoutTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 		errh->fatal("ALPHA and BETA must be in the range [0,1]");
 		return -1;
 	}
+	flows = new ephemeral_map<FlowId, ForwarderEntry>(Timestamp::make_msec(10000), Timestamp::make_msec(1000), ForwarderEntry(), this);
+
 	return ret;
 }
 
 CastorTimeout& CastorTimeoutTable::getTimeout(const FlowId& flow, const NeighborId& forwarder) {
-	return flows[flow][forwarder];
+	return flows->at(flow)[forwarder];
 }
 
 CLICK_ENDDECLS
