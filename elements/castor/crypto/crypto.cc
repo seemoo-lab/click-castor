@@ -7,7 +7,7 @@ CLICK_DECLS
 
 int Crypto::configure(Vector<String> &conf, ErrorHandler *errh) {
 	return Args(conf, this, errh)
-			.read_mp("SAM", ElementCastArg("SAManagement"), sam)
+			.read_p("SAM", ElementCastArg("SAManagement"), sam)
 			.complete();
 }
 
@@ -28,12 +28,16 @@ void Crypto::random(uint8_t* buf, unsigned int length) const {
  * Return the symmetric shared key for a destination.
  */
 const SymmetricKey* Crypto::getSharedKey(const NodeId& id) const {
+	if (!sam)
+		return 0;
 	const SecurityAssociation* sharedKeySA = sam->get(id, SecurityAssociation::sharedsecret);
 	if (!sharedKeySA)
 		return 0;
 	return &sharedKeySA->secret;
 }
 const SymmetricKey* Crypto::getSharedKey(const NeighborId& id) const {
+	if (!sam)
+		return 0;
 	const SecurityAssociation* sharedKeySA = sam->get(id, SecurityAssociation::sharedsecret);
 	if (!sharedKeySA)
 		return 0;
