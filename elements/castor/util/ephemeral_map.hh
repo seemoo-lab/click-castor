@@ -107,6 +107,9 @@ void ephemeral_map<K,V>::run_timer(Timer* _timer) {
 		// Restart the timer with the timeout of the first expiring value
 		Timestamp next_clean_time = MAX(node->timeout, Timestamp::recent_steady() + clean_interval);
 		timer.schedule_at_steady(next_clean_time);
+	} else {
+		_map.~HashTable();
+		new (&_map) HashTable<K, ListNode *>();
 	}
 }
 
