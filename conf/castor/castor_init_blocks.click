@@ -12,8 +12,6 @@ crypto::Crypto(sam);
 flowtable :: CastorFlowTable(TIMEOUT $rtTimeout, CLEAN $rtCleanInterval);
 flowmanager :: CastorFlowManager($flowSize, flowtable, crypto);
 
-groupmap :: XcastDestinationMap;
-
 neighbors :: Neighbors($neighborTimeout, $neighborsEnable);
 history :: CastorHistory;
 routingtable :: CastorRoutingTable($updateDelta, TIMEOUT $rtTimeout, CLEAN $rtCleanInterval);
@@ -39,5 +37,5 @@ routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, continuous
 handlepkt :: CastorHandlePkt(fake, routeselector, routingtable, flowtable, timeouttable, ratelimits, history, crypto);
 handleack :: CastorHandleAck(fake, routingtable, flowtable, continuousflow, timeouttable, ratelimits, history, neighbors, crypto);
 
-handleIpPacket :: CastorHandleMulticastToUnicastIpPacket(fake, flowmanager, flowtable, crypto, groupmap);
+handleIpPacket :: CastorHandleIpPacket(fake, flowmanager, flowtable, crypto);
 removeHeader :: CastorRemoveHeader;

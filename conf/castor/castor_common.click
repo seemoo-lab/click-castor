@@ -132,13 +132,10 @@ elementclass CastorBlackhole {
 /**
  * Creates IP unicast from multicast packets
  */
-elementclass CastorHandleMulticastToUnicastIpPacket {
-	$myAddrInfo, $flowmanager, $flowtable, $crypto, $map |
+elementclass CastorHandleIpPacket {
+	$myAddrInfo, $flowmanager, $flowtable, $crypto |
 
 	input
-	-> XcastToUnicast($map)
-	=> (input[0] -> output;
-		input[1] -> SetIPChecksum -> output;)
 	-> CastorAddHeader($flowmanager, $flowtable, $forceNonce)
 	-> CastorCalcICV($crypto)
 	//-> CastorPrint('Send', $myAddrInfo)

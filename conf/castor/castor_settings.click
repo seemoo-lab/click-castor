@@ -43,7 +43,7 @@ define(
 
 	$broadcastJitter 1000, // jitter in microseconds to avoid collisions for broadcast traffic, only relevant when running under ns-3
 
-	$headroom 544, // Fixed Xcastor header + 10 * 29 bytes per destination + IP header + Ethernet header
+	$headroom 224, // Castor header + IP header + Ethernet header
 
 	/** Attacks */
 	$replayInterval 1000, // in ms
