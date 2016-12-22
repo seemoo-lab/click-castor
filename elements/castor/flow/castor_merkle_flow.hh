@@ -24,7 +24,7 @@ public:
 	CastorMerkleFlow(size_t size, const NodeId& dst, CastorFlowTable* flowtable, const Crypto* crypto);
 
 	PacketLabel freshLabel();
-	FlowId getFlowId();
+	const FlowId &getFlowId() const;
 	bool isAlive() const;
 private:
 	CastorFlowEntry *entry;
