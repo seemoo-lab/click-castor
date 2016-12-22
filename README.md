@@ -25,7 +25,6 @@ This section gives a rough overview where relevant code for Castor (v2) is locat
     * `castor.hh`: packet definitions
     * `attack/`: elements specific to implement certain attacks
     * `crypto/`: all required crypto (includes a wrapper class around `libsodium`)
-    * `flooding/`: "stupid" flooding protocol (was used to compare performance with Xcastor).
     * `flow/`: flow generation and reconstruction
     * `neighbors/`: neighbor discovery and neighbor-to-neighbor authentication
     * `ratelimiter/`: prevents neighbors from flooding the network
