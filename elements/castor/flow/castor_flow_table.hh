@@ -11,6 +11,10 @@ CLICK_DECLS
 
 class CastorFlowTable : public Element {
 public:
+	~CastorFlowTable() {
+		delete flows;
+	}
+
 	const char *class_name() const { return "CastorFlowTable"; }
 	const char *port_count() const { return PORTS_0_0; }
 	const char *processing() const { return AGNOSTIC; }

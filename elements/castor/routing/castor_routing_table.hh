@@ -16,6 +16,9 @@ public:
 
 public:
 	CastorRoutingTable() : default_entry(CastorEstimator(0)) {};
+	~CastorRoutingTable() {
+		delete flows;
+	}
 
 	const char *class_name() const { return "CastorRoutingTable"; }
 	const char *port_count() const { return PORTS_0_0; }
