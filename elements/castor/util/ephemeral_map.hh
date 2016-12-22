@@ -38,13 +38,13 @@ public:
 	void run_timer(Timer*);
 
 private:
-	Element *owner;
-
-	Timer timer;
 	Timestamp timeout;
 	Timestamp clean_interval;
+	Timer timer;
 
 	V default_value;
+
+	Element *owner;
 
 	List<ListNode, &ListNode::node> _timeout_queue;
 	HashTable<K, ListNode *> _map;
