@@ -29,7 +29,8 @@ public:
 	bool isAlive() const;
 private:
 	friend class CastorFlowManager;
-	CastorMerkleFlow() : entry(NULL) { }
+	// Dummy constructor
+	CastorMerkleFlow() : entry(NULL), pos(0) { }
 
 	CastorFlowEntry *entry;
 	unsigned int pos;

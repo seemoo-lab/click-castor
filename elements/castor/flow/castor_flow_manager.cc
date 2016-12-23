@@ -5,8 +5,7 @@
 
 CLICK_DECLS
 
-CastorFlowManager::CastorFlowManager() : _crypto(NULL),
-_flows(HashTable<NodeId, HashTable<NodeId, CastorMerkleFlow> >(HashTable<NodeId, CastorMerkleFlow>(CastorMerkleFlow())))
+CastorFlowManager::CastorFlowManager() : _flows(HashTable<NodeId, CastorMerkleFlow>(CastorMerkleFlow()))
 {
 }
 
