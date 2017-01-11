@@ -162,17 +162,6 @@ set(SOURCE_FILES
     elements/castor/debug/castor_is_dbg.hh
     elements/castor/debug/castor_is_insp.cc
     elements/castor/debug/castor_is_insp.hh
-    elements/castor/flooding/flooding.hh
-    elements/castor/flooding/flooding_blackhole_filter.cc
-    elements/castor/flooding/flooding_blackhole_filter.hh
-    elements/castor/flooding/flooding_check_duplicate.cc
-    elements/castor/flooding/flooding_check_duplicate.hh
-    elements/castor/flooding/flooding_destination_classifier.cc
-    elements/castor/flooding/flooding_destination_classifier.hh
-    elements/castor/flooding/flooding_record_pkt.cc
-    elements/castor/flooding/flooding_record_pkt.hh
-    elements/castor/flooding/flooding_set_pkt_id.cc
-    elements/castor/flooding/flooding_set_pkt_id.hh
     elements/castor/flow/castor_add_flow_authenticator.cc
     elements/castor/flow/castor_add_flow_authenticator.hh
     elements/castor/flow/castor_authenticate_flow.cc
@@ -286,10 +275,6 @@ set(SOURCE_FILES
     elements/castor/util/jitterunqueue.hh
     elements/castor/util/setipsrc.cc
     elements/castor/util/setipsrc.hh
-    elements/castor/util/xcast_destination_map.cc
-    elements/castor/util/xcast_destination_map.hh
-    elements/castor/util/xcast_to_unicast.cc
-    elements/castor/util/xcast_to_unicast.hh
     elements/castor/castor.hh
     elements/castor/castor_anno.hh
     elements/castor/group_id.hh
