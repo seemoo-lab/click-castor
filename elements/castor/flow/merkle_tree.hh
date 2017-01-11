@@ -68,9 +68,18 @@ public:
 		return r;
 	}
 
+	/**
+	 * Height of the tree (or height of the root node).
+	 *
+	 * Height of a node is the longest path from the node to a leaf.
+	 * A node
+	 */
 	unsigned int height() const {
 		return _height;
 	}
+	/**
+	 * @return number of leaves
+	 */
 	unsigned int size() const {
 		return _leaves;
 	}
@@ -80,14 +89,14 @@ private:
 	unsigned int _leaves;
 	const Crypto& crypto;
 
-	/** number of nodes on level 'l' of the tree */
-	inline unsigned int nodes_per_level(unsigned int l) const {
-		return 1 << l;
+	/** number of nodes at depth 'd' of the tree */
+	inline unsigned int nodes_at_depth(unsigned int d) const {
+		return 1 << d;
 	}
-	/** index in the flat Merkle tree for node 'off' on level 'l' */
-	inline unsigned int index(unsigned int l, unsigned int off = 0) const {
-		assert(off < nodes_per_level(l));
-		return (1 << l) - 1 + off;
+	/** index in the flat Merkle tree for node 'off' at depth 'l' */
+	inline unsigned int index(unsigned int d, unsigned int off = 0) const {
+		assert(off < nodes_at_depth(d));
+		return (1 << d) - 1 + off;
 	}
 	/** node 'off' on level 'l' */
 	inline Hash& element(unsigned int l, unsigned int off) {
