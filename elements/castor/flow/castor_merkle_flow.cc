@@ -32,7 +32,7 @@ PacketLabel CastorMerkleFlow::freshLabel() {
 
 	PacketLabel label(
 			pos,
-			entry->size(),
+			entry->height(),
 			entry->fid(),
 			entry->pids[pos],
 			entry->n
