@@ -11,6 +11,7 @@ if [ ! -d ${INSTALL_DIR} ]; then
 	if [ ! -e configure ]; then
 		./autogen.sh
 	fi
+	git apply ../patch-libsodium-no-devrandom-block.diff
 	./configure --prefix=${INSTALL_DIR} --enable-minimal --enable-shared=no
 	make && make check
 	make install
