@@ -215,8 +215,7 @@ elementclass CastorForwardPkt {
 	// Bounce back to sender
 	auth[2]
 		-> CastorPrint("Flow authentication failed (insufficient flow auth elements)", $myIP)
-		-> CastorMirror($myIP)
-		-> [0]output;
+		-> Discard;
 
 	auth[1]
 		-> CastorPrint("Flow authentication failed", $myIP)
