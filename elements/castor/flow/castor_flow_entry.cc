@@ -22,22 +22,19 @@ bool CastorFlowEntry::has_tree() const {
 }
 
 unsigned int CastorFlowEntry::height() const {
-	return !has_tree() ? 0 : _tree->height();
+	return _tree->height();
 }
 
 unsigned int CastorFlowEntry::size() const {
-	return !has_tree() ? 0 : _tree->size();
+	return _tree->size();
 }
 
 const Hash& CastorFlowEntry::fid() const {
-	return !has_tree() ? default_root : _tree->root();
+	return _tree->root();
 }
 
 void CastorFlowEntry::set_tree(MerkleTree* tree) {
-	if (_tree != NULL) {
-		click_chatter("tried to reset tree!");
-		return;
-	}
+	assert(!has_tree()); // tried to reset tree!
 	_tree = tree;
 	expired_pkts = Bitvector((int) size());
 	neighbor_acks = HashTable<NeighborId, Bitvector>(expired_pkts);
