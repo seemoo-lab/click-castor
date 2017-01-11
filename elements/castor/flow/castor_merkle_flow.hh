@@ -30,10 +30,12 @@ public:
 private:
 	friend class CastorFlowManager;
 	// Dummy constructor
-	CastorMerkleFlow() : entry(NULL), pos(0) { }
+	CastorMerkleFlow() : pos(0), flowtable(NULL) { }
 
-	CastorFlowEntry *entry;
+	FlowId fid;
 	unsigned int pos;
+
+	CastorFlowTable* flowtable;
 };
 
 CLICK_ENDDECLS
