@@ -16,7 +16,6 @@ if [ ! -d ${INSTALL_DIR} ]; then
 	if [ ! -e configure ]; then
 		./autogen.sh
 	fi
-	git apply ../patch-libsodium-maketoolchain-force.diff
 	export ANDROID_NDK_HOME=${NDK_ROOT}
 	dist-build/android-${ARCH}.sh
 fi
