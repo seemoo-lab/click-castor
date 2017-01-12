@@ -41,7 +41,6 @@ private:
 	// From which neighbor have we already received which authentic ACK
 	HashTable<NeighborId, Bitvector> neighbor_acks;
 	MerkleTree* _tree; // (partial) Merkle tree
-	static const Hash default_root;
 };
 
 #endif //CLICK_CASTOR_FLOW_ENTRY_HH

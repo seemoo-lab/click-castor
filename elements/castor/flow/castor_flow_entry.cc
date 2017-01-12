@@ -3,8 +3,6 @@
 
 CLICK_DECLS
 
-const Hash CastorFlowEntry::default_root;
-
 CastorFlowEntry::CastorFlowEntry() : local(false), acked(false), aauths(NULL), pids(NULL), _tree(NULL) {}
 
 CastorFlowEntry::~CastorFlowEntry() {
@@ -46,17 +44,13 @@ bool CastorFlowEntry::complete() const {
 
 /* Replay protection */
 bool CastorFlowEntry::is_expired_pkt(unsigned int k) const {
-	if (!has_tree() || !valid_index(k))
-		return false;
-	return expired_pkts[k];
+	return valid_index(k) && expired_pkts[k];
 }
 
 bool CastorFlowEntry::has_ack(unsigned int k, const NeighborId& from) const {
-	if (!has_tree() || !valid_index(k))
-		return false;
-	if (neighbor_acks.count(from) == 0)
-		return false;
-	return neighbor_acks[from][k];
+	return neighbor_acks.count(from) == 0
+	       && valid_index(k)
+	       && neighbor_acks[from][k];
 }
 
 void CastorFlowEntry::set_expired_pkt(unsigned int k) {
