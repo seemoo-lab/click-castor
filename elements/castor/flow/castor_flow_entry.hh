@@ -32,7 +32,6 @@ public:
 	bool has_ack(unsigned int k, const NeighborId& from) const;
 	void set_expired_pkt(unsigned int k);
 	void set_ack(unsigned int k, const NeighborId& from);
-	const Bitvector& get_acks(const NeighborId& from) const;
 
 private:
 	bool valid_index(unsigned int k) const;

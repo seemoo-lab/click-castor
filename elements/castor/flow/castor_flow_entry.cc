@@ -64,10 +64,6 @@ void CastorFlowEntry::set_ack(unsigned int k, const NeighborId& from) {
 	neighbor_acks[from][k] = true;
 }
 
-const Bitvector& CastorFlowEntry::get_acks(const NeighborId& from) const {
-	return neighbor_acks[from];
-}
-
 bool CastorFlowEntry::valid_index(unsigned int k) const {
 	return has_tree() && k < size();
 }
