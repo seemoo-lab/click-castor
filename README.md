@@ -1,5 +1,6 @@
-# Castor (v2) in Click
-This repository contains **Castor (v2)** implementation for the [Click Modular Router](http://www.read.cs.ucla.edu/click/).
+# SEMUD communication protocol
+This repository contains an implementation of **SEMUD**'s communication protocol for the [Click Modular Router](http://www.read.cs.ucla.edu/click/).
+The end-to-end communication protocol is based on *Castor* and features advanced security properties such as resiliency against advanced attacks, such as blackhole, greyhole, wormhole, and replay attacks.
 
 **Discalimer:** *This is highly experimental code and is expected to break from time to time. Feel free to [contact me](mailto:mschmittner@seemoo.tu-darmstadt.de) if you encounter problems.*
 
@@ -16,7 +17,7 @@ This repository contains **Castor (v2)** implementation for the [Click Modular R
 * [Related Publications](#related-publications)
 
 ## Code Navigation
-This section gives a rough overview where relevant code for Castor (v2) is located.
+This section gives a rough overview where relevant code is located.
 * `conf/castor/`: Click script files.
     * `castor_settings.click`: Castor-specific parameters etc.
     * `castor_run_PROFILE.click`: Run configurations where `PROFILE` can be `userlevel`, `ns3`, or `benchmark`.
@@ -33,7 +34,7 @@ This section gives a rough overview where relevant code for Castor (v2) is locat
 
 ## Install
 
-This repository comes with convenience scripts to build **Castor (v2)** with its only dependency **[libsodium](https://download.libsodium.org/doc/)**.
+This repository comes with convenience scripts to build the protocol with its only dependency **[libsodium](https://download.libsodium.org/doc/)**.
 
 ### General
 `click-castor` can be built as a regular userlevel or [ns-3](https://www.nsnam.org/) module.
@@ -104,6 +105,7 @@ make
 * Simon Schmitt (`ping` and `traceroute` tools)
 
 ## Related Publications
-* E. Kohler, R. Morris, B. Chen, J. Jannotti, and M. F. Kaashoek, “**The Click Modular Router**,” *ACM Transactions on Computer Systems*, vol. 18, no. 3, pp. 263–297, Aug. 2000. ([PDF](https://pdos.csail.mit.edu/papers/click:tocs00/paper.pdf), [web](http://read.cs.ucla.edu/click/click))
-* W. Galuba, P. Papadimitratos, M. Poturalski, K. Aberer, Z. Despotovic, and W. Kellerer, “**Castor: Scalable Secure Routing for Ad Hoc Networks**,” in *Proceedings of the IEEE Conference on Computer Communications (INFOCOM)*, 2010, pp. 1–9. ([PDF](https://infoscience.epfl.ch/record/148217/files/castor.pdf))
+* M. Schmittner, A. Asadi, and M. Hollick, “**SEMUD: Secure Multi-hop Device-to-Device Communication for 5G Public Safety Networks**,” in *IFIP Networking Conference and Workshops (NETWORKING)*, June 2017. (*to appear*)
 * M. Schmittner and M. Hollick, “**Xcastor: Secure and Scalable Group Communication in Ad Hoc Networks**,” in *IEEE Symposium on a World of Wireless, Mobile and Multimedia Networks (WoWMoM)*, June 2016. ([PDF](https://www.informatik.tu-darmstadt.de/fileadmin/user_upload/Group_SEEMOO/milan_schmittner/xcastor-wowmom16.pdf))
+* W. Galuba, P. Papadimitratos, M. Poturalski, K. Aberer, Z. Despotovic, and W. Kellerer, “**Castor: Scalable Secure Routing for Ad Hoc Networks**,” in *Proceedings of the IEEE Conference on Computer Communications (INFOCOM)*, 2010. ([PDF](https://infoscience.epfl.ch/record/148217/files/castor.pdf))
+* E. Kohler, R. Morris, B. Chen, J. Jannotti, and M. F. Kaashoek, “**The Click Modular Router**,” *ACM Transactions on Computer Systems*, vol. 18, no. 3, pp. 263–297, Aug. 2000. ([PDF](https://pdos.csail.mit.edu/papers/click:tocs00/paper.pdf), [web](http://read.cs.ucla.edu/click/click))
