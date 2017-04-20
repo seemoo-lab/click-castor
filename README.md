@@ -13,7 +13,8 @@ The end-to-end communication protocol runs on layer 2, is based on *Castor* (hen
 * [Run](#run)
     * [Interaction at Runtime](#interaction-at-runtime)
     * [Tools](#tools)
-* [Contributor](#contributors)
+* [Contributors](#contributors)
+* [License](#license)
 * [Related Publications](#related-publications)
 
 ## Code Navigation
@@ -31,6 +32,7 @@ This section gives a rough overview where relevant code is located.
     * `ratelimiter/`: prevents neighbors from flooding the network
     * `routing/`: main code base: routing logic
     * `util/`: utility Elements
+* `apps/castor/`: applications that allow interaction with specific `click-castor` elements.
 
 ## Install
 
@@ -103,6 +105,10 @@ make
 * Daniel Steinmetzer (early version of the original *Castor* implementation)
 * Michael Koch (port to *Android*)
 * Simon Schmitt (`ping` and `traceroute` tools)
+
+## License
+* `click-castor` is released under the [GNU General Public License (GPL) version 3](http://www.gnu.org/licenses/).
+* The Click framework has its own license (partly MIT and GPLv2), see the `README` file for details.
 
 ## Publications
 
