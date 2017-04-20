@@ -8,6 +8,8 @@
 #include "merkle_tree.hh"
 #include "../neighbor_id.hh"
 
+CLICK_DECLS
+
 class CastorFlowEntry {
 public:
 	CastorFlowEntry();
@@ -41,5 +43,7 @@ private:
 	HashTable<NeighborId, Bitvector> neighbor_acks;
 	MerkleTree* _tree; // (partial) Merkle tree
 };
+
+CLICK_ENDDECLS
 
 #endif //CLICK_CASTOR_FLOW_ENTRY_HH
