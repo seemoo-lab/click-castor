@@ -22,8 +22,6 @@ make distclean
 export CPPFLAGS="-I${INSTALL_DIR}/include"
 export LDFLAGS="-L${INSTALL_DIR}/lib"
 ./configure --enable-castor --enable-nsclick --disable-userlevel --disable-linuxmodule \
-			--disable-dynamic-linking \
-			--enable-tools=no \
             --disable-app --disable-aqm --disable-analysis --disable-test \
             --disable-tcpudp --disable-icmp --disable-threads --disable-tools
 make
