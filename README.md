@@ -1,8 +1,8 @@
 # SEMUD communication protocol
 This repository contains an implementation of **SEMUD**'s communication protocol for the [Click Modular Router](http://www.read.cs.ucla.edu/click/).
-The end-to-end communication protocol is based on *Castor* and features advanced security properties such as resiliency against advanced attacks, such as blackhole, greyhole, wormhole, and replay attacks.
+The end-to-end communication protocol runs on layer 2, is based on *Castor* (hence the original project name), and features advanced security properties such as resiliency against advanced attacks, such as blackhole, greyhole, wormhole, and replay attacks.
 
-**Discalimer:** *This is highly experimental code and is expected to break from time to time. Feel free to [contact me](mailto:mschmittner@seemoo.tu-darmstadt.de) if you encounter problems.*
+**Discalimer:** *This is highly experimental code and is expected to break. Feel free to [contact me](mailto:mschmittner@seemoo.tu-darmstadt.de) if you encounter problems.*
 
 ## Table of Contents
 * [Code Naviation](#code-navigation)
@@ -104,8 +104,12 @@ make
 * Michael Koch (port to *Android*)
 * Simon Schmitt (`ping` and `traceroute` tools)
 
-## Related Publications
+## Publications
+
+### Main paper (please cite if you use this code)
 * M. Schmittner, A. Asadi, and M. Hollick, “**SEMUD: Secure Multi-hop Device-to-Device Communication for 5G Public Safety Networks**,” in *IFIP Networking Conference and Workshops (NETWORKING)*, June 2017. (*to appear*)
+
+### Further related publication
 * M. Schmittner and M. Hollick, “**Xcastor: Secure and Scalable Group Communication in Ad Hoc Networks**,” in *IEEE Symposium on a World of Wireless, Mobile and Multimedia Networks (WoWMoM)*, June 2016. ([PDF](https://www.informatik.tu-darmstadt.de/fileadmin/user_upload/Group_SEEMOO/milan_schmittner/xcastor-wowmom16.pdf))
 * M. Schmittner, “**Secure and Scalable Multicast in Mobile Ad-hoc Networks**,” *Master thesis*, Technische Universität Darmstadt, September 2014.
 * W. Galuba, P. Papadimitratos, M. Poturalski, K. Aberer, Z. Despotovic, and W. Kellerer, “**Castor: Scalable Secure Routing for Ad Hoc Networks**,” in *Proceedings of the IEEE Conference on Computer Communications (INFOCOM)*, March 2010. ([PDF](https://infoscience.epfl.ch/record/148217/files/castor.pdf))
