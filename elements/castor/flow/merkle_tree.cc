@@ -3,7 +3,7 @@
 
 CLICK_DECLS
 
-MerkleTree::MerkleTree(const Hash in[], unsigned int length, const Crypto& crypto) : crypto(crypto) {
+MerkleTree::MerkleTree(const Hash in[], size_t length, const Crypto& crypto) : crypto(crypto) {
 	if (!(length && !(length & (length - 1)))) {
 		click_chatter("Input vector size must be a power of 2, but was %d", length);
 		return;
@@ -26,7 +26,7 @@ MerkleTree::MerkleTree(const Hash in[], unsigned int length, const Crypto& crypt
 	}
 }
 
-MerkleTree::MerkleTree(const Hash& root, unsigned int length, const Crypto& crypto) : crypto(crypto) {
+MerkleTree::MerkleTree(const Hash& root, size_t length, const Crypto& crypto) : crypto(crypto) {
 	if (!(length && !(length & (length - 1)))) {
 		click_chatter("Input vector size must be a power of 2, but was %d", length);
 		return;
@@ -41,22 +41,18 @@ MerkleTree::~MerkleTree() {
 	delete [] _flat;
 }
 
-const Hash& MerkleTree::root() const {
-	return _flat[0];
-}
-
-void MerkleTree::path_to_root(unsigned int k, Hash siblings[], unsigned int max) const {
-	for (unsigned int i = index(_height, k), si = 0; i > 0 && si < max; i = parent(i), si++) {
+void MerkleTree::path_to_root(size_t k, Hash siblings[], height_t max) const {
+	for (flat_rep_t i = index(_height, k), si = 0; i > 0 && si < max; i = parent(i), si++) {
 		siblings[si] = _flat[sibling(i)];
 	}
 }
 
-int MerkleTree::valid_leaf(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n) const {
+int MerkleTree::valid_leaf(size_t k, const Hash& in, const Hash siblings[], height_t n) const {
 	// First hash the input
 	Hash current;
 	crypto.hash(current, in);
-	unsigned int i = index(_height, k);
-	for (unsigned int l = 0; i > 0 && l < n; i = parent(i), l++) {
+	flat_rep_t i = index(_height, k);
+	for (height_t l = 0; i > 0 && l < n; i = parent(i), l++) {
 		if (k & (1 << l)) { // sibling is left child
 			crypto.hash(current, siblings[l] + current);
 		} else { // sibling is right child
@@ -68,15 +64,15 @@ int MerkleTree::valid_leaf(unsigned int k, const Hash& in, const Hash siblings[]
 	return (_flat[i] == current) ? 0 : -1;
 }
 
-void MerkleTree::add(unsigned int k, const Hash& in, const Hash siblings[], unsigned int n) {
+void MerkleTree::add(size_t k, const Hash& in, const Hash siblings[], height_t n) {
 	Hash current;
 	crypto.hash(current, in);
-	unsigned int i = index(_height, k);
+	flat_rep_t i = index(_height, k);
 	_flat[i] = current;
-	for (unsigned int h = 0; i > 0 && h < n; i = parent(i), h++) {
+	for (height_t h = 0; i > 0 && h < n; i = parent(i), h++) {
 		_flat[sibling(i)] = siblings[h];
 		if (_flat[parent(i)] == Hash()) {
-			if (k & (1 << h)) { // sibling is left child
+			if (k & (1u << h)) { // sibling is left child
 				crypto.hash(_flat[parent(i)], _flat[sibling(i)] + _flat[i]);
 			} else { // sibling is right child
 				crypto.hash(_flat[parent(i)], _flat[i] + _flat[sibling(i)]);
@@ -88,11 +84,11 @@ void MerkleTree::add(unsigned int k, const Hash& in, const Hash siblings[], unsi
 	}
 }
 
-bool MerkleTree::validate(unsigned int k, const Hash& in, const Hash siblings[], unsigned int h, const Hash& root, const Crypto& crypto) {
+bool MerkleTree::validate(size_t k, const Hash& in, const Hash siblings[], height_t h, const Hash& root, const Crypto& crypto) {
 	// First hash the input
 	Hash current;
 	crypto.hash(current, in);
-	for(unsigned int s = 0; s < h; s++) {
+	for(height_t s = 0; s < h; s++) {
 		if (k & (1 << s)) { // sibling is left child
 			crypto.hash(current, siblings[s] + current);
 		} else { // sibling is right child
