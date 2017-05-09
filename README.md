@@ -57,7 +57,7 @@ make elemlist all
 To build Click for a different architecture (such as i386 in our mesh nodes) on a x64 machine, you can cross compile by adding `--host=i386-linux-gnu` to the `./configure` call in `build-castor-native.sh`. Make sure to include the proper header files, e.g., `chroot` in the target file system.
 
 ### Android
-The Android build scripts use standalone toolchains. This requires the `NDK_ROOT` environment variable to point to your [Android NDK](https://developer.android.com/ndk/) installation.
+The Android build scripts use standalone toolchains. This requires the `NDK_ROOT` environment variable to point to your [Android NDK](https://developer.android.com/ndk/) installation (tested with version **14b**).
 Depending on `ARCH` (currently `armv7-a` or `armv8-a`), simply run
 ```
 ./build-android-ARCH.sh
@@ -113,7 +113,7 @@ make
 ## Publications
 
 ### Main paper (please cite if you use this code)
-* M. Schmittner, A. Asadi, and M. Hollick, “**SEMUD: Secure Multi-hop Device-to-Device Communication for 5G Public Safety Networks**,” in *IFIP Networking Conference and Workshops (NETWORKING)*, June 2017. (*to appear*)
+* M. Schmittner, A. Asadi, and M. Hollick, “**SEMUD: Secure Multi-hop Device-to-Device Communication for 5G Public Safety Networks**,” to appear in *IFIP Networking Conference (NETWORKING)*, June 2017.
 
 ### Further related publication
 * M. Schmittner and M. Hollick, “**Xcastor: Secure and Scalable Group Communication in Ad Hoc Networks**,” in *IEEE Symposium on a World of Wireless, Mobile and Multimedia Networks (WoWMoM)*, June 2016. ([PDF](https://www.informatik.tu-darmstadt.de/fileadmin/user_upload/Group_SEEMOO/milan_schmittner/xcastor-wowmom16.pdf))
