@@ -44,9 +44,11 @@ public:
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
 
-	FlowEntry& at(const Hash &flow) { return flows->at_or_default(flow, default_entry); };
+	FlowEntry& at(const Hash &flow) { return flows->at(flow); };
 	void insert(const Hash &flow, const FlowEntry &entry);
 	size_type count(const Hash &flow) const;
+
+	String unparse(const FlowId&) const;
 
 	void add_handlers();
 
@@ -59,7 +61,7 @@ private:
 
 	FlowEntry default_entry;
 
-	String unparse(const FlowId&) const;
+
 	void print(const FlowId&) const;
 
 	static String read_table_handler(Element *e, void *);
