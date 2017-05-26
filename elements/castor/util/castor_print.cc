@@ -69,7 +69,7 @@ Packet* CastorPrint::simple_action(Packet *p) {
 			sa << "\n";
 			sa << "   | From: \t" << CastorAnno::src_id_anno(p) << "\n";
 			sa << "   | To: \t" << CastorAnno::dst_id_anno(p) << "\n";
-			sa << "   | Type: \tACK  (" <<  ack.len << " bytes)\n";
+			sa << "   | Type: \tACK  (" <<  ntohs(ack.len) << " bytes)\n";
 			sa << "   | ACK Auth: \t" << ack.auth.str() << "\n";
 #ifdef DEBUG_ACK_SRCDST
 			sa << "   | Flow: \t" << ack.src << " -> " << ack.dst << "\n";
