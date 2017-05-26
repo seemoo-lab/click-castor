@@ -1224,113 +1224,6 @@ set(SOURCE_FILES
     elements/wifi/wirelessinfo.hh
     exopc/click.cc
     exopc/syscall.c
-    include/click/standard/addressinfo.hh
-    include/click/standard/alignmentinfo.hh
-    include/click/standard/errorelement.hh
-    include/click/standard/portinfo.hh
-    include/click/standard/scheduleinfo.hh
-    include/click/standard/storage.hh
-    include/click/standard/threadsched.hh
-    include/click/algorithm.hh
-    include/click/archive.hh
-    include/click/args.hh
-    include/click/array_memory.hh
-    include/click/atomic.hh
-    include/click/bighashmap.cc
-    include/click/bighashmap.hh
-    include/click/bighashmap_arena.hh
-    include/click/bigint.hh
-    include/click/bitvector.hh
-    include/click/clp.h
-    include/click/config-bsdmodule.h
-    include/click/config-linuxmodule.h
-    include/click/config-minios.h
-    include/click/config-ns.h
-    include/click/config-userlevel.h
-    include/click/config.h
-    include/click/confparse.hh
-    include/click/crc32.h
-    include/click/cxxprotect.h
-    include/click/cxxunprotect.h
-    include/click/deque.cc
-    include/click/deque.hh
-    include/click/dequeue.hh
-    include/click/dpdkdevice.hh
-    include/click/driver.hh
-    include/click/element.hh
-    include/click/elemfilter.hh
-    include/click/error.hh
-    include/click/etheraddress.hh
-    include/click/ewma.hh
-    include/click/fixconfig.h
-    include/click/fromfile.hh
-    include/click/gaprate.hh
-    include/click/glue.hh
-    include/click/handler.hh
-    include/click/handlercall.hh
-    include/click/hashallocator.hh
-    include/click/hashcode.hh
-    include/click/hashcontainer.hh
-    include/click/hashmap.cc
-    include/click/hashmap.hh
-    include/click/hashtable.hh
-    include/click/heap.hh
-    include/click/ino.hh
-    include/click/integers.hh
-    include/click/ip6address.hh
-    include/click/ip6flowid.hh
-    include/click/ip6table.hh
-    include/click/ipaddress.hh
-    include/click/ipaddresslist.hh
-    include/click/ipflowid.hh
-    include/click/iptable.hh
-    include/click/lexer.hh
-    include/click/list.hh
-    include/click/llrpc.h
-    include/click/machine.hh
-    include/click/master.hh
-    include/click/md5.h
-    include/click/nameinfo.hh
-    include/click/notifier.hh
-    include/click/package.hh
-    include/click/packet.hh
-    include/click/packet_anno.hh
-    include/click/pair.hh
-    include/click/pathvars.h
-    include/click/perfctr-i586.hh
-    include/click/router.hh
-    include/click/routerthread.hh
-    include/click/routervisitor.hh
-    include/click/selectset.hh
-    include/click/simclick.h
-    include/click/skbmgr.hh
-    include/click/straccum.hh
-    include/click/string.hh
-    include/click/sync.hh
-    include/click/task.hh
-    include/click/timer.hh
-    include/click/timerset.hh
-    include/click/timestamp.hh
-    include/click/tokenbucket.hh
-    include/click/type_traits.hh
-    include/click/userutils.hh
-    include/click/variableenv.hh
-    include/click/vector.cc
-    include/click/vector.hh
-    include/clicknet/dhcp.h
-    include/clicknet/ether.h
-    include/clicknet/fddi.h
-    include/clicknet/icmp.h
-    include/clicknet/icmp6.h
-    include/clicknet/ip.h
-    include/clicknet/ip6.h
-    include/clicknet/llc.h
-    include/clicknet/ppp.h
-    include/clicknet/radiotap.h
-    include/clicknet/rfc1483.h
-    include/clicknet/tcp.h
-    include/clicknet/udp.h
-    include/clicknet/wifi.h
     lib/archive.cc
     lib/args.cc
     lib/atomic.cc
@@ -1398,8 +1291,6 @@ set(SOURCE_FILES
     libsodium/libsodium-native/include/sodium/crypto_hash.h
     libsodium/libsodium-native/include/sodium/crypto_hash_sha256.h
     libsodium/libsodium-native/include/sodium/crypto_hash_sha512.h
-    libsodium/libsodium-native/include/sodium/crypto_int32.h
-    libsodium/libsodium-native/include/sodium/crypto_int64.h
     libsodium/libsodium-native/include/sodium/crypto_onetimeauth.h
     libsodium/libsodium-native/include/sodium/crypto_onetimeauth_poly1305.h
     libsodium/libsodium-native/include/sodium/crypto_pwhash.h
@@ -1421,10 +1312,6 @@ set(SOURCE_FILES
     libsodium/libsodium-native/include/sodium/crypto_stream_salsa2012.h
     libsodium/libsodium-native/include/sodium/crypto_stream_salsa208.h
     libsodium/libsodium-native/include/sodium/crypto_stream_xsalsa20.h
-    libsodium/libsodium-native/include/sodium/crypto_uint16.h
-    libsodium/libsodium-native/include/sodium/crypto_uint32.h
-    libsodium/libsodium-native/include/sodium/crypto_uint64.h
-    libsodium/libsodium-native/include/sodium/crypto_uint8.h
     libsodium/libsodium-native/include/sodium/crypto_verify_16.h
     libsodium/libsodium-native/include/sodium/crypto_verify_32.h
     libsodium/libsodium-native/include/sodium/crypto_verify_64.h
