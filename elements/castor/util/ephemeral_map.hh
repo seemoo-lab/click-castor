@@ -90,9 +90,8 @@ V& ephemeral_map<K,V>::at_or_default(const K &key, const V &init) {
 		node->timeout = node_timeout;
 		_timeout_queue.push_back(node);
 		if (isFront) {
-			node = _timeout_queue.front();
 			timer.unschedule();
-			timer.schedule_at_steady(node->timeout);
+			timer.schedule_at_steady(_timeout_queue.front()->timeout);
 		}
 	}
 	return node->value;
