@@ -42,7 +42,7 @@ elementclass CastorClassifier {
 		-> forwarderFilter :: ForwarderFilter($myAddr)
 		-> NeighborAuthCheckICV(crypto, $neighborsEnable)
 		=> ( [0] -> NeighborAuthStripICV -> output;
-		     [1] /*-> CastorPrint("No valid neighbor-to-neighbor ICV", fake)*/ -> Discard; )
+		     [1] -> CastorPrint("No valid neighbor-to-neighbor ICV", fake) -> Discard; )
 		-> removeForwarderList :: RemoveForwarderList
 		-> cclassifier :: Classifier(0/c?, 0/a?, -);
 
@@ -72,7 +72,7 @@ elementclass DynamicEtherEncap {
 		-> AddForwarderList
 		-> NeighborAuthAddICV($neighbors, $crypto, true)
 		=> ( [0] -> output;
-		     [1] /* -> CastorPrint("No neighbors, no ICV added", fake) */ -> output; )
+		     [1] -> RemoveForwarderList -> CastorPrint("No neighbors, no ICV added", fake) -> Discard; )
 		-> EtherEncap($ETHERTYPE_CASTOR, $myAddr, 00:00:00:00:00:00)
 		-> StoreEtherAddress(OFFSET dst, ANNO 12)
 		-> output;
