@@ -1,6 +1,6 @@
 # SEMUD communication protocol
 This repository contains an implementation of **SEMUD**'s communication protocol for the [Click Modular Router](http://www.read.cs.ucla.edu/click/).
-The end-to-end communication protocol runs on layer 2, is based on *Castor* (hence the original project name), and features advanced security properties such as resiliency against advanced attacks, such as blackhole, greyhole, wormhole, and replay attacks.
+The end-to-end communication protocol runs on layer 2, is based on *Castor* (hence the original project name), and features advanced security properties such as resilience against advanced attacks, such as blackhole, greyhole, wormhole, and replay attacks.
 
 **Discalimer:** *This is highly experimental code and is expected to break. Feel free to [contact me](mailto:mschmittner@seemoo.tu-darmstadt.de) if you encounter problems.*
 
