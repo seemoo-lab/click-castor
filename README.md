@@ -113,10 +113,10 @@ make
 ## Publications
 
 ### Main paper (please cite if you use this code)
-* M. Schmittner, A. Asadi, and M. Hollick, “**SEMUD: Secure Multi-hop Device-to-Device Communication for 5G Public Safety Networks**,” to appear in *IFIP Networking Conference (NETWORKING)*, June 2017.
+* M. Schmittner, A. Asadi, and M. Hollick, “**SEMUD: Secure Multi-hop Device-to-Device Communication for 5G Public Safety Networks**,” in *IFIP Networking Conference (NETWORKING)*, June 2017. ([PDF](http://dl.ifip.org/db/conf/networking/networking2017/1570334533.pdf))
 
 ### Further related publication
 * M. Schmittner and M. Hollick, “**Xcastor: Secure and Scalable Group Communication in Ad Hoc Networks**,” in *IEEE Symposium on a World of Wireless, Mobile and Multimedia Networks (WoWMoM)*, June 2016. ([PDF](https://www.informatik.tu-darmstadt.de/fileadmin/user_upload/Group_SEEMOO/milan_schmittner/xcastor-wowmom16.pdf))
-* M. Schmittner, “**Secure and Scalable Multicast in Mobile Ad-hoc Networks**,” *Master thesis*, Technische Universität Darmstadt, September 2014.
+* M. Schmittner, “**Secure and Scalable Multicast in Mobile Ad-hoc Networks**,” *Master thesis*, Technische Universität Darmstadt, September 2014. ([PDF](http://tuprints.ulb.tu-darmstadt.de/6607/))
 * W. Galuba, P. Papadimitratos, M. Poturalski, K. Aberer, Z. Despotovic, and W. Kellerer, “**Castor: Scalable Secure Routing for Ad Hoc Networks**,” in *Proceedings of the IEEE Conference on Computer Communications (INFOCOM)*, March 2010. ([PDF](https://infoscience.epfl.ch/record/148217/files/castor.pdf))
 * E. Kohler, R. Morris, B. Chen, J. Jannotti, and M. F. Kaashoek, “**The Click Modular Router**,” *ACM Transactions on Computer Systems*, vol. 18, no. 3, pp. 263–297, August 2000. ([PDF](https://pdos.csail.mit.edu/papers/click:tocs00/paper.pdf), [web](http://read.cs.ucla.edu/click/click))
