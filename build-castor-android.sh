@@ -18,6 +18,8 @@ if [ ! -d ${INSTALL_DIR} ]; then
 	fi
 	export ANDROID_NDK_HOME=${NDK_ROOT}
 	dist-build/android-${ARCH}.sh
+	# copy missing header file
+	cp src/libsodium/include/sodium/crypto_pwhash_argon2id.h libsodium-android-${ARCH}/include/sodium
 fi
 
 echo "Building Click with Castor"
