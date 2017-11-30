@@ -62,8 +62,8 @@ Depending on `ARCH` (currently `armv7-a` or `armv8-a`), simply run
 ```
 ./build-android-ARCH.sh
 ```
-The relevant binaries are then found in `android/build/click-android-ARCH`.
-
+The relevant `click` binary is then found in `android/build/click-android-ARCH/`.
+The libsodium shared library will be in `libsodium/libsodium-android-ARCH/`.
 
 
 ## Run

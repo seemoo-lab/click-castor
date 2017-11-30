@@ -26,7 +26,8 @@ echo "Building Click with Castor"
 cd ${CLICK_DIR}
 make distclean
 export CPPFLAGS="-I${INSTALL_DIR}/include"
-export CXXFLAGS="-static"
+# Static build fails to launch on Android with "sh: ./click: No such file or directory"
+#export CXXFLAGS="-static"
 export LDFLAGS="-L${INSTALL_DIR}/lib"
 export CLICK_OPTIONS="--enable-castor \
                       --enable-tools=no \
