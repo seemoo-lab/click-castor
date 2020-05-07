@@ -8,21 +8,7 @@ project(click_castor)
 set(CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_FILES
-    apps/castor/ping/cli.cc
-    apps/castor/ping/cli.hh
-    apps/castor/ping/ping.cc
-    apps/castor/ping/ping.hh
-    apps/castor/ping/ping_test.cc
     apps/castor/status/castor_status.cc
-    apps/castor/traceroute/cli.cc
-    apps/castor/traceroute/cli.hh
-    apps/castor/traceroute/route.cc
-    apps/castor/traceroute/route.hh
-    apps/castor/traceroute/route_entry.cc
-    apps/castor/traceroute/route_entry.hh
-    apps/castor/traceroute/traceroute.cc
-    apps/castor/traceroute/traceroute.hh
-    apps/castor/traceroute/traceroute_test.cc
     apps/castor/castor_socket.hh
     apps/csclient/csclient.cc
     apps/csclient/csclient.hh
@@ -1272,61 +1258,9 @@ set(SOURCE_FILES
     lib/timestamp.cc
     lib/userutils.cc
     lib/variableenv.cc
-    libsodium/libsodium-native/include/sodium/core.h
-    libsodium/libsodium-native/include/sodium/crypto_aead_aes256gcm.h
-    libsodium/libsodium-native/include/sodium/crypto_aead_chacha20poly1305.h
-    libsodium/libsodium-native/include/sodium/crypto_auth.h
-    libsodium/libsodium-native/include/sodium/crypto_auth_hmacsha256.h
-    libsodium/libsodium-native/include/sodium/crypto_auth_hmacsha512.h
-    libsodium/libsodium-native/include/sodium/crypto_auth_hmacsha512256.h
-    libsodium/libsodium-native/include/sodium/crypto_box.h
-    libsodium/libsodium-native/include/sodium/crypto_box_curve25519xsalsa20poly1305.h
-    libsodium/libsodium-native/include/sodium/crypto_core_hchacha20.h
-    libsodium/libsodium-native/include/sodium/crypto_core_hsalsa20.h
-    libsodium/libsodium-native/include/sodium/crypto_core_salsa20.h
-    libsodium/libsodium-native/include/sodium/crypto_core_salsa2012.h
-    libsodium/libsodium-native/include/sodium/crypto_core_salsa208.h
-    libsodium/libsodium-native/include/sodium/crypto_generichash.h
-    libsodium/libsodium-native/include/sodium/crypto_generichash_blake2b.h
-    libsodium/libsodium-native/include/sodium/crypto_hash.h
-    libsodium/libsodium-native/include/sodium/crypto_hash_sha256.h
-    libsodium/libsodium-native/include/sodium/crypto_hash_sha512.h
-    libsodium/libsodium-native/include/sodium/crypto_onetimeauth.h
-    libsodium/libsodium-native/include/sodium/crypto_onetimeauth_poly1305.h
-    libsodium/libsodium-native/include/sodium/crypto_pwhash.h
-    libsodium/libsodium-native/include/sodium/crypto_pwhash_argon2i.h
-    libsodium/libsodium-native/include/sodium/crypto_pwhash_scryptsalsa208sha256.h
-    libsodium/libsodium-native/include/sodium/crypto_scalarmult.h
-    libsodium/libsodium-native/include/sodium/crypto_scalarmult_curve25519.h
-    libsodium/libsodium-native/include/sodium/crypto_secretbox.h
-    libsodium/libsodium-native/include/sodium/crypto_secretbox_xsalsa20poly1305.h
-    libsodium/libsodium-native/include/sodium/crypto_shorthash.h
-    libsodium/libsodium-native/include/sodium/crypto_shorthash_siphash24.h
-    libsodium/libsodium-native/include/sodium/crypto_sign.h
-    libsodium/libsodium-native/include/sodium/crypto_sign_ed25519.h
-    libsodium/libsodium-native/include/sodium/crypto_sign_edwards25519sha512batch.h
-    libsodium/libsodium-native/include/sodium/crypto_stream.h
-    libsodium/libsodium-native/include/sodium/crypto_stream_aes128ctr.h
-    libsodium/libsodium-native/include/sodium/crypto_stream_chacha20.h
-    libsodium/libsodium-native/include/sodium/crypto_stream_salsa20.h
-    libsodium/libsodium-native/include/sodium/crypto_stream_salsa2012.h
-    libsodium/libsodium-native/include/sodium/crypto_stream_salsa208.h
-    libsodium/libsodium-native/include/sodium/crypto_stream_xsalsa20.h
-    libsodium/libsodium-native/include/sodium/crypto_verify_16.h
-    libsodium/libsodium-native/include/sodium/crypto_verify_32.h
-    libsodium/libsodium-native/include/sodium/crypto_verify_64.h
-    libsodium/libsodium-native/include/sodium/export.h
-    libsodium/libsodium-native/include/sodium/randombytes.h
-    libsodium/libsodium-native/include/sodium/randombytes_salsa20_random.h
-    libsodium/libsodium-native/include/sodium/randombytes_sysrandom.h
-    libsodium/libsodium-native/include/sodium/runtime.h
-    libsodium/libsodium-native/include/sodium/utils.h
-    libsodium/libsodium-native/include/sodium/version.h
-    libsodium/libsodium-native/include/sodium.h
-    userlevel/click.cc
-    userlevel/elements.cc)
-
-include_directories(include)
-include_directories(libsodium/libsodium-native/include)
+    userlevel/click.cc)
 
 add_executable(click_castor ${SOURCE_FILES})
+
+target_include_directories(click_castor PRIVATE ./include)
+target_include_directories(click_castor PRIVATE ./libsodium/src/include)

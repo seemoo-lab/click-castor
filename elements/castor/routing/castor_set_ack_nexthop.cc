@@ -40,14 +40,12 @@ Packet* CastorSetAckNexthop::simple_action(Packet* p) {
 	size_t active_count = 0;
 	for (const auto& sender : history->getPktSenders(pid)) {
 		if (neighbors->contains(sender)) {
-			if (active_count == 0)
-				dst = sender;
 			active_count++;
 		}
 	}
 	// Use broadcast if there are at least two other neighbors than the ACK sender
 	// We also use broadcast (opportunistically) if the ACK sender is our only current neighbor
-	bool use_broadcast = active_count != 2;
+	bool use_broadcast = active_count > 1;
 
 	// Set packet destination
 	CastorAnno::dst_id_anno(p) = use_broadcast ? NeighborId::make_broadcast() : dst;

@@ -29,14 +29,13 @@ toextdev :: Unqueue
 	     input[1] -> output; )
 	-> Discard;
 
-elementclass BroadcastJitter {
-	$broadcastJitter |
+elementclass ProcessingJitter {
+	$jitterMin, $jitterMax |
 
 	input -> output;
 }
 
 require(
-	library castor_socket.click,
 	library castor_init_blocks.click,
 	library castor_wiring.click,
 );

@@ -33,14 +33,15 @@ elementclass OutputEth {
 		-> [2] prio;
 
 	input[0] // Castor PKT
-		-> BroadcastJitter($broadcastJitter)
+		-> ProcessingJitter($jitterMin, $jitterMax)
 		-> lowprio;
 
 	input[1] // Castor ACK
-		-> BroadcastJitter($broadcastJitter)
+		-> ProcessingJitter($jitterMin, $jitterMax)
 		-> highprio;
 
 	input[2] // Beacons
+		-> ProcessingJitter($jitterMin, $jitterMax)
 		-> beacons_be;
 }
 

@@ -79,7 +79,7 @@ public:
 	}
 private:
 	uint8_t array[S];
-};
+} CLICK_SIZE_PACKED_ATTRIBUTE;
 
 typedef Buffer<CASTOR_HASH_LENGTH> Hash;
 

@@ -44,21 +44,8 @@ Packet* CastorUnicastFilter::simple_action(Packet *p) {
 	}
 }
 
-int CastorUnicastFilter::write_handler(const String &str, Element *e, void *, ErrorHandler *errh) {
-	CastorUnicastFilter* filter = (CastorUnicastFilter*) e;
-
-	bool active;
-	if(Args(filter, errh).push_back_words(str)
-			.read_p("ACTIVE", active)
-			.complete() < 0)
-		return -1;
-
-	filter->active = active;
-	return 0;
-}
-
 void CastorUnicastFilter::add_handlers() {
-	add_write_handler("active", write_handler, 0);
+	add_data_handlers("active", Handler::f_read | Handler::f_write, &this->active);
 }
 
 CLICK_ENDDECLS

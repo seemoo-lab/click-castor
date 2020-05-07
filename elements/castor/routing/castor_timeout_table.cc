@@ -18,20 +18,22 @@
  */
 
 #include <click/config.h>
-#include <click/confparse.hh>
+#include <click/args.hh>
 #include <click/error.hh>
 #include "castor_timeout_table.hh"
 
 CLICK_DECLS
 
 int CastorTimeoutTable::configure(Vector<String> &conf, ErrorHandler *errh) {
-	int ret = cp_va_kparse(conf, this, errh,
-			"INIT", cpkP, cpUnsigned, &CastorTimeout::init_timeout,
-			"MIN", cpkP, cpUnsigned, &CastorTimeout::min_timeout,
-			"MAX", cpkP, cpUnsigned, &CastorTimeout::max_timeout,
-			"ALPHA", cpkN, cpDouble, &CastorTimeout::alpha,
-			"BETA", cpkN, cpDouble, &CastorTimeout::beta,
-			cpEnd);
+	int result = Args(conf, this, errh)
+		.read_p("INIT", CastorTimeout::init_timeout)
+		.read_p("MIN", CastorTimeout::min_timeout)
+		.read_p("MAX", CastorTimeout::max_timeout)
+		.read("ALPHA", CastorTimeout::alpha)
+		.read("BETA", CastorTimeout::beta)
+		.complete();
+	if (result)
+		return result;
 	if (CastorTimeout::init_timeout < CastorTimeout::min_timeout || CastorTimeout::init_timeout > CastorTimeout::max_timeout) {
 		errh->fatal("INIT must be in the range [MIN,MAX]");
 		return -1;
@@ -42,11 +44,15 @@ int CastorTimeoutTable::configure(Vector<String> &conf, ErrorHandler *errh) {
 	}
 	flows = new ephemeral_map<FlowId, ForwarderEntry>(Timestamp::make_msec(10000), Timestamp::make_msec(1000), ForwarderEntry(), this);
 
-	return ret;
+	return 0;
 }
 
 CastorTimeout& CastorTimeoutTable::getTimeout(const FlowId& flow, const NeighborId& forwarder) {
 	return flows->at(flow)[forwarder];
+}
+
+const CastorTimeout& CastorTimeoutTable::getTimeoutNoTouch(const FlowId& flow, const NeighborId& forwarder) const {
+	return flows->at_notouch(flow)[forwarder];
 }
 
 CLICK_ENDDECLS

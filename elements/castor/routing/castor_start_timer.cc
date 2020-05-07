@@ -24,10 +24,10 @@
 
 CLICK_DECLS
 
-CastorStartTimer::PidTimer::PidTimer(CastorStartTimer *element, const PacketId pid, unsigned int timeout)
+CastorStartTimer::PidTimer::PidTimer(CastorStartTimer *element, const PacketId pid, Timestamp timeout)
 : Timer(element), pid(pid) {
 	initialize(element);
-	schedule_after_msec(timeout);
+	schedule_after(timeout);
 }
 
 int CastorStartTimer::configure(Vector<String>& conf, ErrorHandler* errh) {
@@ -47,7 +47,7 @@ int CastorStartTimer::configure(Vector<String>& conf, ErrorHandler* errh) {
 Packet* CastorStartTimer::simple_action(Packet* p) {
 	// Add timer
 	CastorPkt& header = (CastorPkt&) *p->data();
-	unsigned int timeout = toTable->getTimeout(header.fid, history->routedTo(header.pid)).value();
+	Timestamp timeout = toTable->getTimeout(header.fid, history->routedTo(header.pid)).value();
 	new PidTimer(this, header.pid, timeout);
 
 	return p;
@@ -60,8 +60,9 @@ void CastorStartTimer::run_timer(Timer* _timer) {
 	if (!history->hasAck(pid)) {
 		if (table)       adjust_estimator(pid);
 		if (rate_limits) adjust_rate_limit(pid);
-		flowtable->get(history->getFlowId(pid)).set_expired_pkt(history->k(pid));
 	}
+	/* replay protection, will not accept an ACK again in the future */
+	flowtable->get(history->getFlowId(pid)).set_expired_pkt(history->k(pid));
 	history->remove(pid);
 
 	delete timer;

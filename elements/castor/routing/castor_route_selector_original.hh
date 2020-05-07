@@ -25,6 +25,7 @@
 #include "../neighbors/neighbors.hh"
 #include "castor_routing_table.hh"
 #include "castor_continuous_flow_map.hh"
+#include "castor_timeout_table.hh"
 
 CLICK_DECLS
 
@@ -45,16 +46,30 @@ protected:
 	 * Bandwidth investment for route discovery (larger values reduce the broadcast probability)
 	 */
 	double broadcastAdjust;
+	/**
+	 * Break ties based on RTT rather than randomly
+	 */
+	bool tiebreakerRtt;
+	/**
+	 * Always unicast starting from here
+	 */
+	double unicastThreshold;
+	/**
+	 * Use raw 'reliability' for broadcast decision instead of calculating
+	 * e^(-1 * broadcastAdjust * reliability)
+	 */
+	bool rawReliabilityForBroadcast;
 
 	CastorRoutingTable* routingtable;
 	Neighbors* neighbors;
 	CastorContinuousFlowMap* continuous_flow;
+	CastorTimeoutTable* timeouttable;
 
 	void copy_flow_entry(const Hash &flow, const NodeId &src, const NodeId &dst);
 	virtual double select(CastorRoutingTable::FlowEntry& entry, Vector<NeighborId>& best_candidates);
-	virtual void update_candidates(const NeighborId&, double, Vector<NeighborId>&, double&) const;
-	bool should_broadcast(double best_estimate) const;
+	bool should_unicast(double best_estimate) const;
 	const NeighborId& select_random(const Vector<NeighborId>&) const;
+	const NeighborId& select_smallest_rtt(const FlowId&, const Vector<NeighborId>&) const;
 	inline NeighborId broadcast() const { return NeighborId::make_broadcast(); }
 };
 

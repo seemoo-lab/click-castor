@@ -1,4 +1,4 @@
-PROGRAMS := status ping traceroute
+PROGRAMS := status
 
 all: $(PROGRAMS)
 

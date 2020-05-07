@@ -44,7 +44,7 @@ private:
 
 	class PidTimer : public Timer {
 	public:
-		PidTimer(CastorStartTimer *element, const PacketId pid, unsigned int timeout);
+		PidTimer(CastorStartTimer *element, const PacketId pid, Timestamp timeout);
 		inline const PacketId &getPid() const { return pid; }
 	private:
 		const PacketId pid;

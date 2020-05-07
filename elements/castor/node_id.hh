@@ -55,7 +55,7 @@ public:
     inline bool empty() {
     	return IPAddress::empty();
     }
-};
+} CLICK_SIZE_PACKED_ATTRIBUTE;
 
 class ArgContext;
 class Args;

@@ -32,7 +32,7 @@ CLICK_DECLS
  */
 class JitterUnqueue: public Element {
 public:
-	JitterUnqueue() : simulatorTime(false), p(0), jitter(0), task(this), timer(&task) {};
+	JitterUnqueue() : simulatorTime(false), p(0), jitter_min(0), jitter_max(0), task(this), timer(&task) {};
 
     const char *class_name() const	{ return "JitterUnqueue"; }
     const char *port_count() const	{ return PORTS_1_1; }
@@ -48,7 +48,7 @@ public:
   private:
     bool simulatorTime;
     Packet *p;
-    Timestamp jitter;
+    Timestamp jitter_min, jitter_max;
     Task task;
     Timer timer;
     NotifierSignal signal;

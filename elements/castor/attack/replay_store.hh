@@ -44,7 +44,10 @@ private:
 		ReplayTimer() : Timer(), pkt(NULL), ack(NULL), replays_left(0), timeout(0), jitter(0) {}
 		ReplayTimer(ReplayStore *element, const Hash& id, Packet* p, unsigned int replays, unsigned int timeout, unsigned int jitter = 0) : Timer(element), id(id), pkt(p), ack(NULL), replays_left(replays), timeout(timeout), jitter(jitter) {
 			initialize(element);
-			schedule_after_msec(interval());
+		}
+		~ReplayTimer() {
+			pkt->kill();
+			ack->kill();
 		}
 		inline unsigned int interval() {
 			return timeout + randsign() * randjitter();
@@ -74,6 +77,7 @@ private:
 	bool enable;
 
 	static int write_handler(const String &, Element *, void *, ErrorHandler *);
+	static int write_clear_handler(const String &, Element *, void *, ErrorHandler *);
 };
 
 CLICK_ENDDECLS

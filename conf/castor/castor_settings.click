@@ -22,8 +22,6 @@
  **************/
 
 define(
-	$CASTOR_VERSION 1, // Deprecated
-
 	// 0x88B5 and 0x88B6 reserved for private experiments, so we use them
 	$ETHERTYPE_CASTOR 0x88B6,
 	$ETHERTYPE_BEACON 0x88B5,
@@ -32,15 +30,15 @@ define(
 	$broadcastAdjust 8.0, // bandwidth investment for route discovery (larger values reduce the broadcast probability)
 	$updateDelta 0.8, // adaptivity of the reliability estimators
 
-	$rtTimeout 10000, // rt entry timeout (ms)
+	$rtTimeout 256000, // rt entry timeout (ms)
 	$rtCleanInterval 1000, // how often is rt cleaned (ms)
 
-	$flowSize 128, // number of pids per flow
+	$flowSize 256, // number of pids per flow
 
-	/** Timeout boundaries */
-	$initTo 1000, // 1 second
-	$minTo   400, // 0.4 seconds (if the value is too low, might result in routing loops due to unintentional replay attack)
-	$maxTo 60000, // 1 minute
+	/** Timeout boundaries (in s) */
+	$initTo 0.3,
+	$minTo  0.1, // if the value is too low, might result in routing loops due to unintentional replay attack
+	$maxTo  0.3,
 
 	/** Rate limit boundaries (in PKTs/sec) */
 	$ratelimitEnable false,
@@ -58,15 +56,21 @@ define(
 	$fullFlowAuth false,
 	$forceNonce   false,
 	$replayProtect true,
-	$copyEstimators true,
+	$copyEstimators false,
+	$useFirstAck false, /* give preference to first ACK */
+	$tiebreakerRtt true, /* tie breaks based on RTT instead of randomly */
+	$unicastThreshold 0.99, /* start to always unicast from this threshold */
+	$rawReliabilityForBroadcast true, /* use 'raw' neighbor reliability for broadcast decision */
 
-	$broadcastJitter 1000, // jitter in microseconds to avoid collisions for broadcast traffic, only relevant when running under ns-3
+	/* jitter in microseconds to avoid collisions due to perfect synchronization and model processing delay */
+	$jitterMin 100,
+	$jitterMax 150,
 
 	$headroom 224, // Castor header + IP header + Ethernet header
 
 	/** Attacks */
-	$replayInterval 1000, // in ms
-	$replayJitter    300, // in ms
-	$replayCount       5, // how often a PKT-ACK pair will be replayed
+	$replayInterval  200, // in ms
+	$replayJitter      0, // in ms
+	$replayCount      10, // how often a PKT-ACK pair will be replayed
 	$replayRateMax    10, // how many PKT-ACK pairs will be emitted per s
 );

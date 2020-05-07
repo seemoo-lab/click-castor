@@ -45,7 +45,10 @@ void ReplayStore::add_ack(const Hash& id, Packet* p) {
 	if (!enable) {
 		p->kill();
 	} if (table.count(id) > 0) {
-		table[id]->ack = p;
+		ReplayTimer* timer = table[id];
+		timer->ack = p;
+		/* now we have a complete pair, start injecting */
+		timer->schedule_after_msec(timer->interval());
 	}
 }
 
@@ -55,17 +58,13 @@ void ReplayStore::run_timer(Timer* _timer) {
 
 	ReplayTimer* timer = reinterpret_cast<ReplayTimer*>(_timer);
 
-	if (timer->ack != NULL) {
-		output(0).push(timer->pkt->clone());
-		output(1).push(timer->ack->clone());
-		timer->replays_left--;
-	}
+	output(0).push(timer->pkt->clone());
+	output(1).push(timer->ack->clone());
+	timer->replays_left--;
 
 	if (timer->replays_left > 0) {
 		timer->reschedule_after_msec(timer->interval());
 	} else {
-		timer->pkt->kill();
-		timer->ack->kill();
 		table.erase(timer->id);
 		delete timer;
 	}
@@ -84,8 +83,14 @@ int ReplayStore::write_handler(const String &str, Element *e, void *, ErrorHandl
 	return 0;
 }
 
+int ReplayStore::write_clear_handler(const String &str, Element *e, void *, ErrorHandler *errh) {
+    ReplayStore* store = (ReplayStore*) e;
+	store->table.clear();
+}
+
 void ReplayStore::add_handlers() {
 	add_write_handler("enable", write_handler, 0);
+	add_write_handler("clear", write_clear_handler, 0);
 }
 
 CLICK_ENDDECLS

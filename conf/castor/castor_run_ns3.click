@@ -35,24 +35,19 @@ rt :: StaticIPLookup(0.0.0.0/0 0);
 Idle() -> rt -> Discard;
 
 /**
- * Delays MAC layer broadcast frames by a random jitter. Due to perfect synchronization among the nodes
- * we otherwise get collisions.
+ * Delays frames by a random jitter. Due to perfect synchronization among the nodes
+ * we otherwise get collisions. Also accounts for processing delay
  */
-elementclass BroadcastJitter {
-	$broadcastJitter |
+elementclass ProcessingJitter {
+	$jitterMin, $jitterMax |
 
 	input
-		-> cp :: CheckPaint(10, ANNO 38) // this frame was broadcasted -> jitter transmission (Paint(10))
 		-> Queue
-		-> JitterUnqueue($broadcastJitter, true) // 'true' set for simulator -> much better performance
+		-> JitterUnqueue($jitterMin, $jitterMax, true) // 'true' set for simulator -> much better performance
 		-> output;
-
-	cp[1]
-		-> output; // this frame was not broadcasted -> no need to delay (Paint(0))
 }
 
 require(
-	library castor_socket.click,
 	library castor_init_blocks.click,
 	library castor_wiring.click,
 );

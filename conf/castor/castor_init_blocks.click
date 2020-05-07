@@ -37,7 +37,6 @@ routingtable :: CastorRoutingTable($updateDelta, TIMEOUT $rtTimeout, CLEAN $rtCl
 timeouttable :: CastorTimeoutTable(INIT $initTo, MIN $minTo, MAX $maxTo);
 ratelimits :: CastorRateLimitTable(INIT $initRate, MIN $minRate, MAX $maxRate);
 continuousflow :: CastorContinuousFlowMap();
-debug_handler :: CastorDebugHandler(flowmanager);
 
 castorclassifier :: CastorClassifier(fake, neighbors)
 ratelimiter :: CastorRateLimiter($ratelimitEnable, ratelimits, $bucketSize);
@@ -50,7 +49,7 @@ fromhostdev -> fromhost :: FromHost(fake);
 tohost :: ToHost() -> tohostdev;
 
 // How to choose next hop
-routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, continuousflow, $broadcastAdjust);
+routeselector :: CastorRouteSelectorOriginal(routingtable, neighbors, continuousflow, timeouttable, $broadcastAdjust, $tiebreakerRtt, $unicastThreshold, $rawReliabilityForBroadcast);
 
 // How to handle PKTs and ACKs
 handlepkt :: CastorHandlePkt(fake, routeselector, routingtable, flowtable, timeouttable, ratelimits, history, crypto);

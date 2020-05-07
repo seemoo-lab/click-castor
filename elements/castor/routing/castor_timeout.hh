@@ -36,7 +36,7 @@ public:
 	/**
 	 * Update the timeout object with a new round-trip time sample.
 	 */
-	void update(unsigned int new_rtt);
+	void update(Timestamp new_rtt);
 
 	/**
 	 * Indicates that an ACK was not received within the timeout interval.
@@ -48,26 +48,26 @@ public:
 	/**
 	 * Get the current timeout in milliseconds.
 	 */
-	unsigned int value() const;
+	Timestamp value() const;
+
+	/**
+	 * Get the calculated timeout (without min/max unstrained)
+	 */
+	Timestamp average_rtt() const;
 
 	friend class CastorTimeoutTable;
 private:
-	unsigned int timeout;
-	unsigned int rtt;
-	unsigned int rtt_var;
+	Timestamp timeout;
+	Timestamp rtt;
+	Timestamp rtt_var;
 
-	static unsigned int init_timeout;
-	static unsigned int min_timeout;
-	static unsigned int max_timeout;
+	static Timestamp init_timeout;
+	static Timestamp min_timeout;
+	static Timestamp max_timeout;
 	static double alpha;
 	static double beta;
 
 	void reset_measurements();
-
-	/*
-	 * assures that min_timeout <= new_timeout <= max_timeout
-	 */
-	void set_new_timeout(unsigned int new_timeout);
 };
 
 CLICK_ENDDECLS

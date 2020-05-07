@@ -41,6 +41,7 @@ public:
 	int configure(Vector<String>&, ErrorHandler*);
 
 	CastorTimeout& getTimeout(const FlowId& flow, const NeighborId& forwarder);
+	const CastorTimeout& getTimeoutNoTouch(const FlowId& flow, const NeighborId& forwarder) const;
 
 private:
 	typedef HashTable<NeighborId, CastorTimeout> ForwarderEntry;

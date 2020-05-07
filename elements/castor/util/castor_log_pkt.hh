@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Simon Schmitt
+ * Copyright (c) 2016 Milan Schmittner
  *
  * This file is part of click-castor.
  *
@@ -17,27 +17,62 @@
  * along with click-castor.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CLICK_CASTOR_DEBUG_PRINT_HH
-#define CLICK_CASTOR_DEBUG_PRINT_HH
+#ifndef CLICK_CASTOR_LOG_PKT_HH
+#define CLICK_CASTOR_LOG_PKT_HH
 
 #include <click/element.hh>
+#include <click/timestamp.hh>
+#include <click/list.hh>
+#include <click/straccum.hh>
 #include "../castor.hh"
 
 CLICK_DECLS
 
-class CastorDebugPrint : public Element {
+class CastorLogPkt: public Element {
 public:
-	const char *class_name() const { return "CastorDebugPrint"; }
+	const char *class_name() const { return "CastorLogPkt"; }
 	const char *port_count() const { return PORTS_1_1; }
 	const char *processing() const { return AGNOSTIC; }
 	int configure(Vector<String>&, ErrorHandler*);
+	int initialize(ErrorHandler*);
 
-	Packet* simple_action(Packet *);
+	virtual Packet* simple_action(Packet *);
+	void reset();
+
+	void add_handlers();
+
 private:
-	NodeId myId;
-	String label;
-	bool verbose;
-	bool delay;
+	struct EntryListNode {
+		inline EntryListNode() {}
+		List_member<EntryListNode> node;
+		Timestamp timestamp;
+		NodeId src;
+		NodeId dst;
+		FlowId fid;
+		PacketId pid;
+		uint16_t kpkt;
+		uint32_t size;
+		EtherAddress this_node;
+		EtherAddress next_hop;
+	};
+
+	List<EntryListNode, &EntryListNode::node> entries;
+
+	bool active;
+
+	int read_entries_max;
+
+	static void read_entry(const EntryListNode& e, StringAccum& sa);
+	static String read_handler(Element*, void*);
+
+	struct Statistics {
+		enum {
+			total,
+			entry,
+			entries,
+		};
+	};
+
 };
 
 CLICK_ENDDECLS

@@ -42,8 +42,6 @@ public:
 	Packet* simple_action(Packet *);
 private:
 	bool active;
-
-    static int write_handler(const String &, Element *, void *, ErrorHandler *);
 };
 
 CLICK_ENDDECLS

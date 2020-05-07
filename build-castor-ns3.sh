@@ -20,6 +20,7 @@ echo "Building Click with Castor"
 cd ${CLICK_DIR}
 make distclean
 export CPPFLAGS="-I${INSTALL_DIR}/include"
+export CXXFLAGS="-std=c++11"
 export LDFLAGS="-L${INSTALL_DIR}/lib"
 ./configure --enable-castor --enable-nsclick --disable-userlevel --disable-linuxmodule \
             --disable-app --disable-aqm --disable-analysis --disable-test \

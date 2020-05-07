@@ -34,24 +34,33 @@ int CastorUpdateTimeout::configure(Vector<String>& conf, ErrorHandler* errh) {
 
 Packet* CastorUpdateTimeout::simple_action(Packet* p) {
 	const PacketId& pid = CastorAnno::hash_anno(p);
+	const NeighborId& from = CastorAnno::src_id_anno(p);
 
 	// Calculate new round-trip time sample
 	const Timestamp& time_sent = history->getTimestamp(pid);
 	const Timestamp& time_recv = p->timestamp_anno();
-	assert(time_recv > time_sent);
-	Timestamp diff = time_recv - time_sent;
-	unsigned int new_rtt = diff.sec() * 1000 + diff.msec();
+
+	Timestamp rtt = time_recv - time_sent;
+	if (rtt < 0) {
+		click_chatter("[CastorUpdateTimeout] sent %s, recv %s, diff %s", time_sent.unparse().c_str(), time_recv.unparse().c_str(), rtt.unparse().c_str());
+		assert(false);
+	}
 
 	if (verbose)
-		click_chatter("[CastorUpdateTimeout] new RTT for pid %s: %u usec", pid.str().c_str(), diff.sec() * 1000000 + diff.usec());
+		click_chatter("[CastorUpdateTimeout] new RTT for pid %s: %s", pid.str().c_str(), rtt.unparse().c_str());
 
 	// Get flow's timeout object
 	const FlowId& fid = history->getFlowId(pid);
-	NeighborId routedTo = history->routedTo(pid);
-	CastorTimeout& timeout = table->getTimeout(fid, routedTo);
-
+	CastorTimeout& timeout = table->getTimeout(fid, from);
 	// Update timeout
-	timeout.update(new_rtt);
+	timeout.update(rtt);
+
+	/* Also update broadcast */
+	NeighborId routedTo = history->routedTo(pid);
+	if (routedTo != from) {
+		timeout = table->getTimeout(fid, routedTo);
+		timeout.update(rtt);
+	}
 
 	return p;
 }

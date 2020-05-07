@@ -40,8 +40,6 @@ Packet* CastorCreateAck::simple_action(Packet* p) {
 	ack.len = htons(sizeof(CastorAck));
 	ack.fid  = pkt.fid;
 	ack.auth = flowtable->get(pkt.fid).aauths[ntohs(pkt.kpkt)];
-	ack.unset_dbg();
-	ack.unset_insp();
 
 	WritablePacket* q = Packet::make(&ack, sizeof(CastorAck));
 	CastorAnno::dst_id_anno(q) = CastorAnno::src_id_anno(p); // Set DST_ANNO to source of PKT

@@ -32,6 +32,8 @@ public:
 
     inline NeighborId(const uninitialized_type &unused) : EtherAddress(unused) { }
 
+	inline NeighborId(EtherAddress ea) : EtherAddress(ea.data()) { }
+
 	static NeighborId make_broadcast() {
 		return static_cast<NeighborId>(EtherAddress::make_broadcast());
 	}
@@ -49,9 +51,6 @@ public:
     inline bool empty() {
     	return (uint32_t) sdata()[0] + sdata()[1] + sdata()[2] == (uint32_t) 0;
     }
-
-private:
-    inline NeighborId(EtherAddress ea) : EtherAddress(ea.data()) { }
 } CLICK_SIZE_PACKED_ATTRIBUTE;
 
 class ArgContext;

@@ -31,6 +31,7 @@ int CastorUpdateEstimates::configure(Vector<String> &conf, ErrorHandler *errh) {
 			.read_mp("CONTINUOUS_FLOW", ElementCastArg("CastorContinuousFlowMap"), continuous_flow)
 			.read_mp("HISTORY", ElementCastArg("CastorHistory"), history)
 			.read_or_set_p("COPY_ESTIMATORS", enableCopyEstimators, true)
+			.read_or_set_p("FIRST_ACK", useFirstAck, true)
 			.complete();
 }
 
@@ -45,7 +46,7 @@ Packet* CastorUpdateEstimates::simple_action(Packet *p) {
 		continuous_flow->update(fid, history->getSource(pid), history->getDestination(pid));
 
 	CastorEstimator& estimator = table->at(fid)[from];
-	if (routedTo == from || isFirstAck)
+	if (!useFirstAck || routedTo == from || isFirstAck)
 		estimator.increaseFirst();
 	estimator.increaseAll();
 

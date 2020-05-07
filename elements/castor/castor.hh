@@ -65,31 +65,13 @@ public:
 	uint8_t 	type;    // = MERKLE_PKT
 	uint8_t 	hsize;   // size of the hash values in this header
 	uint16_t 	len;     // total length of the PKT (incl. payload)
-private:
 	uint8_t		flags;
 public:
 	// first PKT(s) of flow
 	// 'syn' is set until the first ACK for the flow is received
-	inline bool syn() const { return (flags >> 7) & 1; }
-	inline void set_syn() { flags |= 1 << 7; }
-	inline void unset_syn() { flags &= ~(1 << 7); }
-	// All debug packets contain this flag, for identification reasons
-	inline bool dbg() const { return (flags >> 6) & 1; }
-	inline void set_dbg() { flags |= 1 << 6; }
-	inline void unset_dbg() { flags &= ~(1 << 6); }
-	// All nodes receiving PKT with this flag, return an ACK immediately
-	inline bool aret() const { return (flags >> 5) & 1; }
-	inline void set_aret() { flags |= 1 << 5; }
-	inline void unset_aret() { flags &= ~(1 << 5); }
-	// Tells a node to mark the ACK with the same flag. On the other hand a node
-	// receiving such an ACK, append their MAC address before forwarding it
-	inline bool insp() const { return (flags >> 4) & 1; }
-	inline void set_insp() { flags |= 1 << 4; }
-	inline void unset_insp() { flags &= ~(1 << 4); }
-	// TTL is a counter that is decremented at each node.
-	inline uint8_t ttl() const { return flags & 0x0f; }
-	inline void set_ttl(uint8_t t) { flags = (flags & 0xf0) | (t & 0x0f); }
-
+	inline bool syn() const { return flags & 0x01; }
+	inline void set_syn() { flags |= 0x01; }
+	inline void unset_syn() { flags &= ~0x01; }
 #ifdef DEBUG_HOPCOUNT
 	// hopcount
 	inline uint8_t hopcount() const { return flags & 0x0f; }
@@ -126,12 +108,7 @@ public:
 	inline unsigned int payload_len() const {
 		return (unsigned int) ntohs(len) - header_len();
 	}
-};
-
-struct PathElem {
-	NodeId ip;
-	NeighborId mac;
-};
+} CLICK_SIZE_PACKED_ATTRIBUTE;
 
 /**
  * The Castor acknowledgment packet (ACK)
@@ -147,43 +124,7 @@ public:
 #endif
 	FlowId		fid;
 	AckAuth 	auth;
-
-private:
-	uint8_t		flags;
-public:
-	// All debug packets contain this flag, for identification reasons
-	inline bool dbg() const { return (flags >> 7) & 1; }
-	inline void set_dbg() { flags |= 1 << 7; }
-	inline void unset_dbg() { flags &= ~(1 << 7); }
-
-	// Tells a node to mark the ACK with the same flag. On the other hand a node
-	// receiving such an ACK, append their MAC address before forwarding it
-	inline bool insp() const { return (flags >> 6) & 1; }
-	inline void set_insp() { flags |= 1 << 6; }
-	inline void unset_insp() { flags &= ~(1 << 6); }
-
-	// If the INSP flag is set, all forwarding nodes insert their ip and mac
-	// in PathElem.
-	uint8_t path_len = 0;
-	inline PathElem* path() { return reinterpret_cast<PathElem*>((uint8_t*) this + sizeof(*this)); }
-	inline const PathElem* path() const { return reinterpret_cast<const PathElem*>((uint8_t*) this + sizeof(*this)); }
-
-	inline void add_to_path(NeighborId mac, NodeId ip) {
-		click_chatter("path_len= %d, mac = %s, ip = %s", path_len, mac.unparse().c_str(), ip.unparse().c_str());
-		PathElem path_elem;
-		path_elem.ip = ip;
-		path_elem.mac = mac;
-
-
-		PathElem* ptr_path_elem = path();
-		ptr_path_elem[path_len] = path_elem;
-		path_len++;
-
-		for(int i=0; i < path_len; i++)
-			click_chatter("neighbor%d mac = %s, ip = %s", i, ptr_path_elem[i].mac.unparse().c_str(), ptr_path_elem[i].ip.unparse().c_str());
-
-	}
-};
+} CLICK_SIZE_PACKED_ATTRIBUTE;
 
 /**
  * Utility class to handle packet types and annotations

@@ -1,10 +1,13 @@
-# SEMUD communication protocol
-This repository contains an implementation of **SEMUD**'s communication protocol for the [Click Modular Router](http://www.read.cs.ucla.edu/click/).
-The end-to-end communication protocol runs on layer 2, is based on *Castor* (hence the original project name), and features advanced security properties such as resilience against advanced attacks, such as blackhole, greyhole, wormhole, and replay attacks.
+# LIDOR: A Lightweight DoS-Resilient Communication Protocol for Safety-Critical IoT Systems
 
-**Discalimer:** *This is highly experimental code and is expected to break. Feel free to [contact me](mailto:mschmittner@seemoo.tu-darmstadt.de) if you encounter problems.*
+This repository contains an implementation of **LIDOR**'s communication protocol for the [Click Modular Router](http://www.read.cs.ucla.edu/click/).
+The end-to-end communication protocol runs on layer 2, is based on *Castor* (hence the project name), and features advanced security properties such as resilience against advanced attacks, such as blackhole, greyhole, wormhole, and replay attacks.
+
+**Discalimer:** *This is highly experimental code and is expected to break.*
+
 
 ## Table of Contents
+
 * [Code Naviation](#code-navigation)
 * [Install](#install)
     * [General](#general)
@@ -17,7 +20,9 @@ The end-to-end communication protocol runs on layer 2, is based on *Castor* (hen
 * [License](#license)
 * [Related Publications](#related-publications)
 
+
 ## Code Navigation
+
 This section gives a rough overview where relevant code is located.
 * `conf/castor/`: Click script files.
     * `castor_settings.click`: Castor-specific parameters etc.
@@ -33,6 +38,7 @@ This section gives a rough overview where relevant code is located.
     * `routing/`: main code base: routing logic
     * `util/`: utility Elements
 * `apps/castor/`: applications that allow interaction with specific `click-castor` elements.
+
 
 ## Install
 
@@ -81,42 +87,72 @@ Alternatively, you can run a benchmark configuration which does not require any 
 userlevel/click conf/castor/castor_run_benchmark.click
 ```
 
+### Run Click on Android
+
+After building, push all relevant files to your Android device:
+
+```
+adb push <click, *.click, libsodium.so> /remote/dir
+```
+
+Before starting Click, make sure that `tun` devices and `iptables` are in the correct paths.
+
+```
+su -c 'umask 000;mount -o rw,remount -t rootfs /;rm -f /dev/net/tun;mkdir -p /dev/net/;ln -s /dev/tun /dev/net/tun;rm -f /sbin/ifconfig;ln -s /system/bin/ifconfig /sbin/ifconfig;rm -f /sbin/iptables;ln -s /system/bin/iptables /sbin/iptables;'
+```
+
+Install `iptables` rule to drop all traffic from the physical device (e.g., wlan0) to the host. 
+Make sure, that the rule is not duplicated (first run with '-C', then '-A')
+```
+su -c 'iptables -C INPUT -i <DEV> -s <ADDR>/<NETMASK> -j DROP || iptables -A INPUT -i <DEV> -s <ADDR>/<NETMASK> -j DROP'
+```
+
+Finally, start click (remember to indicate the path to `libsodium.so`)
+
+```
+LD_LIBRARY_PATH="/path/to/libsodium-dir/" ./click castor_run_userlevel.click
+```
+
 ### Interaction at Runtime
+
 Click's `Element` handlers can be accessed using a [ControlSocket Element](http://read.cs.ucla.edu/click/elements/controlsocket).
-By default, Castor starts with two sockets opened (see `conf/castor/castor_socket.click).
-- Unix socket under `/tmp/click-castor.sock`, and
+By default, Castor starts with one socket opened (see `conf/castor/castor_socket.click`).
 - TCP socket at port 7777.
 
 After connecting with the socket, one can read data from the Element Handlers using a line-based protocol described [here](http://read.cs.ucla.edu/click/elements/controlsocket).
 For example, one could read the list of neighbouring nodes by sending the command `READ neighbors.print` to the socket, which would lead to an answer of `200 OK\r\nDATA N\r\nx_1x_2x_n` where `N` denotes the length of the returned data and `x_1` to `x_n` are the data symbols.
 
-### Tools
-Castor provides a number of tools for interaction (see `apps/castor/`). To build them, run
+Castor provides command line tools for interaction (see `apps/castor/`). To build them, run
 ```bash
 cd apps/castor
 make
 ```
 * **status** Queries the neighbor and routing tables.
-* **ping** Perform a classic `ping` using Castor packets. *Debug packets do not tamper with current routing state*.
-* **traceroute** Trace packets through the network. Can be used to find all currently available paths to the destination. *Debug packets do not tamper with current routing state*.
+
 
 ## Contributors
-* **Milan Schmittner** ([email](mailto:mschmittner@seemoo.tu-darmstadt.de), [web](https://seemoo.de/mschmittner), *maintainer*)
+
+* **Milan Stute** ([email](mailto:mstute@seemoo.tu-darmstadt.de), [web](https://seemoo.de/mstute), *maintainer*)
 * Daniel Steinmetzer (early version of the original *Castor* implementation)
 * Michael Koch (port to *Android*)
-* Simon Schmitt (`ping` and `traceroute` tools)
+
+
+## Publications
+
+Feel free to browse our academic publications. If our project helps you to produce a publication which includes a bibliography, we appreciate it if you cite the relevant paper.
+
+* M. Stute, P. Agarwal, A. Kumar, A. Asadi, and M. Hollick. “**LIDOR: A Lightweight DoS-Resilient Communication Protocol for Safety-Critical IoT Systems**,” *IEEE Internet of Things Journal (IoT-J)*, April 2020. [doi:10.1109/JIOT.2020.2985044](https://doi.org/10.1109/JIOT.2020.2985044)
+* M. Stute, “**Availability by Design: Practical Denial-of-Service-Resilient Distributed Wireless Networks**,” *Dissertation*, Technische Universität Darmstadt, Februrary 2020. ([PDF](https://tuprints.ulb.tu-darmstadt.de/11457/))
+* M. Schmittner, A. Asadi, and M. Hollick, “**SEMUD: Secure Multi-hop Device-to-Device Communication for 5G Public Safety Networks**,” in *IFIP Networking Conference (NETWORKING)*, June 2017. ([PDF](http://dl.ifip.org/db/conf/networking/networking2017/1570334533.pdf))
+* M. Schmittner and M. Hollick, “**Xcastor: Secure and Scalable Group Communication in Ad Hoc Networks**,” in *IEEE Symposium on a World of Wireless, Mobile and Multimedia Networks (WoWMoM)*, June 2016.
+* M. Schmittner, “**Secure and Scalable Multicast in Mobile Ad-hoc Networks**,” *Master thesis*, Technische Universität Darmstadt, September 2014. ([PDF](https://tuprints.ulb.tu-darmstadt.de/6607/))
+
+Our work is directly based on the papers listed below.
+
+* W. Galuba, P. Papadimitratos, M. Poturalski, K. Aberer, Z. Despotovic, and W. Kellerer, “**Castor: Scalable Secure Routing for Ad Hoc Networks**,” in *Proceedings of the IEEE Conference on Computer Communications (INFOCOM)*, March 2010. ([PDF](https://infoscience.epfl.ch/record/148217/files/castor.pdf))
+* E. Kohler, R. Morris, B. Chen, J. Jannotti, and M. F. Kaashoek, “**The Click Modular Router**,” *ACM Transactions on Computer Systems*, vol. 18, no. 3, pp. 263–297, August 2000. ([PDF](https://pdos.csail.mit.edu/papers/click:tocs00/paper.pdf), [web](http://read.cs.ucla.edu/click/click))
+
 
 ## License
 * `click-castor` is released under the [GNU General Public License (GPL) version 3](http://www.gnu.org/licenses/).
 * The Click framework has its own license (partly MIT and GPLv2), see the `README` file for details.
-
-## Publications
-
-### Main paper (please cite if you use this code)
-* M. Schmittner, A. Asadi, and M. Hollick, “**SEMUD: Secure Multi-hop Device-to-Device Communication for 5G Public Safety Networks**,” in *IFIP Networking Conference (NETWORKING)*, June 2017. ([PDF](http://dl.ifip.org/db/conf/networking/networking2017/1570334533.pdf))
-
-### Further related publication
-* M. Schmittner and M. Hollick, “**Xcastor: Secure and Scalable Group Communication in Ad Hoc Networks**,” in *IEEE Symposium on a World of Wireless, Mobile and Multimedia Networks (WoWMoM)*, June 2016. ([PDF](https://www.informatik.tu-darmstadt.de/fileadmin/user_upload/Group_SEEMOO/milan_schmittner/xcastor-wowmom16.pdf))
-* M. Schmittner, “**Secure and Scalable Multicast in Mobile Ad-hoc Networks**,” *Master thesis*, Technische Universität Darmstadt, September 2014. ([PDF](http://tuprints.ulb.tu-darmstadt.de/6607/))
-* W. Galuba, P. Papadimitratos, M. Poturalski, K. Aberer, Z. Despotovic, and W. Kellerer, “**Castor: Scalable Secure Routing for Ad Hoc Networks**,” in *Proceedings of the IEEE Conference on Computer Communications (INFOCOM)*, March 2010. ([PDF](https://infoscience.epfl.ch/record/148217/files/castor.pdf))
-* E. Kohler, R. Morris, B. Chen, J. Jannotti, and M. F. Kaashoek, “**The Click Modular Router**,” *ACM Transactions on Computer Systems*, vol. 18, no. 3, pp. 263–297, August 2000. ([PDF](https://pdos.csail.mit.edu/papers/click:tocs00/paper.pdf), [web](http://read.cs.ucla.edu/click/click))

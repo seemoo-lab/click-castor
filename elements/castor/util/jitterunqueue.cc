@@ -29,12 +29,14 @@
 CLICK_DECLS
 
 int JitterUnqueue::configure(Vector<String> &conf, ErrorHandler *errh) {
-	uint32_t jitter_usec = 0;
+	uint32_t jitter_min_usec = 0, jitter_max_usec = 0;
 	int result = Args(conf, this, errh)
-			.read_mp("JITTER", jitter_usec)
+			.read_mp("JITTER_MIN", jitter_min_usec)
+			.read_mp("JITTER_MAX", jitter_max_usec)
 			.read_mp("SIMTIME", simulatorTime)
 			.complete();
-	jitter = Timestamp::make_usec(jitter_usec);
+	jitter_min = Timestamp::make_usec(jitter_min_usec);
+	jitter_max = Timestamp::make_usec(jitter_max_usec);
 	return result < 0 ? -1 : 0;
 }
 
@@ -60,7 +62,7 @@ bool JitterUnqueue::run_task(Task *) {
 			p->timestamp_anno().assign_now_steady();
 
 		// generate random jitter
-		unsigned int randVal = (double) click_random() / CLICK_RAND_MAX * jitter.usec();
+		unsigned int randVal = jitter_min.usec() + (double) click_random() / CLICK_RAND_MAX * (jitter_max.usec() - jitter_min.usec());
 		p->timestamp_anno() += Timestamp::make_usec(randVal);
 	}
 
@@ -100,7 +102,8 @@ bool JitterUnqueue::run_task(Task *) {
 }
 
 void JitterUnqueue::add_handlers() {
-	add_data_handlers("jitter", Handler::OP_READ | Handler::OP_WRITE, &jitter, true);
+	add_data_handlers("jitter_min", Handler::OP_READ | Handler::OP_WRITE, &jitter_min, true);
+	add_data_handlers("jitter_max", Handler::OP_READ | Handler::OP_WRITE, &jitter_max, true);
 	add_task_handlers(&task);
 }
 

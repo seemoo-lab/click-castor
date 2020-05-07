@@ -21,21 +21,23 @@
 define(
 	$EthDev wlan0,
 	$HostDev tun0,
+	$WormholeDev eth0,
 );
 
 AddressInfo(fake $EthDev);
 
-tun :: KernelTun(fake:ip/16, HEADROOM $headroom, DEVNAME $HostDev);
+tun :: KernelTun(fake:ip/16, HEADROOM $headroom, DEVNAME $HostDev, MTU 500);
 tun -> fromhostdev :: { input -> output };
 tohostdev :: { input -> output; } -> tun;
-fromextdev :: FromDevice($EthDev, SNAPLEN 4096, PROMISC true, SNIFFER false)
-toextdev :: ToDevice($EthDev);
+fromextdev :: { FromDevice($EthDev, SNAPLEN 4096, PROMISC true, SNIFFER false) -> output;
+                FromDevice($WormholeDev, SNAPLEN 4096, PROMISC true, SNIFFER true) -> wormhole :: Suppressor(active0 false) -> output; }
+toextdev :: { input -> ToDevice($EthDev) -> wormhole :: Suppressor(active0 false) -> Queue() -> ToDevice($WormholeDev); }
 
 /**
  * Dummy class, does nothing as we do not need artificial jitter on 'real' devices
  */
-elementclass BroadcastJitter {
-	$broadcastJitter |
+elementclass ProcessingJitter {
+	$jitterMin, $jitterMax |
 
 	input -> output;
 }

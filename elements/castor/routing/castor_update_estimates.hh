@@ -40,6 +40,7 @@ private:
 	CastorContinuousFlowMap* continuous_flow;
 	CastorHistory* history;
 	bool enableCopyEstimators;
+	bool useFirstAck;
 };
 
 CLICK_ENDDECLS

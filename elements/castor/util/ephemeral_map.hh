@@ -49,6 +49,7 @@ public:
 
 	V& at(const K &key) { return at_or_default(key, default_value); };
 	V& at_or_default(const K &, const V &);
+	const V& at_notouch(const K &key) const;
 	HashTable<K, ListNode *> map() { return _map; }
 	void insert(const K &key, const V &value) { (void) at_or_default(key, value); }
 	size_type count(const K &key) const { return _map.count(key); }
@@ -95,6 +96,17 @@ V& ephemeral_map<K,V>::at_or_default(const K &key, const V &init) {
 		}
 	}
 	return node->value;
+}
+
+template<typename K, typename V>
+const V& ephemeral_map<K,V>::at_notouch(const K &key) const {
+	ListNode * const *node_ptr = _map.get_pointer(key);
+	if (node_ptr == NULL) {
+		return default_value;
+	} else {
+		return (*node_ptr)->value;
+	}
+
 }
 
 template<typename K, typename V>

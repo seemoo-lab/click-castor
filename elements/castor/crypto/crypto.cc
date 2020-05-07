@@ -83,5 +83,5 @@ void Crypto::auth(Buffer<crypto_shorthash_BYTES>& out, const uint8_t* in, unsign
 CLICK_ENDDECLS
 
 ELEMENT_LIBS(-lsodium)
-ELEMENT_REQUIRES(userlevel)
+ELEMENT_REQUIRES(userlevel|ns)
 EXPORT_ELEMENT(Crypto)

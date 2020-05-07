@@ -67,7 +67,7 @@ bool CastorFlowEntry::is_expired_pkt(unsigned int k) const {
 }
 
 bool CastorFlowEntry::has_ack(unsigned int k, const NeighborId& from) const {
-	return neighbor_acks.count(from) == 0
+	return neighbor_acks.count(from) > 0
 	       && valid_index(k)
 	       && neighbor_acks[from][k];
 }

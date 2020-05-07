@@ -31,6 +31,12 @@ public:
 	double getEstimate() const {
 		return (all.get() + first.get()) / 2;
 	}
+	double getEstimateAll() const {
+		return all.get();
+	}
+	double getEstimateFirst() const {
+		return first.get();
+	}
 	void increaseFirst() {
 		first.increase();
 	}
